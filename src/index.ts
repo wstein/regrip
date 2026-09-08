@@ -16,7 +16,7 @@ import * as GyroOrientation from './GyroOrientation.res.mjs';
 import * as infoPanel from './infoPanel';
 import { twistyPlayer } from './twistyPlayer';
 import { startSceneRenderLoop } from './sceneView';
-import { connectCube, disconnectCube as closeCube, requestInitialState } from './connection';
+import { connectCube, disconnectConnection, requestInitialState } from './connection';
 import { createTimerController } from './timerController';
 import { formatCapabilities, formatCubieState, formatOfflineStats } from './cubeInfo';
 
@@ -143,7 +143,7 @@ async function disconnectCube() {
   eventsSub = null;
   const c = conn;
   conn = null;
-  await closeCube(c);
+  await disconnectConnection(c);
   cubeStateInitialized = false;
   GyroOrientation.resetBasis(gyro);
   timerController.reset();
@@ -176,7 +176,7 @@ infoPanel.on('connect', 'click', async () => {
   } catch (error) {
     eventsSub?.unsubscribe();
     eventsSub = null;
-    await closeCube(connection ?? null);
+    await disconnectConnection(connection ?? null);
     conn = null;
     console.error('Unable to connect to smart cube', error);
     const message = error instanceof Error ? error.message : String(error);
