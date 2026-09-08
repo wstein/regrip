@@ -70,7 +70,10 @@ const cubeEvents = createCubeEventController({
   stabilizer,
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
-  addMove: move => twistyPlayer.experimentalAddMove(move, { cancel: false }),
+  addMove: move => {
+    twistyPlayer.experimentalAddMove(move, { cancel: false });
+    infoPanel.appendDetectedMove(move);
+  },
   setOrientation: quaternion => cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
   setPlayerAlgorithm: algorithm => { twistyPlayer.alg = algorithm; },
   setInfo: infoPanel.setInfo,

@@ -60,6 +60,12 @@ export function setLogRecording(recording: boolean): void {
   button('stop-log').disabled = !recording;
 }
 
+/** Append a detected move while leaving the field editable for correction/copying. */
+export function appendDetectedMove(move: string): void {
+  const moves = input('detectedMoves');
+  moves.value = moves.value ? `${moves.value} ${move}` : move;
+}
+
 export function clearInfo(): void {
   document.querySelectorAll<HTMLInputElement>('.info input').forEach(element => {
     element.value = notAvailable;
@@ -70,6 +76,7 @@ export function clearInfo(): void {
     if (!label) throw new Error(`Missing label for #${id}`);
     label.hidden = true;
   });
+  input('detectedMoves').value = '';
 }
 
 export function mountCube(element: Node): void {
