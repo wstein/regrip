@@ -3,13 +3,13 @@ open Vitest
 let step = Timer.step
 
 describe("Timer.step - Activate (SPACE / touch)", () => {
-  test("Idle + connected -> Ready, shows a zeroed green timer", t => {
+  test("Idle + connected -> Ready, shows a zeroed timer in the ready phase", t => {
     let (s, effects) = step(Idle, Activate, ~connected=true)
     t->expect(s)->Expect.toEqual(Timer.Ready)
     t->expect(effects)->Expect.toEqual([
-      Timer.SetValueMs(0.),
+      Timer.SetValueMs({ms: 0.}),
       Timer.ShowTimer,
-      Timer.SetColor("#0f0"),
+      Timer.SetPhase({phase: Timer.Phase.Ready}),
     ])
   })
 
@@ -43,7 +43,7 @@ describe("Timer.step - solve lifecycle", () => {
     t->expect(effects)->Expect.toEqual([
       Timer.ClearSolutionMoves,
       Timer.StartLocalTimer,
-      Timer.SetColor("#999"),
+      Timer.SetPhase({phase: Timer.Phase.Running}),
     ])
   })
 
@@ -52,7 +52,7 @@ describe("Timer.step - solve lifecycle", () => {
     t->expect(s)->Expect.toEqual(Timer.Stopped)
     t->expect(effects)->Expect.toEqual([
       Timer.StopLocalTimer,
-      Timer.SetColor("#fff"),
+      Timer.SetPhase({phase: Timer.Phase.Stopped}),
       Timer.ShowFinalTime,
     ])
   })
@@ -86,5 +86,37 @@ describe("Timer.step - Disconnected resets from any state", () => {
   test("Idle -> Idle", t => {
     let (s, _) = step(Idle, Disconnected, ~connected=false)
     t->expect(s)->Expect.toEqual(Timer.Idle)
+  })
+})
+
+describe("Timer.step - full solve sequence", () => {
+  test("threads Idle -> Ready -> Running -> Stopped -> Idle with the expected effect log", t => {
+    let log = ref([])
+    let state = ref(Timer.Idle)
+    let feed = input => {
+      let (next, effects) = step(state.contents, input, ~connected=true)
+      state := next
+      log := Array.concat(log.contents, effects)
+    }
+    feed(Activate) // -> Ready
+    feed(MoveDetected) // -> Running
+    feed(MoveDetected) // ignored while Running
+    feed(Solved) // -> Stopped
+    feed(Activate) // -> Idle
+
+    t->expect(state.contents)->Expect.toEqual(Timer.Idle)
+    t->expect(log.contents)->Expect.toEqual([
+      Timer.SetValueMs({ms: 0.}),
+      Timer.ShowTimer,
+      Timer.SetPhase({phase: Timer.Phase.Ready}),
+      Timer.ClearSolutionMoves,
+      Timer.StartLocalTimer,
+      Timer.SetPhase({phase: Timer.Phase.Running}),
+      Timer.StopLocalTimer,
+      Timer.SetPhase({phase: Timer.Phase.Stopped}),
+      Timer.ShowFinalTime,
+      Timer.StopLocalTimer,
+      Timer.HideTimer,
+    ])
   })
 })

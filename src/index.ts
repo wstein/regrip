@@ -79,10 +79,10 @@ async function handleGyroEvent(event: SmartCubeEvent) {
 
 async function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
-    dispatchTimer("MoveDetected");
+    dispatchTimer("moveDetected");
     twistyPlayer.experimentalAddMove(event.move, { cancel: false });
     MoveBuffer.pushRecent(moves, event);
-    if (timerState == "Running") {
+    if (timerState == "running") {
       MoveBuffer.pushSolution(moves, event);
     }
     if (MoveBuffer.recentReady(moves)) {
@@ -132,7 +132,7 @@ function handleCubeEvent(event: SmartCubeEvent) {
     cubeStateInitialized = false;
     MoveBuffer.reset(moves);
     GyroOrientation.resetBasis(gyro);
-    dispatchTimer("Disconnected");
+    dispatchTimer("disconnected");
     twistyPlayer.alg = '';
     $('.info input').val('- n/a -');
     $('#connect').html('Connect');
@@ -189,7 +189,13 @@ $('#connect').on('click', async () => {
   }
 });
 
-var timerState: Timer.State = "Idle";
+let timerState: Timer.State = "idle";
+
+const PHASE_COLOR: Record<Timer.Phase["kind"], string> = {
+  ready: "#0f0",
+  running: "#999",
+  stopped: "#fff",
+};
 
 // Feed an input to the Timer state machine and apply the effects it returns.
 function dispatchTimer(input: Timer.Input) {
@@ -201,22 +207,21 @@ function dispatchTimer(input: Timer.Input) {
 function applyTimerEffect(effect: Timer.Effect) {
   if (typeof effect == "string") {
     switch (effect) {
-      case "ShowTimer": $('#timer').show(); break;
-      case "HideTimer": $('#timer').hide(); break;
-      case "StartLocalTimer": startLocalTimer(); break;
-      case "StopLocalTimer": stopLocalTimer(); break;
-      case "ClearSolutionMoves": MoveBuffer.clearSolution(moves); break;
-      case "ShowFinalTime": {
-        var fittedMoves = cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
-        var lastMove = fittedMoves.slice(-1).pop();
-        setTimerValue(lastMove ? lastMove.cubeTimestamp! : 0);
+      case "showTimer": $('#timer').show(); break;
+      case "hideTimer": $('#timer').hide(); break;
+      case "startLocalTimer": startLocalTimer(); break;
+      case "stopLocalTimer": stopLocalTimer(); break;
+      case "clearSolutionMoves": MoveBuffer.clearSolution(moves); break;
+      case "showFinalTime": {
+        const fitted = cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
+        setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
         break;
       }
     }
   } else {
-    switch (effect.TAG) {
-      case "SetColor": $('#timer').css('color', effect._0); break;
-      case "SetValueMs": setTimerValue(effect._0); break;
+    switch (effect.kind) {
+      case "setPhase": $('#timer').css('color', PHASE_COLOR[effect.phase.kind]); break;
+      case "setValueMs": setTimerValue(effect.ms); break;
     }
   }
 }
@@ -224,7 +229,7 @@ function applyTimerEffect(effect: Timer.Effect) {
 twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) => {
   var facelets = patternToFacelets(kpattern);
   if (facelets == SOLVED_STATE) {
-    dispatchTimer("Solved");
+    dispatchTimer("solved");
     twistyPlayer.alg = '';
   }
 });
@@ -249,10 +254,10 @@ function stopLocalTimer() {
 $(document).on('keydown', (event) => {
   if (event.which == 32) {
     event.preventDefault();
-    dispatchTimer("Activate");
+    dispatchTimer("activate");
   }
 });
 
 $("#cube").on('touchstart', () => {
-  dispatchTimer("Activate");
+  dispatchTimer("activate");
 });

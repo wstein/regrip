@@ -3,32 +3,44 @@
 //
 // `step` is pure: it returns the next state plus the side effects the caller
 // (index.ts) must apply to the DOM / local clock / solution buffer.
+//
+// All three variants are `@tag`-normalized with explicit lowercase wire values
+// so the compiled JS shape is stable and the hand-written Timer.res.d.mts stays
+// a plain discriminated union (see that file).
 
+@tag("kind")
 type state =
-  | Idle
-  | Ready
-  | Running
-  | Stopped
+  | @as("idle") Idle
+  | @as("ready") Ready
+  | @as("running") Running
+  | @as("stopped") Stopped
 
+@tag("kind")
 type input =
-  | Activate // SPACE key or touch on the cube
-  | MoveDetected // a cube move arrived
-  | Solved // the rendered pattern reached the solved state
-  | Disconnected // the cube connection dropped
+  | @as("activate") Activate // SPACE key or touch on the cube
+  | @as("moveDetected") MoveDetected // a cube move arrived
+  | @as("solved") Solved // the rendered pattern reached the solved state
+  | @as("disconnected") Disconnected // the cube connection dropped
 
+// Display phase of the running timer; index.ts maps this to a colour.
+module Phase = {
+  @tag("kind")
+  type t =
+    | @as("ready") Ready
+    | @as("running") Running
+    | @as("stopped") Stopped
+}
+
+@tag("kind")
 type effect =
-  | ShowTimer
-  | HideTimer
-  | SetColor(string)
-  | SetValueMs(float)
-  | StartLocalTimer
-  | StopLocalTimer
-  | ClearSolutionMoves
-  | ShowFinalTime // compute the fitted solve time and display it
-
-let colorReady = "#0f0"
-let colorRunning = "#999"
-let colorStopped = "#fff"
+  | @as("showTimer") ShowTimer
+  | @as("hideTimer") HideTimer
+  | @as("startLocalTimer") StartLocalTimer
+  | @as("stopLocalTimer") StopLocalTimer
+  | @as("clearSolutionMoves") ClearSolutionMoves
+  | @as("showFinalTime") ShowFinalTime // compute the fitted solve time and display it
+  | @as("setPhase") SetPhase({phase: Phase.t})
+  | @as("setValueMs") SetValueMs({ms: float})
 
 let idle = (Idle, [StopLocalTimer, HideTimer])
 
@@ -36,10 +48,15 @@ let step = (state: state, input: input, ~connected: bool): (state, array<effect>
   switch (state, input) {
   | (_, Disconnected) => idle
   | (Idle, Activate) =>
-    connected ? (Ready, [SetValueMs(0.), ShowTimer, SetColor(colorReady)]) : idle
+    connected
+      ? (Ready, [SetValueMs({ms: 0.}), ShowTimer, SetPhase({phase: Ready})])
+      : idle
   | (Ready | Running | Stopped, Activate) => idle
-  | (Ready, MoveDetected) => (Running, [ClearSolutionMoves, StartLocalTimer, SetColor(colorRunning)])
-  | (Running, Solved) => (Stopped, [StopLocalTimer, SetColor(colorStopped), ShowFinalTime])
+  | (Ready, MoveDetected) => (
+      Running,
+      [ClearSolutionMoves, StartLocalTimer, SetPhase({phase: Running})],
+    )
+  | (Running, Solved) => (Stopped, [StopLocalTimer, SetPhase({phase: Stopped}), ShowFinalTime])
   | (Idle | Running | Stopped, MoveDetected)
   | (Idle | Ready | Stopped, Solved) => (state, [])
   }
