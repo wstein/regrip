@@ -5,16 +5,17 @@ import type { Subscription } from 'rxjs';
 import * as THREE from 'three';
 import type { SmartCubeConnection } from 'smartcube-web-bluetooth';
 
-import { patternToFacelets } from './utils';
-import * as GyroOrientation from './GyroOrientation.res.mjs';
+import { patternToFacelets } from '../adapters/cubing/utils';
+import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
+import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
+import { startSceneRenderLoop } from '../adapters/three/sceneView';
+import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as infoPanel from './infoPanel';
-import { createCubeEventController } from './cubeEvents';
-import { twistyPlayer } from './twistyPlayer';
-import { startSceneRenderLoop } from './sceneView';
-import { connectCube, disconnectConnection, requestInitialState } from './connection';
-import { createTimerController } from './timerController';
-import { formatCapabilities } from './cubeInfo';
-import { SOLVED_STATE } from './constants';
+import { createCubeEventController } from '../session/cubeEvents';
+import { connectCube, disconnectConnection, requestInitialState } from '../session/connection';
+import { createTimerController } from '../session/timerController';
+import { formatCapabilities } from '../session/cubeInfo';
+import { SOLVED_STATE } from '../session/constants';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
@@ -105,10 +106,14 @@ const timerController = createTimerController({
 });
 
 const cubeEvents = createCubeEventController({
-  cubeQuaternion,
   gyro,
-  player: twistyPlayer,
   timer: timerController,
+  solveScramble: createCubingScrambleSolver(),
+  addMove: move => twistyPlayer.experimentalAddMove(move, { cancel: false }),
+  setOrientation: quaternion => cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+  setPlayerAlgorithm: algorithm => { twistyPlayer.alg = algorithm; },
+  setInfo: infoPanel.setInfo,
+  showInfo: infoPanel.showInfo,
   onDisconnect: () => {
     eventsSub?.unsubscribe();
     eventsSub = null;

@@ -9,9 +9,11 @@ let home = Quaternion.fromEuler({
   z: 0.,
 })
 
-type t = {mutable basis: option<Quaternion.t>}
+type t = {mutable basis: option<Quaternion.t>, home: Quaternion.t}
 
-let make = (): t => {basis: None}
+let makeWithHome = (home: Quaternion.t): t => {basis: None, home}
+
+let make = (): t => makeWithHome(home)
 
 let resetBasis = (t: t): unit => t.basis = None
 
@@ -27,5 +29,5 @@ let update = (t: t, raw: Quaternion.t): Quaternion.t => {
       b
     }
   }
-  q->Quaternion.premultiply(basis)->Quaternion.premultiply(home)
+  q->Quaternion.premultiply(basis)->Quaternion.premultiply(t.home)
 }

@@ -25,6 +25,13 @@ describe("GyroOrientation.update", () => {
     expectClose(t, out, GyroOrientation.home)
   })
 
+  test("a caller can supply a custom resting orientation", t => {
+    let customHome = Quaternion.fromEuler({x: 0., y: 0.5, z: 0.})
+    let g = GyroOrientation.makeWithHome(customHome)
+    let out = g->GyroOrientation.update({x: 0.1, y: 0.2, z: 0.3, w: w1})
+    expectClose(t, out, customHome)
+  })
+
   test("later samples are relative to the captured basis", t => {
     let g = GyroOrientation.make()
     let _ = g->GyroOrientation.update({x: 0.1, y: 0.2, z: 0.3, w: w1})

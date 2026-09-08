@@ -3,9 +3,9 @@ import type { Subscription } from 'rxjs';
 import { now } from 'smartcube-web-bluetooth';
 import type { SmartCubeMoveEvent } from 'smartcube-web-bluetooth';
 import * as SmartCubeBindings from './Bindings_SmartCube.res.mjs';
-import * as MoveBuffer from './MoveBuffer.res.mjs';
-import * as Time from './Time.res.mjs';
-import * as Timer from './Timer.res.mjs';
+import * as MoveBuffer from '../domain/MoveBuffer.res.mjs';
+import * as Time from '../domain/Time.res.mjs';
+import * as Timer from '../domain/Timer.res.mjs';
 
 export function createLocalTimer(setValue: (milliseconds: number) => void) {
   let subscription: Subscription | null = null;

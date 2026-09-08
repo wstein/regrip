@@ -7,6 +7,8 @@ let home: Quaternion.t
 type t
 
 let make: unit => t
+/** Construct an orientation tracker with a caller-provided resting pose. */
+let makeWithHome: Quaternion.t => t
 let resetBasis: t => unit
 /** `raw` is the cube's reported quaternion; returns the scene orientation. */
 let update: (t, Quaternion.t) => Quaternion.t
