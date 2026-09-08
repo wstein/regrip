@@ -21,6 +21,7 @@ import {
 import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
 import * as Timer from './Timer.res.mjs';
 import * as Time from './Time.res.mjs';
+import * as MoveBuffer from './MoveBuffer.res.mjs';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -42,8 +43,7 @@ var twistyPlayer = new TwistyPlayer({
 $('#cube').append(twistyPlayer);
 
 var conn: SmartCubeConnection | null;
-var lastMoves: SmartCubeMoveEvent[] = [];
-var solutionMoves: SmartCubeMoveEvent[] = [];
+const moves = MoveBuffer.make<SmartCubeMoveEvent>();
 
 var twistyScene: THREE.Scene;
 var twistyVantage: any;
@@ -85,15 +85,12 @@ async function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
     dispatchTimer("MoveDetected");
     twistyPlayer.experimentalAddMove(event.move, { cancel: false });
-    lastMoves.push(event);
+    MoveBuffer.pushRecent(moves, event);
     if (timerState == "Running") {
-      solutionMoves.push(event);
+      MoveBuffer.pushSolution(moves, event);
     }
-    if (lastMoves.length > 256) {
-      lastMoves = lastMoves.slice(-256);
-    }
-    if (lastMoves.length > 10) {
-      var skew = cubeTimestampCalcSkew(lastMoves);
+    if (MoveBuffer.recentReady(moves)) {
+      var skew = cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves));
       $('#skew').val(skew + '%');
     }
   }
@@ -208,9 +205,9 @@ function applyTimerEffect(effect: Timer.Effect) {
       case "HideTimer": $('#timer').hide(); break;
       case "StartLocalTimer": startLocalTimer(); break;
       case "StopLocalTimer": stopLocalTimer(); break;
-      case "ClearSolutionMoves": solutionMoves = []; break;
+      case "ClearSolutionMoves": MoveBuffer.clearSolution(moves); break;
       case "ShowFinalTime": {
-        var fittedMoves = cubeTimestampLinearFit(solutionMoves);
+        var fittedMoves = cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
         var lastMove = fittedMoves.slice(-1).pop();
         setTimerValue(lastMove ? lastMove.cubeTimestamp! : 0);
         break;
