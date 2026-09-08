@@ -53,19 +53,25 @@ var twistyVantage: any;
 var cubeQuaternion: THREE.Quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0));
 const gyro = GyroOrientation.make();
 
-async function amimateCubeOrientation() {
-  if (!twistyScene || !twistyVantage) {
-    var vantageList = await twistyPlayer.experimentalCurrentVantages();
-    twistyVantage = [...vantageList][0];
-    twistyScene = await twistyVantage.scene.scene();
+async function animateCubeOrientation() {
+  try {
+    if (!twistyScene || !twistyVantage) {
+      const vantageList = await twistyPlayer.experimentalCurrentVantages();
+      twistyVantage = [...vantageList][0];
+      twistyScene = twistyVantage && await twistyVantage.scene.scene();
+    }
+    if (twistyScene && twistyVantage) {
+      twistyScene.quaternion.slerp(cubeQuaternion, 0.25);
+      twistyVantage.render();
+    }
+  } catch (err) {
+    console.warn('cube render loop', err);
   }
-  twistyScene.quaternion.slerp(cubeQuaternion, 0.25);
-  twistyVantage.render();
-  requestAnimationFrame(amimateCubeOrientation);
+  requestAnimationFrame(animateCubeOrientation);
 }
-requestAnimationFrame(amimateCubeOrientation);
+requestAnimationFrame(animateCubeOrientation);
 
-async function handleGyroEvent(event: SmartCubeEvent) {
+function handleGyroEvent(event: SmartCubeEvent) {
   if (event.type == "GYRO") {
     let { x: qx, y: qy, z: qz, w: qw } = event.quaternion;
     let target = GyroOrientation.update(gyro, event.quaternion);
@@ -78,7 +84,7 @@ async function handleGyroEvent(event: SmartCubeEvent) {
   }
 }
 
-async function handleMoveEvent(event: SmartCubeEvent) {
+function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
     dispatchTimer("moveDetected");
     twistyPlayer.experimentalAddMove(event.move, { cancel: false });
@@ -118,7 +124,7 @@ function handleCubeEvent(event: SmartCubeEvent) {
   } else if (event.type == "MOVE") {
     handleMoveEvent(event);
   } else if (event.type == "FACELETS") {
-    handleFaceletsEvent(event);
+    handleFaceletsEvent(event).catch(err => console.error('facelets handler failed', err));
   } else if (event.type == "HARDWARE") {
     $('#hardwareName').val(event.hardwareName || '- n/a -');
     $('#hardwareVersion').val(event.hardwareVersion || '- n/a -');
