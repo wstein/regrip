@@ -26,7 +26,7 @@ import * as GyroOrientation from './GyroOrientation.res.mjs';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
-var twistyPlayer = new TwistyPlayer({
+const twistyPlayer = new TwistyPlayer({
   puzzle: '3x3x3',
   visualization: 'PG3D',
   alg: '',
@@ -43,14 +43,18 @@ var twistyPlayer = new TwistyPlayer({
 
 $('#cube').append(twistyPlayer);
 
-var conn: SmartCubeConnection | null;
+let conn: SmartCubeConnection | null = null;
 let eventsSub: Subscription | null = null;
 const moves = MoveBuffer.make<SmartCubeMoveEvent>();
 
-var twistyScene: THREE.Scene;
-var twistyVantage: any;
+let twistyScene: THREE.Scene | undefined;
+let twistyVantage: any;
 
-var cubeQuaternion: THREE.Quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0));
+// Resting pose shown before any gyro data; the cube settles to
+// GyroOrientation.home once GYRO events start arriving.
+const cubeQuaternion = new THREE.Quaternion().setFromEuler(
+  new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0)
+);
 const gyro = GyroOrientation.make();
 
 async function animateCubeOrientation() {
@@ -93,13 +97,13 @@ function handleMoveEvent(event: SmartCubeEvent) {
       MoveBuffer.pushSolution(moves, event);
     }
     if (MoveBuffer.recentReady(moves)) {
-      var skew = cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves));
+      const skew = cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves));
       $('#skew').val(skew + '%');
     }
   }
 }
 
-var cubeStateInitialized = false;
+let cubeStateInitialized = false;
 
 async function handleFaceletsEvent(event: SmartCubeEvent) {
   if (event.type == "FACELETS" && !cubeStateInitialized) {
@@ -247,7 +251,7 @@ function applyTimerEffect(effect: Timer.Effect) {
 }
 
 twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) => {
-  var facelets = patternToFacelets(kpattern);
+  const facelets = patternToFacelets(kpattern);
   if (facelets == SOLVED_STATE) {
     dispatchTimer("solved");
     twistyPlayer.alg = '';
@@ -258,9 +262,9 @@ function setTimerValue(timestamp: number) {
   $('#timer').html(Time.format(timestamp));
 }
 
-var localTimer: Subscription | null = null;
+let localTimer: Subscription | null = null;
 function startLocalTimer() {
-  var startTime = now();
+  const startTime = now();
   localTimer = interval(30).subscribe(() => {
     setTimerValue(now() - startTime);
   });
@@ -272,7 +276,7 @@ function stopLocalTimer() {
 }
 
 $(document).on('keydown', (event) => {
-  if (event.which == 32) {
+  if (event.key === ' ') {
     event.preventDefault();
     dispatchTimer("activate");
   }
