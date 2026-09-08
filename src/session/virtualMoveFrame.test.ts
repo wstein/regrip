@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
 import { createVirtualMoveFrame } from './virtualMoveFrame';
 
 describe('virtual move frame', () => {
@@ -44,5 +45,41 @@ describe('virtual move frame', () => {
     // the user's right face. Reversing the composition order returned D.
     expect(frame.translate('F')).toBe('R');
     expect(frame.translate("F'")).toBe("R'");
+  });
+
+  it('reframes all 54 facelets, including face-grid orientation and centre colours', () => {
+    const solved = 'U'.repeat(9) + 'R'.repeat(9) + 'F'.repeat(9)
+      + 'D'.repeat(9) + 'L'.repeat(9) + 'B'.repeat(9);
+    const frame = createVirtualMoveFrame();
+    frame.applyRegrip('y');
+
+    // A regripped solved cube remains solved in its logical URFDLB frame.
+    expect(frame.reframeFacelets(solved)).toBe(solved);
+
+    const markedFaces = 'u'.repeat(9) + 'r'.repeat(9) + 'f'.repeat(9)
+      + 'd'.repeat(9) + 'l'.repeat(9) + 'b'.repeat(9);
+    expect(frame.reframeFacelets(markedFaces).slice(4, 5)).toBe('u');
+    expect(frame.reframeFacelets(markedFaces).slice(13, 14)).toBe('b');
+  });
+
+  it('returns an arbitrary facelet state after four quarter regrips', () => {
+    const facelets = Array.from({ length: 54 }, (_, index) =>
+      String.fromCharCode(33 + index + (33 + index >= 66 ? 6 : 0)),
+    ).join('');
+    const once = createVirtualMoveFrame();
+    once.applyRegrip('y');
+    expect(new Set(once.reframeFacelets(facelets))).toHaveLength(54);
+
+    const frame = createVirtualMoveFrame();
+    ['y', 'y', 'y', 'y'].forEach(token => frame.applyRegrip(token));
+    expect(frame.reframeFacelets(facelets)).toBe(facelets);
+  });
+
+  it('keeps a legal scrambled state legal after mixed regrips', () => {
+    const scrambled = 'FBFRULDLFUBUURDBDBFFRLFFLURDBDUDFURLDBRLLURRBLDLRBDUFB';
+    const frame = createVirtualMoveFrame();
+    ['x', "y'", 'z', 'x'].forEach(token => frame.applyRegrip(token));
+
+    expect(() => CubeFacelets.faceletsToPatternData(frame.reframeFacelets(scrambled))).not.toThrow();
   });
 });

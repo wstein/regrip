@@ -74,6 +74,7 @@ const cubeEvents = createCubeEventController({
   stabilizer,
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
+  reframeFacelets: facelets => virtualMoveFrame.reframeFacelets(facelets),
   addMove: move => {
     twistyPlayer.experimentalAddMove(move, { cancel: false });
     infoPanel.appendDetectedMove(virtualMoveFrame.translate(move));

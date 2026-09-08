@@ -15,6 +15,8 @@ type CubeEventControllerOptions = {
   stabilizer: OrientationStabilizer.OrientationStabilizer;
   timer: TimerController;
   solveScramble: ScrambleSolver;
+  /** Convert physical hardware facelets into the app's current virtual frame. */
+  reframeFacelets?: (facelets: string) => string;
   addMove: (move: string) => void;
   setOrientation: (quaternion: { x: number; y: number; z: number; w: number }) => void;
   setPlayerAlgorithm: (algorithm: string) => void;
@@ -86,13 +88,14 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatCubieState(event.state));
     }
-    const cube = Cube333.fromFacelets(event.facelets);
+    const facelets = options.reframeFacelets?.(event.facelets) ?? event.facelets;
+    const cube = Cube333.fromFacelets(facelets);
     const solved = (options.solveDetector ?? defaultSolveDetector)(cube);
     if (solved) options.onSolved();
     if (cubeStateInitialized) return;
 
     cubeStateInitialized = true;
-    options.setPlayerAlgorithm(solved ? '' : await options.solveScramble(event.facelets));
+    options.setPlayerAlgorithm(solved ? '' : await options.solveScramble(facelets));
   }
 
   function handleHardware(event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>): void {
