@@ -9,6 +9,7 @@ import { startSceneRenderLoop } from '../adapters/three/sceneView';
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
+import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube } from '../session/connection';
 import { createTimerController } from '../session/timerController';
@@ -27,6 +28,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 const gyro = GyroOrientation.make();
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube });
+const eventLog = createJsonlLog();
 
 let renderLoopStarted = false;
 
@@ -80,10 +82,24 @@ const cubeEvents = createCubeEventController({
   onDisconnect: () => {
     // The session owns teardown and publishes the resulting disconnected state.
   },
+  onGyro: ({ event, velocity, dtSeconds, relative, stabilized }) => {
+    eventLog.record('gyro_stabilizer', {
+      timestamp: event.timestamp,
+      quaternion: event.quaternion,
+      velocity: event.velocity ?? null,
+      velocityMagnitude: velocity,
+      dtSeconds,
+      relative,
+      stabilized,
+    });
+  },
 });
 
 applyProfile(session.getState().profile.value);
-session.subscribeEvents(cubeEvents.handle);
+session.subscribeEvents(event => {
+  eventLog.record('cube_event', event as unknown as Record<string, unknown>);
+  cubeEvents.handle(event);
+});
 
 let previousStatus = session.getState().status;
 let appliedProfile = session.getState().profile;
@@ -91,9 +107,15 @@ session.subscribe(state => {
   if (state.profile !== appliedProfile) {
     appliedProfile = state.profile;
     applyProfile(state.profile.value);
+    eventLog.record('profile_selected', {
+      id: state.profile.id,
+      value: state.profile.value as unknown as Record<string, unknown>,
+      sources: state.profile.sources,
+    });
   }
   if (state.status === previousStatus) return;
   previousStatus = state.status;
+  eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
     infoPanel.clearInfo();
@@ -135,6 +157,25 @@ infoPanel.on('connect', 'click', async () => {
   if (state.status === 'connecting') return;
   if (state.connection) await session.disconnect();
   else await session.connect();
+});
+
+infoPanel.on('start-log', 'click', () => {
+  const state = session.getState();
+  eventLog.start({
+    session: {
+      status: state.status,
+      profile: state.profile.id,
+      profileValue: state.profile.value,
+    },
+  });
+  infoPanel.setLogRecording(true);
+});
+
+infoPanel.on('stop-log', 'click', () => {
+  if (!eventLog.active) return;
+  const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
+  downloadJsonl(eventLog.stop(), filename);
+  infoPanel.setLogRecording(false);
 });
 
 document.addEventListener('keydown', (event) => {

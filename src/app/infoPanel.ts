@@ -18,6 +18,12 @@ function input(id: string): HTMLInputElement {
   return element;
 }
 
+function button(id: string): HTMLButtonElement {
+  const element = byId(id);
+  if (!(element instanceof HTMLButtonElement)) throw new Error(`Missing button #${id}`);
+  return element;
+}
+
 export function setInfo(id: string, value: string): void {
   input(id).value = value;
 }
@@ -47,6 +53,11 @@ export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
 
 export function setConnectionStatus(status: string): void {
   setInfo('connectionStatus', status);
+}
+
+export function setLogRecording(recording: boolean): void {
+  button('start-log').disabled = recording;
+  button('stop-log').disabled = !recording;
 }
 
 export function clearInfo(): void {

@@ -22,6 +22,13 @@ type CubeEventControllerOptions = {
   showInfo: (id: string) => void;
   onDisconnect: () => void;
   onSolved: () => void;
+  onGyro?: (sample: {
+    event: Extract<SmartCubeEvent, { type: 'GYRO' }>;
+    velocity: number;
+    dtSeconds: number;
+    relative: { x: number; y: number; z: number; w: number };
+    stabilized: { x: number; y: number; z: number; w: number };
+  }) => void;
   onHardware?: (event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>) => void;
   solveDetector?: SolveDetector;
   onUnknownEvent?: (event: unknown) => void;
@@ -48,6 +55,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     previousGyroTimestamp = event.timestamp;
     const stabilized = OrientationStabilizer.update(options.stabilizer, relative, velocity, dtSeconds);
     options.setOrientation(GyroOrientation.applyHome(options.gyro, stabilized));
+    options.onGyro?.({ event, velocity, dtSeconds, relative, stabilized });
     options.setInfo('quaternion', `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`);
     if (event.velocity) {
       const { x: vx, y: vy, z: vz } = event.velocity;
