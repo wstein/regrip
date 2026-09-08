@@ -19,7 +19,7 @@ import {
   cubeTimestampLinearFit
 } from 'smartcube-web-bluetooth';
 
-import { faceletsToPattern, patternToFacelets } from './utils';
+import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -105,6 +105,7 @@ var cubeStateInitialized = false;
 async function handleFaceletsEvent(event: SmartCubeEvent) {
   if (event.type == "FACELETS" && !cubeStateInitialized) {
     if (event.facelets != SOLVED_STATE) {
+      await kpuzzleReady;
       var kpattern = faceletsToPattern(event.facelets);
       var solution = await experimentalSolve3x3x3IgnoringCenters(kpattern);
       var scramble = solution.invert();
