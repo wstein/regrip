@@ -17,7 +17,7 @@ export function setTimer(value: string): void {
 }
 
 export function showTimer(show: boolean): void {
-  document.getElementById('timer')!.style.display = show ? '' : 'none';
+  document.getElementById('timer')!.style.display = show ? 'block' : 'none';
 }
 
 export function setTimerColor(color: string): void {
