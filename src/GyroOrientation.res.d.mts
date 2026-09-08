@@ -7,11 +7,5 @@ export type GyroOrientation = { basis: Quaternion | undefined };
 export const home: Quaternion;
 export function make(): GyroOrientation;
 export function resetBasis(t: GyroOrientation): void;
-/** Raw cube quaternion components (qx, qy, qz, qw); returns the scene orientation. */
-export function update(
-  t: GyroOrientation,
-  x: number,
-  y: number,
-  z: number,
-  w: number,
-): Quaternion;
+/** `raw` is the cube's reported quaternion; returns the scene orientation. */
+export function update(t: GyroOrientation, raw: Quaternion): Quaternion;

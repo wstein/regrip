@@ -3,11 +3,11 @@
 // home orientation; `update` returns the quaternion index.ts feeds to the
 // THREE.Quaternion driving the scene.
 
-let home = Quaternion.fromEuler(
-  ~x=Quaternion.degreesToRadians(15.),
-  ~y=Quaternion.degreesToRadians(-20.),
-  ~z=0.,
-)
+let home = Quaternion.fromEuler({
+  x: Quaternion.degreesToRadians(15.),
+  y: Quaternion.degreesToRadians(-20.),
+  z: 0.,
+})
 
 type t = {mutable basis: option<Quaternion.t>}
 
@@ -15,10 +15,10 @@ let make = (): t => {basis: None}
 
 let resetBasis = (t: t): unit => t.basis = None
 
-// Raw components are the cube's reported quaternion (qx, qy, qz, qw). The axis
-// swap {x, z, -y, w} matches `new THREE.Quaternion(qx, qz, -qy, qw)`.
-let update = (t: t, ~x: float, ~y: float, ~z: float, ~w: float): Quaternion.t => {
-  let q = Quaternion.normalize({x, y: z, z: -.y, w})
+// `raw` is the cube's reported quaternion. The axis swap {x, z, -y, w} matches
+// `new THREE.Quaternion(qx, qz, -qy, qw)` in the original handler.
+let update = (t: t, raw: Quaternion.t): Quaternion.t => {
+  let q = Quaternion.normalize({x: raw.x, y: raw.z, z: -.raw.y, w: raw.w})
   let basis = switch t.basis {
   | Some(b) => b
   | None => {

@@ -23,20 +23,20 @@ let expectClose = (t, a: Quaternion.t, b: Quaternion.t) => {
 
 describe("Quaternion.fromEuler", () => {
   test("matches three.js for (15, -20, 0) degrees", t => {
-    let q = Quaternion.fromEuler(
-      ~x=Quaternion.degreesToRadians(15.),
-      ~y=Quaternion.degreesToRadians(-20.),
-      ~z=0.,
-    )
+    let q = Quaternion.fromEuler({
+      x: Quaternion.degreesToRadians(15.),
+      y: Quaternion.degreesToRadians(-20.),
+      z: 0.,
+    })
     expectClose(t, q, home)
   })
 
   test("matches three.js for (30, -30, 0) degrees", t => {
-    let q = Quaternion.fromEuler(
-      ~x=Quaternion.degreesToRadians(30.),
-      ~y=Quaternion.degreesToRadians(-30.),
-      ~z=0.,
-    )
+    let q = Quaternion.fromEuler({
+      x: Quaternion.degreesToRadians(30.),
+      y: Quaternion.degreesToRadians(-30.),
+      z: 0.,
+    })
     expectClose(t, q, euler30)
   })
 })

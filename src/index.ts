@@ -67,7 +67,7 @@ requestAnimationFrame(amimateCubeOrientation);
 async function handleGyroEvent(event: SmartCubeEvent) {
   if (event.type == "GYRO") {
     let { x: qx, y: qy, z: qz, w: qw } = event.quaternion;
-    let target = GyroOrientation.update(gyro, qx, qy, qz, qw);
+    let target = GyroOrientation.update(gyro, event.quaternion);
     cubeQuaternion.set(target.x, target.y, target.z, target.w);
     $('#quaternion').val(`x: ${qx.toFixed(3)}, y: ${qy.toFixed(3)}, z: ${qz.toFixed(3)}, w: ${qw.toFixed(3)}`);
     if (event.velocity) {

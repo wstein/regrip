@@ -33,14 +33,16 @@ let normalize = (q: t): t => {
   }
 }
 
+type euler = {x: float, y: float, z: float}
+
 // three.js Euler -> Quaternion, XYZ order (the THREE.Euler default)
-let fromEuler = (~x: float, ~y: float, ~z: float): t => {
-  let c1 = Math.cos(x /. 2.)
-  let c2 = Math.cos(y /. 2.)
-  let c3 = Math.cos(z /. 2.)
-  let s1 = Math.sin(x /. 2.)
-  let s2 = Math.sin(y /. 2.)
-  let s3 = Math.sin(z /. 2.)
+let fromEuler = (e: euler): t => {
+  let c1 = Math.cos(e.x /. 2.)
+  let c2 = Math.cos(e.y /. 2.)
+  let c3 = Math.cos(e.z /. 2.)
+  let s1 = Math.sin(e.x /. 2.)
+  let s2 = Math.sin(e.y /. 2.)
+  let s3 = Math.sin(e.z /. 2.)
   {
     x: s1 *. c2 *. c3 +. c1 *. s2 *. s3,
     y: c1 *. s2 *. c3 -. s1 *. c2 *. s3,
