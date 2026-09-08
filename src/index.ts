@@ -10,15 +10,14 @@ import * as THREE from 'three';
 
 import {
   now,
-  connectGanCube,
-  GanCubeConnection,
-  GanCubeEvent,
-  GanCubeMove,
-  MacAddressProvider,
+  connectSmartCube,
+  SmartCubeConnection,
+  SmartCubeEvent,
+  SmartCubeMoveEvent,
   makeTimeFromTimestamp,
   cubeTimestampCalcSkew,
   cubeTimestampLinearFit
-} from 'gan-web-bluetooth';
+} from 'smartcube-web-bluetooth';
 
 import { faceletsToPattern, patternToFacelets } from './utils';
 
@@ -41,9 +40,9 @@ var twistyPlayer = new TwistyPlayer({
 
 $('#cube').append(twistyPlayer);
 
-var conn: GanCubeConnection | null;
-var lastMoves: GanCubeMove[] = [];
-var solutionMoves: GanCubeMove[] = [];
+var conn: SmartCubeConnection | null;
+var lastMoves: SmartCubeMoveEvent[] = [];
+var solutionMoves: SmartCubeMoveEvent[] = [];
 
 var twistyScene: THREE.Scene;
 var twistyVantage: any;
@@ -65,7 +64,7 @@ requestAnimationFrame(amimateCubeOrientation);
 
 var basis: THREE.Quaternion | null;
 
-async function handleGyroEvent(event: GanCubeEvent) {
+async function handleGyroEvent(event: SmartCubeEvent) {
   if (event.type == "GYRO") {
     let { x: qx, y: qy, z: qz, w: qw } = event.quaternion;
     let quat = new THREE.Quaternion(qx, qz, -qy, qw).normalize();
@@ -81,7 +80,7 @@ async function handleGyroEvent(event: GanCubeEvent) {
   }
 }
 
-async function handleMoveEvent(event: GanCubeEvent) {
+async function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
     if (timerState == "READY") {
       setTimerState("RUNNING");
@@ -103,7 +102,7 @@ async function handleMoveEvent(event: GanCubeEvent) {
 
 var cubeStateInitialized = false;
 
-async function handleFaceletsEvent(event: GanCubeEvent) {
+async function handleFaceletsEvent(event: SmartCubeEvent) {
   if (event.type == "FACELETS" && !cubeStateInitialized) {
     if (event.facelets != SOLVED_STATE) {
       var kpattern = faceletsToPattern(event.facelets);
@@ -118,9 +117,9 @@ async function handleFaceletsEvent(event: GanCubeEvent) {
   }
 }
 
-function handleCubeEvent(event: GanCubeEvent) {
+function handleCubeEvent(event: SmartCubeEvent) {
   if (event.type != "GYRO")
-    console.log("GanCubeEvent", event);
+    console.log("SmartCubeEvent", event);
   if (event.type == "GYRO") {
     handleGyroEvent(event);
   } else if (event.type == "MOVE") {
@@ -142,7 +141,7 @@ function handleCubeEvent(event: GanCubeEvent) {
   }
 }
 
-const customMacAddressProvider: MacAddressProvider = async (device, isFallbackCall): Promise<string | null> => {
+const customMacAddressProvider = async (device: BluetoothDevice, isFallbackCall?: boolean): Promise<string | null> => {
   if (isFallbackCall) {
     return prompt('Unable do determine cube MAC address!\nPlease enter MAC address manually:');
   } else {
@@ -152,7 +151,9 @@ const customMacAddressProvider: MacAddressProvider = async (device, isFallbackCa
 };
 
 $('#reset-state').on('click', async () => {
-  await conn?.sendCubeCommand({ type: "REQUEST_RESET" });
+  if (conn?.capabilities.reset) {
+    await conn.sendCommand({ type: "REQUEST_RESET" });
+  }
   twistyPlayer.alg = '';
 });
 
@@ -162,17 +163,31 @@ $('#reset-gyro').on('click', async () => {
 
 $('#connect').on('click', async () => {
   if (conn) {
-    conn.disconnect();
+    await conn.disconnect();
     conn = null;
   } else {
-    conn = await connectGanCube(customMacAddressProvider);
-    conn.events$.subscribe(handleCubeEvent);
-    await conn.sendCubeCommand({ type: "REQUEST_HARDWARE" });
-    await conn.sendCubeCommand({ type: "REQUEST_FACELETS" });
-    await conn.sendCubeCommand({ type: "REQUEST_BATTERY" });
-    $('#deviceName').val(conn.deviceName);
-    $('#deviceMAC').val(conn.deviceMAC);
-    $('#connect').html('Disconnect');
+    try {
+      const connection = await connectSmartCube(customMacAddressProvider);
+      conn = connection;
+      connection.events$.subscribe(handleCubeEvent);
+      if (connection.capabilities.hardware) {
+        await connection.sendCommand({ type: "REQUEST_HARDWARE" });
+      }
+      if (connection.capabilities.facelets) {
+        await connection.sendCommand({ type: "REQUEST_FACELETS" });
+      }
+      if (connection.capabilities.battery) {
+        await connection.sendCommand({ type: "REQUEST_BATTERY" });
+      }
+      $('#deviceName').val(connection.deviceName);
+      $('#deviceMAC').val(connection.deviceMAC || '- n/a -');
+      $('#connect').html('Disconnect');
+    } catch (error) {
+      conn = null;
+      console.error('Unable to connect to smart cube', error);
+      const message = error instanceof Error ? error.message : String(error);
+      alert(`Unable to connect to smart cube: ${message}`);
+    }
   }
 });
 

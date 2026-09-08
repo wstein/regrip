@@ -11,6 +11,12 @@
     "skipLibCheck": true,
     /* Bundler mode */
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "smartcube-web-bluetooth": [
+        "./node_modules/smartcube-web-bluetooth/src/index.ts"
+      ]
+    },
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

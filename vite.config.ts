@@ -1,10 +1,18 @@
 
 import { defineConfig } from 'vite'
+import { fileURLToPath, URL } from 'node:url'
 
 const workerImportMetaUrlRE = /\bnew\s+(?:Worker|SharedWorker)\s*\(\s*(new\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*\))/g;
 
 export default defineConfig({
     base: "/smartcube-sample",
+    resolve: {
+        alias: {
+            'smartcube-web-bluetooth': fileURLToPath(
+                new URL('./node_modules/smartcube-web-bluetooth/src/index.ts', import.meta.url)
+            )
+        }
+    },
     build: {
         chunkSizeWarningLimit: 2048
     },
@@ -33,4 +41,3 @@ export default defineConfig({
         }
     }
 });
-
