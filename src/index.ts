@@ -22,6 +22,7 @@ import { twistyPlayer } from './twistyPlayer';
 import { startSceneRenderLoop } from './sceneView';
 import { connectCube, disconnectCube as closeCube, requestInitialState } from './connection';
 import { createLocalTimer } from './timerController';
+import { formatCapabilities, formatCubieState, formatOfflineStats } from './cubeInfo';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -57,7 +58,17 @@ function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
     dispatchTimer("moveDetected");
     twistyPlayer.experimentalAddMove(event.move, { cancel: false });
-    MoveBuffer.pushRecent(moves, event);
+    if (event.serial !== undefined) {
+      infoPanel.setInfo('eventSerial', String(event.serial));
+    }
+    if (event.goCubeCenterOrientation !== undefined) {
+      infoPanel.setInfo('centerOrientation', String(event.goCubeCenterOrientation));
+    }
+    if (event.cubeTimestamp === null) {
+      infoPanel.setInfo('skew', '- n/a - (cube clock unavailable)');
+    } else {
+      MoveBuffer.pushRecent(moves, event);
+    }
     if (timerState == "running") {
       MoveBuffer.pushSolution(moves, event);
     }
@@ -71,6 +82,14 @@ function handleMoveEvent(event: SmartCubeEvent) {
 let cubeStateInitialized = false;
 
 async function handleFaceletsEvent(event: SmartCubeEvent) {
+  if (event.type == "FACELETS") {
+    if (event.serial !== undefined) {
+      infoPanel.setInfo('eventSerial', String(event.serial));
+    }
+    if (event.state) {
+      infoPanel.setInfo('cubieState', formatCubieState(event.state));
+    }
+  }
   if (event.type == "FACELETS" && !cubeStateInitialized) {
     cubeStateInitialized = true; // set before awaiting so re-entrant events are ignored
     if (event.facelets != SOLVED_STATE) {
@@ -95,11 +114,20 @@ function handleCubeEvent(event: SmartCubeEvent) {
   } else if (event.type == "FACELETS") {
     handleFaceletsEvent(event).catch(err => console.error('facelets handler failed', err));
   } else if (event.type == "HARDWARE") {
-    infoPanel.setInfo('hardwareName', event.hardwareName || '- n/a -');
-    infoPanel.setInfo('hardwareVersion', event.hardwareVersion || '- n/a -');
-    infoPanel.setInfo('softwareVersion', event.softwareVersion || '- n/a -');
-    infoPanel.setInfo('productDate', event.productDate || '- n/a -');
-    infoPanel.setInfo('gyroSupported', event.gyroSupported ? "YES" : "NO");
+    if (event.hardwareName !== undefined) infoPanel.setInfo('hardwareName', event.hardwareName);
+    if (event.hardwareVersion !== undefined) infoPanel.setInfo('hardwareVersion', event.hardwareVersion);
+    if (event.softwareVersion !== undefined) infoPanel.setInfo('softwareVersion', event.softwareVersion);
+    if (event.productDate !== undefined) infoPanel.setInfo('productDate', event.productDate);
+    if (event.gyroSupported !== undefined) infoPanel.setInfo('gyroSupported', event.gyroSupported ? "YES" : "NO");
+    if (event.goCubeType) {
+      infoPanel.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
+    }
+    if (event.goCubeOfflineStats) {
+      const stats = formatOfflineStats(event.goCubeOfflineStats);
+      infoPanel.setInfo('offlineMoves', stats.moves);
+      infoPanel.setInfo('offlineDuration', stats.duration);
+      infoPanel.setInfo('offlineSolves', stats.solves);
+    }
   } else if (event.type == "BATTERY") {
     infoPanel.setInfo('batteryLevel', event.batteryLevel + '%');
   } else if (event.type == "DISCONNECT") {
@@ -112,6 +140,7 @@ function handleCubeEvent(event: SmartCubeEvent) {
     dispatchTimer("disconnected");
     twistyPlayer.alg = '';
     infoPanel.clearInfo();
+    infoPanel.setConnectionStatus('Disconnected');
     infoPanel.setConnectLabel('Connect');
   }
 }
@@ -133,6 +162,14 @@ async function disconnectCube() {
   const c = conn;
   conn = null;
   await closeCube(c);
+  cubeStateInitialized = false;
+  MoveBuffer.reset(moves);
+  GyroOrientation.resetBasis(gyro);
+  dispatchTimer("disconnected");
+  twistyPlayer.alg = '';
+  infoPanel.clearInfo();
+  infoPanel.setConnectionStatus('Disconnected');
+  infoPanel.setConnectLabel('Connect');
 }
 
 infoPanel.on('connect', 'click', async () => {
@@ -142,6 +179,8 @@ infoPanel.on('connect', 'click', async () => {
   }
   let connection: SmartCubeConnection | undefined;
   try {
+    infoPanel.clearInfo();
+    infoPanel.setConnectionStatus('Connecting…');
     connection = await connectCube();
     eventsSub = connection.events$.subscribe(handleCubeEvent);
     await requestInitialState(connection);
@@ -149,6 +188,9 @@ infoPanel.on('connect', 'click', async () => {
     conn = connection;
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
+    infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
+    infoPanel.setInfo('capabilities', formatCapabilities(connection.capabilities));
+    infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
   } catch (error) {
     eventsSub?.unsubscribe();
@@ -157,6 +199,8 @@ infoPanel.on('connect', 'click', async () => {
     conn = null;
     console.error('Unable to connect to smart cube', error);
     const message = error instanceof Error ? error.message : String(error);
+    infoPanel.setConnectionStatus(`Failed: ${message}`);
+    infoPanel.setConnectLabel('Connect');
     alert(`Unable to connect to smart cube: ${message}`);
   }
 });

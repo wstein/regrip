@@ -28,6 +28,10 @@ export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
   document.getElementById('connect')!.textContent = label;
 }
 
+export function setConnectionStatus(status: string): void {
+  setInfo('connectionStatus', status);
+}
+
 export function clearInfo(): void {
   document.querySelectorAll<HTMLInputElement>('.info input').forEach(element => {
     element.value = notAvailable;
