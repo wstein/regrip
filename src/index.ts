@@ -34,7 +34,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 );
 const gyro = GyroOrientation.make();
 
-startSceneRenderLoop(twistyPlayer, cubeQuaternion);
+let renderLoopStarted = false;
 
 function handleGyroEvent(event: SmartCubeEvent) {
   if (event.type == "GYRO") {
@@ -88,43 +88,53 @@ async function handleFaceletsEvent(event: SmartCubeEvent) {
 }
 
 function handleCubeEvent(event: SmartCubeEvent) {
-  if (event.type != "GYRO")
-    console.log("SmartCubeEvent", event);
-  if (event.type == "GYRO") {
-    handleGyroEvent(event);
-  } else if (event.type == "MOVE") {
-    handleMoveEvent(event);
-  } else if (event.type == "FACELETS") {
-    handleFaceletsEvent(event).catch(err => console.error('facelets handler failed', err));
-  } else if (event.type == "HARDWARE") {
-    if (event.hardwareName !== undefined) infoPanel.setInfo('hardwareName', event.hardwareName);
-    if (event.hardwareVersion !== undefined) infoPanel.setInfo('hardwareVersion', event.hardwareVersion);
-    if (event.softwareVersion !== undefined) infoPanel.setInfo('softwareVersion', event.softwareVersion);
-    if (event.productDate !== undefined) infoPanel.setInfo('productDate', event.productDate);
-    if (event.gyroSupported !== undefined) infoPanel.setInfo('gyroSupported', event.gyroSupported ? "YES" : "NO");
-    if (event.goCubeType) {
-      infoPanel.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
-    }
-    if (event.goCubeOfflineStats) {
-      const stats = formatOfflineStats(event.goCubeOfflineStats);
-      infoPanel.setInfo('offlineMoves', stats.moves);
-      infoPanel.setInfo('offlineDuration', stats.duration);
-      infoPanel.setInfo('offlineSolves', stats.solves);
-    }
-  } else if (event.type == "BATTERY") {
-    infoPanel.setInfo('batteryLevel', event.batteryLevel + '%');
-  } else if (event.type == "DISCONNECT") {
-    eventsSub?.unsubscribe();
-    eventsSub = null;
-    conn = null;
-    cubeStateInitialized = false;
-    GyroOrientation.resetBasis(gyro);
-    timerController.reset();
-    twistyPlayer.alg = '';
-    infoPanel.clearInfo();
-    infoPanel.setConnectionStatus('Disconnected');
-    infoPanel.setConnectLabel('Connect');
+  if (event.type !== 'GYRO') console.log('SmartCubeEvent', event);
+  switch (event.type) {
+    case 'GYRO':
+      handleGyroEvent(event);
+      break;
+    case 'MOVE':
+      handleMoveEvent(event);
+      break;
+    case 'FACELETS':
+      handleFaceletsEvent(event).catch(err => console.error('facelets handler failed', err));
+      break;
+    case 'HARDWARE':
+      if (event.hardwareName !== undefined) infoPanel.setInfo('hardwareName', event.hardwareName);
+      if (event.hardwareVersion !== undefined) infoPanel.setInfo('hardwareVersion', event.hardwareVersion);
+      if (event.softwareVersion !== undefined) infoPanel.setInfo('softwareVersion', event.softwareVersion);
+      if (event.productDate !== undefined) infoPanel.setInfo('productDate', event.productDate);
+      if (event.gyroSupported !== undefined) infoPanel.setInfo('gyroSupported', event.gyroSupported ? 'YES' : 'NO');
+      if (event.goCubeType) infoPanel.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
+      if (event.goCubeOfflineStats) {
+        const stats = formatOfflineStats(event.goCubeOfflineStats);
+        infoPanel.setInfo('offlineMoves', stats.moves);
+        infoPanel.setInfo('offlineDuration', stats.duration);
+        infoPanel.setInfo('offlineSolves', stats.solves);
+      }
+      break;
+    case 'BATTERY':
+      infoPanel.setInfo('batteryLevel', `${event.batteryLevel}%`);
+      break;
+    case 'DISCONNECT':
+      eventsSub?.unsubscribe();
+      eventsSub = null;
+      conn = null;
+      cubeStateInitialized = false;
+      GyroOrientation.resetBasis(gyro);
+      timerController.reset();
+      twistyPlayer.alg = '';
+      infoPanel.clearInfo();
+      infoPanel.setConnectionStatus('Disconnected');
+      infoPanel.setConnectLabel('Connect');
+      break;
+    default:
+      assertNever(event);
   }
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled smart cube event: ${JSON.stringify(value)}`);
 }
 
 infoPanel.on('reset-state', 'click', async () => {
@@ -167,6 +177,10 @@ infoPanel.on('connect', 'click', async () => {
     await requestInitialState(connection);
     // Only now is the connection fully usable.
     conn = connection;
+    if (!renderLoopStarted) {
+      renderLoopStarted = true;
+      startSceneRenderLoop(twistyPlayer, cubeQuaternion);
+    }
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
