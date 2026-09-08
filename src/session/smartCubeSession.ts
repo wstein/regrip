@@ -25,6 +25,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     profile: resolveProfile({}, bundledProfiles),
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
+  const eventListeners = new Set<(event: SmartCubeEvent) => void>();
 
   const publish = (): void => listeners.forEach(listener => listener(state));
   const setState = (next: Partial<SmartCubeSessionState>): void => {
@@ -43,6 +44,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         goCubeType: event.goCubeType?.name,
       }, bundledProfiles) });
     }
+    eventListeners.forEach(listener => listener(event));
     if (event.type === 'DISCONNECT') void disconnect();
   };
 
@@ -81,6 +83,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     subscribe(listener: (next: SmartCubeSessionState) => void): () => void {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+    /** Events remain owned by the session; consumers only observe them here. */
+    subscribeEvents(listener: (event: SmartCubeEvent) => void): () => void {
+      eventListeners.add(listener);
+      return () => eventListeners.delete(listener);
     },
     connect,
     disconnect,
