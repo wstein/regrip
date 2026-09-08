@@ -37,3 +37,9 @@ let recentReady = (t: t<'m>): bool => Array.length(t.recent) > skewThreshold
 let recentMoves = (t: t<'m>): array<'m> => t.recent
 
 let solutionMoves = (t: t<'m>): array<'m> => t.solution
+
+let recentSkew = (t: t<'m>): float =>
+  t.recent->Bindings_SmartCube.cubeTimestampCalcSkew
+
+let fittedSolution = (t: t<'m>): array<'m> =>
+  t.solution->Bindings_SmartCube.cubeTimestampLinearFit

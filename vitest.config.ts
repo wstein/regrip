@@ -1,6 +1,14 @@
 import { configDefaults, defineConfig } from 'vitest/config';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      'smartcube-web-bluetooth': fileURLToPath(
+        new URL('./node_modules/smartcube-web-bluetooth/src/index.ts', import.meta.url)
+      ),
+    },
+  },
   test: {
     include: ['src/**/*_test.res.mjs'],
     exclude: [...configDefaults.exclude, 'lib/**'],

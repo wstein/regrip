@@ -2,6 +2,7 @@
 // gyro orientation. Same conventions as three.js (Hamilton product,
 // premultiply = left-multiply, XYZ Euler order).
 
+@genType
 type t = {
   x: float,
   y: float,
@@ -36,6 +37,7 @@ let normalize = (q: t): t => {
 type euler = {x: float, y: float, z: float}
 
 // three.js Euler -> Quaternion, XYZ order (the THREE.Euler default)
+@genType
 let fromEuler = (e: euler): t => {
   let c1 = Math.cos(e.x /. 2.)
   let c2 = Math.cos(e.y /. 2.)

@@ -1,7 +1,6 @@
 
 import './style.css'
 
-import $ from 'jquery';
 import { Subscription, interval } from 'rxjs';
 import { TwistyPlayer } from 'cubing/twisty';
 import { experimentalSolve3x3x3IgnoringCenters } from 'cubing/search';
@@ -13,9 +12,7 @@ import {
   connectSmartCube,
   SmartCubeConnection,
   SmartCubeEvent,
-  SmartCubeMoveEvent,
-  cubeTimestampCalcSkew,
-  cubeTimestampLinearFit
+  SmartCubeMoveEvent
 } from 'smartcube-web-bluetooth';
 
 import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
@@ -23,6 +20,7 @@ import * as Timer from './Timer.res.mjs';
 import * as Time from './Time.res.mjs';
 import * as MoveBuffer from './MoveBuffer.res.mjs';
 import * as GyroOrientation from './GyroOrientation.res.mjs';
+import * as infoPanel from './infoPanel';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -41,7 +39,7 @@ const twistyPlayer = new TwistyPlayer({
   tempoScale: 5
 });
 
-$('#cube').append(twistyPlayer);
+infoPanel.mountCube(twistyPlayer);
 
 let conn: SmartCubeConnection | null = null;
 let eventsSub: Subscription | null = null;
@@ -80,10 +78,10 @@ function handleGyroEvent(event: SmartCubeEvent) {
     let { x: qx, y: qy, z: qz, w: qw } = event.quaternion;
     let target = GyroOrientation.update(gyro, event.quaternion);
     cubeQuaternion.set(target.x, target.y, target.z, target.w);
-    $('#quaternion').val(`x: ${qx.toFixed(3)}, y: ${qy.toFixed(3)}, z: ${qz.toFixed(3)}, w: ${qw.toFixed(3)}`);
+    infoPanel.setInfo('quaternion', `x: ${qx.toFixed(3)}, y: ${qy.toFixed(3)}, z: ${qz.toFixed(3)}, w: ${qw.toFixed(3)}`);
     if (event.velocity) {
       let { x: vx, y: vy, z: vz } = event.velocity;
-      $('#velocity').val(`x: ${vx}, y: ${vy}, z: ${vz}`);
+      infoPanel.setInfo('velocity', `x: ${vx}, y: ${vy}, z: ${vz}`);
     }
   }
 }
@@ -97,8 +95,8 @@ function handleMoveEvent(event: SmartCubeEvent) {
       MoveBuffer.pushSolution(moves, event);
     }
     if (MoveBuffer.recentReady(moves)) {
-      const skew = cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves));
-      $('#skew').val(skew + '%');
+      const skew = MoveBuffer.recentSkew(moves);
+      infoPanel.setInfo('skew', skew + '%');
     }
   }
 }
@@ -130,13 +128,13 @@ function handleCubeEvent(event: SmartCubeEvent) {
   } else if (event.type == "FACELETS") {
     handleFaceletsEvent(event).catch(err => console.error('facelets handler failed', err));
   } else if (event.type == "HARDWARE") {
-    $('#hardwareName').val(event.hardwareName || '- n/a -');
-    $('#hardwareVersion').val(event.hardwareVersion || '- n/a -');
-    $('#softwareVersion').val(event.softwareVersion || '- n/a -');
-    $('#productDate').val(event.productDate || '- n/a -');
-    $('#gyroSupported').val(event.gyroSupported ? "YES" : "NO");
+    infoPanel.setInfo('hardwareName', event.hardwareName || '- n/a -');
+    infoPanel.setInfo('hardwareVersion', event.hardwareVersion || '- n/a -');
+    infoPanel.setInfo('softwareVersion', event.softwareVersion || '- n/a -');
+    infoPanel.setInfo('productDate', event.productDate || '- n/a -');
+    infoPanel.setInfo('gyroSupported', event.gyroSupported ? "YES" : "NO");
   } else if (event.type == "BATTERY") {
-    $('#batteryLevel').val(event.batteryLevel + '%');
+    infoPanel.setInfo('batteryLevel', event.batteryLevel + '%');
   } else if (event.type == "DISCONNECT") {
     eventsSub?.unsubscribe();
     eventsSub = null;
@@ -146,8 +144,8 @@ function handleCubeEvent(event: SmartCubeEvent) {
     GyroOrientation.resetBasis(gyro);
     dispatchTimer("disconnected");
     twistyPlayer.alg = '';
-    $('.info input').val('- n/a -');
-    $('#connect').html('Connect');
+    infoPanel.clearInfo();
+    infoPanel.setConnectLabel('Connect');
   }
 }
 
@@ -160,14 +158,14 @@ const customMacAddressProvider = async (device: BluetoothDevice, isFallbackCall?
   }
 };
 
-$('#reset-state').on('click', async () => {
+infoPanel.on('reset-state', 'click', async () => {
   if (conn?.capabilities.reset) {
     await conn.sendCommand({ type: "REQUEST_RESET" });
   }
   twistyPlayer.alg = '';
 });
 
-$('#reset-gyro').on('click', async () => {
+infoPanel.on('reset-gyro', 'click', async () => {
   GyroOrientation.resetBasis(gyro);
 });
 
@@ -179,7 +177,7 @@ async function disconnectCube() {
   await c?.disconnect().catch(() => {});
 }
 
-$('#connect').on('click', async () => {
+infoPanel.on('connect', 'click', async () => {
   if (conn) {
     await disconnectCube();
     return;
@@ -199,9 +197,9 @@ $('#connect').on('click', async () => {
     }
     // Only now is the connection fully usable.
     conn = connection;
-    $('#deviceName').val(connection.deviceName);
-    $('#deviceMAC').val(connection.deviceMAC || '- n/a -');
-    $('#connect').html('Disconnect');
+    infoPanel.setInfo('deviceName', connection.deviceName);
+    infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
+    infoPanel.setConnectLabel('Disconnect');
   } catch (error) {
     eventsSub?.unsubscribe();
     eventsSub = null;
@@ -231,20 +229,20 @@ function dispatchTimer(input: Timer.Input) {
 function applyTimerEffect(effect: Timer.Effect) {
   if (typeof effect == "string") {
     switch (effect) {
-      case "showTimer": $('#timer').show(); break;
-      case "hideTimer": $('#timer').hide(); break;
+      case "showTimer": infoPanel.showTimer(true); break;
+      case "hideTimer": infoPanel.showTimer(false); break;
       case "startLocalTimer": startLocalTimer(); break;
       case "stopLocalTimer": stopLocalTimer(); break;
       case "clearSolutionMoves": MoveBuffer.clearSolution(moves); break;
       case "showFinalTime": {
-        const fitted = cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
+        const fitted = MoveBuffer.fittedSolution(moves);
         setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
         break;
       }
     }
   } else {
     switch (effect.kind) {
-      case "setPhase": $('#timer').css('color', PHASE_COLOR[effect.phase.kind]); break;
+      case "setPhase": infoPanel.setTimerColor(PHASE_COLOR[effect.phase.kind]); break;
       case "setValueMs": setTimerValue(effect.ms); break;
     }
   }
@@ -259,7 +257,7 @@ twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) 
 });
 
 function setTimerValue(timestamp: number) {
-  $('#timer').html(Time.format(timestamp));
+  infoPanel.setTimer(Time.format(timestamp));
 }
 
 let localTimer: Subscription | null = null;
@@ -275,13 +273,13 @@ function stopLocalTimer() {
   localTimer = null;
 }
 
-$(document).on('keydown', (event) => {
+document.addEventListener('keydown', (event) => {
   if (event.key === ' ') {
     event.preventDefault();
     dispatchTimer("activate");
   }
 });
 
-$("#cube").on('touchstart', () => {
+infoPanel.on('cube', 'touchstart', () => {
   dispatchTimer("activate");
 });

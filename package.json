@@ -17,6 +17,7 @@
     "@types/aes-js": "^3.1.4",
     "@types/node": "^22.20.1",
     "@types/three": "^0.165.0",
+    "gentype": "^4.5.0",
     "npm-run-all2": "^9.0.3",
     "rescript": "^12.3.1",
     "rescript-vitest": "^3.0.1",
@@ -25,10 +26,8 @@
     "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@types/jquery": "^3.5.34",
     "@types/web-bluetooth": "^0.0.20",
     "cubing": "^0.51.2",
-    "jquery": "^3.7.1",
     "rxjs": "^7.8.2",
     "smartcube-web-bluetooth": "github:wstein/smartcube-web-bluetooth#develop",
     "three": "^0.165.0"
