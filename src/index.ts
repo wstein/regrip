@@ -2,23 +2,18 @@
 import './style.css'
 
 import type { Subscription } from 'rxjs';
-import { experimentalSolve3x3x3IgnoringCenters } from 'cubing/search';
-
 import * as THREE from 'three';
+import type { SmartCubeConnection } from 'smartcube-web-bluetooth';
 
-import {
-  SmartCubeConnection,
-  SmartCubeEvent
-} from 'smartcube-web-bluetooth';
-
-import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
+import { patternToFacelets } from './utils';
 import * as GyroOrientation from './GyroOrientation.res.mjs';
 import * as infoPanel from './infoPanel';
+import { createCubeEventController } from './cubeEvents';
 import { twistyPlayer } from './twistyPlayer';
 import { startSceneRenderLoop } from './sceneView';
 import { connectCube, disconnectConnection, requestInitialState } from './connection';
 import { createTimerController } from './timerController';
-import { formatCapabilities, formatCubieState, formatOfflineStats } from './cubeInfo';
+import { formatCapabilities } from './cubeInfo';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -35,107 +30,6 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 const gyro = GyroOrientation.make();
 
 let renderLoopStarted = false;
-
-function handleGyroEvent(event: SmartCubeEvent) {
-  if (event.type == "GYRO") {
-    let { x: qx, y: qy, z: qz, w: qw } = event.quaternion;
-    let target = GyroOrientation.update(gyro, event.quaternion);
-    cubeQuaternion.set(target.x, target.y, target.z, target.w);
-    infoPanel.setInfo('quaternion', `x: ${qx.toFixed(3)}, y: ${qy.toFixed(3)}, z: ${qz.toFixed(3)}, w: ${qw.toFixed(3)}`);
-    if (event.velocity) {
-      let { x: vx, y: vy, z: vz } = event.velocity;
-      infoPanel.setInfo('velocity', `x: ${vx}, y: ${vy}, z: ${vz}`);
-    }
-  }
-}
-
-function handleMoveEvent(event: SmartCubeEvent) {
-  if (event.type == "MOVE") {
-    timerController.onMove(event);
-    twistyPlayer.experimentalAddMove(event.move, { cancel: false });
-    if (event.serial !== undefined) {
-      infoPanel.setInfo('eventSerial', String(event.serial));
-    }
-    if (event.goCubeCenterOrientation !== undefined) {
-      infoPanel.setInfo('centerOrientation', String(event.goCubeCenterOrientation));
-    }
-  }
-}
-
-let cubeStateInitialized = false;
-
-async function handleFaceletsEvent(event: SmartCubeEvent) {
-  if (event.type == "FACELETS") {
-    if (event.serial !== undefined) {
-      infoPanel.setInfo('eventSerial', String(event.serial));
-    }
-    if (event.state) {
-      infoPanel.setInfo('cubieState', formatCubieState(event.state));
-    }
-  }
-  if (event.type == "FACELETS" && !cubeStateInitialized) {
-    cubeStateInitialized = true; // set before awaiting so re-entrant events are ignored
-    if (event.facelets != SOLVED_STATE) {
-      await kpuzzleReady;
-      const kpattern = faceletsToPattern(event.facelets);
-      const solution = await experimentalSolve3x3x3IgnoringCenters(kpattern);
-      twistyPlayer.alg = solution.invert();
-    } else {
-      twistyPlayer.alg = '';
-    }
-    console.log("Initial cube state is applied successfully", event.facelets);
-  }
-}
-
-function handleCubeEvent(event: SmartCubeEvent) {
-  if (event.type !== 'GYRO') console.log('SmartCubeEvent', event);
-  switch (event.type) {
-    case 'GYRO':
-      handleGyroEvent(event);
-      break;
-    case 'MOVE':
-      handleMoveEvent(event);
-      break;
-    case 'FACELETS':
-      handleFaceletsEvent(event).catch(err => console.error('facelets handler failed', err));
-      break;
-    case 'HARDWARE':
-      if (event.hardwareName !== undefined) infoPanel.setInfo('hardwareName', event.hardwareName);
-      if (event.hardwareVersion !== undefined) infoPanel.setInfo('hardwareVersion', event.hardwareVersion);
-      if (event.softwareVersion !== undefined) infoPanel.setInfo('softwareVersion', event.softwareVersion);
-      if (event.productDate !== undefined) infoPanel.setInfo('productDate', event.productDate);
-      if (event.gyroSupported !== undefined) infoPanel.setInfo('gyroSupported', event.gyroSupported ? 'YES' : 'NO');
-      if (event.goCubeType) infoPanel.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
-      if (event.goCubeOfflineStats) {
-        const stats = formatOfflineStats(event.goCubeOfflineStats);
-        infoPanel.setInfo('offlineMoves', stats.moves);
-        infoPanel.setInfo('offlineDuration', stats.duration);
-        infoPanel.setInfo('offlineSolves', stats.solves);
-      }
-      break;
-    case 'BATTERY':
-      infoPanel.setInfo('batteryLevel', `${event.batteryLevel}%`);
-      break;
-    case 'DISCONNECT':
-      eventsSub?.unsubscribe();
-      eventsSub = null;
-      conn = null;
-      cubeStateInitialized = false;
-      GyroOrientation.resetBasis(gyro);
-      timerController.reset();
-      twistyPlayer.alg = '';
-      infoPanel.clearInfo();
-      infoPanel.setConnectionStatus('Disconnected');
-      infoPanel.setConnectLabel('Connect');
-      break;
-    default:
-      assertNever(event);
-  }
-}
-
-function assertNever(value: never): never {
-  throw new Error(`Unhandled smart cube event: ${JSON.stringify(value)}`);
-}
 
 infoPanel.on('reset-state', 'click', async () => {
   if (conn?.capabilities.reset) {
@@ -154,10 +48,7 @@ async function disconnectCube() {
   const c = conn;
   conn = null;
   await disconnectConnection(c);
-  cubeStateInitialized = false;
-  GyroOrientation.resetBasis(gyro);
-  timerController.reset();
-  twistyPlayer.alg = '';
+  cubeEvents.reset();
   infoPanel.clearInfo();
   infoPanel.setConnectionStatus('Disconnected');
   infoPanel.setConnectLabel('Connect');
@@ -173,7 +64,7 @@ infoPanel.on('connect', 'click', async () => {
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Connecting…');
     connection = await connectCube();
-    eventsSub = connection.events$.subscribe(handleCubeEvent);
+    eventsSub = connection.events$.subscribe(cubeEvents.handle);
     await requestInitialState(connection);
     // Only now is the connection fully usable.
     conn = connection;
@@ -206,6 +97,21 @@ const timerController = createTimerController({
   showTimer: infoPanel.showTimer,
   setTimerColor: infoPanel.setTimerColor,
   setSkew: value => infoPanel.setInfo('skew', value),
+});
+
+const cubeEvents = createCubeEventController({
+  cubeQuaternion,
+  gyro,
+  player: twistyPlayer,
+  timer: timerController,
+  onDisconnect: () => {
+    eventsSub?.unsubscribe();
+    eventsSub = null;
+    conn = null;
+    infoPanel.clearInfo();
+    infoPanel.setConnectionStatus('Disconnected');
+    infoPanel.setConnectLabel('Connect');
+  },
 });
 
 twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) => {

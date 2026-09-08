@@ -89,3 +89,5 @@ export function createTimerController(options: TimerControllerOptions) {
 
   return { dispatch, onMove, reset };
 }
+
+export type TimerController = ReturnType<typeof createTimerController>;
