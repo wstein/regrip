@@ -13,7 +13,9 @@ export function startSceneRenderLoop(player: TwistyPlayer, cubeQuaternion: THREE
         scene = vantage && await vantage.scene.scene();
       }
       if (scene && vantage) {
-        scene.quaternion.slerp(cubeQuaternion, 0.25);
+        // OrientationStabilizer provides the smoothing and detent behaviour.
+        // Copying here keeps the scene responsive to deliberate turns.
+        scene.quaternion.copy(cubeQuaternion);
         vantage.render();
       }
     } catch (error) {

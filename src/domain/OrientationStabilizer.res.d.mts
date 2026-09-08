@@ -12,5 +12,7 @@ export type OrientationStabilizer = unknown;
 export const defaults: OrientationStabilizerConfig;
 export function make(config?: OrientationStabilizerConfig): OrientationStabilizer;
 export function reset(stabilizer: OrientationStabilizer): void;
+/** Reconfiguration starts a fresh lock so profiles cannot retain a stale pose. */
+export function setConfig(stabilizer: OrientationStabilizer, config: OrientationStabilizerConfig): void;
 export function lockedPose(stabilizer: OrientationStabilizer): Quaternion | undefined;
 export function update(stabilizer: OrientationStabilizer, raw: Quaternion, velocity?: number): Quaternion;

@@ -9,17 +9,22 @@ import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { startSceneRenderLoop } from '../adapters/three/sceneView';
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
+import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube, disconnectConnection, requestInitialState } from '../session/connection';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
+import { bundledProfiles } from '../session/profile/bundled';
+import { resolveProfile } from '../session/profile/resolveProfile';
+import type { DeviceContext } from '../session/profile/types';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
 
 let conn: SmartCubeConnection | null = null;
 let eventsSub: Subscription | null = null;
+let deviceContext: DeviceContext = {};
 
 // Resting pose shown before any gyro data; the cube settles to
 // GyroOrientation.home once GYRO events start arriving.
@@ -27,6 +32,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0)
 );
 const gyro = GyroOrientation.make();
+const stabilizer = OrientationStabilizer.make();
 
 let renderLoopStarted = false;
 
@@ -39,10 +45,24 @@ infoPanel.on('reset-state', 'click', async () => {
 
 infoPanel.on('reset-gyro', 'click', async () => {
   GyroOrientation.resetBasis(gyro);
+  OrientationStabilizer.reset(stabilizer);
 });
+
+function applyProfile(context: DeviceContext): void {
+  const profile = resolveProfile(context, bundledProfiles).value;
+  const config = profile.stabilizer;
+  if (!config) return;
+  OrientationStabilizer.setConfig(stabilizer, {
+    radiusDeg: config.radiusDeg ?? OrientationStabilizer.defaults.radiusDeg,
+    snapDeg: config.snapDeg ?? OrientationStabilizer.defaults.snapDeg,
+    hysteresisDeg: config.hysteresisDeg ?? OrientationStabilizer.defaults.hysteresisDeg,
+    velocityMax: config.velocityMax ?? OrientationStabilizer.defaults.velocityMax,
+  });
+}
 
 function finishDisconnect(): void {
   conn = null;
+  deviceContext = {};
   cubeEvents.reset();
   infoPanel.clearInfo();
   infoPanel.setConnectionStatus('Disconnected');
@@ -68,6 +88,12 @@ infoPanel.on('connect', 'click', async () => {
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Connecting…');
     connection = await connectCube();
+    deviceContext = {
+      protocol: connection.protocol.id,
+      deviceName: connection.deviceName,
+      deviceMAC: connection.deviceMAC,
+    };
+    applyProfile(deviceContext);
     eventsSub = connection.events$.subscribe(cubeEvents.handle);
     await requestInitialState(connection);
     // Only now is the connection fully usable.
@@ -105,6 +131,7 @@ const timerController = createTimerController({
 
 const cubeEvents = createCubeEventController({
   gyro,
+  stabilizer,
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
   addMove: move => twistyPlayer.experimentalAddMove(move, { cancel: false }),
@@ -120,6 +147,13 @@ const cubeEvents = createCubeEventController({
     eventsSub?.unsubscribe();
     eventsSub = null;
     finishDisconnect();
+  },
+  onHardware: event => {
+    applyProfile({
+      ...deviceContext,
+      hardwareName: event.hardwareName,
+      goCubeType: event.goCubeType?.name,
+    });
   },
 });
 

@@ -19,7 +19,7 @@ let resetBasis = (t: t): unit => t.basis = None
 
 // `raw` is the cube's reported quaternion. The axis swap {x, z, -y, w} matches
 // `new THREE.Quaternion(qx, qz, -qy, qw)` in the original handler.
-let update = (t: t, raw: Quaternion.t): Quaternion.t => {
+let relative = (t: t, raw: Quaternion.t): Quaternion.t => {
   let q = Quaternion.normalize({x: raw.x, y: raw.z, z: -.raw.y, w: raw.w})
   let basis = switch t.basis {
   | Some(b) => b
@@ -29,5 +29,9 @@ let update = (t: t, raw: Quaternion.t): Quaternion.t => {
       b
     }
   }
-  q->Quaternion.premultiply(basis)->Quaternion.premultiply(t.home)
+  q->Quaternion.premultiply(basis)
 }
+
+let applyHome = (t: t, relative: Quaternion.t): Quaternion.t => relative->Quaternion.premultiply(t.home)
+
+let update = (t: t, raw: Quaternion.t): Quaternion.t => applyHome(t, relative(t, raw))

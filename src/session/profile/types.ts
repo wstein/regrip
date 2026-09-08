@@ -10,7 +10,12 @@ export type SmartCubeProfile = {
   id: string;
   extends?: string;
   match?: Partial<Record<'protocol' | 'deviceName' | 'hardwareName' | 'goCubeType', string>>;
-  stabilizer?: Record<string, number>;
+  stabilizer?: {
+    radiusDeg?: number;
+    snapDeg?: number;
+    hysteresisDeg?: number;
+    velocityMax?: number;
+  };
   battery?: { curve?: string };
   gyro?: { axisMap?: string };
   quirks?: Record<string, unknown>;

@@ -15,11 +15,16 @@ let defaults = {
   velocityMax: MagneticDetent.defaults.velocityMax,
 }
 
-type t = {mutable lockedPose: option<Quaternion.t>, config: config}
+type t = {mutable lockedPose: option<Quaternion.t>, mutable config: config}
 
 let make = (~config=defaults): t => {lockedPose: None, config}
 
 let reset = (t: t): unit => t.lockedPose = None
+
+let setConfig = (t: t, config: config): unit => {
+  t.config = config
+  reset(t)
+}
 
 let lockedPose = (t: t): option<Quaternion.t> => t.lockedPose
 

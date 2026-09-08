@@ -1,6 +1,7 @@
 import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
+import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as Cube333 from '../domain/Cube333.res.mjs';
 import { formatCubieState, formatOfflineStats } from './cubeInfo';
 import type { TimerController } from './timerController';
@@ -11,6 +12,7 @@ export const defaultSolveDetector: SolveDetector = Cube333.isSolved;
 
 type CubeEventControllerOptions = {
   gyro: GyroOrientation.GyroOrientation;
+  stabilizer: OrientationStabilizer.OrientationStabilizer;
   timer: TimerController;
   solveScramble: ScrambleSolver;
   addMove: (move: string) => void;
@@ -20,6 +22,7 @@ type CubeEventControllerOptions = {
   showInfo: (id: string) => void;
   onDisconnect: () => void;
   onSolved: () => void;
+  onHardware?: (event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>) => void;
   solveDetector?: SolveDetector;
   onUnknownEvent?: (event: unknown) => void;
 };
@@ -30,13 +33,17 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   function reset(): void {
     cubeStateInitialized = false;
     GyroOrientation.resetBasis(options.gyro);
+    OrientationStabilizer.reset(options.stabilizer);
     options.timer.reset();
     options.setPlayerAlgorithm('');
   }
 
   function handleGyro(event: Extract<SmartCubeEvent, { type: 'GYRO' }>): void {
     const { x, y, z, w } = event.quaternion;
-    options.setOrientation(GyroOrientation.update(options.gyro, event.quaternion));
+    const relative = GyroOrientation.relative(options.gyro, event.quaternion);
+    const velocity = event.velocity ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z) : 0;
+    const stabilized = OrientationStabilizer.update(options.stabilizer, relative, velocity);
+    options.setOrientation(GyroOrientation.applyHome(options.gyro, stabilized));
     options.setInfo('quaternion', `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`);
     if (event.velocity) {
       const { x: vx, y: vy, z: vz } = event.velocity;
@@ -93,6 +100,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       options.setInfo('offlineDuration', stats.duration);
       options.setInfo('offlineSolves', stats.solves);
     }
+    options.onHardware?.(event);
   }
 
   function handle(event: SmartCubeEvent): void {
