@@ -8,7 +8,6 @@
 // so the compiled JS shape is stable and the hand-written Timer.res.d.mts stays
 // a plain discriminated union (see that file).
 
-@genType
 @tag("kind")
 type state =
   | @as("idle") Idle
@@ -16,7 +15,6 @@ type state =
   | @as("running") Running
   | @as("stopped") Stopped
 
-@genType
 @tag("kind")
 type input =
   | @as("activate") Activate // SPACE key or touch on the cube
