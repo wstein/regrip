@@ -44,6 +44,7 @@ var twistyPlayer = new TwistyPlayer({
 $('#cube').append(twistyPlayer);
 
 var conn: SmartCubeConnection | null;
+let eventsSub: Subscription | null = null;
 const moves = MoveBuffer.make<SmartCubeMoveEvent>();
 
 var twistyScene: THREE.Scene;
@@ -96,16 +97,15 @@ var cubeStateInitialized = false;
 
 async function handleFaceletsEvent(event: SmartCubeEvent) {
   if (event.type == "FACELETS" && !cubeStateInitialized) {
+    cubeStateInitialized = true; // set before awaiting so re-entrant events are ignored
     if (event.facelets != SOLVED_STATE) {
       await kpuzzleReady;
-      var kpattern = faceletsToPattern(event.facelets);
-      var solution = await experimentalSolve3x3x3IgnoringCenters(kpattern);
-      var scramble = solution.invert();
-      twistyPlayer.alg = scramble;
+      const kpattern = faceletsToPattern(event.facelets);
+      const solution = await experimentalSolve3x3x3IgnoringCenters(kpattern);
+      twistyPlayer.alg = solution.invert();
     } else {
       twistyPlayer.alg = '';
     }
-    cubeStateInitialized = true;
     console.log("Initial cube state is applied successfully", event.facelets);
   }
 }
@@ -128,6 +128,8 @@ function handleCubeEvent(event: SmartCubeEvent) {
   } else if (event.type == "BATTERY") {
     $('#batteryLevel').val(event.batteryLevel + '%');
   } else if (event.type == "DISCONNECT") {
+    eventsSub?.unsubscribe();
+    eventsSub = null;
     conn = null;
     cubeStateInitialized = false;
     MoveBuffer.reset(moves);
@@ -159,33 +161,45 @@ $('#reset-gyro').on('click', async () => {
   GyroOrientation.resetBasis(gyro);
 });
 
+async function disconnectCube() {
+  eventsSub?.unsubscribe();
+  eventsSub = null;
+  const c = conn;
+  conn = null;
+  await c?.disconnect().catch(() => {});
+}
+
 $('#connect').on('click', async () => {
   if (conn) {
-    await conn.disconnect();
-    conn = null;
-  } else {
-    try {
-      const connection = await connectSmartCube(customMacAddressProvider);
-      conn = connection;
-      connection.events$.subscribe(handleCubeEvent);
-      if (connection.capabilities.hardware) {
-        await connection.sendCommand({ type: "REQUEST_HARDWARE" });
-      }
-      if (connection.capabilities.facelets) {
-        await connection.sendCommand({ type: "REQUEST_FACELETS" });
-      }
-      if (connection.capabilities.battery) {
-        await connection.sendCommand({ type: "REQUEST_BATTERY" });
-      }
-      $('#deviceName').val(connection.deviceName);
-      $('#deviceMAC').val(connection.deviceMAC || '- n/a -');
-      $('#connect').html('Disconnect');
-    } catch (error) {
-      conn = null;
-      console.error('Unable to connect to smart cube', error);
-      const message = error instanceof Error ? error.message : String(error);
-      alert(`Unable to connect to smart cube: ${message}`);
+    await disconnectCube();
+    return;
+  }
+  let connection: SmartCubeConnection | undefined;
+  try {
+    connection = await connectSmartCube(customMacAddressProvider);
+    eventsSub = connection.events$.subscribe(handleCubeEvent);
+    if (connection.capabilities.hardware) {
+      await connection.sendCommand({ type: "REQUEST_HARDWARE" });
     }
+    if (connection.capabilities.facelets) {
+      await connection.sendCommand({ type: "REQUEST_FACELETS" });
+    }
+    if (connection.capabilities.battery) {
+      await connection.sendCommand({ type: "REQUEST_BATTERY" });
+    }
+    // Only now is the connection fully usable.
+    conn = connection;
+    $('#deviceName').val(connection.deviceName);
+    $('#deviceMAC').val(connection.deviceMAC || '- n/a -');
+    $('#connect').html('Disconnect');
+  } catch (error) {
+    eventsSub?.unsubscribe();
+    eventsSub = null;
+    await connection?.disconnect().catch(() => {});
+    conn = null;
+    console.error('Unable to connect to smart cube', error);
+    const message = error instanceof Error ? error.message : String(error);
+    alert(`Unable to connect to smart cube: ${message}`);
   }
 });
 
