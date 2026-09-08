@@ -1,15 +1,12 @@
 
 import './style.css'
 
-import { Subscription, interval } from 'rxjs';
-import { TwistyPlayer } from 'cubing/twisty';
+import type { Subscription } from 'rxjs';
 import { experimentalSolve3x3x3IgnoringCenters } from 'cubing/search';
 
 import * as THREE from 'three';
 
 import {
-  now,
-  connectSmartCube,
   SmartCubeConnection,
   SmartCubeEvent,
   SmartCubeMoveEvent
@@ -21,32 +18,18 @@ import * as Time from './Time.res.mjs';
 import * as MoveBuffer from './MoveBuffer.res.mjs';
 import * as GyroOrientation from './GyroOrientation.res.mjs';
 import * as infoPanel from './infoPanel';
+import { twistyPlayer } from './twistyPlayer';
+import { startSceneRenderLoop } from './sceneView';
+import { connectCube, disconnectCube as closeCube, requestInitialState } from './connection';
+import { createLocalTimer } from './timerController';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
-
-const twistyPlayer = new TwistyPlayer({
-  puzzle: '3x3x3',
-  visualization: 'PG3D',
-  alg: '',
-  experimentalSetupAnchor: 'start',
-  background: 'none',
-  controlPanel: 'none',
-  hintFacelets: 'none',
-  experimentalDragInput: 'none',
-  cameraLatitude: 0,
-  cameraLongitude: 0,
-  cameraLatitudeLimit: 0,
-  tempoScale: 5
-});
 
 infoPanel.mountCube(twistyPlayer);
 
 let conn: SmartCubeConnection | null = null;
 let eventsSub: Subscription | null = null;
 const moves = MoveBuffer.make<SmartCubeMoveEvent>();
-
-let twistyScene: THREE.Scene | undefined;
-let twistyVantage: any;
 
 // Resting pose shown before any gyro data; the cube settles to
 // GyroOrientation.home once GYRO events start arriving.
@@ -55,23 +38,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 );
 const gyro = GyroOrientation.make();
 
-async function animateCubeOrientation() {
-  try {
-    if (!twistyScene || !twistyVantage) {
-      const vantageList = await twistyPlayer.experimentalCurrentVantages();
-      twistyVantage = [...vantageList][0];
-      twistyScene = twistyVantage && await twistyVantage.scene.scene();
-    }
-    if (twistyScene && twistyVantage) {
-      twistyScene.quaternion.slerp(cubeQuaternion, 0.25);
-      twistyVantage.render();
-    }
-  } catch (err) {
-    console.warn('cube render loop', err);
-  }
-  requestAnimationFrame(animateCubeOrientation);
-}
-requestAnimationFrame(animateCubeOrientation);
+startSceneRenderLoop(twistyPlayer, cubeQuaternion);
 
 function handleGyroEvent(event: SmartCubeEvent) {
   if (event.type == "GYRO") {
@@ -149,15 +116,6 @@ function handleCubeEvent(event: SmartCubeEvent) {
   }
 }
 
-const customMacAddressProvider = async (device: BluetoothDevice, isFallbackCall?: boolean): Promise<string | null> => {
-  if (isFallbackCall) {
-    return prompt('Unable do determine cube MAC address!\nPlease enter MAC address manually:');
-  } else {
-    return typeof device.watchAdvertisements == 'function' ? null :
-      prompt('Seems like your browser does not support Web Bluetooth watchAdvertisements() API. Enable following flag in Chrome:\n\nchrome://flags/#enable-experimental-web-platform-features\n\nor enter cube MAC address manually:');
-  }
-};
-
 infoPanel.on('reset-state', 'click', async () => {
   if (conn?.capabilities.reset) {
     await conn.sendCommand({ type: "REQUEST_RESET" });
@@ -174,7 +132,7 @@ async function disconnectCube() {
   eventsSub = null;
   const c = conn;
   conn = null;
-  await c?.disconnect().catch(() => {});
+  await closeCube(c);
 }
 
 infoPanel.on('connect', 'click', async () => {
@@ -184,17 +142,9 @@ infoPanel.on('connect', 'click', async () => {
   }
   let connection: SmartCubeConnection | undefined;
   try {
-    connection = await connectSmartCube(customMacAddressProvider);
+    connection = await connectCube();
     eventsSub = connection.events$.subscribe(handleCubeEvent);
-    if (connection.capabilities.hardware) {
-      await connection.sendCommand({ type: "REQUEST_HARDWARE" });
-    }
-    if (connection.capabilities.facelets) {
-      await connection.sendCommand({ type: "REQUEST_FACELETS" });
-    }
-    if (connection.capabilities.battery) {
-      await connection.sendCommand({ type: "REQUEST_BATTERY" });
-    }
+    await requestInitialState(connection);
     // Only now is the connection fully usable.
     conn = connection;
     infoPanel.setInfo('deviceName', connection.deviceName);
@@ -203,7 +153,7 @@ infoPanel.on('connect', 'click', async () => {
   } catch (error) {
     eventsSub?.unsubscribe();
     eventsSub = null;
-    await connection?.disconnect().catch(() => {});
+    await closeCube(connection ?? null);
     conn = null;
     console.error('Unable to connect to smart cube', error);
     const message = error instanceof Error ? error.message : String(error);
@@ -231,8 +181,8 @@ function applyTimerEffect(effect: Timer.Effect) {
     switch (effect) {
       case "showTimer": infoPanel.showTimer(true); break;
       case "hideTimer": infoPanel.showTimer(false); break;
-      case "startLocalTimer": startLocalTimer(); break;
-      case "stopLocalTimer": stopLocalTimer(); break;
+      case "startLocalTimer": localTimer.start(); break;
+      case "stopLocalTimer": localTimer.stop(); break;
       case "clearSolutionMoves": MoveBuffer.clearSolution(moves); break;
       case "showFinalTime": {
         const fitted = MoveBuffer.fittedSolution(moves);
@@ -260,18 +210,7 @@ function setTimerValue(timestamp: number) {
   infoPanel.setTimer(Time.format(timestamp));
 }
 
-let localTimer: Subscription | null = null;
-function startLocalTimer() {
-  const startTime = now();
-  localTimer = interval(30).subscribe(() => {
-    setTimerValue(now() - startTime);
-  });
-}
-
-function stopLocalTimer() {
-  localTimer?.unsubscribe();
-  localTimer = null;
-}
+const localTimer = createLocalTimer(setTimerValue);
 
 document.addEventListener('keydown', (event) => {
   if (event.key === ' ') {
