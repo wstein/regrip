@@ -1,4 +1,5 @@
-import { connectSmartCube, SmartCubeConnection } from 'smartcube-web-bluetooth';
+import { connectSmartCube } from 'smartcube-web-bluetooth';
+import type { SmartCubeConnection } from 'smartcube-web-bluetooth';
 
 export const macAddressProvider = async (
   device: BluetoothDevice,

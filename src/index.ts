@@ -14,8 +14,7 @@ import { startSceneRenderLoop } from './sceneView';
 import { connectCube, disconnectConnection, requestInitialState } from './connection';
 import { createTimerController } from './timerController';
 import { formatCapabilities } from './cubeInfo';
-
-const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
+import { SOLVED_STATE } from './constants';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();

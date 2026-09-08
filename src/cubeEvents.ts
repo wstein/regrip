@@ -1,5 +1,5 @@
 import { experimentalSolve3x3x3IgnoringCenters } from 'cubing/search';
-import { TwistyPlayer } from 'cubing/twisty';
+import type { TwistyPlayer } from 'cubing/twisty';
 import * as THREE from 'three';
 import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
 
@@ -8,8 +8,7 @@ import * as GyroOrientation from './GyroOrientation.res.mjs';
 import * as infoPanel from './infoPanel';
 import type { TimerController } from './timerController';
 import { faceletsToPattern, kpuzzleReady } from './utils';
-
-const SOLVED_STATE = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
+import { SOLVED_STATE } from './constants';
 
 type CubeEventControllerOptions = {
   cubeQuaternion: THREE.Quaternion;
