@@ -43,16 +43,21 @@ infoPanel.on('reset-gyro', 'click', async () => {
   GyroOrientation.resetBasis(gyro);
 });
 
+function finishDisconnect(): void {
+  conn = null;
+  cubeEvents.reset();
+  infoPanel.clearInfo();
+  infoPanel.setConnectionStatus('Disconnected');
+  infoPanel.setConnectLabel('Connect');
+}
+
 async function disconnectCube() {
   eventsSub?.unsubscribe();
   eventsSub = null;
   const c = conn;
   conn = null;
   await disconnectConnection(c);
-  cubeEvents.reset();
-  infoPanel.clearInfo();
-  infoPanel.setConnectionStatus('Disconnected');
-  infoPanel.setConnectLabel('Connect');
+  finishDisconnect();
 }
 
 infoPanel.on('connect', 'click', async () => {
@@ -108,10 +113,7 @@ const cubeEvents = createCubeEventController({
   onDisconnect: () => {
     eventsSub?.unsubscribe();
     eventsSub = null;
-    conn = null;
-    infoPanel.clearInfo();
-    infoPanel.setConnectionStatus('Disconnected');
-    infoPanel.setConnectLabel('Connect');
+    finishDisconnect();
   },
 });
 

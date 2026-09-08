@@ -105,7 +105,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       case 'FACELETS': handleFacelets(event).catch(error => console.error('facelets handler failed', error)); break;
       case 'HARDWARE': handleHardware(event); break;
       case 'BATTERY': infoPanel.setInfo('batteryLevel', `${event.batteryLevel}%`); break;
-      case 'DISCONNECT': reset(); options.onDisconnect(); break;
+      case 'DISCONNECT': options.onDisconnect(); break;
       default: assertNever(event);
     }
   }
