@@ -32,4 +32,17 @@ describe('virtual move frame', () => {
     frame.reset();
     expect(frame.translate('U2')).toBe('U2');
   });
+
+  it('composes mixed local-axis regrips in physical order', () => {
+    const frame = createVirtualMoveFrame();
+    frame.applyRegrip('x');
+    frame.applyRegrip('x');
+    frame.applyRegrip('x');
+    frame.applyRegrip("y'");
+
+    // Regression from GoCube capture: after x x x y', a physical F is still
+    // the user's right face. Reversing the composition order returned D.
+    expect(frame.translate('F')).toBe('R');
+    expect(frame.translate("F'")).toBe("R'");
+  });
 });

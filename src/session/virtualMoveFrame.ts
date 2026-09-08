@@ -15,8 +15,12 @@ export function createVirtualMoveFrame() {
 
   const applyRegrip = (notationToken: string): void => {
     const step = faceOrderForNotation(notationToken);
-    logicalToPhysical = [...step].map(physicalAtPriorLogical =>
-      logicalToPhysical[faceOrder.indexOf(physicalAtPriorLogical)]!,
+    // RegripDetector emits turns in the cube's local calibrated frame. A new
+    // local step therefore acts on the current physical face at each logical
+    // position (step ∘ current), not the other way around. This only differs
+    // after mixed x/y/z regrips, where rotations do not commute.
+    logicalToPhysical = [...logicalToPhysical].map(physicalAtLogical =>
+      step[faceOrder.indexOf(physicalAtLogical)]!,
     ).join('');
   };
 
