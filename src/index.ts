@@ -14,12 +14,13 @@ import {
   SmartCubeConnection,
   SmartCubeEvent,
   SmartCubeMoveEvent,
-  makeTimeFromTimestamp,
   cubeTimestampCalcSkew,
   cubeTimestampLinearFit
 } from 'smartcube-web-bluetooth';
 
 import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
+import * as Timer from './Timer.res.mjs';
+import * as Time from './Time.res.mjs';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -82,12 +83,10 @@ async function handleGyroEvent(event: SmartCubeEvent) {
 
 async function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
-    if (timerState == "READY") {
-      setTimerState("RUNNING");
-    }
+    dispatchTimer("MoveDetected");
     twistyPlayer.experimentalAddMove(event.move, { cancel: false });
     lastMoves.push(event);
-    if (timerState == "RUNNING") {
+    if (timerState == "Running") {
       solutionMoves.push(event);
     }
     if (lastMoves.length > 256) {
@@ -136,6 +135,7 @@ function handleCubeEvent(event: SmartCubeEvent) {
   } else if (event.type == "BATTERY") {
     $('#batteryLevel').val(event.batteryLevel + '%');
   } else if (event.type == "DISCONNECT") {
+    dispatchTimer("Disconnected");
     twistyPlayer.alg = '';
     $('.info input').val('- n/a -');
     $('#connect').html('Connect');
@@ -192,48 +192,48 @@ $('#connect').on('click', async () => {
   }
 });
 
-var timerState: "IDLE" | "READY" | "RUNNING" | "STOPPED" = "IDLE";
+var timerState: Timer.State = "Idle";
 
-function setTimerState(state: typeof timerState) {
-  timerState = state;
-  switch (state) {
-    case "IDLE":
-      stopLocalTimer();
-      $('#timer').hide();
-      break;
-    case 'READY':
-      setTimerValue(0);
-      $('#timer').show();
-      $('#timer').css('color', '#0f0');
-      break;
-    case 'RUNNING':
-      solutionMoves = [];
-      startLocalTimer();
-      $('#timer').css('color', '#999');
-      break;
-    case 'STOPPED':
-      stopLocalTimer();
-      $('#timer').css('color', '#fff');
-      var fittedMoves = cubeTimestampLinearFit(solutionMoves);
-      var lastMove = fittedMoves.slice(-1).pop();
-      setTimerValue(lastMove ? lastMove.cubeTimestamp! : 0);
-      break;
+// Feed an input to the Timer state machine and apply the effects it returns.
+function dispatchTimer(input: Timer.Input) {
+  const [next, effects] = Timer.step(timerState, input, !!conn);
+  timerState = next;
+  effects.forEach(applyTimerEffect);
+}
+
+function applyTimerEffect(effect: Timer.Effect) {
+  if (typeof effect == "string") {
+    switch (effect) {
+      case "ShowTimer": $('#timer').show(); break;
+      case "HideTimer": $('#timer').hide(); break;
+      case "StartLocalTimer": startLocalTimer(); break;
+      case "StopLocalTimer": stopLocalTimer(); break;
+      case "ClearSolutionMoves": solutionMoves = []; break;
+      case "ShowFinalTime": {
+        var fittedMoves = cubeTimestampLinearFit(solutionMoves);
+        var lastMove = fittedMoves.slice(-1).pop();
+        setTimerValue(lastMove ? lastMove.cubeTimestamp! : 0);
+        break;
+      }
+    }
+  } else {
+    switch (effect.TAG) {
+      case "SetColor": $('#timer').css('color', effect._0); break;
+      case "SetValueMs": setTimerValue(effect._0); break;
+    }
   }
 }
 
 twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) => {
   var facelets = patternToFacelets(kpattern);
   if (facelets == SOLVED_STATE) {
-    if (timerState == "RUNNING") {
-      setTimerState("STOPPED");
-    }
+    dispatchTimer("Solved");
     twistyPlayer.alg = '';
   }
 });
 
 function setTimerValue(timestamp: number) {
-  let t = makeTimeFromTimestamp(timestamp);
-  $('#timer').html(`${t.minutes}:${t.seconds.toString(10).padStart(2, '0')}.${t.milliseconds.toString(10).padStart(3, '0')}`);
+  $('#timer').html(Time.format(timestamp));
 }
 
 var localTimer: Subscription | null = null;
@@ -249,21 +249,13 @@ function stopLocalTimer() {
   localTimer = null;
 }
 
-function activateTimer() {
-  if (timerState == "IDLE" && conn) {
-    setTimerState("READY");
-  } else {
-    setTimerState("IDLE");
-  }
-}
-
 $(document).on('keydown', (event) => {
   if (event.which == 32) {
     event.preventDefault();
-    activateTimer();
+    dispatchTimer("Activate");
   }
 });
 
 $("#cube").on('touchstart', () => {
-  activateTimer();
+  dispatchTimer("Activate");
 });
