@@ -18,6 +18,7 @@ import { formatCapabilities } from './cubeInfo';
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
 infoPanel.mountCube(twistyPlayer);
+infoPanel.clearInfo();
 
 let conn: SmartCubeConnection | null = null;
 let eventsSub: Subscription | null = null;

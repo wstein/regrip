@@ -36,11 +36,13 @@ body {
 
 .info {
   display: grid;
-  grid-template-columns: 5em 15em;
+  grid-template-columns: max-content minmax(15em, 1fr);
+  max-width: 42em;
   margin: 1em 0em 1em 0em;
 }
 
 .info input {
+  min-width: 0;
   font-size: 0.5em;
   font-weight: bold;
   color: black;
@@ -64,6 +66,17 @@ body {
 
 .info label::after {
   content: ':';
+}
+
+@media (max-width: 36em) {
+  .info {
+    grid-template-columns: 1fr;
+  }
+
+  .info label {
+    text-align: left;
+    margin-top: 0.75em;
+  }
 }
 
 #timer {

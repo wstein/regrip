@@ -1,4 +1,8 @@
 const notAvailable = '- n/a -';
+const optionalInfoIds = [
+  'eventSerial', 'cubieState', 'centerOrientation', 'goCubeType',
+  'offlineMoves', 'offlineDuration', 'offlineSolves', 'velocity',
+];
 
 function byId(id: string): HTMLElement {
   const element = document.getElementById(id);
@@ -16,6 +20,13 @@ function input(id: string): HTMLInputElement {
 
 export function setInfo(id: string, value: string): void {
   input(id).value = value;
+}
+
+export function showInfo(id: string): void {
+  input(id).hidden = false;
+  const label = document.querySelector<HTMLLabelElement>(`.info label[for="${id}"]`);
+  if (!label) throw new Error(`Missing label for #${id}`);
+  label.hidden = false;
 }
 
 export function setTimer(value: string): void {
@@ -41,6 +52,12 @@ export function setConnectionStatus(status: string): void {
 export function clearInfo(): void {
   document.querySelectorAll<HTMLInputElement>('.info input').forEach(element => {
     element.value = notAvailable;
+  });
+  optionalInfoIds.forEach(id => {
+    input(id).hidden = true;
+    const label = document.querySelector<HTMLLabelElement>(`.info label[for="${id}"]`);
+    if (!label) throw new Error(`Missing label for #${id}`);
+    label.hidden = true;
   });
 }
 

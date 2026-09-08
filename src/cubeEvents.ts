@@ -36,6 +36,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     infoPanel.setInfo('quaternion', `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`);
     if (event.velocity) {
       const { x: vx, y: vy, z: vz } = event.velocity;
+      infoPanel.showInfo('velocity');
       infoPanel.setInfo('velocity', `x: ${vx}, y: ${vy}, z: ${vz}`);
     }
   }
@@ -43,15 +44,25 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   function handleMove(event: Extract<SmartCubeEvent, { type: 'MOVE' }>): void {
     options.timer.onMove(event);
     options.player.experimentalAddMove(event.move, { cancel: false });
-    if (event.serial !== undefined) infoPanel.setInfo('eventSerial', String(event.serial));
+    if (event.serial !== undefined) {
+      infoPanel.showInfo('eventSerial');
+      infoPanel.setInfo('eventSerial', String(event.serial));
+    }
     if (event.goCubeCenterOrientation !== undefined) {
+      infoPanel.showInfo('centerOrientation');
       infoPanel.setInfo('centerOrientation', String(event.goCubeCenterOrientation));
     }
   }
 
   async function handleFacelets(event: Extract<SmartCubeEvent, { type: 'FACELETS' }>): Promise<void> {
-    if (event.serial !== undefined) infoPanel.setInfo('eventSerial', String(event.serial));
-    if (event.state) infoPanel.setInfo('cubieState', formatCubieState(event.state));
+    if (event.serial !== undefined) {
+      infoPanel.showInfo('eventSerial');
+      infoPanel.setInfo('eventSerial', String(event.serial));
+    }
+    if (event.state) {
+      infoPanel.showInfo('cubieState');
+      infoPanel.setInfo('cubieState', formatCubieState(event.state));
+    }
     if (cubeStateInitialized) return;
 
     cubeStateInitialized = true;
@@ -71,9 +82,15 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     if (event.softwareVersion !== undefined) infoPanel.setInfo('softwareVersion', event.softwareVersion);
     if (event.productDate !== undefined) infoPanel.setInfo('productDate', event.productDate);
     if (event.gyroSupported !== undefined) infoPanel.setInfo('gyroSupported', event.gyroSupported ? 'YES' : 'NO');
-    if (event.goCubeType) infoPanel.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
+    if (event.goCubeType) {
+      infoPanel.showInfo('goCubeType');
+      infoPanel.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
+    }
     if (event.goCubeOfflineStats) {
       const stats = formatOfflineStats(event.goCubeOfflineStats);
+      infoPanel.showInfo('offlineMoves');
+      infoPanel.showInfo('offlineDuration');
+      infoPanel.showInfo('offlineSolves');
       infoPanel.setInfo('offlineMoves', stats.moves);
       infoPanel.setInfo('offlineDuration', stats.duration);
       infoPanel.setInfo('offlineSolves', stats.solves);
