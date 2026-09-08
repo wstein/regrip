@@ -15,6 +15,7 @@ import { connectCube } from '../session/connection';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
 import { createSmartCubeSession } from '../session/smartCubeSession';
+import { createVirtualMoveFrame } from '../session/virtualMoveFrame';
 import type { SmartCubeProfile } from '../session/profile/types';
 
 infoPanel.mountCube(twistyPlayer);
@@ -29,6 +30,7 @@ const gyro = GyroOrientation.make();
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
+const virtualMoveFrame = createVirtualMoveFrame();
 
 let renderLoopStarted = false;
 
@@ -44,6 +46,7 @@ infoPanel.on('reset-gyro', 'click', async () => {
   GyroOrientation.resetBasis(gyro);
   OrientationStabilizer.reset(stabilizer);
   session.resetVirtualRegrips();
+  virtualMoveFrame.reset();
 });
 
 function applyProfile(profile: SmartCubeProfile): void {
@@ -73,7 +76,7 @@ const cubeEvents = createCubeEventController({
   solveScramble: createCubingScrambleSolver(),
   addMove: move => {
     twistyPlayer.experimentalAddMove(move, { cancel: false });
-    infoPanel.appendDetectedMove(move);
+    infoPanel.appendDetectedMove(virtualMoveFrame.translate(move));
   },
   setOrientation: quaternion => cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
   setPlayerAlgorithm: algorithm => { twistyPlayer.alg = algorithm; },
@@ -106,6 +109,7 @@ session.subscribeEvents(event => {
     // URFDLB moves and are never remapped through gyro orientation.
     eventLog.record('virtual_regrip', event);
     infoPanel.appendDetectedMove(event.notationToken);
+    virtualMoveFrame.applyRegrip(event.notationToken);
     return;
   }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
@@ -129,6 +133,7 @@ session.subscribe(state => {
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
+    virtualMoveFrame.reset();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Connecting…');
     return;
@@ -148,6 +153,7 @@ session.subscribe(state => {
     return;
   }
   if (state.status === 'disconnected') {
+    virtualMoveFrame.reset();
     cubeEvents.reset();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Disconnected');
@@ -155,6 +161,7 @@ session.subscribe(state => {
     return;
   }
   if (state.status === 'error') {
+    virtualMoveFrame.reset();
     cubeEvents.reset();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
