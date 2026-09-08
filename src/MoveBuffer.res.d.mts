@@ -13,5 +13,3 @@ export function reset<M>(t: MoveBuffer<M>): void;
 export function recentReady<M>(t: MoveBuffer<M>): boolean;
 export function recentMoves<M>(t: MoveBuffer<M>): M[];
 export function solutionMoves<M>(t: MoveBuffer<M>): M[];
-export function recentSkew<M>(t: MoveBuffer<M>): number;
-export function fittedSolution<M>(t: MoveBuffer<M>): M[];

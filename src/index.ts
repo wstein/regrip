@@ -17,6 +17,7 @@ import * as Timer from './Timer.res.mjs';
 import * as Time from './Time.res.mjs';
 import * as MoveBuffer from './MoveBuffer.res.mjs';
 import * as GyroOrientation from './GyroOrientation.res.mjs';
+import * as SmartCubeBindings from './Bindings_SmartCube.res.mjs';
 import * as infoPanel from './infoPanel';
 import { twistyPlayer } from './twistyPlayer';
 import { startSceneRenderLoop } from './sceneView';
@@ -73,7 +74,7 @@ function handleMoveEvent(event: SmartCubeEvent) {
       MoveBuffer.pushSolution(moves, event);
     }
     if (MoveBuffer.recentReady(moves)) {
-      const skew = MoveBuffer.recentSkew(moves);
+      const skew = SmartCubeBindings.cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves));
       infoPanel.setInfo('skew', skew + '%');
     }
   }
@@ -229,7 +230,7 @@ function applyTimerEffect(effect: Timer.Effect) {
       case "stopLocalTimer": localTimer.stop(); break;
       case "clearSolutionMoves": MoveBuffer.clearSolution(moves); break;
       case "showFinalTime": {
-        const fitted = MoveBuffer.fittedSolution(moves);
+        const fitted = SmartCubeBindings.cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
         setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
         break;
       }

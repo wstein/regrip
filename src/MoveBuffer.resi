@@ -14,5 +14,3 @@ let reset: t<'m> => unit
 let recentReady: t<'m> => bool
 let recentMoves: t<'m> => array<'m>
 let solutionMoves: t<'m> => array<'m>
-let recentSkew: t<'m> => float
-let fittedSolution: t<'m> => array<'m>

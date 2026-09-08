@@ -1,8 +1,7 @@
 // Move bookkeeping extracted from index.ts: a rolling window of recent moves
 // (used for clock-skew estimation) and the current solution's moves. Pure and
-// generic over the move type; the library calls (cubeTimestampCalcSkew /
-// cubeTimestampLinearFit) stay in index.ts and operate on `recentMoves` /
-// `solutionMoves`.
+// generic over the move type; timestamp calculations stay at the typed
+// JavaScript boundary in index.ts.
 
 type t<'m> = {
   mutable recent: array<'m>,
@@ -37,9 +36,3 @@ let recentReady = (t: t<'m>): bool => Array.length(t.recent) > skewThreshold
 let recentMoves = (t: t<'m>): array<'m> => t.recent
 
 let solutionMoves = (t: t<'m>): array<'m> => t.solution
-
-let recentSkew = (t: t<'m>): float =>
-  t.recent->Bindings_SmartCube.cubeTimestampCalcSkew
-
-let fittedSolution = (t: t<'m>): array<'m> =>
-  t.solution->Bindings_SmartCube.cubeTimestampLinearFit
