@@ -8,21 +8,16 @@ import * as THREE from 'three';
 
 import {
   SmartCubeConnection,
-  SmartCubeEvent,
-  SmartCubeMoveEvent
+  SmartCubeEvent
 } from 'smartcube-web-bluetooth';
 
 import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
-import * as Timer from './Timer.res.mjs';
-import * as Time from './Time.res.mjs';
-import * as MoveBuffer from './MoveBuffer.res.mjs';
 import * as GyroOrientation from './GyroOrientation.res.mjs';
-import * as SmartCubeBindings from './Bindings_SmartCube.res.mjs';
 import * as infoPanel from './infoPanel';
 import { twistyPlayer } from './twistyPlayer';
 import { startSceneRenderLoop } from './sceneView';
 import { connectCube, disconnectCube as closeCube, requestInitialState } from './connection';
-import { createLocalTimer } from './timerController';
+import { createTimerController } from './timerController';
 import { formatCapabilities, formatCubieState, formatOfflineStats } from './cubeInfo';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
@@ -31,7 +26,6 @@ infoPanel.mountCube(twistyPlayer);
 
 let conn: SmartCubeConnection | null = null;
 let eventsSub: Subscription | null = null;
-const moves = MoveBuffer.make<SmartCubeMoveEvent>();
 
 // Resting pose shown before any gyro data; the cube settles to
 // GyroOrientation.home once GYRO events start arriving.
@@ -57,25 +51,13 @@ function handleGyroEvent(event: SmartCubeEvent) {
 
 function handleMoveEvent(event: SmartCubeEvent) {
   if (event.type == "MOVE") {
-    dispatchTimer("moveDetected");
+    timerController.onMove(event);
     twistyPlayer.experimentalAddMove(event.move, { cancel: false });
     if (event.serial !== undefined) {
       infoPanel.setInfo('eventSerial', String(event.serial));
     }
     if (event.goCubeCenterOrientation !== undefined) {
       infoPanel.setInfo('centerOrientation', String(event.goCubeCenterOrientation));
-    }
-    if (event.cubeTimestamp === null) {
-      infoPanel.setInfo('skew', '- n/a - (cube clock unavailable)');
-    } else {
-      MoveBuffer.pushRecent(moves, event);
-    }
-    if (timerState == "running") {
-      MoveBuffer.pushSolution(moves, event);
-    }
-    if (MoveBuffer.recentReady(moves)) {
-      const skew = SmartCubeBindings.cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves));
-      infoPanel.setInfo('skew', skew + '%');
     }
   }
 }
@@ -136,9 +118,8 @@ function handleCubeEvent(event: SmartCubeEvent) {
     eventsSub = null;
     conn = null;
     cubeStateInitialized = false;
-    MoveBuffer.reset(moves);
     GyroOrientation.resetBasis(gyro);
-    dispatchTimer("disconnected");
+    timerController.reset();
     twistyPlayer.alg = '';
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Disconnected');
@@ -164,9 +145,8 @@ async function disconnectCube() {
   conn = null;
   await closeCube(c);
   cubeStateInitialized = false;
-  MoveBuffer.reset(moves);
   GyroOrientation.resetBasis(gyro);
-  dispatchTimer("disconnected");
+  timerController.reset();
   twistyPlayer.alg = '';
   infoPanel.clearInfo();
   infoPanel.setConnectionStatus('Disconnected');
@@ -206,64 +186,29 @@ infoPanel.on('connect', 'click', async () => {
   }
 });
 
-let timerState: Timer.State = "idle";
-
-const PHASE_COLOR: Record<Timer.Phase["kind"], string> = {
-  ready: "#0f0",
-  running: "#999",
-  stopped: "#fff",
-};
-
-// Feed an input to the Timer state machine and apply the effects it returns.
-function dispatchTimer(input: Timer.Input) {
-  const [next, effects] = Timer.step(timerState, input, !!conn);
-  timerState = next;
-  effects.forEach(applyTimerEffect);
-}
-
-function applyTimerEffect(effect: Timer.Effect) {
-  if (typeof effect == "string") {
-    switch (effect) {
-      case "showTimer": infoPanel.showTimer(true); break;
-      case "hideTimer": infoPanel.showTimer(false); break;
-      case "startLocalTimer": localTimer.start(); break;
-      case "stopLocalTimer": localTimer.stop(); break;
-      case "clearSolutionMoves": MoveBuffer.clearSolution(moves); break;
-      case "showFinalTime": {
-        const fitted = SmartCubeBindings.cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
-        setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
-        break;
-      }
-    }
-  } else {
-    switch (effect.kind) {
-      case "setPhase": infoPanel.setTimerColor(PHASE_COLOR[effect.phase.kind]); break;
-      case "setValueMs": setTimerValue(effect.ms); break;
-    }
-  }
-}
+const timerController = createTimerController({
+  isConnected: () => conn !== null,
+  setTimer: infoPanel.setTimer,
+  showTimer: infoPanel.showTimer,
+  setTimerColor: infoPanel.setTimerColor,
+  setSkew: value => infoPanel.setInfo('skew', value),
+});
 
 twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) => {
   const facelets = patternToFacelets(kpattern);
   if (facelets == SOLVED_STATE) {
-    dispatchTimer("solved");
+    timerController.dispatch("solved");
     twistyPlayer.alg = '';
   }
 });
 
-function setTimerValue(timestamp: number) {
-  infoPanel.setTimer(Time.format(timestamp));
-}
-
-const localTimer = createLocalTimer(setTimerValue);
-
 document.addEventListener('keydown', (event) => {
   if (event.key === ' ') {
     event.preventDefault();
-    dispatchTimer("activate");
+    timerController.dispatch("activate");
   }
 });
 
 infoPanel.on('cube', 'touchstart', () => {
-  dispatchTimer("activate");
+  timerController.dispatch("activate");
 });

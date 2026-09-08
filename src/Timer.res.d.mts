@@ -10,7 +10,7 @@ export type State = "idle" | "ready" | "running" | "stopped";
 
 export type Input = "activate" | "moveDetected" | "solved" | "disconnected";
 
-export type Phase = { kind: "ready" } | { kind: "running" } | { kind: "stopped" };
+export type Phase = "ready" | "running" | "stopped";
 
 export type Effect =
   | "showTimer"
