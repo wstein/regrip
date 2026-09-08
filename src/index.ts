@@ -22,6 +22,7 @@ import { faceletsToPattern, patternToFacelets, kpuzzleReady } from './utils';
 import * as Timer from './Timer.res.mjs';
 import * as Time from './Time.res.mjs';
 import * as MoveBuffer from './MoveBuffer.res.mjs';
+import * as GyroOrientation from './GyroOrientation.res.mjs';
 
 const SOLVED_STATE = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
@@ -48,8 +49,8 @@ const moves = MoveBuffer.make<SmartCubeMoveEvent>();
 var twistyScene: THREE.Scene;
 var twistyVantage: any;
 
-const HOME_ORIENTATION = new THREE.Quaternion().setFromEuler(new THREE.Euler(15 * Math.PI / 180, -20 * Math.PI / 180, 0));
 var cubeQuaternion: THREE.Quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0));
+const gyro = GyroOrientation.make();
 
 async function amimateCubeOrientation() {
   if (!twistyScene || !twistyVantage) {
@@ -63,16 +64,11 @@ async function amimateCubeOrientation() {
 }
 requestAnimationFrame(amimateCubeOrientation);
 
-var basis: THREE.Quaternion | null;
-
 async function handleGyroEvent(event: SmartCubeEvent) {
   if (event.type == "GYRO") {
     let { x: qx, y: qy, z: qz, w: qw } = event.quaternion;
-    let quat = new THREE.Quaternion(qx, qz, -qy, qw).normalize();
-    if (!basis) {
-      basis = quat.clone().conjugate();
-    }
-    cubeQuaternion.copy(quat.premultiply(basis).premultiply(HOME_ORIENTATION));
+    let target = GyroOrientation.update(gyro, qx, qy, qz, qw);
+    cubeQuaternion.set(target.x, target.y, target.z, target.w);
     $('#quaternion').val(`x: ${qx.toFixed(3)}, y: ${qy.toFixed(3)}, z: ${qz.toFixed(3)}, w: ${qw.toFixed(3)}`);
     if (event.velocity) {
       let { x: vx, y: vy, z: vz } = event.velocity;
@@ -156,7 +152,7 @@ $('#reset-state').on('click', async () => {
 });
 
 $('#reset-gyro').on('click', async () => {
-  basis = null;
+  GyroOrientation.resetBasis(gyro);
 });
 
 $('#connect').on('click', async () => {
