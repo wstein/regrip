@@ -39,6 +39,20 @@ describe("Quaternion.fromEuler", () => {
     })
     expectClose(t, q, euler30)
   })
+
+  test("matches three.js for three non-zero angles (0.3, -0.5, 0.7 rad)", t => {
+    let q = Quaternion.fromEuler({x: 0.3, y: -0.5, z: 0.7})
+    expectClose(
+      t,
+      q,
+      {
+        x: 0.052132410889547995,
+        y: -0.2794438940784743,
+        z: 0.29377717233096856,
+        w: 0.9126271389863014,
+      },
+    )
+  })
 })
 
 describe("Quaternion algebra", () => {
@@ -66,5 +80,25 @@ describe("Quaternion algebra", () => {
 
   test("premultiply(a, b) == multiply(b, a)", t => {
     expectClose(t, home->Quaternion.premultiply(euler30), Quaternion.multiply(euler30, home))
+  })
+
+  test("multiply matches a hand-checked three.js Hamilton product", t => {
+    let a: Quaternion.t = {x: 0.1, y: 0.2, z: 0.3, w: 0.4}
+    let b: Quaternion.t = {x: 0.5, y: 0.6, z: 0.7, w: 0.8}
+    expectClose(
+      t,
+      Quaternion.multiply(a, b),
+      {x: 0.24, y: 0.48, z: 0.48, w: -0.06},
+    )
+  })
+
+  test("multiply is not commutative", t => {
+    let a: Quaternion.t = {x: 0.1, y: 0.2, z: 0.3, w: 0.4}
+    let b: Quaternion.t = {x: 0.5, y: 0.6, z: 0.7, w: 0.8}
+    let ab = Quaternion.multiply(a, b)
+    let ba = Quaternion.multiply(b, a)
+    // same scalar part, different vector part
+    t->expect(ab.w)->Expect.Float.toBeCloseTo(ba.w, 9)
+    t->expect(Math.abs(ab.x -. ba.x) +. Math.abs(ab.y -. ba.y) +. Math.abs(ab.z -. ba.z) > 0.1)->Expect.toBe(true)
   })
 })

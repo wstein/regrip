@@ -11,6 +11,19 @@ let scrambledCornerOri = [1, 2, 1, 0, 0, 0, 0, 2]
 let scrambledEdgePieces = [9, 11, 6, 10, 2, 4, 8, 1, 0, 3, 5, 7]
 let scrambledEdgeOri = [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0]
 
+// More fixtures, all generated from the pre-port utils.ts via cubing.js.
+// superflip: every edge flipped, nothing else moved.
+let superflip = "UBULURUFURURFRBRDRFUFLFRFDFDFDLDRDBDLULBLFLDLBUBRBLBDB"
+let superflipEdgeOri = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+// Sune ("R U R' U R U2 R'"): corner twist + cycle, edges untouched in orientation.
+let sune = "FUUUUURUBULLRRRRRRUFLFFFFFFDDDDDDDDDUBBLLLLLLFRRBBBBBB"
+let suneCornerPieces = [2, 3, 0, 1, 4, 5, 6, 7]
+let suneCornerOri = [1, 0, 1, 1, 0, 0, 0, 0]
+let suneEdgePieces = [0, 3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]
+// Slice-square scramble ("F2 B2 U2 D2 L2 R2"): pure edge permutation.
+let slices = "UDUDUDUDURLRLRLRLRFBFBFBFBFDUDUDUDUDLRLRLRLRLBFBFBFBFB"
+let slicesEdgePieces = [6, 7, 4, 5, 2, 3, 0, 1, 11, 10, 9, 8]
+
 let solvedPatternData: CubeFacelets.patternData = {
   corners: {pieces: [0, 1, 2, 3, 4, 5, 6, 7], orientation: Array.make(~length=8, 0)},
   edges: {
@@ -65,14 +78,57 @@ describe("decodeFacelets", () => {
     )
   })
 
-  test("round-trips solved and scrambled", t => {
+  test("decodes superflip as an all-edges-flipped pattern", t => {
+    switch CubeFacelets.decodeFacelets(superflip) {
+    | Ok(pd) =>
+      t->expect(pd.edges.pieces)->Expect.toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+      t->expect(pd.edges.orientation)->Expect.toEqual(superflipEdgeOri)
+      t->expect(pd.corners.orientation)->Expect.toEqual(Array.make(~length=8, 0))
+    | Error(msg) => t->expect("ok")->Expect.toBe("Error: " ++ msg)
+    }
+  })
+
+  test("decodes Sune (corner twist + cycle, edges by orientation untouched)", t => {
+    switch CubeFacelets.decodeFacelets(sune) {
+    | Ok(pd) =>
+      t->expect(pd.corners.pieces)->Expect.toEqual(suneCornerPieces)
+      t->expect(pd.corners.orientation)->Expect.toEqual(suneCornerOri)
+      t->expect(pd.edges.pieces)->Expect.toEqual(suneEdgePieces)
+      t->expect(pd.edges.orientation)->Expect.toEqual(Array.make(~length=12, 0))
+    | Error(msg) => t->expect("ok")->Expect.toBe("Error: " ++ msg)
+    }
+  })
+
+  test("decodes a pure edge permutation", t => {
+    switch CubeFacelets.decodeFacelets(slices) {
+    | Ok(pd) => t->expect(pd.edges.pieces)->Expect.toEqual(slicesEdgePieces)
+    | Error(msg) => t->expect("ok")->Expect.toBe("Error: " ++ msg)
+    }
+  })
+
+  test("forces centers to the identity orbit", t => {
+    switch CubeFacelets.decodeFacelets(scrambled) {
+    | Ok(pd) => t->expect(pd.centers.pieces)->Expect.toEqual([0, 1, 2, 3, 4, 5])
+    | Error(msg) => t->expect("ok")->Expect.toBe("Error: " ++ msg)
+    }
+  })
+
+  test("round-trips solved, scrambled, superflip, Sune and slices", t => {
     let roundtrip = f =>
       switch CubeFacelets.decodeFacelets(f) {
       | Ok(pd) => CubeFacelets.patternDataToFacelets(pd)
       | Error(msg) => "ERR:" ++ msg
       }
-    t->expect(roundtrip(solved))->Expect.toBe(solved)
-    t->expect(roundtrip(scrambled))->Expect.toBe(scrambled)
+    [solved, scrambled, superflip, sune, slices]->Array.forEach(f =>
+      t->expect(roundtrip(f))->Expect.toBe(f)
+    )
+  })
+
+  test("rejects a well-formed but geometrically impossible state", t => {
+    // solved with the stickers at index 1 and 10 swapped: 9 of each letter,
+    // but an edge now reads "UU".
+    let bad = "URUUUUUUURURRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+    t->expect(CubeFacelets.decodeFacelets(bad)->Result.isError)->Expect.toBe(true)
   })
 
   test("rejects wrong length", t => {
