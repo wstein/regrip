@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "res:build": "rescript",
-    "res:watch": "rescript -w",
+    "res:watch": "rescript watch",
     "res:clean": "rescript clean",
-    "dev": "run-s res:build && run-p res:watch vite",
+    "dev": "run-s res:build && run-p res:watch dev:vite",
+    "dev:vite": "vite",
     "build": "rescript && tsc && vite build",
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "rescript && vitest run",
-    "test:watch": "run-p res:watch \"vitest\""
+    "test:watch": "run-p res:watch test:vitest",
+    "test:vitest": "vitest"
   },
   "devDependencies": {
     "@types/aes-js": "^3.1.4",
