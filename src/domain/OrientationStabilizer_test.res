@@ -43,4 +43,33 @@ describe("OrientationStabilizer", () => {
     | None => t->expect(false)->Expect.toBe(true)
     }
   })
+
+  test("absorbs resting drift at the configured two degrees per second", t => {
+    let stabilizer = OrientationStabilizer.make(~config={
+      radiusDeg: 0.,
+      snapDeg: 0.,
+      hysteresisDeg: 0.,
+      velocityMax: 2.5,
+      driftDegPerSec: 2.,
+    })
+    let raw = xRotation(10.)
+    let afterOneSecond = stabilizer->OrientationStabilizer.update(raw, ~dtSeconds=1.)
+    let afterTwoSeconds = stabilizer->OrientationStabilizer.update(raw, ~dtSeconds=1.)
+
+    t->expect(angleToIdentity(afterOneSecond))->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(8.), 8)
+    t->expect(angleToIdentity(afterTwoSeconds))->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(6.), 8)
+  })
+
+  test("does not absorb drift while the cube is turning", t => {
+    let stabilizer = OrientationStabilizer.make(~config={
+      radiusDeg: 0.,
+      snapDeg: 0.,
+      hysteresisDeg: 0.,
+      velocityMax: 2.5,
+      driftDegPerSec: 2.,
+    })
+    let raw = xRotation(10.)
+    let output = stabilizer->OrientationStabilizer.update(raw, ~velocity=2.5, ~dtSeconds=1.)
+    expectSamePose(t, output, raw)
+  })
 })

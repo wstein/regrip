@@ -57,6 +57,7 @@ function applyProfile(context: DeviceContext): void {
     snapDeg: config.snapDeg ?? OrientationStabilizer.defaults.snapDeg,
     hysteresisDeg: config.hysteresisDeg ?? OrientationStabilizer.defaults.hysteresisDeg,
     velocityMax: config.velocityMax ?? OrientationStabilizer.defaults.velocityMax,
+    driftDegPerSec: config.driftDegPerSec ?? OrientationStabilizer.defaults.driftDegPerSec,
   });
 }
 

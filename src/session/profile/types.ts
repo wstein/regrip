@@ -15,6 +15,7 @@ export type SmartCubeProfile = {
     snapDeg?: number;
     hysteresisDeg?: number;
     velocityMax?: number;
+    driftDegPerSec?: number;
   };
   battery?: { curve?: string };
   gyro?: { axisMap?: string };

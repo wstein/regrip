@@ -29,9 +29,11 @@ type CubeEventControllerOptions = {
 
 export function createCubeEventController(options: CubeEventControllerOptions) {
   let cubeStateInitialized = false;
+  let previousGyroTimestamp: number | undefined;
 
   function reset(): void {
     cubeStateInitialized = false;
+    previousGyroTimestamp = undefined;
     GyroOrientation.resetBasis(options.gyro);
     OrientationStabilizer.reset(options.stabilizer);
     options.timer.reset();
@@ -42,7 +44,9 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     const { x, y, z, w } = event.quaternion;
     const relative = GyroOrientation.relative(options.gyro, event.quaternion);
     const velocity = event.velocity ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z) : 0;
-    const stabilized = OrientationStabilizer.update(options.stabilizer, relative, velocity);
+    const dtSeconds = previousGyroTimestamp === undefined ? 0 : Math.max(0, (event.timestamp - previousGyroTimestamp) / 1000);
+    previousGyroTimestamp = event.timestamp;
+    const stabilized = OrientationStabilizer.update(options.stabilizer, relative, velocity, dtSeconds);
     options.setOrientation(GyroOrientation.applyHome(options.gyro, stabilized));
     options.setInfo('quaternion', `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`);
     if (event.velocity) {
