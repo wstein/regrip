@@ -10,6 +10,9 @@ let multiply: (t, t) => t
 let premultiply: (t, t) => t
 let conjugate: t => t
 let normalize: t => t
+let dot: (t, t) => float
+let angle: (t, t) => float
+let slerp: (t, t, float) => t
 /** three.js Euler -> Quaternion, XYZ order */
 let fromEuler: euler => t
 let degreesToRadians: float => float

@@ -14,5 +14,8 @@ export function multiply(a: Quaternion, b: Quaternion): Quaternion;
 export function premultiply(self: Quaternion, other: Quaternion): Quaternion;
 export function conjugate(q: Quaternion): Quaternion;
 export function normalize(q: Quaternion): Quaternion;
+export function dot(a: Quaternion, b: Quaternion): number;
+export function angle(a: Quaternion, b: Quaternion): number;
+export function slerp(a: Quaternion, b: Quaternion, t: number): Quaternion;
 export function fromEuler(e: Euler): Quaternion;
 export function degreesToRadians(deg: number): number;

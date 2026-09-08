@@ -33,6 +33,28 @@ let normalize = (q: t): t => {
   }
 }
 
+let dot = (a: t, b: t): float => a.x *. b.x +. a.y *. b.y +. a.z *. b.z +. a.w *. b.w
+
+let angle = (a: t, b: t): float => {
+  let d = Math.abs(dot(normalize(a), normalize(b)))
+  2. *. Math.acos(if d > 1. {1.} else {d})
+}
+
+let slerp = (a: t, b: t, t: float): t => {
+  let b = dot(a, b) < 0. ? {x: -.b.x, y: -.b.y, z: -.b.z, w: -.b.w} : b
+  let rawCosine = dot(normalize(a), normalize(b))
+  let cosine = rawCosine > 1. ? 1. : rawCosine < -1. ? -1. : rawCosine
+  if cosine > 0.9995 {
+    normalize({x: a.x +. t *. (b.x -. a.x), y: a.y +. t *. (b.y -. a.y), z: a.z +. t *. (b.z -. a.z), w: a.w +. t *. (b.w -. a.w)})
+  } else {
+    let theta = Math.acos(cosine)
+    let sinTheta = Math.sin(theta)
+    let wa = Math.sin((1. -. t) *. theta) /. sinTheta
+    let wb = Math.sin(t *. theta) /. sinTheta
+    {x: wa *. a.x +. wb *. b.x, y: wa *. a.y +. wb *. b.y, z: wa *. a.z +. wb *. b.z, w: wa *. a.w +. wb *. b.w}
+  }
+}
+
 type euler = {x: float, y: float, z: float}
 
 // three.js Euler -> Quaternion, XYZ order (the THREE.Euler default)
