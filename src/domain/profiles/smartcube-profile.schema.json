@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "smartcube-profile.schema.json",
+  "type": "object",
+  "required": ["id"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "extends": { "type": "string" },
+    "match": {
+      "type": "object",
+      "properties": {
+        "protocol": { "type": "string" },
+        "deviceName": { "type": "string" },
+        "hardwareName": { "type": "string" },
+        "goCubeType": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "stabilizer": { "type": "object", "additionalProperties": { "type": "number" } },
+    "battery": { "type": "object", "properties": { "curve": { "type": "string" } }, "additionalProperties": false },
+    "gyro": { "type": "object", "properties": { "axisMap": { "type": "string" } }, "additionalProperties": false },
+    "quirks": { "type": "object", "additionalProperties": true }
+  },
+  "additionalProperties": false
+}

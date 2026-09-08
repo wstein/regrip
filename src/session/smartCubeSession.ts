@@ -2,11 +2,15 @@ import type { Subscription } from 'rxjs';
 import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import { disconnectConnection, requestInitialState } from './connection';
+import { bundledProfiles } from './profile/bundled';
+import { resolveProfile } from './profile/resolveProfile';
+import type { ResolvedProfile } from './profile/types';
 
 export type SmartCubeSessionState = {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
   connection: SmartCubeConnection | null;
   lastEvent: SmartCubeEvent | null;
+  profile: ResolvedProfile;
   error: string | null;
 };
 
@@ -16,7 +20,10 @@ export type SmartCubeSessionOptions = {
 
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
-  let state: SmartCubeSessionState = { status: 'disconnected', connection: null, lastEvent: null, error: null };
+  let state: SmartCubeSessionState = {
+    status: 'disconnected', connection: null, lastEvent: null, error: null,
+    profile: resolveProfile({}, bundledProfiles),
+  };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
 
   const publish = (): void => listeners.forEach(listener => listener(state));
@@ -27,6 +34,15 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   const onEvent = (event: SmartCubeEvent): void => {
     setState({ lastEvent: event });
+    if (event.type === 'HARDWARE' && state.connection) {
+      setState({ profile: resolveProfile({
+        protocol: state.connection.protocol.id,
+        deviceName: state.connection.deviceName,
+        deviceMAC: state.connection.deviceMAC,
+        hardwareName: event.hardwareName,
+        goCubeType: event.goCubeType?.name,
+      }, bundledProfiles) });
+    }
     if (event.type === 'DISCONNECT') void disconnect();
   };
 
@@ -36,6 +52,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     let connection: SmartCubeConnection | null = null;
     try {
       connection = await options.connect();
+      setState({ connection, profile: resolveProfile({
+        protocol: connection.protocol.id,
+        deviceName: connection.deviceName,
+        deviceMAC: connection.deviceMAC,
+      }, bundledProfiles) });
       subscription = connection.events$.subscribe(onEvent);
       await requestInitialState(connection);
       setState({ status: 'connected', connection });

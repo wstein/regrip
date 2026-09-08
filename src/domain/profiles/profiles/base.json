@@ -1,0 +1,1 @@
+{"id":"base","stabilizer":{"radiusDeg":35,"snapDeg":4,"hysteresisDeg":6,"velocityMax":2.5},"battery":{"curve":"linear"},"gyro":{"axisMap":"x,z,-y,w"},"quirks":{}}
