@@ -4,9 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "res:build": "rescript",
+    "res:watch": "rescript -w",
+    "res:clean": "rescript clean",
+    "dev": "run-s res:build && run-p res:watch vite",
+    "build": "rescript && tsc && vite build",
+    "preview": "vite preview",
+    "test": "rescript && vitest run",
+    "test:watch": "run-p res:watch \"vitest\""
   },
   "devDependencies": {
     "@types/aes-js": "^3.1.4",

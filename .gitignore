@@ -13,6 +13,12 @@ dist-ssr
 *.local
 bun.lock
 
+# ReScript
+*.res.mjs
+*.gen.ts
+lib/
+.rescript/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
