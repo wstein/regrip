@@ -128,6 +128,10 @@ function handleCubeEvent(event: SmartCubeEvent) {
   } else if (event.type == "BATTERY") {
     $('#batteryLevel').val(event.batteryLevel + '%');
   } else if (event.type == "DISCONNECT") {
+    conn = null;
+    cubeStateInitialized = false;
+    MoveBuffer.reset(moves);
+    GyroOrientation.resetBasis(gyro);
     dispatchTimer("Disconnected");
     twistyPlayer.alg = '';
     $('.info input').val('- n/a -');
