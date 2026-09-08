@@ -5,7 +5,6 @@ import type { Subscription } from 'rxjs';
 import * as THREE from 'three';
 import type { SmartCubeConnection } from 'smartcube-web-bluetooth';
 
-import { patternToFacelets } from '../adapters/cubing/utils';
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { startSceneRenderLoop } from '../adapters/three/sceneView';
@@ -15,7 +14,6 @@ import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube, disconnectConnection, requestInitialState } from '../session/connection';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
-import { SOLVED_STATE } from '../session/constants';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
@@ -114,19 +112,15 @@ const cubeEvents = createCubeEventController({
   setPlayerAlgorithm: algorithm => { twistyPlayer.alg = algorithm; },
   setInfo: infoPanel.setInfo,
   showInfo: infoPanel.showInfo,
+  onSolved: () => {
+    timerController.dispatch('solved');
+    twistyPlayer.alg = '';
+  },
   onDisconnect: () => {
     eventsSub?.unsubscribe();
     eventsSub = null;
     finishDisconnect();
   },
-});
-
-twistyPlayer.experimentalModel.currentPattern.addFreshListener(async (kpattern) => {
-  const facelets = patternToFacelets(kpattern);
-  if (facelets == SOLVED_STATE) {
-    timerController.dispatch("solved");
-    twistyPlayer.alg = '';
-  }
 });
 
 document.addEventListener('keydown', (event) => {

@@ -1,11 +1,13 @@
 import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
+import * as Cube333 from '../domain/Cube333.res.mjs';
 import { formatCubieState, formatOfflineStats } from './cubeInfo';
 import type { TimerController } from './timerController';
-import { SOLVED_STATE } from './constants';
 
 export type ScrambleSolver = (facelets: string) => Promise<string>;
+export type SolveDetector = (cube: Cube333.Cube333) => boolean;
+export const defaultSolveDetector: SolveDetector = Cube333.isSolved;
 
 type CubeEventControllerOptions = {
   gyro: GyroOrientation.GyroOrientation;
@@ -17,6 +19,8 @@ type CubeEventControllerOptions = {
   setInfo: (id: string, value: string) => void;
   showInfo: (id: string) => void;
   onDisconnect: () => void;
+  onSolved: () => void;
+  solveDetector?: SolveDetector;
   onUnknownEvent?: (event: unknown) => void;
 };
 
@@ -63,10 +67,13 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatCubieState(event.state));
     }
+    const cube = Cube333.fromFacelets(event.facelets);
+    const solved = (options.solveDetector ?? defaultSolveDetector)(cube);
+    if (solved) options.onSolved();
     if (cubeStateInitialized) return;
 
     cubeStateInitialized = true;
-    options.setPlayerAlgorithm(event.facelets === SOLVED_STATE ? '' : await options.solveScramble(event.facelets));
+    options.setPlayerAlgorithm(solved ? '' : await options.solveScramble(event.facelets));
   }
 
   function handleHardware(event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>): void {
