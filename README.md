@@ -1,4 +1,4 @@
-## smartcube-sample
+## smartcube-example
 
 A single-page demo for the [smartcube-web-bluetooth](https://github.com/wstein/smartcube-web-bluetooth)
 library. It uses the Generic Smart Cube API, which auto-detects and connects to supported GAN, Giiker,

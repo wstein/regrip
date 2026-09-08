@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from 'node:url'
 const workerImportMetaUrlRE = /\bnew\s+(?:Worker|SharedWorker)\s*\(\s*(new\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*\))/g;
 
 export default defineConfig({
-    base: "/smartcube-sample",
+    base: "/smartcube-example",
     resolve: {
         alias: {
             'smartcube-web-bluetooth': fileURLToPath(
