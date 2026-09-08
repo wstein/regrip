@@ -27,7 +27,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 );
 const gyro = GyroOrientation.make();
 const stabilizer = OrientationStabilizer.make();
-const session = createSmartCubeSession({ connect: connectCube });
+const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
 
 let renderLoopStarted = false;
@@ -43,6 +43,7 @@ infoPanel.on('reset-state', 'click', async () => {
 infoPanel.on('reset-gyro', 'click', async () => {
   GyroOrientation.resetBasis(gyro);
   OrientationStabilizer.reset(stabilizer);
+  session.resetVirtualRegrips();
 });
 
 function applyProfile(profile: SmartCubeProfile): void {
@@ -100,6 +101,13 @@ const cubeEvents = createCubeEventController({
 
 applyProfile(session.getState().profile.value);
 session.subscribeEvents(event => {
+  if (event.type === 'REGRIP') {
+    // Virtual regrips are history/log events. BLE MOVE packets remain physical
+    // URFDLB moves and are never remapped through gyro orientation.
+    eventLog.record('virtual_regrip', event);
+    infoPanel.appendDetectedMove(event.notationToken);
+    return;
+  }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });

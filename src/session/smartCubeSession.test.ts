@@ -2,7 +2,8 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
-import { createSmartCubeSession } from './smartCubeSession';
+import * as Quaternion from '../domain/Quaternion.res.mjs';
+import { createSmartCubeSession, type SmartCubeSessionEvent } from './smartCubeSession';
 
 function connection(events$: Subject<SmartCubeEvent>): SmartCubeConnection {
   return {
@@ -20,7 +21,7 @@ describe('smart cube session', () => {
   it('owns the event subscription and reprofiles before notifying event observers', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({ connect: async () => connection(events$) });
-    const received: SmartCubeEvent[] = [];
+    const received: SmartCubeSessionEvent[] = [];
     let profileAtHardware = '';
     session.subscribeEvents(event => {
       received.push(event);
@@ -32,6 +33,28 @@ describe('smart cube session', () => {
 
     expect(received).toHaveLength(1);
     expect(profileAtHardware).toBe('gocube');
+    await session.disconnect();
+  });
+
+  it('publishes an optional virtual regrip after its source gyro event', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      virtualRegrips: true,
+    });
+    const received: string[] = [];
+    session.subscribeEvents(event => {
+      received.push(event.type === 'REGRIP' ? event.notationToken : event.type);
+    });
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    events$.next({
+      type: 'GYRO', timestamp: 2,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(66), y: 0, z: 0 }),
+    });
+
+    expect(received).toEqual(['GYRO', 'GYRO', "x'"]);
     await session.disconnect();
   });
 });

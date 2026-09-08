@@ -1,6 +1,8 @@
 import type { Subscription } from 'rxjs';
 import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
+import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
+import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import { bundledProfiles } from './profile/bundled';
 import { resolveProfile } from './profile/resolveProfile';
@@ -14,8 +16,21 @@ export type SmartCubeSessionState = {
   error: string | null;
 };
 
+export type VirtualRegripEvent = {
+  type: 'REGRIP';
+  timestamp: number;
+  /** Clockwise Singmaster x/y/z notation. */
+  notationToken: string;
+  /** The corresponding positive/negative calibrated sensor axis. */
+  sensorFrameToken: string;
+};
+
+export type SmartCubeSessionEvent = SmartCubeEvent | VirtualRegripEvent;
+
 export type SmartCubeSessionOptions = {
   connect: () => Promise<SmartCubeConnection>;
+  /** Publish detected x/y/z regrips in addition to BLE events. Disabled by default. */
+  virtualRegrips?: boolean;
 };
 
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
@@ -25,7 +40,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     profile: resolveProfile({}, bundledProfiles),
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
-  const eventListeners = new Set<(event: SmartCubeEvent) => void>();
+  const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
+  // This calibration and detector are deliberately independent of the display
+  // gyro/magnet pipeline. They only derive optional virtual regrip events.
+  const regripGyro = GyroOrientation.make();
+  const regripDetector = RegripDetector.make();
 
   const publish = (): void => listeners.forEach(listener => listener(state));
   const setState = (next: Partial<SmartCubeSessionState>): void => {
@@ -34,6 +53,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
 
   const onEvent = (event: SmartCubeEvent): void => {
+    const regrip = event.type === 'GYRO' && options.virtualRegrips
+      ? RegripDetector.observe(regripDetector, GyroOrientation.relative(regripGyro, event.quaternion))
+      : undefined;
     setState({ lastEvent: event });
     if (event.type === 'HARDWARE' && state.connection) {
       setState({ profile: resolveProfile({
@@ -45,12 +67,25 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       }, bundledProfiles) });
     }
     eventListeners.forEach(listener => listener(event));
+    if (regrip) {
+      eventListeners.forEach(listener => listener({
+        type: 'REGRIP', timestamp: event.timestamp,
+        notationToken: regrip.notationToken,
+        sensorFrameToken: regrip.sensorFrameToken,
+      }));
+    }
     if (event.type === 'DISCONNECT') void disconnect();
+  };
+
+  const resetVirtualRegrips = (): void => {
+    GyroOrientation.resetBasis(regripGyro);
+    RegripDetector.reset(regripDetector);
   };
 
   async function connect(): Promise<void> {
     if (state.status === 'connecting' || state.connection) return;
     setState({ status: 'connecting', error: null });
+    resetVirtualRegrips();
     let connection: SmartCubeConnection | null = null;
     try {
       connection = await options.connect();
@@ -74,6 +109,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     subscription?.unsubscribe();
     subscription = null;
     const connection = state.connection;
+    resetVirtualRegrips();
     setState({ status: 'disconnected', connection: null });
     await disconnectConnection(connection);
   }
@@ -85,11 +121,12 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       return () => listeners.delete(listener);
     },
     /** Events remain owned by the session; consumers only observe them here. */
-    subscribeEvents(listener: (event: SmartCubeEvent) => void): () => void {
+    subscribeEvents(listener: (event: SmartCubeSessionEvent) => void): () => void {
       eventListeners.add(listener);
       return () => eventListeners.delete(listener);
     },
     connect,
     disconnect,
+    resetVirtualRegrips,
   };
 }
