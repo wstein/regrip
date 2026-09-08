@@ -50,8 +50,11 @@ export function createTimerController(options: TimerControllerOptions) {
         case 'stopLocalTimer': localTimer.stop(); break;
         case 'clearSolutionMoves': MoveBuffer.clearSolution(moves); break;
         case 'showFinalTime': {
-          const fitted = SmartCubeBindings.cubeTimestampLinearFit(MoveBuffer.solutionMoves(moves));
-          setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
+          const solutionMoves = MoveBuffer.solutionMoves(moves);
+          if (solutionMoves.length > 0 && solutionMoves.every(move => move.cubeTimestamp !== null)) {
+            const fitted = SmartCubeBindings.cubeTimestampLinearFit(solutionMoves);
+            setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
+          }
           break;
         }
       }

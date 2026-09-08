@@ -44,4 +44,15 @@ describe('timer controller', () => {
     expect(ui.setSkew).toHaveBeenCalledWith('- n/a - (cube clock unavailable)');
     timer.reset();
   });
+
+  it('keeps the local elapsed time when a clockless cube solves', () => {
+    const { timer, ui } = makeController();
+
+    timer.dispatch('activate');
+    timer.onMove(move(null));
+    timer.dispatch('solved');
+
+    expect(ui.setTimer).toHaveBeenCalledTimes(1);
+    timer.reset();
+  });
 });
