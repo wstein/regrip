@@ -3,36 +3,36 @@
 // generic over the move type; timestamp calculations stay at the typed
 // JavaScript boundary in index.ts.
 
-type t<'m> = {
-  mutable recent: array<'m>,
-  mutable solution: array<'m>,
-}
+type state<'m> = {recent: array<'m>, solution: array<'m>}
 
 let maxRecent = 256
 
 // Skew estimation needs a reasonable window before it means anything.
 let skewThreshold = 10
 
-let make = (): t<'m> => {recent: [], solution: []}
+let initial = (): state<'m> => {recent: [], solution: []}
 
-let pushRecent = (t: t<'m>, move: 'm): unit => {
-  t.recent->Array.push(move)
-  if Array.length(t.recent) > maxRecent {
-    t.recent = t.recent->Array.slice(~start=Array.length(t.recent) - maxRecent)
+let pushRecent = (state: state<'m>, move: 'm): state<'m> => {
+  let recent = Array.concat(state.recent, [move])
+  let recent = if Array.length(recent) > maxRecent {
+    recent->Array.slice(~start=Array.length(recent) - maxRecent)
+  } else {
+    recent
   }
+  {...state, recent}
 }
 
-let pushSolution = (t: t<'m>, move: 'm): unit => t.solution->Array.push(move)
-
-let clearSolution = (t: t<'m>): unit => t.solution = []
-
-let reset = (t: t<'m>): unit => {
-  t.recent = []
-  t.solution = []
+let pushSolution = (state: state<'m>, move: 'm): state<'m> => {
+  ...state,
+  solution: Array.concat(state.solution, [move]),
 }
 
-let recentReady = (t: t<'m>): bool => Array.length(t.recent) > skewThreshold
+let clearSolution = (state: state<'m>): state<'m> => {...state, solution: []}
 
-let recentMoves = (t: t<'m>): array<'m> => t.recent
+let reset = (_: state<'m>): state<'m> => initial()
 
-let solutionMoves = (t: t<'m>): array<'m> => t.solution
+let recentReady = (state: state<'m>): bool => Array.length(state.recent) > skewThreshold
+
+let recentMoves = (state: state<'m>): array<'m> => state.recent
+
+let solutionMoves = (state: state<'m>): array<'m> => state.solution

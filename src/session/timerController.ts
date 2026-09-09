@@ -39,7 +39,7 @@ const PHASE_COLOR: Record<Timer.Phase, string> = {
 
 export function createTimerController(options: TimerControllerOptions) {
   let state: Timer.State = 'idle';
-  const moves = MoveBuffer.make<SmartCubeMoveEvent>();
+  let moves = MoveBuffer.initial<SmartCubeMoveEvent>();
   const setTimerValue = (milliseconds: number) => options.setTimer(Time.format(milliseconds));
   const localTimer = createLocalTimer(setTimerValue);
 
@@ -59,7 +59,7 @@ export function createTimerController(options: TimerControllerOptions) {
           localTimer.stop();
           break;
         case 'clearSolutionMoves':
-          MoveBuffer.clearSolution(moves);
+          moves = MoveBuffer.clearSolution(moves);
           break;
         case 'showFinalTime': {
           const solutionMoves = MoveBuffer.solutionMoves(moves);
@@ -96,16 +96,16 @@ export function createTimerController(options: TimerControllerOptions) {
     if (move.cubeTimestamp === null) {
       options.setSkew('- n/a - (cube clock unavailable)');
     } else {
-      MoveBuffer.pushRecent(moves, move);
+      moves = MoveBuffer.pushRecent(moves, move);
     }
-    if (state === 'running') MoveBuffer.pushSolution(moves, move);
+    if (state === 'running') moves = MoveBuffer.pushSolution(moves, move);
     if (MoveBuffer.recentReady(moves)) {
       options.setSkew(`${SmartCubeBindings.cubeTimestampCalcSkew(MoveBuffer.recentMoves(moves))}%`);
     }
   }
 
   function reset(): void {
-    MoveBuffer.reset(moves);
+    moves = MoveBuffer.reset(moves);
     dispatch('disconnected');
   }
 

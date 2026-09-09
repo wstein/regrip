@@ -1,16 +1,16 @@
 // Rolling window of recent moves (for clock-skew estimation) + the current
 // solution's moves. Generic over the move type.
 
-type t<'m>
+type state<'m>
 
-let make: unit => t<'m>
+let initial: unit => state<'m>
 /** Append to the recent window, trimming it to the last 256. */
-let pushRecent: (t<'m>, 'm) => unit
-let pushSolution: (t<'m>, 'm) => unit
-let clearSolution: t<'m> => unit
+let pushRecent: (state<'m>, 'm) => state<'m>
+let pushSolution: (state<'m>, 'm) => state<'m>
+let clearSolution: state<'m> => state<'m>
 /** Clear both buffers (on disconnect). */
-let reset: t<'m> => unit
+let reset: state<'m> => state<'m>
 /** True once the recent window is large enough for a meaningful skew estimate. */
-let recentReady: t<'m> => bool
-let recentMoves: t<'m> => array<'m>
-let solutionMoves: t<'m> => array<'m>
+let recentReady: state<'m> => bool
+let recentMoves: state<'m> => array<'m>
+let solutionMoves: state<'m> => array<'m>
