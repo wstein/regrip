@@ -32,7 +32,7 @@
   "include": [
     "README.md",
     "TODO.md",
-    "LICENSE.txt",
+    "LICENSE",
     "package.json",
     "rescript.json",
     "tsconfig.json",
