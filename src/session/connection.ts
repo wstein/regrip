@@ -1,6 +1,13 @@
 import { connectSmartCube } from 'smartcube-web-bluetooth';
 import type { SmartCubeConnection } from 'smartcube-web-bluetooth';
 
+declare global {
+  interface Window {
+    /** Test harness only: supplies an in-memory connection before app bootstrap. */
+    __smartcubeMockConnect?: () => Promise<SmartCubeConnection>;
+  }
+}
+
 export const macAddressProvider = async (
   device: BluetoothDevice,
   isFallbackCall?: boolean,
@@ -18,6 +25,7 @@ export const macAddressProvider = async (
 };
 
 export async function connectCube(): Promise<SmartCubeConnection> {
+  if (window.__smartcubeMockConnect) return window.__smartcubeMockConnect();
   return connectSmartCube(macAddressProvider);
 }
 
