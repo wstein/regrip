@@ -99,3 +99,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:events
+      - run: npm run check:declarations

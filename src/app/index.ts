@@ -144,8 +144,8 @@ session.subscribeEvents((event) => {
     return;
   }
   if (event.type === 'REGRIP') {
-    // Virtual regrips are history/log events. BLE MOVE packets remain physical
-    // URFDLB moves and are never remapped through gyro orientation.
+    // World gyro only detects this event; Body→Solver integer permutations,
+    // never quaternions, translate BLE URFDLB moves and facelets for the user.
     eventLog.record('virtual_regrip', event);
     infoPanel.appendDetectedMove(event.notationToken);
     solverFrame.applyRegrip(event.notationToken);
