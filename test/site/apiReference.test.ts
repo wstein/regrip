@@ -18,9 +18,8 @@ describe('generated API reference integration', () => {
     expect(docs).toContain('class="api-callout"');
   });
 
-  it('the pre-generation fallback uses the Modernist tokens, not the old dark theme', () => {
-    expect(fallback).toMatch(/var\(--color-[a-z-]+\)/);
-    expect(fallback).not.toMatch(/#090d18|#0d1325|#edf2ff/);
+  it('the pre-generation fallback uses the same dark palette as the lab', () => {
+    expect(fallback).toMatch(/#090d18|#0d1325|#edf2ff/);
   });
 
   it('the fallback links back into the site', () => {
@@ -35,9 +34,10 @@ describe('generated API reference integration', () => {
     expect(Object.values(links ?? {}).join(' ')).toMatch(/docs\.html/);
   });
 
-  it('the typedoc theme override retunes the base colours', () => {
+  it('the typedoc theme override retunes the base colours without a webfont', () => {
     const theme = read('docs/api-theme.css');
     expect(theme).toMatch(/--color-background:/);
     expect(theme).toMatch(/--color-link:/);
+    expect(theme).not.toMatch(/@import|Archivo|Modernist/);
   });
 });

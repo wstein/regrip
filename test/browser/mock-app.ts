@@ -16,7 +16,6 @@ if (kind) {
   await new Promise((resolve) => setTimeout(resolve, 50));
   window.__smartcubeMockReplay?.();
 }
-// Wait for the Modernist webfont (Archivo) so screenshots don't capture a
-// fallback-to-webface layout shift.
+// Wait for local/system fonts before capturing screenshots.
 await document.fonts.ready;
 document.documentElement.dataset.ready = 'true';

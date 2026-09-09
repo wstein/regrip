@@ -4,29 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
-    <meta name="theme-color" content="#f3f2f2" />
-    <meta
-      name="description"
-      content="Regrip — a browser lab that decodes GoCube and GAN smart-cube moves, events, gyro and regrips in real time."
-    />
+    <meta name="theme-color" content="#0d1325" />
     <title>Regrip</title>
   </head>
 
   <body>
-    <header class="nav">
-      <span class="nav-brand">Regrip <span class="nav-tag">· the smart-cube trace lab</span></span>
-      <a href="./landing.html">Overview</a>
-      <a href="./docs.html">Docs</a>
-      <a href="https://github.com/wstein/regrip">GitHub</a>
-    </header>
-
     <div id="app">
-      <p class="help">
+      <div class="help">
         Scramble cube to arbitrary state then press SPACE or touch Cube to activate basic solving
-        timer. <a href="./docs.html">API docs →</a>
-      </p>
+        timer. <a href="./docs/api/index.html">API docs</a>
+      </div>
 
-      <div class="lab">
+      <div class="app-layout">
         <aside id="event-log" aria-label="Live event trace">
           <div class="trace-heading">
             <h2>Live Trace</h2>
@@ -79,135 +68,137 @@
           </menu>
         </aside>
 
-        <main class="workspace-card">
-          <div class="cube-workspace">
-            <div class="cube-column">
-              <div id="cube"></div>
+        <div class="dashboard">
+          <main class="workspace-card">
+            <div class="cube-workspace">
+              <div class="cube-column">
+                <div id="cube"></div>
+              </div>
+
+              <section class="detected-moves-panel" aria-label="Detected Moves">
+                <div class="detected-moves-heading">
+                  <label for="detectedMoves">Detected Moves</label>
+                  <div class="solve-summary" aria-live="polite">
+                    <span class="move-count"><strong id="moveCount">0</strong> moves</span>
+                    <div id="timer">0:00.000</div>
+                  </div>
+                </div>
+                <textarea
+                  id="detectedMoves"
+                  rows="10"
+                  placeholder="U R F D L B"
+                  autocomplete="off"
+                  spellcheck="false"
+                ></textarea>
+                <div class="detected-moves-actions">
+                  <button id="simplify-detected-moves" type="button">Simplify</button>
+                  <button id="clear-detected-moves" type="button">Clear</button>
+                  <button id="copy-detected-moves" type="button">Copy</button>
+                </div>
+              </section>
             </div>
 
-            <section class="detected-moves-panel" aria-label="Detected Moves">
-              <div class="detected-moves-heading">
-                <label for="detectedMoves">Detected Moves</label>
-                <div class="solve-summary" aria-live="polite">
-                  <span class="move-count"><strong id="moveCount">0</strong> moves</span>
-                  <div id="timer">0:00.000</div>
+            <section class="cubie-state-panel">
+              <label for="cubieState" hidden>Cubie State</label>
+              <input id="cubieState" type="text" readonly value="- n/a -" hidden />
+              <div class="cube-export">
+                <button
+                  id="copy-cube-state"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="cube-export-menu"
+                >
+                  Copy as…
+                </button>
+                <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
+                  <button id="copy-compact-facelets" type="button" role="menuitem">
+                    Compact facelets
+                  </button>
+                  <button id="copy-spaced-facelets" type="button" role="menuitem">
+                    Spaced facelets
+                  </button>
+                  <button id="copy-singmaster" type="button" role="menuitem">Singmaster</button>
+                  <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
                 </div>
               </div>
-              <textarea
-                id="detectedMoves"
-                rows="10"
-                placeholder="U R F D L B"
-                autocomplete="off"
-                spellcheck="false"
-              ></textarea>
-              <div class="detected-moves-actions">
-                <button id="simplify-detected-moves" type="button">Simplify</button>
-                <button id="clear-detected-moves" type="button">Clear</button>
-                <button id="copy-detected-moves" type="button">Copy</button>
-              </div>
             </section>
-          </div>
 
-          <section class="cubie-state-panel">
-            <label for="cubieState" hidden>Cubie State</label>
-            <input id="cubieState" type="text" readonly value="- n/a -" hidden />
-            <div class="cube-export">
-              <button
-                id="copy-cube-state"
-                type="button"
-                aria-expanded="false"
-                aria-controls="cube-export-menu"
-              >
-                Copy as…
-              </button>
-              <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
-                <button id="copy-compact-facelets" type="button" role="menuitem">
-                  Compact facelets
-                </button>
-                <button id="copy-spaced-facelets" type="button" role="menuitem">
-                  Spaced facelets
-                </button>
-                <button id="copy-singmaster" type="button" role="menuitem">Singmaster</button>
-                <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
+            <div class="controls">
+              <div class="control-actions">
+                <button id="connect">Connect</button>
+                <button id="reset-state">Reset State</button>
+                <button id="reset-gyro">Reset Gyro</button>
               </div>
+              <div class="log-actions"></div>
             </div>
-          </section>
+            <section id="command-panel" class="command-panel" hidden></section>
+          </main>
 
-          <div class="controls">
-            <div class="control-actions">
-              <button id="connect">Connect</button>
-              <button id="reset-state">Reset State</button>
-              <button id="reset-gyro">Reset Gyro</button>
+          <aside class="device-card">
+            <h2>Cube Connection</h2>
+            <div class="info">
+              <label for="connectionStatus">Connection Status</label>
+              <input id="connectionStatus" type="text" readonly value="Disconnected" />
+
+              <label for="protocol">Protocol</label>
+              <input id="protocol" type="text" readonly value="- n/a -" />
+
+              <label for="capabilities">Capabilities</label>
+              <input id="capabilities" type="text" readonly value="- n/a -" />
+
+              <label for="deviceName">Device Name</label>
+              <input id="deviceName" type="text" readonly value="- n/a -" />
+
+              <label for="deviceMAC">Device MAC</label>
+              <input id="deviceMAC" type="text" readonly value="- n/a -" />
+
+              <label for="hardwareName">Hardware Name</label>
+              <input id="hardwareName" type="text" readonly value="- n/a -" />
+
+              <label for="hardwareVersion">Hardware Version</label>
+              <input id="hardwareVersion" type="text" readonly value="- n/a -" />
+
+              <label for="softwareVersion">Software Version</label>
+              <input id="softwareVersion" type="text" readonly value="- n/a -" />
+
+              <label for="productDate">Product Date</label>
+              <input id="productDate" type="text" readonly value="- n/a -" />
+
+              <label for="gyroSupported">Gyro Supported</label>
+              <input id="gyroSupported" type="text" readonly value="- n/a -" />
+
+              <label for="batteryLevel">Battery</label>
+              <input id="batteryLevel" type="text" readonly value="- n/a -" />
+
+              <label for="eventSerial">Event Serial</label>
+              <input id="eventSerial" type="text" readonly value="- n/a -" />
+
+              <label for="centerOrientation">GoCube Center Orientation</label>
+              <input id="centerOrientation" type="text" readonly value="- n/a -" />
+
+              <label for="goCubeType">GoCube Type</label>
+              <input id="goCubeType" type="text" readonly value="- n/a -" />
+
+              <label for="offlineMoves">GoCube Offline Moves</label>
+              <input id="offlineMoves" type="text" readonly value="- n/a -" />
+
+              <label for="offlineDuration">GoCube Offline Time</label>
+              <input id="offlineDuration" type="text" readonly value="- n/a -" />
+
+              <label for="offlineSolves">GoCube Offline Solves</label>
+              <input id="offlineSolves" type="text" readonly value="- n/a -" />
+
+              <label for="skew">Clock Skew</label>
+              <input id="skew" type="text" readonly value="- n/a -" />
+
+              <label for="quaternion">Quaternion</label>
+              <input id="quaternion" type="text" readonly value="- n/a -" />
+
+              <label for="velocity">Angular Velocity</label>
+              <input id="velocity" type="text" readonly value="- n/a -" />
             </div>
-            <div class="log-actions"></div>
-          </div>
-          <section id="command-panel" class="command-panel" hidden></section>
-        </main>
-
-        <aside class="device-card">
-          <h2>Cube Connection</h2>
-          <div class="info">
-            <label for="connectionStatus">Connection Status</label>
-            <input id="connectionStatus" type="text" readonly value="Disconnected" />
-
-            <label for="protocol">Protocol</label>
-            <input id="protocol" type="text" readonly value="- n/a -" />
-
-            <label for="capabilities">Capabilities</label>
-            <input id="capabilities" type="text" readonly value="- n/a -" />
-
-            <label for="deviceName">Device Name</label>
-            <input id="deviceName" type="text" readonly value="- n/a -" />
-
-            <label for="deviceMAC">Device MAC</label>
-            <input id="deviceMAC" type="text" readonly value="- n/a -" />
-
-            <label for="hardwareName">Hardware Name</label>
-            <input id="hardwareName" type="text" readonly value="- n/a -" />
-
-            <label for="hardwareVersion">Hardware Version</label>
-            <input id="hardwareVersion" type="text" readonly value="- n/a -" />
-
-            <label for="softwareVersion">Software Version</label>
-            <input id="softwareVersion" type="text" readonly value="- n/a -" />
-
-            <label for="productDate">Product Date</label>
-            <input id="productDate" type="text" readonly value="- n/a -" />
-
-            <label for="gyroSupported">Gyro Supported</label>
-            <input id="gyroSupported" type="text" readonly value="- n/a -" />
-
-            <label for="batteryLevel">Battery</label>
-            <input id="batteryLevel" type="text" readonly value="- n/a -" />
-
-            <label for="eventSerial">Event Serial</label>
-            <input id="eventSerial" type="text" readonly value="- n/a -" />
-
-            <label for="centerOrientation">GoCube Center Orientation</label>
-            <input id="centerOrientation" type="text" readonly value="- n/a -" />
-
-            <label for="goCubeType">GoCube Type</label>
-            <input id="goCubeType" type="text" readonly value="- n/a -" />
-
-            <label for="offlineMoves">GoCube Offline Moves</label>
-            <input id="offlineMoves" type="text" readonly value="- n/a -" />
-
-            <label for="offlineDuration">GoCube Offline Time</label>
-            <input id="offlineDuration" type="text" readonly value="- n/a -" />
-
-            <label for="offlineSolves">GoCube Offline Solves</label>
-            <input id="offlineSolves" type="text" readonly value="- n/a -" />
-
-            <label for="skew">Clock Skew</label>
-            <input id="skew" type="text" readonly value="- n/a -" />
-
-            <label for="quaternion">Quaternion</label>
-            <input id="quaternion" type="text" readonly value="- n/a -" />
-
-            <label for="velocity">Angular Velocity</label>
-            <input id="velocity" type="text" readonly value="- n/a -" />
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
 
       <div id="app-feedback" role="status" aria-live="polite" hidden></div>

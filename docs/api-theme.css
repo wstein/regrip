@@ -1,68 +1,31 @@
-/* Modernist retune for the generated TypeDoc site. Imported by TypeDoc via
-   `customCss` in typedoc.json. Retunes the base colours, type and corners so
-   the API reference reads as part of the Regrip site; it is not a full theme
-   rewrite. Keep the palette in step with src/app/modernist.css. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap');
+/* Keep generated TypeDoc pages visually aligned with the dark app shell. */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  --color-background: #f3f2f2;
-  --color-background-secondary: #eae9e9;
-  --color-background-active: #fff2ef;
-  --color-text: #201e1d;
-  --color-text-aside: #605d5d;
-  --color-contrast-text: #f3f2f2;
-  --color-link: #ec3013;
-  --color-accent: #201e1d;
-  --color-active-menu-item: #ec3013;
-  --color-focus-outline: #ec3013;
-  --color-icon-background: #f3f2f2;
+  --color-background: #090d18;
+  --color-background-secondary: #10192c;
+  --color-background-active: #18233c;
+  --color-text: #edf2ff;
+  --color-text-aside: #aebbd9;
+  --color-contrast-text: #090d18;
+  --color-link: #8bb7ff;
+  --color-accent: #8bb7ff;
+  --color-active-menu-item: #8bb7ff;
+  --color-focus-outline: #8bb7ff;
+  --color-icon-background: #090d18;
 }
 
 body {
-  font-family: 'Archivo', system-ui, sans-serif;
-}
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-.tsd-page-title h1,
-.tsd-typography h1,
-.tsd-typography h2 {
-  font-family: 'Archivo', system-ui, sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.015em;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Flatten the corners the Modernist system draws at 0. */
-.tsd-panel,
-.tsd-page-toolbar,
-.tsd-navigation a,
-.tsd-navigation .tsd-accordion-summary,
-.tsd-filter-visibility .tsd-filter-item,
-.tsd-signature,
-.tsd-kind-icon,
-pre,
-code,
-input,
-.tsd-widget,
-button {
-  border-radius: 0 !important;
-}
-
-/* Strong 2px rules over hairlines, matching the DS dividers. */
 .tsd-page-toolbar,
 .tsd-panel-group.tsd-index-group,
 .container-main .col-content > .tsd-panel + .tsd-panel {
-  border-color: color-mix(in srgb, #201e1d 40%, transparent);
-}
-.tsd-page-toolbar {
-  border-bottom-width: 2px;
+  border-color: #2b3859;
 }
 
 a:hover {
-  color: #dd2b0f;
+  color: #c3daff;
 }

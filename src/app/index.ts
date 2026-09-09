@@ -1,4 +1,3 @@
-import './modernist.css';
 import './style.css';
 
 import * as THREE from 'three';
