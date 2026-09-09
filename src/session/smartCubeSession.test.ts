@@ -132,4 +132,34 @@ describe('smart cube session', () => {
     expect(received.at(-1)).toMatchObject({ type: 'CUSTOM_TRIGGER', move: 'R', timestamp: 1299 });
     await session.disconnect();
   });
+
+  it('owns universal and capability-gated vendor commands', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const conn = connection(events$, {
+      gyroscope: true,
+      battery: false,
+      facelets: true,
+      hardware: false,
+      reset: false,
+      vendorCommands: ['TOGGLE_BACKLIGHT'],
+    });
+    conn.sendVendorCommand = vi.fn(async () => {});
+    const session = createSmartCubeSession({ connect: async () => conn });
+
+    await expect(session.sendCommand({ type: 'REQUEST_FACELETS' })).rejects.toThrow(
+      'not connected',
+    );
+    await session.connect();
+    await session.sendCommand({ type: 'REQUEST_FACELETS' });
+    await session.sendVendorCommand({ vendor: 'gocube', type: 'TOGGLE_BACKLIGHT' });
+    await expect(session.sendVendorCommand({ vendor: 'gocube', type: 'REBOOT' })).rejects.toThrow(
+      'Unsupported cube command',
+    );
+
+    expect(conn.sendCommand).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' });
+    expect(conn.sendVendorCommand).toHaveBeenCalledWith({
+      vendor: 'gocube',
+      type: 'TOGGLE_BACKLIGHT',
+    });
+  });
 });

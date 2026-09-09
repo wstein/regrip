@@ -1,5 +1,10 @@
 import type { Subscription } from 'rxjs';
-import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
+import type {
+  SmartCubeCommand,
+  SmartCubeConnection,
+  SmartCubeEvent,
+  SmartCubeVendorCommand,
+} from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
@@ -181,6 +186,24 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     await disconnectConnection(connection);
   }
 
+  async function sendCommand(command: SmartCubeCommand): Promise<void> {
+    const connection = state.connection;
+    if (!connection) throw new Error('Cube is not connected');
+    await connection.sendCommand(command);
+  }
+
+  async function sendVendorCommand(command: SmartCubeVendorCommand): Promise<void> {
+    const connection = state.connection;
+    if (!connection) throw new Error('Cube is not connected');
+    if (
+      !connection.sendVendorCommand ||
+      !connection.capabilities.vendorCommands?.includes(command.type)
+    ) {
+      throw new Error(`Unsupported cube command: ${command.type}`);
+    }
+    await connection.sendVendorCommand(command);
+  }
+
   return {
     getState: (): SmartCubeSessionState => state,
     subscribe(listener: (next: SmartCubeSessionState) => void): () => void {
@@ -195,5 +218,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     connect,
     disconnect,
     resetGyro,
+    sendCommand,
+    sendVendorCommand,
   };
 }
