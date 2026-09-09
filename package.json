@@ -16,6 +16,7 @@
     "dev": "run-s res:build && run-p res:watch dev:vite",
     "dev:vite": "vite",
     "docs:api": "typedoc --options typedoc.json",
+    "docs:check": "typedoc --options typedoc.json --emit none --treatValidationWarningsAsErrors",
     "format": "rescript format && prettier --write .",
     "format:check": "rescript format --check && prettier --check .",
     "build": "rescript && tsc && vite build",
