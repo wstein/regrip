@@ -30,6 +30,8 @@
       move triggers.
 - [x] Add local-only live-trace selection: range/type selection, fixed detail
       pane, JSONL download/copy, and local replay of selected `MOVE` events.
+- [x] Add capability-gated universal and vendor cube commands, with confirmed
+      reboot and local trace/JSONL result feedback.
 - [ ] Decide whether a selected trace's replay should append to the current
       player state as an alternative to replacing its algorithm.
 - [ ] Do not add Gist, Pastebin, or other trace-upload actions without an
@@ -71,8 +73,8 @@
       split TypeScript/Vitest configs, and `npm pack` smoke test.
 - [ ] Add a CI snapshot/check of handled smartcube event types so dependency
       upgrades expose new protocol events deliberately.
-- [ ] Refresh README with the four-layer architecture, profiles, virtual
-      regrips, magnetic stabilization, JSONL, trace sidebar, and custom triggers.
+- [x] Refresh README with the four-layer architecture, profiles, virtual
+      regrips, magnetic stabilization, JSONL, trace sidebar, commands, and custom triggers.
 
 ## Upstream/community
 
