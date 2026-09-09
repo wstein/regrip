@@ -22,7 +22,7 @@ import {
   type CubeExportFormat,
   type CubeExportSource,
 } from '../session/cubeExport';
-import { featurePresets } from '../session/features';
+import { featurePresets } from '@wstein/regrip-core/session/features';
 import { createSmartCubeSession } from '../session/smartCubeSession';
 import { createSolverFrame } from '../adapters/three/solverFrame';
 

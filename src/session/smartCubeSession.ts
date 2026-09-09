@@ -21,12 +21,12 @@ import {
   stabilizerConfig,
   type SessionFeatures,
   type SessionFeaturesPatch,
-} from './features';
-import { bundledProfiles } from './profile/bundled';
-import { resolveProfile } from './profile/resolveProfile';
-import { parseSensorToBodyAxisMap } from './profile/axisMap';
+} from '@wstein/regrip-core/session/features';
+import { bundledProfiles } from '@wstein/regrip-core/session/profile/bundled';
+import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfile';
+import { parseSensorToBodyAxisMap } from '@wstein/regrip-core/session/profile/axisMap';
 import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody.res.mjs';
-import type { ProfileOverrides, ResolvedProfile } from './profile/types';
+import type { ProfileOverrides, ResolvedProfile } from '@wstein/regrip-core/session/profile/types';
 
 export type VirtualRegripEvent = {
   type: 'REGRIP';

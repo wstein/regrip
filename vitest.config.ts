@@ -14,6 +14,7 @@ export default defineConfig({
       'src/**/*_test.res.mjs',
       'packages/core/src/**/*_test.res.mjs',
       'src/**/*.test.ts',
+      'packages/core/src/**/*.test.ts',
       'test/**/*.test.ts',
     ],
     exclude: [...configDefaults.exclude, 'lib/**'],

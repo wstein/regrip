@@ -1,6 +1,6 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import { describe, expect, it } from 'vitest';
-import schema from '../../domain/profiles/smartcube-profile.schema.json';
+import schema from '../../profiles/smartcube-profile.schema.json';
 import { bundledProfiles } from './bundled';
 
 describe('bundled profile schema', () => {

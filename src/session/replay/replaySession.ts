@@ -7,9 +7,9 @@ import type {
 
 import * as ReplayCursor from '@wstein/regrip-core/domain/ReplayCursor.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
-import { resolveSessionFeatures } from '../features';
-import { bundledProfiles } from '../profile/bundled';
-import { resolveProfile } from '../profile/resolveProfile';
+import { resolveSessionFeatures } from '@wstein/regrip-core/session/features';
+import { bundledProfiles } from '@wstein/regrip-core/session/profile/bundled';
+import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfile';
 import {
   createSmartCubeSession,
   type CustomTriggerEvent,
