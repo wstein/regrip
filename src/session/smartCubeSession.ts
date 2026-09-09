@@ -6,9 +6,8 @@ import type {
   SmartCubeVendorCommand,
 } from 'smartcube-web-bluetooth';
 
-import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
+import * as GyroPipeline from '../domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
-import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import {
@@ -111,11 +110,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
   // The session owns calibration once; both regrip detection and display
   // stabilization consume the resulting calibrated pose.
-  const gyro = GyroOrientation.make();
-  const stabilizer = OrientationStabilizer.make(stabilizerConfig(state.features));
+  const gyroPipeline = GyroPipeline.make(stabilizerConfig(state.features));
   let regripDetector = RegripDetector.make({ thresholdDeg: state.features.regrip.thresholdDeg });
   let moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(state.features) ?? 300 });
-  let previousGyroTimestamp: number | undefined;
 
   function moveBackWindow(features: SessionFeatures): number | undefined {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
@@ -137,19 +134,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   const onEvent = (event: SmartCubeEvent): void => {
     const sessionEvent: SmartCubeSessionEvent = (() => {
       if (event.type !== 'GYRO') return event;
-      const relative = GyroOrientation.relative(gyro, event.quaternion);
-      const velocityMagnitude = event.velocity
-        ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z)
-        : 0;
-      const dtSeconds =
-        previousGyroTimestamp === undefined
-          ? 0
-          : Math.max(0, (event.timestamp - previousGyroTimestamp) / 1000);
-      previousGyroTimestamp = event.timestamp;
-      const stabilized = state.features.stabilizer.enabled
-        ? OrientationStabilizer.update(stabilizer, relative, velocityMagnitude, dtSeconds)
-        : relative;
-      return { ...event, relative, stabilized, velocityMagnitude, dtSeconds };
+      const sample = GyroPipeline.update(
+        gyroPipeline,
+        event.quaternion,
+        event.timestamp,
+        event.velocity,
+        state.features.stabilizer.enabled,
+      );
+      return { ...event, ...sample };
     })();
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
@@ -173,7 +165,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       });
       if (!sameProfile(state.profile, profile)) {
         const features = resolveSessionFeatures(profile.value.features);
-        OrientationStabilizer.setConfig(stabilizer, stabilizerConfig(features));
+        GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
         resetFeatureDetectors(features);
         setState({ profile, features });
       }
@@ -202,11 +194,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
 
   const resetGyro = (): void => {
-    GyroOrientation.resetBasis(gyro);
-    OrientationStabilizer.reset(stabilizer);
+    GyroPipeline.reset(gyroPipeline);
     RegripDetector.reset(regripDetector);
     MoveBackTrigger.reset(moveBackTrigger);
-    previousGyroTimestamp = undefined;
   };
 
   async function connect(): Promise<void> {
@@ -223,7 +213,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         deviceMAC: connection.deviceMAC,
       });
       const features = resolveSessionFeatures(profile.value.features);
-      OrientationStabilizer.setConfig(stabilizer, stabilizerConfig(features));
+      GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
       resetFeatureDetectors(features);
       setState({
         connection,
