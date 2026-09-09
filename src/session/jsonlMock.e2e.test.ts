@@ -11,6 +11,10 @@ import {
 } from './testing/jsonlMock';
 
 const fixtureUrl = new URL('./testing/fixtures/session-contract.jsonl', import.meta.url);
+const uiFixtures = [
+  new URL('./testing/fixtures/gocube-edge-ui.jsonl', import.meta.url),
+  new URL('./testing/fixtures/gan-ui12-ui.jsonl', import.meta.url),
+];
 
 describe('JSONL session replay contract', () => {
   it('replays initial state, regrip, custom trigger, and disconnect deterministically', async () => {
@@ -55,6 +59,17 @@ describe('JSONL session replay contract', () => {
       format: JSONL_REPLAY_FORMAT,
       version: JSONL_REPLAY_VERSION,
     });
+  });
+
+  it('keeps the GoCube Edge and GAN UI12 screenshot fixtures replayable', async () => {
+    for (const fixture of uiFixtures) {
+      const contents = await readFile(fixture, 'utf8');
+      expect(validateJsonlReplay(contents).header).toEqual({
+        format: JSONL_REPLAY_FORMAT,
+        version: JSONL_REPLAY_VERSION,
+      });
+      expect(parseJsonlCubeEvents(contents)).not.toHaveLength(0);
+    }
   });
 
   it('rejects malformed JSONL before replay with the source line number', () => {

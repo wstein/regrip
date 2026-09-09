@@ -1,0 +1,7 @@
+{"recordedAt":"2026-09-09T12:31:00.000Z","type":"log_started","data":{"format":"smartcube-example","version":1,"session":{"device":"GAN12 UI","protocol":"gan-gen2"}}}
+{"recordedAt":"2026-09-09T12:31:00.010Z","type":"cube_event","data":{"type":"HARDWARE","timestamp":10,"hardwareName":"GAN12 UI","gyroSupported":true}}
+{"recordedAt":"2026-09-09T12:31:00.020Z","type":"cube_event","data":{"type":"BATTERY","timestamp":20,"batteryLevel":86}}
+{"recordedAt":"2026-09-09T12:31:00.030Z","type":"cube_event","data":{"type":"FACELETS","timestamp":30,"facelets":"UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}}
+{"recordedAt":"2026-09-09T12:31:00.040Z","type":"cube_event","data":{"type":"MOVE","timestamp":40,"move":"F","face":2,"direction":0,"localTimestamp":40,"cubeTimestamp":40}}
+{"recordedAt":"2026-09-09T12:31:00.170Z","type":"cube_event","data":{"type":"MOVE","timestamp":170,"move":"R","face":1,"direction":0,"localTimestamp":170,"cubeTimestamp":170}}
+{"recordedAt":"2026-09-09T12:31:00.310Z","type":"cube_event","data":{"type":"MOVE","timestamp":310,"move":"U'","face":0,"direction":1,"localTimestamp":310,"cubeTimestamp":310}}
