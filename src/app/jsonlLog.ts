@@ -36,6 +36,10 @@ export function downloadJsonl(contents: string, filename: string): void {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
+  // Safari and Firefox require the link to be attached, and can begin the
+  // download after this call returns. Release the URL on the next task.
+  document.body.append(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }

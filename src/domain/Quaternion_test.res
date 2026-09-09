@@ -101,4 +101,18 @@ describe("Quaternion algebra", () => {
     t->expect(ab.w)->Expect.Float.toBeCloseTo(ba.w, 9)
     t->expect(Math.abs(ab.x -. ba.x) +. Math.abs(ab.y -. ba.y) +. Math.abs(ab.z -. ba.z) > 0.1)->Expect.toBe(true)
   })
+
+  test("angle is sign-invariant and slerp reaches the exact endpoints", t => {
+    let negatedHome: Quaternion.t = {x: -.home.x, y: -.home.y, z: -.home.z, w: -.home.w}
+    t->expect(Quaternion.angle(home, negatedHome))->Expect.Float.toBeCloseTo(0., 9)
+    expectClose(t, Quaternion.slerp(home, euler30, 0.), home)
+    expectClose(t, Quaternion.slerp(home, euler30, 1.), euler30)
+  })
+
+  test("slerp midpoint has half the angular distance and stays normalized", t => {
+    let target = Quaternion.fromEuler({x: Quaternion.degreesToRadians(90.), y: 0., z: 0.})
+    let midpoint = Quaternion.slerp(Quaternion.identity, target, 0.5)
+    t->expect(Quaternion.angle(Quaternion.identity, midpoint))->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(45.), 9)
+    t->expect(Quaternion.dot(midpoint, midpoint))->Expect.Float.toBeCloseTo(1., 9)
+  })
 })
