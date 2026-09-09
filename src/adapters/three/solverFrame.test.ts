@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as CubeFacelets from '../../domain/CubeFacelets.res.mjs';
-import type { RegripToken } from '../../domain/CubeNotation.res.mjs';
+import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
 import { createSolverFrame } from './solverFrame';
 
 describe('virtual move frame', () => {

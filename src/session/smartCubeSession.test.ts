@@ -2,7 +2,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
-import * as Quaternion from '../domain/Quaternion.res.mjs';
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import {
   createSmartCubeSession,
   type GyroFrameScheduler,

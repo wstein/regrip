@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
-import * as Quaternion from '../domain/Quaternion.res.mjs';
+import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import { createCubeEventController } from './cubeEvents';
 import type { SessionGyroEvent } from './smartCubeSession';
 

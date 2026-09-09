@@ -1,5 +1,5 @@
-import * as VirtualCubeFrame from '../../domain/VirtualCubeFrame.res.mjs';
-import type { RegripToken } from '../../domain/CubeNotation.res.mjs';
+import * as VirtualCubeFrame from '@wstein/regrip-core/domain/VirtualCubeFrame.res.mjs';
+import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
 
 export type Vector = readonly [number, number, number];
 export type SolverOrientation = {

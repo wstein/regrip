@@ -6,11 +6,11 @@ import type {
   SmartCubeVendorCommand,
 } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
-import * as GyroPipeline from '../domain/GyroPipeline.res.mjs';
+import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
-import * as Quaternion from '../domain/Quaternion.res.mjs';
-import * as RegripDetector from '../domain/RegripDetector.res.mjs';
-import type { RegripToken } from '../domain/CubeNotation.res.mjs';
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
+import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
+import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import {
   resolveSessionFeatures,
@@ -22,7 +22,7 @@ import {
 import { bundledProfiles } from './profile/bundled';
 import { resolveProfile } from './profile/resolveProfile';
 import { parseSensorToBodyAxisMap } from './profile/axisMap';
-import * as SensorToBody from '../domain/SensorToBody.res.mjs';
+import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody.res.mjs';
 import type { ProfileOverrides, ResolvedProfile } from './profile/types';
 
 export type VirtualRegripEvent = {
