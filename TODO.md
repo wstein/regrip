@@ -20,14 +20,23 @@
   addition to the editable solver-friendly text field.
 - [ ] Add user-facing feedback for Copy, Reset State confirmation, and custom
   move triggers.
+- [x] Add local-only live-trace selection: range/type selection, inline JSON
+  detail, JSONL download/copy, and local replay of selected `MOVE` events.
+- [ ] Decide whether a selected trace's replay should append to the current
+  player state as an alternative to replacing its algorithm.
+- [ ] Do not add Gist, Pastebin, or other trace-upload actions without an
+  explicit privacy review and user authorization: traces can contain device and
+  session data.
 
 ## Testing and reliability
 
 - [ ] Add a mock-Bluetooth end-to-end test using
   `smartcube-web-bluetooth/src/test/bluetooth-mock`: connect, initial state,
   moves, facelets, gyro/regrip, custom trigger, and disconnect.
-- [ ] Add browser-level coverage for live-trace filtering/auto-follow and the
-  R/U/F gizmo rendering path.
+- [x] Add browser-level coverage for live-trace filtering, selection,
+  JSONL export/copy, inline detail, and local move replay.
+- [ ] Add browser-level coverage for live-trace auto-follow and the R/U/F
+  gizmo rendering path.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
   a cardinal confirmation pose) after hardware traces establish its impact.
 - [ ] Run and resolve the remaining dependency audit findings without
