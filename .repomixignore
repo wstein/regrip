@@ -22,6 +22,9 @@ yarn.lock
 *.log
 logs/
 *.jsonl
+test/browser/ui-screenshots.spec.ts-snapshots/
+test-results/
+playwright-report/
 *.local
 .env
 .env.*
