@@ -169,12 +169,22 @@ body {
   cursor: pointer;
 }
 .trace-row:hover,
-.trace-row:focus-visible,
-.trace-row.is-focused {
+.trace-row:focus-visible {
   background: #111d35;
 }
 .trace-row.is-selected {
+  background: #172b4d;
   box-shadow: inset 0.18rem 0 #72a1f1;
+}
+.trace-row.is-selected .trace-badge::after {
+  content: ' ✓';
+}
+.trace-row.is-focused {
+  outline: 1px solid #91b6ff;
+  outline-offset: -1px;
+}
+.trace-row.is-selected.is-focused {
+  background: #1d3965;
 }
 .trace-row time {
   color: #75829e;

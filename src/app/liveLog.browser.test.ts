@@ -15,7 +15,7 @@ function mountTrace(): void {
     </div>
     <div id="event-log-rows"></div>
     <section id="trace-detail" hidden><span id="trace-detail-summary"></span>
-      <button id="copy-trace-detail"></button><button id="export-trace-detail"></button>
+      <button id="copy-trace-detail"></button>
       <pre id="trace-detail-json"></pre>
     </section>
     <menu id="trace-context-menu" hidden><button id="select-trace-event"></button>
@@ -50,6 +50,7 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector<HTMLElement>('#trace-detail')?.hidden).toBe(false);
     expect(document.querySelector('#trace-detail-json')?.textContent).toContain('"x": 0.1');
     expect(document.querySelector('[data-trace-id="2"] .trace-details')).toBeNull();
+    expect(document.querySelector('#export-trace-detail')).toBeNull();
   });
 
   it('supports shift-click ranges, type bulk selection, copy, export, and local move reproduction', async () => {
@@ -84,6 +85,12 @@ describe('live trace browser interactions', () => {
     click('[data-trace-id="1"] .trace-badge');
     expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual(['R', "U'"]);
     expect(document.querySelector('#trace-selection-count')?.textContent).toBe('2 selected');
+    expect(document.querySelector('[data-trace-id="1"]')?.classList.contains('is-selected')).toBe(
+      true,
+    );
+    expect(document.querySelector('[data-trace-id="1"] .trace-badge')?.textContent).toContain(
+      'MOVE',
+    );
 
     click('#copy-trace');
     await Promise.resolve();

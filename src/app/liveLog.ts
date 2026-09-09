@@ -91,7 +91,6 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   const detailSummary = document.getElementById('trace-detail-summary');
   const detailJson = document.getElementById('trace-detail-json');
   const copyDetail = document.getElementById('copy-trace-detail');
-  const exportDetail = document.getElementById('export-trace-detail');
   const contextMenu = document.getElementById('trace-context-menu');
   const selectContextEvent = document.getElementById('select-trace-event');
   const copyContextEvent = document.getElementById('copy-trace-event');
@@ -111,7 +110,6 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     !detailSummary ||
     !detailJson ||
     !copyDetail ||
-    !exportDetail ||
     !contextMenu ||
     !selectContextEvent ||
     !copyContextEvent ||
@@ -327,10 +325,6 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   copyDetail.addEventListener('click', () => {
     const entry = entryById(focusedId);
     if (entry) copyEntry(entry);
-  });
-  exportDetail.addEventListener('click', () => {
-    const entry = entryById(focusedId);
-    if (entry) exportEntry(entry);
   });
   selectContextEvent.addEventListener('click', () => {
     if (contextId !== undefined) selectEntry(contextId, false);
