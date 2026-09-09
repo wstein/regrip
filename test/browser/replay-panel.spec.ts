@@ -22,6 +22,15 @@ test('steps, seeks, and resets a JSONL fixture in the real lab', async ({ page }
   await expect(position).toHaveText(/0 \/ \d+/);
 });
 
+test('plays immediately from the first capture timestamp', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.locator('#replay-play').click();
+
+  await expect(page.locator('#replay-position')).not.toHaveText(/0 \/ \d+/);
+});
+
 test('loads a pasted JSONL capture locally and exposes its identity', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');

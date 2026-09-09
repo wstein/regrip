@@ -249,7 +249,7 @@ export type ReplaySessionController = ReturnType<typeof createReplaySession>;
 export function createReplaySession(contents: string, feed: ReplayFeed = 'connection') {
   const items = parseReplayItems(contents, feed);
   const timestamps = items.map((item) => item.timestamp);
-  let cursor = ReplayCursor.initial;
+  let cursor = ReplayCursor.seekTo(timestamps, 0);
   let mock = createJsonlMockConnection(contents);
   let current!: SmartCubeSession;
   let unsubscribeState: (() => void) | undefined;

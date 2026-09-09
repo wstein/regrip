@@ -10,13 +10,18 @@ let virtualNowMs = state => state.virtualNowMs
 let done = (state, timestamps: array<float>) => state.nextIndex >= Array.length(timestamps)
 
 let timestampBefore = (timestamps: array<float>, index: int): float =>
-  if index <= 0 || Array.length(timestamps) == 0 {
+  if Array.length(timestamps) == 0 {
     0.
+  } else if index <= 0 {
+    // A capture's cube timestamps need not begin at zero. Anchor playback at
+    // its first event so Play starts immediately rather than waiting for an
+    // arbitrary device uptime offset.
+    timestamps->Array.getUnsafe(0)
   } else {
     timestamps->Array.getUnsafe(index - 1)
   }
 
-/** Reset to an index; callers rebuild stateful consumers before using it to seek backwards. */
+/** Reset to an index; index zero anchors virtual time at the first captured event. */
 let seekTo = (timestamps: array<float>, index: int): state => {
   let bounded = if index < 0 {
     0

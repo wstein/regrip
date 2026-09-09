@@ -19,6 +19,8 @@ describe("ReplayCursor", () => {
   })
 
   test("clamps seek and reset state deterministically", t => {
+    let start = ReplayCursor.seekTo(timestamps, 0)
+    t->expect(ReplayCursor.virtualNowMs(start))->Expect.toBe(10.)
     let middle = ReplayCursor.seekTo(timestamps, 2)
     t->expect(ReplayCursor.position(middle))->Expect.toBe(2)
     t->expect(ReplayCursor.virtualNowMs(middle))->Expect.toBe(10.)

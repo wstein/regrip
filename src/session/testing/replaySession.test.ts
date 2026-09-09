@@ -18,6 +18,15 @@ const identifiedHeader =
   '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1,"session":{"device":"GoCube Edge","protocol":"gocube"}}}';
 
 describe('replay session', () => {
+  it('anchors playback at the first captured timestamp without emitting it', async () => {
+    const replay = createReplaySession(rawLog, 'connection');
+
+    expect(replay.position).toBe(0);
+    expect(replay.virtualNowMs).toBe(10);
+    await replay.advanceTo(10);
+    expect(replay.position).toBe(1);
+  });
+
   it('feeds raw cube events through a fresh session one virtual step at a time', async () => {
     const replay = createReplaySession(rawLog, 'connection');
     const events: string[] = [];
