@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 30_000,
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    viewport: { width: 640, height: 480 },
+    viewport: { width: 1920, height: 1080 },
   },
   snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   webServer: {
