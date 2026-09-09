@@ -113,6 +113,9 @@ session.subscribeEvents(event => {
     virtualMoveFrame.applyRegrip(event.notationToken);
     return;
   }
+  // Calibrated gyro samples are captured below as compact stabilizer records.
+  // Keeping the raw ~100 Hz BLE packets would drown every useful JSONL event.
+  if (event.type === 'GYRO') return;
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });

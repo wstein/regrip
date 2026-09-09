@@ -37,6 +37,8 @@ type CubeEventControllerOptions = {
   onUnknownEvent?: (event: unknown) => void;
 };
 
+type NonGyroSmartCubeEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>;
+
 export function createCubeEventController(options: CubeEventControllerOptions) {
   let cubeStateInitialized = false;
   let previousGyroTimestamp: number | undefined;
@@ -120,9 +122,8 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     options.onHardware?.(event);
   }
 
-  function handle(event: SmartCubeEvent): void {
+  function handle(event: NonGyroSmartCubeEvent): void {
     switch (event.type) {
-      case 'GYRO': break;
       case 'MOVE': handleMove(event); break;
       case 'FACELETS': handleFacelets(event).catch(error => console.error('facelets handler failed', error)); break;
       case 'HARDWARE': handleHardware(event); break;
