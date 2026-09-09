@@ -47,6 +47,10 @@ body {
 .help a:hover {
   color: #c3daff;
 }
+.workspace-card .help {
+  max-width: none;
+  margin: 1rem 0 0;
+}
 
 .app-layout {
   flex: 1;
