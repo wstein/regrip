@@ -10,6 +10,7 @@ import type { OrientationIndicatorColors } from '../adapters/three/orientationIn
 import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
+import { createLiveLog } from './liveLog';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube } from '../session/connection';
 import { createTimerController } from '../session/timerController';
@@ -29,6 +30,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
+const liveLog = createLiveLog();
 const virtualMoveFrame = createVirtualMoveFrame();
 const virtualFrameQuaternion = new THREE.Quaternion();
 const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
@@ -121,6 +123,7 @@ const cubeEvents = createCubeEventController({
 
 applyProfile(session.getState().profile.value);
 session.subscribeEvents(event => {
+  liveLog.appendSessionEvent(event);
   if (event.type === 'GYRO') {
     cubeEvents.handleCalibratedGyro(event, event.relative);
     return;
@@ -156,6 +159,7 @@ session.subscribe(state => {
   }
   if (state.status === previousStatus) return;
   previousStatus = state.status;
+  liveLog.append('STATE', state.status === 'error' ? `failed: ${state.error}` : state.status);
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
