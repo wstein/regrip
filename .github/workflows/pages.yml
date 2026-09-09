@@ -37,7 +37,7 @@ jobs:
       - run: npm run docs:api
       - run: mkdir -p dist/docs && cp -R docs/api dist/docs/api
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
       - id: deployment
