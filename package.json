@@ -12,6 +12,7 @@
     "res:build": "rescript",
     "res:watch": "rescript watch",
     "res:clean": "rescript clean",
+    "prepare": "husky",
     "dev": "run-s res:build && run-p res:watch dev:vite",
     "dev:vite": "vite",
     "docs:api": "typedoc --options typedoc.json",
@@ -24,6 +25,10 @@
     "test:watch": "run-p res:watch test:vitest",
     "test:vitest": "vitest"
   },
+  "lint-staged": {
+    "*.{res,resi}": "rescript format",
+    "*.{ts,tsx,js,mjs,cjs,css,html,json,md,yml,yaml}": "prettier --write"
+  },
   "devDependencies": {
     "@types/aes-js": "^3.1.4",
     "@types/node": "^22.20.1",
@@ -33,7 +38,9 @@
     "eslint": "~9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
+    "husky": "^9.1.7",
     "jsdom": "^30.0.1",
+    "lint-staged": "^16.4.0",
     "npm-run-all2": "^9.0.3",
     "prettier": "^3.9.6",
     "rescript": "^12.3.1",
