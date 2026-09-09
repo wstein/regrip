@@ -28,6 +28,10 @@
       and disconnect behavior.
 - [ ] Establish GoCube/Rubik’s Connected parity, including direct Nordic-UART
       connection readiness/latency, initial requests, gyro, and vendor commands.
+      The CubeLab `gocube-yxz` capture is the current frame gate: core emits 25
+      mixed tokens at its 60° default, while the legacy expectation is 29
+      axis-grouped steps. A 55° threshold reaches 29 but remains mixed, so tune
+      the GoCube sensor/profile mapping before changing the default path.
 - [ ] Switch CubeLab GAN first, then GoCube, retaining legacy fallback per device
       during rollout. Migrate MoYu and GiiKER only after both cutovers are stable.
 - [ ] Keep the core MIT and unpublished while its API settles; CubeLab consumes a
