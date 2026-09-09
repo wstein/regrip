@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # This protocol dependency is deliberately pinned to a reviewed commit.
+      - dependency-name: smartcube-web-bluetooth
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
