@@ -1,4 +1,5 @@
 import * as VirtualCubeFrame from '../../domain/VirtualCubeFrame.res.mjs';
+import type { RegripToken } from '../../domain/CubeNotation.res.mjs';
 
 export type Vector = readonly [number, number, number];
 export type SolverOrientation = {
@@ -16,7 +17,7 @@ export type SolverOrientation = {
 export function createSolverFrame() {
   const frame = VirtualCubeFrame.make();
   const reset = (): void => VirtualCubeFrame.reset(frame);
-  const applyRegrip = (notationToken: string): void =>
+  const applyRegrip = (notationToken: RegripToken): void =>
     VirtualCubeFrame.applyRegrip(frame, notationToken);
   const translate = (move: string): string => VirtualCubeFrame.translate(frame, move);
 

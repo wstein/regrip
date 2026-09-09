@@ -2,23 +2,9 @@
 // it consumes calibrated relative poses and owns only an accumulated ratchet.
 
 type config = {thresholdDeg: float}
-@unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
-@unboxed
-type sensorFrameToken =
-  | @as("x") SensorX
-  | @as("x'") SensorXPrime
-  | @as("y") SensorY
-  | @as("y'") SensorYPrime
-  | @as("z") SensorZ
-  | @as("z'") SensorZPrime
-@unboxed
-type notationToken =
-  | @as("x") NotationX
-  | @as("x'") NotationXPrime
-  | @as("y") NotationY
-  | @as("y'") NotationYPrime
-  | @as("z") NotationZ
-  | @as("z'") NotationZPrime
+type axis = CubeNotation.axis
+type sensorFrameToken = CubeNotation.regripToken
+type notationToken = CubeNotation.regripToken
 type observation = {sensorFrameToken: sensorFrameToken, notationToken: notationToken}
 
 let defaults = {thresholdDeg: 60.}
@@ -35,15 +21,18 @@ let quarter = (axis: axis, positive: bool): Quaternion.t => {
     },
   )
   switch axis {
-  | X => Quaternion.fromEuler({x: angle, y: 0., z: 0.})
-  | Y => Quaternion.fromEuler({x: 0., y: angle, z: 0.})
-  | Z => Quaternion.fromEuler({x: 0., y: 0., z: angle})
+  | CubeNotation.X => Quaternion.fromEuler({x: angle, y: 0., z: 0.})
+  | CubeNotation.Y => Quaternion.fromEuler({x: 0., y: angle, z: 0.})
+  | CubeNotation.Z => Quaternion.fromEuler({x: 0., y: 0., z: angle})
   }
 }
 
 let axisAndPolarity = (q: Quaternion.t): (axis, bool) => {
-  let values = [(X, q.x), (Y, q.y), (Z, q.z)]
-  let (axis, value) = values->Array.reduce((X, 0.), ((bestAxis, bestValue), (axis, value)) =>
+  let values = [(CubeNotation.X, q.x), (CubeNotation.Y, q.y), (CubeNotation.Z, q.z)]
+  let (axis, value) = values->Array.reduce((CubeNotation.X, 0.), (
+    (bestAxis, bestValue),
+    (axis, value),
+  ) =>
     if Math.abs(value) > Math.abs(bestValue) {
       (axis, value)
     } else {
@@ -54,46 +43,46 @@ let axisAndPolarity = (q: Quaternion.t): (axis, bool) => {
 }
 
 let sensorToken = (axis: axis, positive: bool): sensorFrameToken =>
-  switch (axis, positive) {
-  | (X, true) => SensorX
-  | (X, false) => SensorXPrime
-  | (Y, true) => SensorY
-  | (Y, false) => SensorYPrime
-  | (Z, true) => SensorZ
-  | (Z, false) => SensorZPrime
-  }
+  CubeNotation.token(
+    axis,
+    if positive {
+      CubeNotation.Clockwise
+    } else {
+      CubeNotation.CounterClockwise
+    },
+  )
 
 // Positive right-hand sensor rotations are counter-clockwise. Singmaster
 // whole-cube x/y/z notation is clockwise, so only the emitted label inverts.
 let notationToken = (axis: axis, positive: bool): notationToken =>
-  switch (axis, positive) {
-  | (X, true) => NotationXPrime
-  | (X, false) => NotationX
-  | (Y, true) => NotationYPrime
-  | (Y, false) => NotationY
-  | (Z, true) => NotationZPrime
-  | (Z, false) => NotationZ
-  }
+  CubeNotation.token(
+    axis,
+    if positive {
+      CubeNotation.CounterClockwise
+    } else {
+      CubeNotation.Clockwise
+    },
+  )
 
 let faceOrderForSensor = token =>
   switch token {
-  | "x" => "BRUFLD"
-  | "x'" => "FRDBLU"
-  | "y" => "UFLDBR"
-  | "y'" => "UBRDFL"
-  | "z" => "RDFLUB"
-  | "z'" => "LUFRDB"
+  | CubeNotation.XTurn => "BRUFLD"
+  | CubeNotation.XPrime => "FRDBLU"
+  | CubeNotation.YTurn => "UFLDBR"
+  | CubeNotation.YPrime => "UBRDFL"
+  | CubeNotation.ZTurn => "RDFLUB"
+  | CubeNotation.ZPrime => "LUFRDB"
   | _ => "URFDLB"
   }
 
 let faceOrderForNotation = token =>
   switch token {
-  | "x" => "FRDBLU"
-  | "x'" => "BRUFLD"
-  | "y" => "UBRDFL"
-  | "y'" => "UFLDBR"
-  | "z" => "LUFRDB"
-  | "z'" => "RDFLUB"
+  | CubeNotation.XTurn => "FRDBLU"
+  | CubeNotation.XPrime => "BRUFLD"
+  | CubeNotation.YTurn => "UBRDFL"
+  | CubeNotation.YPrime => "UFLDBR"
+  | CubeNotation.ZTurn => "LUFRDB"
+  | CubeNotation.ZPrime => "RDFLUB"
   | _ => "URFDLB"
   }
 

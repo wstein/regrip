@@ -9,6 +9,7 @@ import type {
 import * as GyroPipeline from '../domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
+import type { RegripToken } from '../domain/CubeNotation.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import {
   resolveSessionFeatures,
@@ -27,9 +28,9 @@ export type VirtualRegripEvent = {
   type: 'REGRIP';
   timestamp: number;
   /** Clockwise Singmaster x/y/z notation. */
-  notationToken: string;
+  notationToken: RegripToken;
   /** The corresponding positive/negative calibrated sensor axis. */
-  sensorFrameToken: string;
+  sensorFrameToken: RegripToken;
 };
 
 export type CustomTriggerEvent = {

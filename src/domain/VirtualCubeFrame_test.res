@@ -4,7 +4,7 @@ describe("VirtualCubeFrame", () => {
   test("translates moves and exposes R/U/F directions after y", t => {
     let frame = VirtualCubeFrame.make()
     t->expect(VirtualCubeFrame.translate(frame, "R'"))->Expect.toBe("R'")
-    VirtualCubeFrame.applyRegrip(frame, "y")
+    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
     t->expect(VirtualCubeFrame.translate(frame, "F'"))->Expect.toBe("L'")
     let orientation = VirtualCubeFrame.orientation(frame)
     t
@@ -22,7 +22,7 @@ describe("VirtualCubeFrame", () => {
       "L"->String.repeat(9) ++
       "B"->String.repeat(9)
     let frame = VirtualCubeFrame.make()
-    VirtualCubeFrame.applyRegrip(frame, "y")
+    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
     t->expect(VirtualCubeFrame.reframeFacelets(frame, solved))->Expect.toBe(solved)
     t->expect(VirtualCubeFrame.reframeFacelets(frame, "short"))->Expect.toBe("short")
   })

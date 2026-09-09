@@ -11,7 +11,7 @@ type t
 
 let make: unit => t
 let reset: t => unit
-let applyRegrip: (t, string) => unit
+let applyRegrip: (t, CubeNotation.regripToken) => unit
 let translate: (t, string) => string
 let orientation: t => orientation
 let solverFaceForBody: (t, string) => string

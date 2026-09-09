@@ -11,8 +11,9 @@ export type VirtualOrientation = {
 
 export function make(): VirtualCubeFrame;
 export function reset(frame: VirtualCubeFrame): void;
-export function applyRegrip(frame: VirtualCubeFrame, notationToken: string): void;
+export function applyRegrip(frame: VirtualCubeFrame, notationToken: RegripToken): void;
 export function translate(frame: VirtualCubeFrame, move: string): string;
 export function orientation(frame: VirtualCubeFrame): VirtualOrientation;
 export function solverFaceForBody(frame: VirtualCubeFrame, bodyFace: string): string;
 export function reframeFacelets(frame: VirtualCubeFrame, facelets: string): string;
+import type { RegripToken } from './CubeNotation.res.mjs';

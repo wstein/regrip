@@ -80,7 +80,7 @@
 - [x] Complete the solver-frame adapter port and remove the duplicate
       `session/virtualMoveFrame.ts` implementation; the Three adapter consumes
       `VirtualCubeFrame` directly.
-- [ ] Introduce shared, unboxed typed `axis`, `turn`, and `face` variants at
+- [x] Introduce shared, unboxed typed `axis`, `turn`, and `face` variants at
       the domain boundary, then keep their hand-written `.res.d.mts` surface
       covered by the declaration-drift check.
 - [ ] Convert larger mutable domain cells (`GyroOrientation`,

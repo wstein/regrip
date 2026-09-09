@@ -41,8 +41,8 @@ describe("RegripDetector", () => {
   test("emits opposite Singmaster notation for a positive sensor turn", t => {
     let detector = make()
     let observation = observe(detector, rotation(~x=66.))
-    t->expect(observation.sensorFrameToken)->Expect.toBe(RegripDetector.SensorX)
-    t->expect(observation.notationToken)->Expect.toBe(RegripDetector.NotationXPrime)
+    t->expect(observation.sensorFrameToken)->Expect.toBe(CubeNotation.XTurn)
+    t->expect(observation.notationToken)->Expect.toBe(CubeNotation.XPrime)
   })
 
   test("rebases to cardinal steps during a continuous full turn", t => {
@@ -54,10 +54,10 @@ describe("RegripDetector", () => {
     t
     ->expect(tokens)
     ->Expect.toEqual([
-      RegripDetector.NotationXPrime,
-      RegripDetector.NotationXPrime,
-      RegripDetector.NotationXPrime,
-      RegripDetector.NotationXPrime,
+      CubeNotation.XPrime,
+      CubeNotation.XPrime,
+      CubeNotation.XPrime,
+      CubeNotation.XPrime,
     ])
   })
 
@@ -69,23 +69,23 @@ describe("RegripDetector", () => {
     let second = observe(detector, Quaternion.multiply(x, rotation(~y=66.)))
     t
     ->expect([first.notationToken, second.notationToken])
-    ->Expect.toEqual([RegripDetector.NotationXPrime, RegripDetector.NotationYPrime])
+    ->Expect.toEqual([CubeNotation.XPrime, CubeNotation.YPrime])
     t
     ->expect(Quaternion.angle(Quaternion.multiply(x, y), Quaternion.multiply(y, x)) > 0.)
     ->Expect.toBe(true)
   })
 
   test("maps canonical URFDLB and BOYGRW through paired rotations", t => {
-    t->expect(RegripDetector.faceOrderForSensor("x"))->Expect.toBe("BRUFLD")
-    t->expect(RegripDetector.faceOrderForNotation("x"))->Expect.toBe("FRDBLU")
+    t->expect(RegripDetector.faceOrderForSensor(CubeNotation.XTurn))->Expect.toBe("BRUFLD")
+    t->expect(RegripDetector.faceOrderForNotation(CubeNotation.XTurn))->Expect.toBe("FRDBLU")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "BRUFLD"))->Expect.toBe("WOBYRG")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "FRDBLU"))->Expect.toBe("YOGWRB")
-    t->expect(RegripDetector.faceOrderForSensor("y"))->Expect.toBe("UFLDBR")
-    t->expect(RegripDetector.faceOrderForNotation("y"))->Expect.toBe("UBRDFL")
+    t->expect(RegripDetector.faceOrderForSensor(CubeNotation.YTurn))->Expect.toBe("UFLDBR")
+    t->expect(RegripDetector.faceOrderForNotation(CubeNotation.YTurn))->Expect.toBe("UBRDFL")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "UFLDBR"))->Expect.toBe("BYRGWO")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "UBRDFL"))->Expect.toBe("BWOGYR")
-    t->expect(RegripDetector.faceOrderForSensor("z"))->Expect.toBe("RDFLUB")
-    t->expect(RegripDetector.faceOrderForNotation("z"))->Expect.toBe("LUFRDB")
+    t->expect(RegripDetector.faceOrderForSensor(CubeNotation.ZTurn))->Expect.toBe("RDFLUB")
+    t->expect(RegripDetector.faceOrderForNotation(CubeNotation.ZTurn))->Expect.toBe("LUFRDB")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "RDFLUB"))->Expect.toBe("OGYRBW")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "LUFRDB"))->Expect.toBe("RBYOGW")
   })

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as CubeFacelets from '../../domain/CubeFacelets.res.mjs';
+import type { RegripToken } from '../../domain/CubeNotation.res.mjs';
 import { createSolverFrame } from './solverFrame';
 
 describe('virtual move frame', () => {
@@ -8,7 +9,7 @@ describe('virtual move frame', () => {
     const frame = createSolverFrame();
     const displayed: string[] = [];
     const recordMove = (move: string) => displayed.push(frame.translate(move));
-    const recordRegrip = (move: string) => {
+    const recordRegrip = (move: RegripToken) => {
       displayed.push(move);
       frame.applyRegrip(move);
     };
@@ -90,14 +91,14 @@ describe('virtual move frame', () => {
     expect(new Set(once.reframeFacelets(facelets))).toHaveLength(54);
 
     const frame = createSolverFrame();
-    ['y', 'y', 'y', 'y'].forEach((token) => frame.applyRegrip(token));
+    (['y', 'y', 'y', 'y'] as const).forEach((token) => frame.applyRegrip(token));
     expect(frame.reframeFacelets(facelets)).toBe(facelets);
   });
 
   it('keeps a legal scrambled state legal after mixed regrips', () => {
     const scrambled = 'FBFRULDLFUBUURDBDBFFRLFFLURDBDUDFURLDBRLLURRBLDLRBDUFB';
     const frame = createSolverFrame();
-    ['x', "y'", 'z', 'x'].forEach((token) => frame.applyRegrip(token));
+    (['x', "y'", 'z', 'x'] as const).forEach((token) => frame.applyRegrip(token));
 
     expect(() =>
       CubeFacelets.faceletsToPatternData(frame.reframeFacelets(scrambled)),

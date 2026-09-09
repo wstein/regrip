@@ -6,6 +6,7 @@
   "entryPoints": [
     "src/domain/Cube333.res.d.mts",
     "src/domain/CubeFacelets.res.d.mts",
+    "src/domain/CubeNotation.res.d.mts",
     "src/domain/CubeSymmetry.res.d.mts",
     "src/domain/SensorToBody.res.d.mts",
     "src/domain/GyroOrientation.res.d.mts",

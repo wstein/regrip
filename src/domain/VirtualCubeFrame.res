@@ -69,7 +69,7 @@ let faceForNormal = (direction: vector): string =>
 let make = (): t => {solverToBody: faceOrder}
 let reset = (frame: t): unit => frame.solverToBody = faceOrder
 
-let applyRegrip = (frame: t, notationToken: string): unit => {
+let applyRegrip = (frame: t, notationToken: CubeNotation.regripToken): unit => {
   let step = RegripDetector.faceOrderForNotation(notationToken)
   frame.solverToBody =
     positions
