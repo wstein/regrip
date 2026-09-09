@@ -134,6 +134,11 @@ body {
   color: #bac8e5;
   font-size: 0.66rem;
 }
+#trace-selection[hidden],
+.trace-detail[hidden],
+.trace-context-menu[hidden] {
+  display: none;
+}
 #trace-selection button {
   padding: 0.22rem 0.36rem;
   font-size: 0.62rem;
