@@ -22,6 +22,23 @@ export default [
       ],
     },
   },
+  {
+    files: ['src/{adapters,bindings,session}/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@preact/signals-core',
+              message:
+                'Signals are an app-only presentation concern; use src/app/sessionSignals.ts.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Keep ESLint focused on correctness and architecture, not presentation.
   prettierConfig,
 ];

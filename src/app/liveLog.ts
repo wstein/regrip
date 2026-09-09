@@ -1,3 +1,5 @@
+import { computed, signal } from '@preact/signals-core';
+
 import type { SmartCubeSessionEvent } from '../session/smartCubeSession';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
@@ -118,8 +120,13 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     throw new Error('Missing live trace elements');
   }
 
-  const enabled = new Set<TraceCategory>(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']);
-  const entries: TraceEntry[] = [];
+  const activeFilters = signal<ReadonlySet<TraceCategory>>(
+    new Set(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']),
+  );
+  const entries = signal<TraceEntry[]>([]);
+  const visibleEntries = computed(() =>
+    entries.value.filter((entry) => activeFilters.value.has(entry.category)),
+  );
   const selected = new Set<number>();
   let newestFirst = true;
   let nextId = 1;
@@ -127,7 +134,8 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   let focusedId: number | undefined;
   let contextId: number | undefined;
 
-  const selectedEntries = (): TraceEntry[] => entries.filter((entry) => selected.has(entry.id));
+  const selectedEntries = (): TraceEntry[] =>
+    entries.value.filter((entry) => selected.has(entry.id));
   const selectedMoves = (): string[] =>
     selectedEntries()
       .filter((entry) => entry.category === 'MOVE')
@@ -141,7 +149,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   };
 
   const entryById = (id: number | undefined): TraceEntry | undefined =>
-    entries.find((entry) => entry.id === id);
+    entries.value.find((entry) => entry.id === id);
 
   const serializeEntry = (entry: TraceEntry): string => serializeJsonl([entry.log]);
 
@@ -171,11 +179,11 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
 
   const selectEntry = (id: number, range: boolean): void => {
     if (range && lastSelectedId !== undefined) {
-      const start = entries.findIndex((entry) => entry.id === lastSelectedId);
-      const end = entries.findIndex((entry) => entry.id === id);
+      const start = entries.value.findIndex((entry) => entry.id === lastSelectedId);
+      const end = entries.value.findIndex((entry) => entry.id === id);
       if (start !== -1 && end !== -1) {
         const [from, to] = start < end ? [start, end] : [end, start];
-        entries.slice(from, to + 1).forEach((entry) => selected.add(entry.id));
+        entries.value.slice(from, to + 1).forEach((entry) => selected.add(entry.id));
       }
     } else if (selected.has(id)) selected.delete(id);
     else selected.add(id);
@@ -185,7 +193,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
 
   const render = (): void => {
     const previousScrollTop = root.scrollTop;
-    const ordered = newestFirst ? [...entries].reverse() : entries;
+    const ordered = newestFirst ? [...visibleEntries.value].reverse() : visibleEntries.value;
     root.replaceChildren(
       ...ordered.map((entry) => {
         const row = document.createElement('article');
@@ -204,7 +212,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
         badge.title = `Select all ${entry.category} events`;
         badge.addEventListener('click', (event) => {
           event.stopPropagation();
-          entries
+          entries.value
             .filter((candidate) => candidate.category === entry.category)
             .forEach((candidate) => selected.add(candidate.id));
           lastSelectedId = entry.id;
@@ -249,18 +257,21 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   };
 
   const appendEntry = (category: TraceCategory, message: string, log: LogEntry): void => {
-    if (!enabled.has(category)) return;
-    entries.push({
-      id: nextId++,
-      category,
-      message,
-      log,
-    });
-    while (entries.length > maxRows) {
-      const removed = entries.shift()!;
+    const nextEntries = [
+      ...entries.value,
+      {
+        id: nextId++,
+        category,
+        message,
+        log,
+      },
+    ];
+    while (nextEntries.length > maxRows) {
+      const removed = nextEntries.shift()!;
       selected.delete(removed.id);
       if (focusedId === removed.id) focusedId = undefined;
     }
+    entries.value = nextEntries;
     render();
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   };
@@ -280,16 +291,19 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
 
   document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach((button) => {
     const category = button.dataset.traceFilter as TraceCategory;
-    button.classList.toggle('is-active', enabled.has(category));
+    button.classList.toggle('is-active', activeFilters.value.has(category));
     button.addEventListener('click', () => {
-      if (enabled.has(category)) enabled.delete(category);
-      else enabled.add(category);
-      button.classList.toggle('is-active', enabled.has(category));
-      button.setAttribute('aria-pressed', String(enabled.has(category)));
+      const next = new Set(activeFilters.value);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      activeFilters.value = next;
+      button.classList.toggle('is-active', next.has(category));
+      button.setAttribute('aria-pressed', String(next.has(category)));
+      render();
     });
   });
   clear.addEventListener('click', () => {
-    entries.splice(0);
+    entries.value = [];
     selected.clear();
     lastSelectedId = undefined;
     focusedId = undefined;
@@ -305,7 +319,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   });
   selectAll.addEventListener('click', () => {
-    entries.forEach((entry) => selected.add(entry.id));
+    visibleEntries.value.forEach((entry) => selected.add(entry.id));
     render();
   });
   clearSelection.addEventListener('click', () => {
@@ -355,7 +369,8 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
       const [category, message] = describeLogEntry(entry);
       appendEntry(category, message, entry);
     },
-    getEntries: (): readonly TraceEntry[] => entries,
+    getEntries: (): readonly TraceEntry[] => entries.value,
+    getVisibleEntries: (): readonly TraceEntry[] => visibleEntries.value,
     getSelectedEntries: (): TraceEntry[] => selectedEntries(),
   };
 }

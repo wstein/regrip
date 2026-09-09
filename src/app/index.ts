@@ -12,6 +12,7 @@ import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { simplifyMoves } from './moveSimplifier';
+import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube } from '../session/connection';
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../session/jsonlFormat';
@@ -35,6 +36,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
 const session = createSmartCubeSession({ connect: connectCube, features: featurePresets.all });
+const sessionSignals = createSessionSignals(session);
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
@@ -148,7 +150,8 @@ const cubeEvents = createCubeEventController({
   },
 });
 
-session.subscribeEvents((event) => {
+sessionSignals.event.subscribe((event) => {
+  if (!event) return;
   if (event.type === 'GYRO') {
     cubeEvents.handleGyro(event);
     return;
@@ -174,7 +177,7 @@ session.subscribeEvents((event) => {
 
 let previousStatus = session.getState().status;
 let appliedProfile = session.getState().profile;
-session.subscribe((state) => {
+sessionSignals.state.subscribe((state) => {
   if (state.profile !== appliedProfile) {
     appliedProfile = state.profile;
     eventLog.record('profile_selected', {

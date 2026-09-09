@@ -35,21 +35,25 @@ afterEach(() => {
 });
 
 describe('live trace browser interactions', () => {
-  it('filters future events and shows a clicked event in the fixed detail pane', () => {
+  it('keeps filtered events in the trace and shows a clicked event in the fixed detail pane', () => {
     mountTrace();
     const trace = createLiveLog({ now: () => new Date('2026-09-09T10:00:00.000Z') });
     trace.append('GYRO', 'hidden');
     trace.append('EVENT', 'battery 98%', undefined, { battery: 98 });
 
-    expect(trace.getEntries()).toHaveLength(1);
-    click('[data-trace-filter="GYRO"]');
-    trace.append('GYRO', 'visible', undefined, { x: 0.1 });
     expect(trace.getEntries()).toHaveLength(2);
+    expect(trace.getVisibleEntries()).toHaveLength(1);
+    expect(document.querySelector('[data-trace-id="1"]')).toBeNull();
+    click('[data-trace-filter="GYRO"]');
+    expect(trace.getVisibleEntries()).toHaveLength(2);
+    expect(document.querySelector('[data-trace-id="1"]')).not.toBeNull();
+    trace.append('GYRO', 'visible', undefined, { x: 0.1 });
+    expect(trace.getEntries()).toHaveLength(3);
 
-    click('[data-trace-id="2"]');
+    click('[data-trace-id="3"]');
     expect(document.querySelector<HTMLElement>('#trace-detail')?.hidden).toBe(false);
     expect(document.querySelector('#trace-detail-json')?.textContent).toContain('"x": 0.1');
-    expect(document.querySelector('[data-trace-id="2"] .trace-details')).toBeNull();
+    expect(document.querySelector('[data-trace-id="3"] .trace-details')).toBeNull();
     expect(document.querySelector('#export-trace-detail')).toBeNull();
   });
 
