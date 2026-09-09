@@ -82,4 +82,19 @@ describe('smart cube session', () => {
     expect(session.getState().status).toBe('disconnected');
     expect(session.getState().connection).toBeNull();
   });
+
+  it('publishes a custom trigger after an inverse move pair within 300ms', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({ connect: async () => connection(events$) });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents(event => received.push(event));
+
+    await session.connect();
+    events$.next({ type: 'MOVE', timestamp: 1000, move: 'R', face: 1, direction: 0, localTimestamp: 1000, cubeTimestamp: null });
+    events$.next({ type: 'MOVE', timestamp: 1299, move: "R'", face: 1, direction: 1, localTimestamp: 1299, cubeTimestamp: null });
+
+    expect(received.map(event => event.type)).toEqual(['MOVE', 'MOVE', 'CUSTOM_TRIGGER']);
+    expect(received.at(-1)).toMatchObject({ type: 'CUSTOM_TRIGGER', move: 'R', timestamp: 1299 });
+    await session.disconnect();
+  });
 });

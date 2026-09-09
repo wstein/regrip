@@ -2,6 +2,7 @@ import type { Subscription } from 'rxjs';
 import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
+import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import { bundledProfiles } from './profile/bundled';
@@ -17,12 +18,20 @@ export type VirtualRegripEvent = {
   sensorFrameToken: string;
 };
 
+export type CustomTriggerEvent = {
+  type: 'CUSTOM_TRIGGER';
+  timestamp: number;
+  /** The initiating quarter-turn, e.g. `R` for `R R'`. */
+  move: string;
+};
+
 export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
 };
 
-export type SmartCubeSessionEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }> | SessionGyroEvent | VirtualRegripEvent;
+export type SmartCubeSessionEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>
+  | SessionGyroEvent | VirtualRegripEvent | CustomTriggerEvent;
 
 export type SmartCubeSessionState = {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -51,6 +60,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   // stabilization consume the resulting calibrated pose.
   const gyro = GyroOrientation.make();
   const regripDetector = RegripDetector.make();
+  const moveBackTrigger = MoveBackTrigger.make();
 
   const publish = (): void => listeners.forEach(listener => listener(state));
   const setState = (next: Partial<SmartCubeSessionState>): void => {
@@ -67,6 +77,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip = calibrated && options.virtualRegrips
       ? RegripDetector.observe(regripDetector, calibrated)
+      : undefined;
+    const customTrigger = event.type === 'MOVE'
+      ? MoveBackTrigger.observe(moveBackTrigger, event.move, event.timestamp)
       : undefined;
     setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
@@ -87,12 +100,18 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         sensorFrameToken: regrip.sensorFrameToken,
       }));
     }
+    if (customTrigger) {
+      eventListeners.forEach(listener => listener({
+        type: 'CUSTOM_TRIGGER', timestamp: event.timestamp, move: customTrigger,
+      }));
+    }
     if (event.type === 'DISCONNECT') void disconnect();
   };
 
   const resetGyro = (): void => {
     GyroOrientation.resetBasis(gyro);
     RegripDetector.reset(regripDetector);
+    MoveBackTrigger.reset(moveBackTrigger);
   };
 
   async function connect(): Promise<void> {

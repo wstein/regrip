@@ -134,6 +134,10 @@ session.subscribeEvents(event => {
     syncVirtualFrameOrientation();
     return;
   }
+  if (event.type === 'CUSTOM_TRIGGER') {
+    eventLog.record('custom_trigger', event);
+    return;
+  }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });
