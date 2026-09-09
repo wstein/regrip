@@ -18,7 +18,7 @@ export function startSceneRenderLoop(
   // This is a stable world-space corner; the R/U/F axes still inherit the
   // scene rotation that renders the physical cube. Virtual regrips transform
   // move notation, but the gyro-driven scene already represents their pose.
-  const indicatorPosition = new THREE.Vector3(-1.05, -1.02, 0);
+  const indicatorPosition = new THREE.Vector3(-0.82, -0.8, 0);
 
   const render = async (): Promise<void> => {
     try {
