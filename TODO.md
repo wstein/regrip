@@ -16,6 +16,13 @@
       lab UI, Three adapter, timer UI, and cube-state presentation.
 - [ ] Keep CubeLab on a temporary dual-stack adapter while migrating only GAN and
       GoCube. Do not delete the legacy transport until its parity suite is green.
+- [x] Add CubeLab's local `file:` dependency on `@wstein/regrip-core` and an
+      opt-in `?dev&core` manager path. It retains CubeLab's GoCube UART and GAN
+      i4 MAC-recovery transport while core owns lifecycle, profiles, calibration,
+      stabilization, virtual regrips, and solver-frame move/facelet projection.
+- [x] Cover the opt-in core manager with deterministic GAN and GoCube transport
+      tests, including initial requests, stabilized viewport pose, one regrip
+      decision, and post-regrip solver-frame move/facelet projection.
 - [ ] Establish GAN parity: Gen1–4, including Gen2/UI12 and Gen4/i4 MAC recovery;
       compare lifecycle, initial state, moves, facelets, battery/hardware, gyro,
       and disconnect behavior.
