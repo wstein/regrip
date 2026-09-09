@@ -1,34 +1,50 @@
 {
   "$schema": "https://repomix.com/schemas/latest/schema.json",
   "input": {
-    "maxFileSize": 52428800
+    "maxFileSize": 1048576
   },
   "output": {
-    "filePath": "~/Downloads/repomix-output.xml",
-    "style": "xml",
+    "filePath": "repomix-handover.md",
+    "style": "markdown",
     "filePathStyle": "target-relative",
     "parsableStyle": false,
+    "headerText": "# Smartcube Example — curated handover\n\nThis bundle is intended for architecture analysis in NotebookLM and visual/product review by web-design AI. The app shell is in `index.html` and `src/app/`; reusable behavior is separated into `src/domain/`, `src/session/`, and `src/adapters/`. Device captures, credentials, generated output, and lockfiles are intentionally excluded.\n",
     "fileSummary": true,
     "directoryStructure": true,
     "files": true,
     "removeComments": false,
     "removeEmptyLines": false,
     "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "truncateBase64": false,
+    "topFilesLength": 12,
+    "showLineNumbers": true,
+    "truncateBase64": true,
     "copyToClipboard": false,
     "includeFullDirectoryStructure": false,
-    "tokenCountTree": false,
+    "tokenCountTree": true,
     "git": {
       "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
+      "sortByChangesMaxCommits": 40,
       "includeDiffs": false,
-      "includeLogs": false,
-      "includeLogsCount": 50
+      "includeLogs": true,
+      "includeLogsCount": 12
     }
   },
-  "include": [],
+  "include": [
+    "README.md",
+    "TODO.md",
+    "LICENSE.txt",
+    "package.json",
+    "rescript.json",
+    "tsconfig.json",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js",
+    "index.html",
+    "src/app/**",
+    "src/adapters/**",
+    "src/session/**",
+    "src/domain/**"
+  ],
   "ignore": {
     "useGitignore": true,
     "useDotIgnore": true,
