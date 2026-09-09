@@ -7,28 +7,46 @@ let rotation = (~x=0., ~y=0., ~z=0.) =>
     z: Quaternion.degreesToRadians(z),
   })
 
-let observe = (t, q) =>
-  switch RegripDetector.observe(t, q) {
+type holder = {mutable state: RegripDetector.state}
+let make = () => {state: RegripDetector.initial}
+let observe = (holder, q) => {
+  let (nextState, result) = RegripDetector.step(holder.state, q)
+  holder.state = nextState
+  switch result {
   | Some(observation) => observation
   | None => failwith("expected a virtual regrip")
   }
+}
 
 describe("RegripDetector", () => {
   test("ignores ordinary handling below its threshold", t => {
-    let detector = RegripDetector.make()
-    t->expect(RegripDetector.observe(detector, Quaternion.identity))->Expect.toBe(None)
-    t->expect(RegripDetector.observe(detector, rotation(~x=59.)))->Expect.toBe(None)
+    let detector = make()
+    let (afterIdentity, identityResult) = RegripDetector.step(detector.state, Quaternion.identity)
+    detector.state = afterIdentity
+    t->expect(identityResult)->Expect.toBe(None)
+    let (_, result) = RegripDetector.step(detector.state, rotation(~x=59.))
+    t->expect(result)->Expect.toBe(None)
+  })
+
+  test("is a deterministic pure reducer", t => {
+    let input = rotation(~y=66.)
+    let (firstState, firstObservation) = RegripDetector.step(RegripDetector.initial, input)
+    let (secondState, secondObservation) = RegripDetector.step(RegripDetector.initial, input)
+    t->expect(firstObservation)->Expect.toEqual(secondObservation)
+    let (_, firstFollowup) = RegripDetector.step(firstState, rotation(~y=156.))
+    let (_, secondFollowup) = RegripDetector.step(secondState, rotation(~y=156.))
+    t->expect(firstFollowup)->Expect.toEqual(secondFollowup)
   })
 
   test("emits opposite Singmaster notation for a positive sensor turn", t => {
-    let detector = RegripDetector.make()
+    let detector = make()
     let observation = observe(detector, rotation(~x=66.))
     t->expect(observation.sensorFrameToken)->Expect.toBe(RegripDetector.SensorX)
     t->expect(observation.notationToken)->Expect.toBe(RegripDetector.NotationXPrime)
   })
 
   test("rebases to cardinal steps during a continuous full turn", t => {
-    let detector = RegripDetector.make()
+    let detector = make()
     let tokens =
       [66., 156., 246., 336.]->Array.map(
         degrees => observe(detector, rotation(~x=degrees)).notationToken,
@@ -44,7 +62,7 @@ describe("RegripDetector", () => {
   })
 
   test("preserves local mixed-axis order", t => {
-    let detector = RegripDetector.make()
+    let detector = make()
     let x = rotation(~x=90.)
     let y = rotation(~y=90.)
     let first = observe(detector, rotation(~x=66.))

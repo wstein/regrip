@@ -120,15 +120,15 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       gyroPipeline,
       parseSensorToBodyAxisMap(profile.value.gyro?.axisMap) ?? SensorToBody.default,
     );
-  let regripDetector = RegripDetector.make({ thresholdDeg: state.features.regrip.thresholdDeg });
+  let regripState = RegripDetector.initial;
   let moveBackState = MoveBackTrigger.initial;
 
   function moveBackWindow(features: SessionFeatures): number | undefined {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
   }
 
-  function resetFeatureDetectors(features: SessionFeatures): void {
-    regripDetector = RegripDetector.make({ thresholdDeg: features.regrip.thresholdDeg });
+  function resetFeatureDetectors(): void {
+    regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
   }
 
@@ -140,9 +140,17 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     return trigger;
   }
 
+  function observeRegrip(orientation: { x: number; y: number; z: number; w: number }) {
+    const [nextState, observation] = RegripDetector.step(regripState, orientation, {
+      thresholdDeg: state.features.regrip.thresholdDeg,
+    });
+    regripState = nextState;
+    return observation;
+  }
+
   function applyFeatures(features: SessionFeatures): void {
     GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
-    resetFeatureDetectors(features);
+    resetFeatureDetectors();
     setState({ features });
   }
 
@@ -168,9 +176,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     })();
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
-      calibrated && state.features.regrip.enabled
-        ? RegripDetector.observe(regripDetector, calibrated)
-        : undefined;
+      calibrated && state.features.regrip.enabled ? observeRegrip(calibrated) : undefined;
     const customTrigger =
       event.type === 'MOVE' &&
       state.features.customTrigger.enabled &&
@@ -218,7 +224,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   const resetGyro = (): void => {
     GyroPipeline.reset(gyroPipeline);
-    RegripDetector.reset(regripDetector);
+    regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
   };
 

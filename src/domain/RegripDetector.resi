@@ -21,12 +21,11 @@ type notationToken =
   | @as("z") NotationZ
   | @as("z'") NotationZPrime
 type observation = {sensorFrameToken: sensorFrameToken, notationToken: notationToken}
-type t
+type state
 
 let defaults: config
-let make: (~config: config=?) => t
-let reset: t => unit
-let observe: (t, Quaternion.t) => option<observation>
+let initial: state
+let step: (state, Quaternion.t, ~config: config=?) => (state, option<observation>)
 
 /** Body face at each world URFDLB position after a sensor-frame quarter turn. */
 let faceOrderForSensor: string => string

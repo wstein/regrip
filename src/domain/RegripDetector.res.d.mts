@@ -1,7 +1,7 @@
 import type { Quaternion } from './Quaternion.res.mjs';
 
 /** Independent virtual x/y/z regrip detector over calibrated gyro poses. */
-export type RegripDetector = unknown;
+export type RegripDetectorState = unknown;
 export type RegripDetectorConfig = { thresholdDeg: number };
 export type RegripAxis = 'x' | 'y' | 'z';
 export type RegripToken = 'x' | "x'" | 'y' | "y'" | 'z' | "z'";
@@ -13,9 +13,12 @@ export type RegripObservation = {
 };
 
 export const defaults: RegripDetectorConfig;
-export function make(config?: RegripDetectorConfig): RegripDetector;
-export function reset(detector: RegripDetector): void;
-export function observe(detector: RegripDetector, orientation: Quaternion): RegripObservation | undefined;
+export const initial: RegripDetectorState;
+export function step(
+  state: RegripDetectorState,
+  orientation: Quaternion,
+  config?: RegripDetectorConfig,
+): [RegripDetectorState, RegripObservation | undefined];
 export function faceOrderForSensor(token: string): string;
 export function faceOrderForNotation(token: string): string;
 export function permuteFaceOrder(order: string, permutation: string): string;

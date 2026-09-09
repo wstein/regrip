@@ -23,10 +23,8 @@ type observation = {sensorFrameToken: sensorFrameToken, notationToken: notationT
 
 let defaults = {thresholdDeg: 60.}
 
-type t = {mutable ratchet: Quaternion.t, config: config}
-
-let make = (~config=defaults): t => {ratchet: Quaternion.identity, config}
-let reset = (t: t): unit => t.ratchet = Quaternion.identity
+type state = Quaternion.t
+let initial: state = Quaternion.identity
 
 let quarter = (axis: axis, positive: bool): Quaternion.t => {
   let angle = Quaternion.degreesToRadians(
@@ -112,30 +110,35 @@ let faceAt = (order: string, face: string): string =>
 let permuteFaceOrder = (order: string, permutation: string): string =>
   permutation->String.split("")->Array.map(face => faceAt(order, face))->Array.join("")
 
-let observe = (t: t, current: Quaternion.t): option<observation> => {
+let step = (state: state, current: Quaternion.t, ~config=defaults): (
+  state,
+  option<observation>,
+) => {
   let current = Quaternion.normalize(current)
   // Precondition: `current` is GyroOrientation.relative output, whose
   // calibration zero is identity. The ratchet records only detected quarters.
-  let delta = Quaternion.multiply(Quaternion.conjugate(t.ratchet), current)
+  let delta = Quaternion.multiply(Quaternion.conjugate(state), current)
   if (
-    Quaternion.angle(Quaternion.identity, delta) <
-    Quaternion.degreesToRadians(t.config.thresholdDeg)
+    Quaternion.angle(Quaternion.identity, delta) < Quaternion.degreesToRadians(config.thresholdDeg)
   ) {
-    None
+    (state, None)
   } else {
     let cardinal = CubeSymmetry.nearest(delta, None, 0.)
     if Quaternion.angle(Quaternion.identity, cardinal) < 0.00001 {
-      None
+      (state, None)
     } else {
       let (axis, positive) = axisAndPolarity(delta)
 
       // Project to an exact cardinal quarter turn rather than using the
       // threshold packet, so a continuous rotation yields four steps.
-      t.ratchet = Quaternion.multiply(t.ratchet, quarter(axis, positive))
-      Some({
-        sensorFrameToken: sensorToken(axis, positive),
-        notationToken: notationToken(axis, positive),
-      })
+      let nextState = Quaternion.multiply(state, quarter(axis, positive))
+      (
+        nextState,
+        Some({
+          sensorFrameToken: sensorToken(axis, positive),
+          notationToken: notationToken(axis, positive),
+        }),
+      )
     }
   }
 }
