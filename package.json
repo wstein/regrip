@@ -13,7 +13,7 @@
     "res:watch": "rescript watch",
     "res:clean": "rescript clean",
     "prepare": "husky",
-    "dev": "run-s res:build && run-p res:watch dev:vite",
+    "dev": "run-p res:watch dev:vite",
     "dev:vite": "vite",
     "docs:api": "typedoc --options typedoc.json",
     "docs:check": "typedoc --options typedoc.json --emit none --treatValidationWarningsAsErrors",
