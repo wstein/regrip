@@ -1,7 +1,7 @@
-import * as VirtualCubeFrame from '../domain/VirtualCubeFrame.res.mjs';
+import * as VirtualCubeFrame from '../../domain/VirtualCubeFrame.res.mjs';
 
 export type Vector = readonly [number, number, number];
-export type VirtualOrientation = {
+export type SolverOrientation = {
   right: Vector;
   up: Vector;
   front: Vector;
@@ -11,17 +11,17 @@ export type VirtualOrientation = {
 /**
  * Maps the cube's fixed body-local BLE face labels into the solver frame established
  * by emitted virtual x/y/z regrips. This is presentation/history state only;
- * the physical move stream and Twisty player remain in protocol URFDLB.
+ * the body-local move stream and Twisty player remain in protocol URFDLB.
  */
-export function createVirtualMoveFrame() {
+export function createSolverFrame() {
   const frame = VirtualCubeFrame.make();
   const reset = (): void => VirtualCubeFrame.reset(frame);
   const applyRegrip = (notationToken: string): void =>
     VirtualCubeFrame.applyRegrip(frame, notationToken);
   const translate = (move: string): string => VirtualCubeFrame.translate(frame, move);
 
-  /** Physical directions occupied by the user-facing logical R/U/F axes. */
-  const orientation = (): VirtualOrientation => {
+  /** Body directions occupied by the user-facing logical R/U/F axes. */
+  const orientation = (): SolverOrientation => {
     const orientation = VirtualCubeFrame.orientation(frame);
     return {
       right: [orientation.right.x, orientation.right.y, orientation.right.z],

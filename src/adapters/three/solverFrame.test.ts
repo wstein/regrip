@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
-import { createVirtualMoveFrame } from './virtualMoveFrame';
+import * as CubeFacelets from '../../domain/CubeFacelets.res.mjs';
+import { createSolverFrame } from './solverFrame';
 
 describe('virtual move frame', () => {
   it('translates fixed physical faces into the accumulated virtual frame', () => {
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     const displayed: string[] = [];
     const recordMove = (move: string) => displayed.push(frame.translate(move));
     const recordRegrip = (move: string) => {
@@ -26,7 +26,7 @@ describe('virtual move frame', () => {
   });
 
   it('does not alter non-face tokens and resets on gyro recentering', () => {
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     frame.applyRegrip('x');
     expect(frame.translate('U2')).not.toBe('U2');
     expect(frame.translate('M')).toBe('M');
@@ -35,7 +35,7 @@ describe('virtual move frame', () => {
   });
 
   it('composes mixed local-axis regrips in physical order', () => {
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     frame.applyRegrip('x');
     frame.applyRegrip('x');
     frame.applyRegrip('x');
@@ -48,7 +48,7 @@ describe('virtual move frame', () => {
   });
 
   it('exposes logical R/U/F directions after virtual regrips', () => {
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     expect(frame.orientation()).toEqual({
       right: [1, 0, 0],
       up: [0, 1, 0],
@@ -69,7 +69,7 @@ describe('virtual move frame', () => {
   it('reframes all 54 facelets, including face-grid orientation and centre colours', () => {
     const solved =
       'U'.repeat(9) + 'R'.repeat(9) + 'F'.repeat(9) + 'D'.repeat(9) + 'L'.repeat(9) + 'B'.repeat(9);
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     frame.applyRegrip('y');
 
     // A regripped solved cube remains solved in its logical URFDLB frame.
@@ -85,18 +85,18 @@ describe('virtual move frame', () => {
     const facelets = Array.from({ length: 54 }, (_, index) =>
       String.fromCharCode(33 + index + (33 + index >= 66 ? 6 : 0)),
     ).join('');
-    const once = createVirtualMoveFrame();
+    const once = createSolverFrame();
     once.applyRegrip('y');
     expect(new Set(once.reframeFacelets(facelets))).toHaveLength(54);
 
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     ['y', 'y', 'y', 'y'].forEach((token) => frame.applyRegrip(token));
     expect(frame.reframeFacelets(facelets)).toBe(facelets);
   });
 
   it('keeps a legal scrambled state legal after mixed regrips', () => {
     const scrambled = 'FBFRULDLFUBUURDBDBFFRLFFLURDBDUDFURLDBRLLURRBLDLRBDUFB';
-    const frame = createVirtualMoveFrame();
+    const frame = createSolverFrame();
     ['x', "y'", 'z', 'x'].forEach((token) => frame.applyRegrip(token));
 
     expect(() =>

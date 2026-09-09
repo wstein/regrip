@@ -18,7 +18,7 @@ import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
 import { featurePresets } from '../session/features';
 import { createSmartCubeSession } from '../session/smartCubeSession';
-import { createVirtualMoveFrame } from '../session/virtualMoveFrame';
+import { createSolverFrame } from '../adapters/three/solverFrame';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
@@ -42,7 +42,7 @@ eventLog.subscribe((entry, recordingCount) => {
   liveLog.appendLogEntry(entry);
   infoPanel.setLogRecording(eventLog.active, recordingCount);
 });
-const virtualMoveFrame = createVirtualMoveFrame();
+const solverFrame = createSolverFrame();
 const virtualFrameQuaternion = new THREE.Quaternion();
 const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
 const faceColors: Record<string, number> = {
@@ -55,7 +55,7 @@ const faceColors: Record<string, number> = {
 };
 
 function syncVirtualFrameOrientation(): void {
-  const { right, up, front, faces } = virtualMoveFrame.orientation();
+  const { right, up, front, faces } = solverFrame.orientation();
   virtualFrameQuaternion.setFromRotationMatrix(
     new THREE.Matrix4().makeBasis(
       new THREE.Vector3(...right),
@@ -90,7 +90,7 @@ infoPanel.on('reset-state', 'click', async () => {
 
 infoPanel.on('reset-gyro', 'click', async () => {
   session.resetGyro();
-  virtualMoveFrame.reset();
+  solverFrame.reset();
   syncVirtualFrameOrientation();
   infoPanel.showFeedback('Gyro and virtual move frame reset.');
 });
@@ -106,10 +106,10 @@ const timerController = createTimerController({
 const cubeEvents = createCubeEventController({
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
-  reframeFacelets: (facelets) => virtualMoveFrame.reframeFacelets(facelets),
+  reframeFacelets: (facelets) => solverFrame.reframeFacelets(facelets),
   addMove: (move) => {
     twistyPlayer.experimentalAddMove(move, { cancel: false });
-    infoPanel.appendDetectedMove(virtualMoveFrame.translate(move));
+    infoPanel.appendDetectedMove(solverFrame.translate(move));
   },
   setOrientation: (quaternion) =>
     cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
@@ -148,12 +148,12 @@ session.subscribeEvents((event) => {
     // URFDLB moves and are never remapped through gyro orientation.
     eventLog.record('virtual_regrip', event);
     infoPanel.appendDetectedMove(event.notationToken);
-    virtualMoveFrame.applyRegrip(event.notationToken);
+    solverFrame.applyRegrip(event.notationToken);
     syncVirtualFrameOrientation();
     return;
   }
   if (event.type === 'CUSTOM_TRIGGER') {
-    const solverMove = virtualMoveFrame.translate(event.move);
+    const solverMove = solverFrame.translate(event.move);
     eventLog.record('custom_trigger', { ...event, solverMove });
     infoPanel.showFeedback(`Custom trigger detected: ${solverMove}`);
     return;
@@ -178,7 +178,7 @@ session.subscribe((state) => {
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
-    virtualMoveFrame.reset();
+    solverFrame.reset();
     syncVirtualFrameOrientation();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Connecting…');
@@ -216,7 +216,7 @@ session.subscribe((state) => {
   }
   if (state.status === 'disconnected') {
     commandPanel.clear();
-    virtualMoveFrame.reset();
+    solverFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
@@ -226,7 +226,7 @@ session.subscribe((state) => {
   }
   if (state.status === 'error') {
     commandPanel.clear();
-    virtualMoveFrame.reset();
+    solverFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
