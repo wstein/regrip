@@ -1,5 +1,12 @@
 # smartcube-example
 
+[![CI](https://github.com/wstein/smartcube-example/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/smartcube-example/actions/workflows/ci.yml)
+[![Pages](https://github.com/wstein/smartcube-example/actions/workflows/pages.yml/badge.svg)](https://github.com/wstein/smartcube-example/actions/workflows/pages.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://wstein.github.io/smartcube-example/)
+[![ReScript](https://img.shields.io/badge/ReScript-12-e84f4f?logo=rescript&logoColor=white)](https://rescript-lang.org)
+[![Web Bluetooth](https://img.shields.io/badge/Web_Bluetooth-enabled-0082fc?logo=bluetooth&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE.txt)
+
 A single-page [Vite](https://vite.dev) example for the
 [Generic Smart Cube API](https://github.com/wstein/smartcube-web-bluetooth). It uses Web Bluetooth
 to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a cubing.js
