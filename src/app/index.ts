@@ -13,6 +13,7 @@ import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube } from '../session/connection';
+import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../session/jsonlFormat';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
 import { createSmartCubeSession } from '../session/smartCubeSession';
@@ -261,6 +262,8 @@ infoPanel.on('connect', 'click', async () => {
 infoPanel.on('start-log', 'click', () => {
   const state = session.getState();
   eventLog.start({
+    format: JSONL_REPLAY_FORMAT,
+    version: JSONL_REPLAY_VERSION,
     session: {
       status: state.status,
       profile: state.profile.id,
