@@ -1,6 +1,6 @@
-import { createReplaySession, REPLAY_STORAGE_KEY } from '../../src/session/testing/replaySession';
-import gocube from '../../src/session/testing/fixtures/gocube-edge-ui.jsonl?raw';
-import gan from '../../src/session/testing/fixtures/gan-ui12-ui.jsonl?raw';
+import { createReplaySession, REPLAY_STORAGE_KEY } from '../../src/session/replay/replaySession';
+import gocube from '../../src/session/replay/fixtures/gocube-edge-ui.jsonl?raw';
+import gan from '../../src/session/replay/fixtures/gan-ui12-ui.jsonl?raw';
 
 const kind = new URLSearchParams(location.search).get('fixture');
 const autoplay = new URLSearchParams(location.search).has('autoplay');

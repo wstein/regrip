@@ -9,14 +9,14 @@ import {
   parseJsonlCubeEvents,
   readJsonlMockIdentity,
   validateJsonlReplay,
-} from './testing/jsonlMock';
+} from './replay/jsonlMock';
 
-const fixtureUrl = new URL('./testing/fixtures/session-contract.jsonl', import.meta.url);
+const fixtureUrl = new URL('./replay/fixtures/session-contract.jsonl', import.meta.url);
 const uiFixtures = [
-  new URL('./testing/fixtures/gocube-edge-ui.jsonl', import.meta.url),
-  new URL('./testing/fixtures/gan-ui12-ui.jsonl', import.meta.url),
+  new URL('./replay/fixtures/gocube-edge-ui.jsonl', import.meta.url),
+  new URL('./replay/fixtures/gan-ui12-ui.jsonl', import.meta.url),
 ];
-const ganGen4ProfileFixture = new URL('./testing/fixtures/gan-gen4-profile.jsonl', import.meta.url);
+const ganGen4ProfileFixture = new URL('./replay/fixtures/gan-gen4-profile.jsonl', import.meta.url);
 
 describe('JSONL session replay contract', () => {
   it('replays initial state, regrip, custom trigger, and disconnect deterministically', async () => {

@@ -91,6 +91,17 @@ describe('replay session', () => {
     expect(replay.session.getState().lastEvent?.type).toBe('BATTERY');
   });
 
+  it('continues forward seeks without rebuilding and replaying the existing prefix', async () => {
+    const replay = createReplaySession(rawLog, 'connection');
+    const events: string[] = [];
+    replay.session.subscribeEvents((event) => events.push(event.type));
+
+    await replay.seekTo(1);
+    await replay.seekTo(2);
+
+    expect(events).toEqual(['BATTERY', 'MOVE']);
+  });
+
   it('preserves captured lifecycle order in session-output mode', async () => {
     const replay = createReplaySession(lifecycleLog, 'session');
     const timeline: string[] = [];

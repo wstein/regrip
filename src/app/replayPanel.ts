@@ -1,6 +1,6 @@
-import type { ReplayFeed, ReplaySessionController } from '../session/testing/replaySession';
-import { REPLAY_STORAGE_KEY } from '../session/testing/replaySession';
-import { readJsonlMockIdentity, validateJsonlReplay } from '../session/testing/jsonlMock';
+import type { ReplayFeed, ReplaySessionController } from '../session/replay/replaySession';
+import { REPLAY_STORAGE_KEY } from '../session/replay/replaySession';
+import { readJsonlMockIdentity, validateJsonlReplay } from '../session/replay/jsonlMock';
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);

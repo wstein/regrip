@@ -34,9 +34,9 @@ infoPanel.clearInfo();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
-// The harness installs this dev-only global before app bootstrap. Production
-// pages never create it, so the replay UI is absent from normal sessions.
-const replay = window.__smartcubeReplay;
+// Replaced with `undefined` by Vite in production, allowing Rollup to exclude
+// the replay transport and panel from the published lab bundle.
+const replay = import.meta.env.DEV ? window.__smartcubeReplay : undefined;
 const session =
   replay?.session ?? createSmartCubeSession({ connect: connectCube, features: featurePresets.all });
 if (replay) void import('./replayPanel').then(({ mountReplayPanel }) => mountReplayPanel(replay));
