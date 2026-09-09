@@ -8,6 +8,24 @@
 - [ ] Confirm the first `main` CI run and GitHub Pages deployment are green
       after the push; enable Pages' “GitHub Actions” source if required.
 
+## Core extraction and CubeLab migration
+
+- [ ] Carve the MIT, unpublished `packages/core` source package out of Regrip.
+      Its public surface is the smart-cube session, normalized transport contract,
+      profiles/features, commands, and deterministic JSONL replay; it excludes the
+      lab UI, Three adapter, timer UI, and cube-state presentation.
+- [ ] Keep CubeLab on a temporary dual-stack adapter while migrating only GAN and
+      GoCube. Do not delete the legacy transport until its parity suite is green.
+- [ ] Establish GAN parity: Gen1–4, including Gen2/UI12 and Gen4/i4 MAC recovery;
+      compare lifecycle, initial state, moves, facelets, battery/hardware, gyro,
+      and disconnect behavior.
+- [ ] Establish GoCube/Rubik’s Connected parity, including direct Nordic-UART
+      connection readiness/latency, initial requests, gyro, and vendor commands.
+- [ ] Switch CubeLab GAN first, then GoCube, retaining legacy fallback per device
+      during rollout. Migrate MoYu and GiiKER only after both cutovers are stable.
+- [ ] Keep the core MIT and unpublished while its API settles; CubeLab consumes a
+      local or Git-pinned source dependency rather than a public npm release.
+
 ## Validate on real cubes
 
 - [ ] Smoke-tune GoCube and GAN profiles: `radiusDeg`, `snapDeg`,

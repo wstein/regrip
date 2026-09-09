@@ -10,7 +10,12 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*_test.res.mjs', 'src/**/*.test.ts', 'test/**/*.test.ts'],
+    include: [
+      'src/**/*_test.res.mjs',
+      'packages/core/src/**/*_test.res.mjs',
+      'src/**/*.test.ts',
+      'test/**/*.test.ts',
+    ],
     exclude: [...configDefaults.exclude, 'lib/**'],
     environment: 'node',
   },

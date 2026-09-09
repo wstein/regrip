@@ -73,33 +73,37 @@ function declarationArity(declaration, value) {
   return topLevelParameters(match[1]).length;
 }
 
-for (const resiPath of resiFiles(join(process.cwd(), 'src'))) {
-  const declarationPath = resiPath.replace(/\.resi$/, '.res.d.mts');
-  let declaration = '';
-  try {
-    declaration = readFileSync(declarationPath, 'utf8');
-  } catch {
-    failures.push(`${resiPath}: missing ${declarationPath}`);
-    continue;
-  }
-  for (const { name: value, arity } of documentedValues(resiPath)) {
-    const exported =
-      new RegExp(`export\\s+(?:const|function)\\s+${value}\\b`).test(declaration) ||
-      new RegExp(`as ${value}[ };]`).test(declaration);
-    if (!exported) {
-      failures.push(`${resiPath}: ${value} is absent from ${declarationPath}`);
+const sourceRoots = [join(process.cwd(), 'src'), join(process.cwd(), 'packages', 'core', 'src')];
+
+for (const sourceRoot of sourceRoots) {
+  for (const resiPath of resiFiles(sourceRoot)) {
+    const declarationPath = resiPath.replace(/\.resi$/, '.res.d.mts');
+    let declaration = '';
+    try {
+      declaration = readFileSync(declarationPath, 'utf8');
+    } catch {
+      failures.push(`${resiPath}: missing ${declarationPath}`);
       continue;
     }
-    if (arity !== undefined) {
-      const actualArity = declarationArity(declaration, value);
-      if (actualArity === undefined) {
-        failures.push(
-          `${resiPath}: ${value} has ${arity} arguments but is not a function in ${declarationPath}`,
-        );
-      } else if (actualArity !== arity) {
-        failures.push(
-          `${resiPath}: ${value} has ${arity} arguments in the ReScript interface but ${actualArity} in ${declarationPath}`,
-        );
+    for (const { name: value, arity } of documentedValues(resiPath)) {
+      const exported =
+        new RegExp(`export\\s+(?:const|function)\\s+${value}\\b`).test(declaration) ||
+        new RegExp(`as ${value}[ };]`).test(declaration);
+      if (!exported) {
+        failures.push(`${resiPath}: ${value} is absent from ${declarationPath}`);
+        continue;
+      }
+      if (arity !== undefined) {
+        const actualArity = declarationArity(declaration, value);
+        if (actualArity === undefined) {
+          failures.push(
+            `${resiPath}: ${value} has ${arity} arguments but is not a function in ${declarationPath}`,
+          );
+        } else if (actualArity !== arity) {
+          failures.push(
+            `${resiPath}: ${value} has ${arity} arguments in the ReScript interface but ${actualArity} in ${declarationPath}`,
+          );
+        }
       }
     }
   }

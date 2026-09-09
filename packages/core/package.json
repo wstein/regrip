@@ -1,0 +1,20 @@
+{
+  "name": "@wstein/regrip-core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MIT smart-cube session core for Regrip and CubeLab",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "rescript"
+  },
+  "exports": {
+    "./bindings/*.res.mjs": "./src/bindings/*.res.mjs",
+    "./bindings/*": "./src/bindings/*.ts",
+    "./domain/*.res.mjs": "./src/domain/*.res.mjs"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.8.2",
+    "smartcube-web-bluetooth": "*"
+  }
+}

@@ -1,10 +1,10 @@
 import type { Subscription } from 'rxjs';
 import type {
   SmartCubeCommand,
-  SmartCubeConnection,
   SmartCubeEvent,
+  SmartCubeTransportConnection,
   SmartCubeVendorCommand,
-} from 'smartcube-web-bluetooth';
+} from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as GyroPipeline from '../domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
@@ -61,7 +61,7 @@ type SessionEventOf<T extends SessionEventType> = Extract<SmartCubeSessionEvent,
 
 export type SmartCubeSessionState = {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
-  connection: SmartCubeConnection | null;
+  connection: SmartCubeTransportConnection | null;
   lastEvent: SmartCubeSessionEvent | null;
   profile: ResolvedProfile;
   /** Fully resolved feature configuration for the selected device profile. */
@@ -70,7 +70,7 @@ export type SmartCubeSessionState = {
 };
 
 export type SmartCubeSessionOptions = {
-  connect: () => Promise<SmartCubeConnection>;
+  connect: () => Promise<SmartCubeTransportConnection>;
   /**
    * Schedules the latest contiguous gyro packet at display cadence. Supplying
    * this is primarily useful for deterministic hosts and tests.
@@ -327,7 +327,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     const generation = ++connectionGeneration;
     setState({ status: 'connecting', error: null });
     resetGyro();
-    let connection: SmartCubeConnection | null = null;
+    let connection: SmartCubeTransportConnection | null = null;
     try {
       connection = await options.connect();
       const profile = resolveSessionProfile({

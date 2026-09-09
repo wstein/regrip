@@ -1,5 +1,5 @@
 import { connectSmartCube } from 'smartcube-web-bluetooth';
-import type { SmartCubeConnection } from 'smartcube-web-bluetooth';
+import type { SmartCubeTransportConnection } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 export const macAddressProvider = async (
   device: BluetoothDevice,
@@ -17,16 +17,18 @@ export const macAddressProvider = async (
       );
 };
 
-export async function connectCube(): Promise<SmartCubeConnection> {
+export async function connectCube(): Promise<SmartCubeTransportConnection> {
   return connectSmartCube(macAddressProvider);
 }
 
-export async function requestInitialState(connection: SmartCubeConnection): Promise<void> {
+export async function requestInitialState(connection: SmartCubeTransportConnection): Promise<void> {
   if (connection.capabilities.hardware) await connection.sendCommand({ type: 'REQUEST_HARDWARE' });
   if (connection.capabilities.facelets) await connection.sendCommand({ type: 'REQUEST_FACELETS' });
   if (connection.capabilities.battery) await connection.sendCommand({ type: 'REQUEST_BATTERY' });
 }
 
-export async function disconnectConnection(connection: SmartCubeConnection | null): Promise<void> {
+export async function disconnectConnection(
+  connection: SmartCubeTransportConnection | null,
+): Promise<void> {
   await connection?.disconnect().catch(() => {});
 }
