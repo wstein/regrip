@@ -10,9 +10,14 @@ import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
+import {
+  resolveSessionFeatures,
+  type SessionFeatures,
+  type SessionFeaturesPatch,
+} from './features';
 import { bundledProfiles } from './profile/bundled';
 import { resolveProfile } from './profile/resolveProfile';
-import type { ResolvedProfile } from './profile/types';
+import type { ProfileOverrides, ResolvedProfile } from './profile/types';
 
 export type VirtualRegripEvent = {
   type: 'REGRIP';
@@ -46,24 +51,52 @@ export type SmartCubeSessionState = {
   connection: SmartCubeConnection | null;
   lastEvent: SmartCubeSessionEvent | null;
   profile: ResolvedProfile;
+  /** Fully resolved feature configuration for the selected device profile. */
+  features: SessionFeatures;
   error: string | null;
 };
 
 export type SmartCubeSessionOptions = {
   connect: () => Promise<SmartCubeConnection>;
-  /** Publish detected x/y/z regrips in addition to BLE events. Disabled by default. */
+  /**
+   * @deprecated Use `features.regrip.enabled`. This compatibility option will
+   * be removed after downstream callers migrate to the profile feature model.
+   */
   virtualRegrips?: boolean;
+  /** App-layer feature overrides, applied after the selected device profile. */
+  features?: SessionFeaturesPatch;
 };
 
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
   let connectionGeneration = 0;
+  if (options.virtualRegrips !== undefined) {
+    console.warn(
+      'virtualRegrips is deprecated; use features: { regrip: { enabled: ... } } instead.',
+    );
+  }
+  // Preserve the former explicit option while keeping the resulting value in
+  // the normal app profile layer. An explicit new feature value takes priority.
+  const featurePatch: SessionFeaturesPatch | undefined =
+    options.features?.regrip?.enabled === undefined && options.virtualRegrips !== undefined
+      ? {
+          ...options.features,
+          regrip: { ...options.features?.regrip, enabled: options.virtualRegrips },
+        }
+      : options.features;
+  const profileOverrides: ProfileOverrides = featurePatch
+    ? { app: { features: featurePatch } }
+    : {};
+  const resolveSessionProfile = (context: Parameters<typeof resolveProfile>[0]): ResolvedProfile =>
+    resolveProfile(context, bundledProfiles, profileOverrides);
+  const initialProfile = resolveSessionProfile({});
   let state: SmartCubeSessionState = {
     status: 'disconnected',
     connection: null,
     lastEvent: null,
     error: null,
-    profile: resolveProfile({}, bundledProfiles),
+    profile: initialProfile,
+    features: resolveSessionFeatures(initialProfile.value.features),
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
@@ -88,7 +121,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         : event;
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
-      calibrated && options.virtualRegrips
+      calibrated && state.features.regrip.enabled
         ? RegripDetector.observe(regripDetector, calibrated)
         : undefined;
     const customTrigger =
@@ -97,17 +130,16 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         : undefined;
     setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
-      const profile = resolveProfile(
-        {
-          protocol: state.connection.protocol.id,
-          deviceName: state.connection.deviceName,
-          deviceMAC: state.connection.deviceMAC,
-          hardwareName: event.hardwareName,
-          goCubeType: event.goCubeType?.name,
-        },
-        bundledProfiles,
-      );
-      if (!sameProfile(state.profile, profile)) setState({ profile });
+      const profile = resolveSessionProfile({
+        protocol: state.connection.protocol.id,
+        deviceName: state.connection.deviceName,
+        deviceMAC: state.connection.deviceMAC,
+        hardwareName: event.hardwareName,
+        goCubeType: event.goCubeType?.name,
+      });
+      if (!sameProfile(state.profile, profile)) {
+        setState({ profile, features: resolveSessionFeatures(profile.value.features) });
+      }
     }
     eventListeners.forEach((listener) => listener(sessionEvent));
     if (regrip) {
@@ -146,16 +178,15 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     let connection: SmartCubeConnection | null = null;
     try {
       connection = await options.connect();
+      const profile = resolveSessionProfile({
+        protocol: connection.protocol.id,
+        deviceName: connection.deviceName,
+        deviceMAC: connection.deviceMAC,
+      });
       setState({
         connection,
-        profile: resolveProfile(
-          {
-            protocol: connection.protocol.id,
-            deviceName: connection.deviceName,
-            deviceMAC: connection.deviceMAC,
-          },
-          bundledProfiles,
-        ),
+        profile,
+        features: resolveSessionFeatures(profile.value.features),
       });
       subscription = connection.events$.subscribe(onEvent);
       await requestInitialState(connection);

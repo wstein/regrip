@@ -74,6 +74,32 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('exposes profile-resolved features and maps the deprecated regrip option once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const session = createSmartCubeSession({
+      connect: async () => connection(new Subject<SmartCubeEvent>()),
+      virtualRegrips: true,
+    });
+
+    expect(session.getState().features.regrip.enabled).toBe(true);
+    expect(session.getState().profile.sources['features.regrip.enabled']).toBe('app');
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
+  it('prefers the feature override over the deprecated regrip option', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const session = createSmartCubeSession({
+      connect: async () => connection(new Subject<SmartCubeEvent>()),
+      virtualRegrips: true,
+      features: { regrip: { enabled: false } },
+    });
+
+    expect(session.getState().features.regrip.enabled).toBe(false);
+    expect(session.getState().profile.sources['features.regrip.enabled']).toBe('app');
+    warn.mockRestore();
+  });
+
   it('does not revive a connection disconnected during initial state requests', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const conn = connection(events$, {

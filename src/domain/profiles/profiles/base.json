@@ -9,5 +9,20 @@
   },
   "battery": { "curve": "linear" },
   "gyro": { "axisMap": "x,z,-y,w" },
+  "features": {
+    "stabilizer": {
+      "enabled": true,
+      "radiusDeg": 35,
+      "snapDeg": 4,
+      "velocityMax": 2.5,
+      "hysteresis": { "enabled": true, "marginDeg": 6 },
+      "drift": { "enabled": true, "degPerSec": 2 }
+    },
+    "regrip": { "enabled": false, "thresholdDeg": 60 },
+    "customTrigger": {
+      "enabled": true,
+      "triggers": [{ "kind": "moveBack", "windowMs": 300 }]
+    }
+  },
   "quirks": {}
 }

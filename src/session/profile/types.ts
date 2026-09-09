@@ -1,3 +1,5 @@
+import type { SessionFeaturesPatch } from '../features';
+
 export type DeviceContext = {
   protocol?: string;
   deviceName?: string;
@@ -21,6 +23,7 @@ export type SmartCubeProfile = {
   };
   battery?: { curve?: string };
   gyro?: { axisMap?: string };
+  features?: SessionFeaturesPatch;
   quirks?: Record<string, unknown>;
 };
 

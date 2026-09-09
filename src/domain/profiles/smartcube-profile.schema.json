@@ -38,6 +38,65 @@
       "properties": { "axisMap": { "type": "string" } },
       "additionalProperties": false
     },
+    "features": {
+      "type": "object",
+      "properties": {
+        "stabilizer": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "radiusDeg": { "type": "number" },
+            "snapDeg": { "type": "number" },
+            "velocityMax": { "type": "number" },
+            "hysteresis": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "marginDeg": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "drift": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "degPerSec": { "type": "number" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "regrip": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "thresholdDeg": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "customTrigger": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["kind"],
+                "properties": {
+                  "kind": { "const": "moveBack" },
+                  "windowMs": { "type": "number" }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "quirks": { "type": "object", "additionalProperties": true }
   },
   "additionalProperties": false

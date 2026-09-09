@@ -9,7 +9,9 @@ import unknown from '../../domain/profiles/profiles/unknown.json';
 import type { SmartCubeProfile } from './types';
 
 export const bundledProfiles: SmartCubeProfile[] = [
-  base,
+  // JSON imports widen discriminant literals to `string`; schema.test.ts
+  // validates this bundled data before it reaches the typed session boundary.
+  base as SmartCubeProfile,
   ganGen2,
   ganI4,
   gocube,

@@ -32,6 +32,24 @@ describe('resolveProfile', () => {
     expect(profile.sources['quirks.clockless']).toBe('runtime');
   });
 
+  it('recursively merges feature settings and preserves their leaf provenance', () => {
+    const profile = resolveProfile({ protocol: 'gocube' }, bundledProfiles, {
+      app: { features: { stabilizer: { hysteresis: { enabled: false } } } },
+      user: { features: { regrip: { enabled: true } } },
+      runtime: { features: { customTrigger: { triggers: [{ kind: 'moveBack', windowMs: 250 }] } } },
+    });
+
+    expect(profile.value.features).toMatchObject({
+      stabilizer: { hysteresis: { enabled: false, marginDeg: 6 } },
+      regrip: { enabled: true, thresholdDeg: 60 },
+      customTrigger: { enabled: true, triggers: [{ kind: 'moveBack', windowMs: 250 }] },
+    });
+    expect(profile.sources['features.stabilizer.hysteresis.enabled']).toBe('app');
+    expect(profile.sources['features.stabilizer.hysteresis.marginDeg']).toBe('base');
+    expect(profile.sources['features.regrip.enabled']).toBe('user');
+    expect(profile.sources['features.customTrigger.triggers']).toBe('runtime');
+  });
+
   it('anchors match expressions and treats invalid expressions as non-matches', () => {
     const profiles: SmartCubeProfile[] = [
       { id: 'base' },
