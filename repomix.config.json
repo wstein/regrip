@@ -4,7 +4,7 @@
     "maxFileSize": 1048576
   },
   "output": {
-    "filePath": "repomix-smartcube-example.txt",
+    "filePath": "repomix-smartcube-example.xml.txt",
     "style": "xml",
     "filePathStyle": "target-relative",
     "parsableStyle": false,
