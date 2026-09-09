@@ -16,6 +16,8 @@
       to activate basic solving timer
     </div>
 
+    <div class="dashboard">
+      <main class="workspace-card">
     <div class="cube-workspace">
       <div class="cube-column">
         <div id="cube"></div>
@@ -37,13 +39,20 @@
     </section>
 
     <div class="controls">
-      <button id="connect">Connect</button>
-      <button id="reset-state">Reset State</button>
-      <button id="reset-gyro">Reset Gyro</button>
-      <button id="start-log">Start log</button>
-      <button id="stop-log" disabled>Stop log &amp; download</button>
+      <div class="control-actions">
+        <button id="connect">Connect</button>
+        <button id="reset-state">Reset State</button>
+        <button id="reset-gyro">Reset Gyro</button>
+      </div>
+      <div class="log-actions">
+        <button id="start-log">Start log</button>
+        <button id="stop-log" disabled>Stop log &amp; download</button>
+      </div>
     </div>
+      </main>
 
+      <aside class="device-card">
+        <h2>Cube Connection</h2>
     <div class="info">
 
       <label for="connectionStatus">Connection Status</label>
@@ -106,6 +115,8 @@
       <label for="velocity">Angular Velocity</label>
       <input id="velocity" type="text" readonly value="- n/a -">
 
+    </div>
+      </aside>
     </div>
 
     <div id="timer">0:00.000</div>

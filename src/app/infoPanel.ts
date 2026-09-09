@@ -56,11 +56,15 @@ export function setTimerColor(color: string): void {
 }
 
 export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
-  byId('connect').textContent = label;
+  const connect = button('connect');
+  connect.textContent = label;
+  connect.dataset.state = label.toLowerCase();
 }
 
 export function setConnectionStatus(status: string): void {
-  setInfo('connectionStatus', status);
+  const connectionStatus = input('connectionStatus');
+  connectionStatus.value = status;
+  connectionStatus.dataset.state = status.toLowerCase().replace(/[^a-z]+/g, '-');
 }
 
 export function setLogRecording(recording: boolean): void {

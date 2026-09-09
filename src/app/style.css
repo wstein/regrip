@@ -1,204 +1,96 @@
+:root {
+  color: #edf2ff;
+  background: #090d18;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 body {
+  min-width: 320px;
   margin: 0;
-  background-color: #666;
-  font-family: Arial, Helvetica, sans-serif;
+  background: radial-gradient(circle at 15% 0%, #202c50 0, #0d1325 40%, #090d18 100%);
 }
 
-#app {
-  margin: 0;
-  padding: 1em;
-}
+#app { max-width: 88rem; margin: 0 auto; padding: 1.5rem; }
+.help { max-width: 37rem; margin: 0 0 1.25rem; color: #aebbd9; font-size: 0.9rem; line-height: 1.45; }
 
-#cube {
-  margin: 0px;
-  padding: 0px;
+.dashboard { display: grid; grid-template-columns: minmax(34rem, 1.55fr) minmax(19rem, 0.8fr); gap: 1.25rem; align-items: start; }
+.workspace-card, .device-card {
+  box-sizing: border-box;
+  border: 1px solid #2b3859;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgb(27 38 65 / 92%), rgb(13 20 37 / 92%));
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 25%);
 }
+.workspace-card { min-width: 0; padding: 1.25rem; }
+.device-card { padding: 1.25rem; }
+.device-card h2 { margin: 0 0 1rem; font-size: 1rem; letter-spacing: 0.04em; color: #dce6ff; }
 
-#cube twisty-player {
-  width: 15em;
-  height: 15em;
-}
+#cube { margin: 0; padding: 0; }
+#cube twisty-player { width: 15em; height: 15em; }
+.cube-workspace { display: flex; align-items: flex-start; gap: 1.25rem; }
+.cube-column { flex: 0 0 15em; }
 
-.cube-workspace {
-  display: flex;
-  align-items: flex-start;
-  gap: 1em;
-}
-
-.cube-column {
-  flex: 0 0 15em;
-}
-
-.detected-moves-panel {
-  display: flex;
-  flex: 1 1 22em;
-  flex-direction: column;
-  max-width: 32em;
-  min-width: 15em;
-}
-
-.detected-moves-panel label {
-  color: white;
-  font-size: 0.8em;
-  font-weight: bold;
-  margin: 0.4em 0;
-}
-
+.detected-moves-panel { display: flex; flex: 1 1 22em; flex-direction: column; min-width: 15em; }
+.detected-moves-panel label, .cubie-state-panel label { color: #dce6ff; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.02em; }
+.detected-moves-panel label { margin: 0 0 0.55rem; }
 #detectedMoves {
-  box-sizing: border-box;
-  min-height: 15em;
-  resize: vertical;
-  padding: 0.75em;
-  color: black;
-  background-color: #eee;
-  border: 1px solid #333;
-  border-radius: 0.75em;
-  font: bold 0.9em/1.45 Arial, Helvetica, sans-serif;
+  box-sizing: border-box; min-height: 15em; resize: vertical; padding: 0.8rem;
+  color: #eaf0ff; background: #0a1121; border: 1px solid #3b4b70; border-radius: 0.75rem;
+  font: 700 0.95rem/1.55 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; caret-color: #74a7ff;
 }
 
-.detected-moves-actions {
-  display: flex;
-  gap: 0.4em;
-  margin-top: 0.4em;
+.detected-moves-actions, .controls, .control-actions, .log-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.detected-moves-actions { margin-top: 0.65rem; }
+.controls { justify-content: space-between; margin-top: 1rem; }
+button {
+  border: 1px solid #465a85; border-radius: 0.6rem; padding: 0.55rem 0.85rem;
+  color: #eaf0ff; background: #1d2a47; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
+button:hover:not(:disabled) { background: #27395e; border-color: #7299e5; transform: translateY(-1px); }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+.log-actions button { border-color: #2e6c9e; background: #173c61; }
+.log-actions button:hover:not(:disabled) { background: #1e4f7e; }
+#connect[data-state="disconnect"] { border-color: #a95365; background: #542634; }
+#connect[data-state="disconnect"]:hover:not(:disabled) { background: #713244; }
 
-.controls {
-  margin: 0.5em 0;
-}
-
-.controls button {
-  color: white;
-  background-color: #333;
-  border: 1px solid silver;
-  margin: 0.1em;
-  padding: 0.5em 1em 0.5em 1em;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 1em;
-}
-
-.detected-moves-actions button {
-  color: white;
-  background-color: #333;
-  border: 1px solid silver;
-  padding: 0.4em 0.8em;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 1em;
-}
-
-.cubie-state-panel {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  max-width: 48em;
-  margin-top: 0.75em;
-}
-
-.cubie-state-panel label {
-  color: white;
-  font-size: 0.8em;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.cubie-state-panel label::after {
-  content: ':';
-}
-
+.cubie-state-panel { display: flex; align-items: center; gap: 0.65rem; margin-top: 1rem; }
+.cubie-state-panel label::after, .info label::after { content: ':'; }
 .cubie-state-panel input {
-  box-sizing: border-box;
-  flex: 1;
-  min-width: 0;
-  padding: 0.6em 0.8em;
-  color: black;
-  background-color: #eee;
-  border: 1px solid #333;
-  border-radius: 0.75em;
-  font: bold 0.8em Arial, Helvetica, sans-serif;
+  box-sizing: border-box; flex: 1; min-width: 0; padding: 0.6rem 0.75rem;
+  color: #cedaff; background: #0a1121; border: 1px solid #3b4b70; border-radius: 0.6rem;
+  font: 700 0.78rem "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 }
 
-.info {
-  display: grid;
-  grid-template-columns: max-content minmax(15em, 1fr);
-  max-width: 42em;
-  margin: 1em 0em 1em 0em;
-}
-
+.info { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.5rem 0.7rem; }
+.info label { align-self: center; color: #aebbd9; font-size: 0.76rem; text-align: right; white-space: nowrap; }
+.info label[for="connectionStatus"]::before { content: ''; display: inline-block; width: 0.5rem; height: 0.5rem; margin-right: 0.4rem; border-radius: 50%; background: #68748e; }
+.info label[for="connectionStatus"]:has(+ input[data-state="connected"])::before { background: #4de38b; box-shadow: 0 0 0.55rem #4de38b; }
+.info label[for="connectionStatus"]:has(+ input[data-state="connecting"])::before { background: #ffd166; }
+.info label[for="connectionStatus"]:has(+ input[data-state^="failed-"])::before, .info label[for="connectionStatus"]:has(+ input[data-state="error"])::before { background: #ff6b7f; }
 .info input {
-  min-width: 0;
-  font-size: 0.5em;
-  font-weight: bold;
-  color: black;
-  background-color: #eee;
-  border: 1px solid #333;
-  margin: 0.5em;
-  padding: 0.5em 1em 0.5em 1em;
-  font-family: Arial, Helvetica, sans-serif;
-  border-radius: 1em;
-}
-
-.info label {
-  text-wrap: nowrap;
-  font-size: 0.5em;
-  color: white;
-  text-align: right;
-  margin: auto 0px auto 0px;
-  padding: 0.5em;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.info label::after {
-  content: ':';
-}
-
-@media (max-width: 36em) {
-  .cube-workspace {
-    flex-direction: column;
-  }
-
-  .detected-moves-panel {
-    width: 100%;
-    max-width: none;
-  }
-
-  .cubie-state-panel {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .info {
-    grid-template-columns: 1fr;
-  }
-
-  .info label {
-    text-align: left;
-    margin-top: 0.75em;
-  }
+  min-width: 0; padding: 0.45rem 0.6rem; color: #dfe8ff; background: #0a1121;
+  border: 1px solid #344260; border-radius: 0.45rem; font: 600 0.76rem Inter, ui-sans-serif, sans-serif;
 }
 
 #timer {
-  position: absolute;
-  font-size: 2em;
-  top: 9em;
-  left: 0.5em;
-  width: 8.3em;
-  padding: 1em;
-  border: 1px solid silver;
-  border-radius: 1em;
-  background-color: #333;
-  color: white;
-  text-align: center;
-  z-index: 10;
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: bold;
-  display: none;
+  position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 10; min-width: 8rem; padding: 0.75rem 1rem;
+  border: 1px solid #536c9f; border-radius: 0.75rem; background: #111c35e8; color: white;
+  font: 700 1.5rem "JetBrains Mono", "SFMono-Regular", Consolas, monospace; text-align: center;
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 35%); display: none;
 }
 
-.help {
-  color: #ffffff80;
-  font-family: Arial, Helvetica, sans-serif;
-  width: 20rem;
-  font-size: 0.8em;
-  margin-top: 0.5em;
+@media (max-width: 64rem) {
+  .dashboard { grid-template-columns: 1fr; }
+  .device-card { order: 2; }
+}
+@media (max-width: 42rem) {
+  #app { padding: 0.9rem; }
+  .workspace-card, .device-card { padding: 0.9rem; border-radius: 0.75rem; }
+  .cube-workspace { flex-direction: column; }
+  .detected-moves-panel { width: 100%; min-width: 0; }
+  .cubie-state-panel { align-items: stretch; flex-direction: column; }
+  .controls { align-items: stretch; flex-direction: column; }
+  .info { grid-template-columns: 1fr; gap: 0.25rem; }
+  .info label { margin-top: 0.55rem; text-align: left; }
 }
