@@ -60,7 +60,7 @@ describe('smart cube session', () => {
       quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(66), y: 0, z: 0 }),
     });
 
-    expect(received).toEqual(['GYRO', 'GYRO', "x'"]);
+    expect(received).toEqual(['GYRO', 'CALIBRATED_GYRO', 'GYRO', 'CALIBRATED_GYRO', "x'"]);
     await session.disconnect();
   });
 

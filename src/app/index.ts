@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { startSceneRenderLoop } from '../adapters/three/sceneView';
-import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
@@ -26,7 +25,6 @@ infoPanel.clearInfo();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0)
 );
-const gyro = GyroOrientation.make();
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
@@ -43,9 +41,8 @@ infoPanel.on('reset-state', 'click', async () => {
 });
 
 infoPanel.on('reset-gyro', 'click', async () => {
-  GyroOrientation.resetBasis(gyro);
   OrientationStabilizer.reset(stabilizer);
-  session.resetVirtualRegrips();
+  session.resetGyro();
   virtualMoveFrame.reset();
 });
 
@@ -70,7 +67,6 @@ const timerController = createTimerController({
 });
 
 const cubeEvents = createCubeEventController({
-  gyro,
   stabilizer,
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
@@ -105,6 +101,10 @@ const cubeEvents = createCubeEventController({
 
 applyProfile(session.getState().profile.value);
 session.subscribeEvents(event => {
+  if (event.type === 'CALIBRATED_GYRO') {
+    cubeEvents.handleCalibratedGyro(event.event, event.relative);
+    return;
+  }
   if (event.type === 'REGRIP') {
     // Virtual regrips are history/log events. BLE MOVE packets remain physical
     // URFDLB moves and are never remapped through gyro orientation.

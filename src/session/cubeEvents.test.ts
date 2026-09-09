@@ -10,12 +10,10 @@ function xRotation(degrees: number): Quaternion.Quaternion {
 }
 
 function makeController() {
-  const gyro = GyroOrientation.make();
   const stabilizer = OrientationStabilizer.make();
   const setOrientation = vi.fn();
   const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() };
   const controller = createCubeEventController({
-    gyro,
     stabilizer,
     timer,
     solveScramble: async () => '',
@@ -27,31 +25,29 @@ function makeController() {
     onDisconnect: vi.fn(),
     onSolved: vi.fn(),
   });
-  return { controller, gyro, setOrientation };
+  return { controller, setOrientation };
 }
 
 describe('cube event gyro bridge', () => {
   it('does not magnetize a high-velocity deliberate turn', () => {
-    const { controller, gyro, setOrientation } = makeController();
-    controller.handle({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    const { controller, setOrientation } = makeController();
+    controller.handleCalibratedGyro({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity }, Quaternion.identity);
     const rawTurn = xRotation(67.5);
-    controller.handle({
+    controller.handleCalibratedGyro({
       type: 'GYRO', timestamp: 2, quaternion: rawTurn,
       velocity: { x: OrientationStabilizer.defaults.velocityMax, y: 0, z: 0 },
-    });
+    }, rawTurn);
 
     const output = setOrientation.mock.calls.at(-1)?.[0] as Quaternion.Quaternion;
-    const expected = GyroOrientation.applyHome(gyro, rawTurn);
+    const expected = Quaternion.multiply(GyroOrientation.home, rawTurn);
     expect(Quaternion.angle(output, expected)).toBeCloseTo(0, 7);
   });
 
   it('forwards each detected move to the supplied move sink', () => {
     const { controller } = makeController();
     const moves: string[] = [];
-    const gyro = GyroOrientation.make();
     const stabilizer = OrientationStabilizer.make();
     const moveController = createCubeEventController({
-      gyro,
       stabilizer,
       timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() },
       solveScramble: async () => '',

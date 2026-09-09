@@ -25,7 +25,14 @@ export type VirtualRegripEvent = {
   sensorFrameToken: string;
 };
 
-export type SmartCubeSessionEvent = SmartCubeEvent | VirtualRegripEvent;
+export type CalibratedGyroEvent = {
+  type: 'CALIBRATED_GYRO';
+  event: Extract<SmartCubeEvent, { type: 'GYRO' }>;
+  /** One session-owned, basis-normalized pose for every gyro consumer. */
+  relative: { x: number; y: number; z: number; w: number };
+};
+
+export type SmartCubeSessionEvent = SmartCubeEvent | CalibratedGyroEvent | VirtualRegripEvent;
 
 export type SmartCubeSessionOptions = {
   connect: () => Promise<SmartCubeConnection>;
@@ -42,9 +49,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
-  // This calibration and detector are deliberately independent of the display
-  // gyro/magnet pipeline. They only derive optional virtual regrip events.
-  const regripGyro = GyroOrientation.make();
+  // The session owns calibration once; both regrip detection and display
+  // stabilization consume the resulting calibrated pose.
+  const gyro = GyroOrientation.make();
   const regripDetector = RegripDetector.make();
 
   const publish = (): void => listeners.forEach(listener => listener(state));
@@ -56,8 +63,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
 
   const onEvent = (event: SmartCubeEvent): void => {
-    const regrip = event.type === 'GYRO' && options.virtualRegrips
-      ? RegripDetector.observe(regripDetector, GyroOrientation.relative(regripGyro, event.quaternion))
+    const calibrated = event.type === 'GYRO'
+      ? GyroOrientation.relative(gyro, event.quaternion)
+      : undefined;
+    const regrip = calibrated && options.virtualRegrips
+      ? RegripDetector.observe(regripDetector, calibrated)
       : undefined;
     setState({ lastEvent: event });
     if (event.type === 'HARDWARE' && state.connection) {
@@ -71,6 +81,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       if (!sameProfile(state.profile, profile)) setState({ profile });
     }
     eventListeners.forEach(listener => listener(event));
+    if (calibrated && event.type === 'GYRO') {
+      eventListeners.forEach(listener => listener({
+        type: 'CALIBRATED_GYRO', event, relative: calibrated,
+      }));
+    }
     if (regrip) {
       eventListeners.forEach(listener => listener({
         type: 'REGRIP', timestamp: event.timestamp,
@@ -81,8 +96,8 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     if (event.type === 'DISCONNECT') void disconnect();
   };
 
-  const resetVirtualRegrips = (): void => {
-    GyroOrientation.resetBasis(regripGyro);
+  const resetGyro = (): void => {
+    GyroOrientation.resetBasis(gyro);
     RegripDetector.reset(regripDetector);
   };
 
@@ -90,7 +105,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     if (state.status === 'connecting' || state.connection) return;
     const generation = ++connectionGeneration;
     setState({ status: 'connecting', error: null });
-    resetVirtualRegrips();
+    resetGyro();
     let connection: SmartCubeConnection | null = null;
     try {
       connection = await options.connect();
@@ -119,7 +134,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     subscription?.unsubscribe();
     subscription = null;
     const connection = state.connection;
-    resetVirtualRegrips();
+    resetGyro();
     setState({ status: 'disconnected', connection: null });
     await disconnectConnection(connection);
   }
@@ -137,6 +152,6 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     },
     connect,
     disconnect,
-    resetVirtualRegrips,
+    resetGyro,
   };
 }

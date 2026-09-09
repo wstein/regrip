@@ -3,6 +3,7 @@ import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as Cube333 from '../domain/Cube333.res.mjs';
+import * as Quaternion from '../domain/Quaternion.res.mjs';
 import { formatCubieState, formatOfflineStats } from './cubeInfo';
 import type { TimerController } from './timerController';
 
@@ -11,8 +12,8 @@ export type SolveDetector = (cube: Cube333.Cube333) => boolean;
 export const defaultSolveDetector: SolveDetector = Cube333.isSolved;
 
 type CubeEventControllerOptions = {
-  gyro: GyroOrientation.GyroOrientation;
   stabilizer: OrientationStabilizer.OrientationStabilizer;
+  homeOrientation?: Quaternion.Quaternion;
   timer: TimerController;
   solveScramble: ScrambleSolver;
   /** Convert physical hardware facelets into the app's current virtual frame. */
@@ -43,20 +44,21 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   function reset(): void {
     cubeStateInitialized = false;
     previousGyroTimestamp = undefined;
-    GyroOrientation.resetBasis(options.gyro);
     OrientationStabilizer.reset(options.stabilizer);
     options.timer.reset();
     options.setPlayerAlgorithm('');
   }
 
-  function handleGyro(event: Extract<SmartCubeEvent, { type: 'GYRO' }>): void {
+  function handleCalibratedGyro(
+    event: Extract<SmartCubeEvent, { type: 'GYRO' }>,
+    relative: Quaternion.Quaternion,
+  ): void {
     const { x, y, z, w } = event.quaternion;
-    const relative = GyroOrientation.relative(options.gyro, event.quaternion);
     const velocity = event.velocity ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z) : 0;
     const dtSeconds = previousGyroTimestamp === undefined ? 0 : Math.max(0, (event.timestamp - previousGyroTimestamp) / 1000);
     previousGyroTimestamp = event.timestamp;
     const stabilized = OrientationStabilizer.update(options.stabilizer, relative, velocity, dtSeconds);
-    options.setOrientation(GyroOrientation.applyHome(options.gyro, stabilized));
+    options.setOrientation(Quaternion.multiply(options.homeOrientation ?? GyroOrientation.home, stabilized));
     options.onGyro?.({ event, velocity, dtSeconds, relative, stabilized });
     options.setInfo('quaternion', `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`);
     if (event.velocity) {
@@ -120,7 +122,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function handle(event: SmartCubeEvent): void {
     switch (event.type) {
-      case 'GYRO': handleGyro(event); break;
+      case 'GYRO': break;
       case 'MOVE': handleMove(event); break;
       case 'FACELETS': handleFacelets(event).catch(error => console.error('facelets handler failed', error)); break;
       case 'HARDWARE': handleHardware(event); break;
@@ -130,5 +132,5 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     }
   }
 
-  return { handle, reset };
+  return { handle, handleCalibratedGyro, reset };
 }
