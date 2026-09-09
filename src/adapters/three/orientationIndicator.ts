@@ -30,10 +30,36 @@ function label(axis: string, color: number, position: THREE.Vector3): THREE.Spri
   return sprite;
 }
 
+function backdrop(): THREE.Sprite | undefined {
+  if (typeof document === 'undefined') return undefined;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext('2d');
+  if (!context) return undefined;
+  context.beginPath();
+  context.arc(64, 64, 60, 0, Math.PI * 2);
+  context.fillStyle = 'rgba(5, 10, 22, 0.88)';
+  context.fill();
+  context.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+  context.lineWidth = 2;
+  context.stroke();
+
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(canvas), depthTest: false, depthWrite: false,
+  }));
+  sprite.name = 'orientation-backdrop';
+  sprite.scale.setScalar(1.65);
+  sprite.renderOrder = 999;
+  return sprite;
+}
+
 /** A compact, labelled R/U/F triad in cube-local coordinates. */
 export function createOrientationIndicator(includeLabels = true): THREE.Group {
   const indicator = new THREE.Group();
   indicator.name = 'orientation-indicator';
+  const indicatorBackdrop = backdrop();
+  if (indicatorBackdrop) indicator.add(indicatorBackdrop);
 
   for (const axis of axes) {
     const arrow = new THREE.ArrowHelper(axis.direction, new THREE.Vector3(), 0.72, axis.color, 0.2, 0.12);

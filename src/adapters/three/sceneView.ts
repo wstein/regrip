@@ -9,7 +9,7 @@ export function startSceneRenderLoop(player: TwistyPlayer, cubeQuaternion: THREE
   // This is a stable world-space corner; the R/U/F axes still inherit the
   // scene rotation that renders the physical cube. Virtual regrips transform
   // move notation, but the gyro-driven scene already represents their pose.
-  const indicatorPosition = new THREE.Vector3(-1.3, 1.3, 0);
+  const indicatorPosition = new THREE.Vector3(-1.3, -1.3, 0);
 
   const render = async (): Promise<void> => {
     try {
