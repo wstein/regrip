@@ -1,8 +1,8 @@
-# smartcube-example
+# Regrip
 
-[![CI](https://github.com/wstein/smartcube-example/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/smartcube-example/actions/workflows/ci.yml)
-[![Pages](https://github.com/wstein/smartcube-example/actions/workflows/pages.yml/badge.svg)](https://github.com/wstein/smartcube-example/actions/workflows/pages.yml)
-[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://wstein.github.io/smartcube-example/)
+[![CI](https://github.com/wstein/regrip/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/regrip/actions/workflows/ci.yml)
+[![Pages](https://github.com/wstein/regrip/actions/workflows/pages.yml/badge.svg)](https://github.com/wstein/regrip/actions/workflows/pages.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://wstein.github.io/regrip/)
 [![ReScript](https://img.shields.io/badge/ReScript-12-e84f4f?logo=rescript&logoColor=white)](https://rescript-lang.org)
 [![Web Bluetooth](https://img.shields.io/badge/Web_Bluetooth-enabled-0082fc?logo=bluetooth&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -119,7 +119,7 @@ Run `npm run docs:api`, then visit
 dev server is running. Before generation, that route provides a fallback page with the local commands.
 
 GitHub Pages generates and serves the same reference at
-[`/smartcube-example/docs/api/index.html`](https://wstein.github.io/smartcube-example/docs/api/index.html).
+[`/regrip/docs/api/index.html`](https://wstein.github.io/regrip/docs/api/index.html).
 For source-native ReScript documentation JSON, use:
 
 ```sh

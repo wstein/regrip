@@ -76,7 +76,7 @@ describe('JSONL session replay contract', () => {
     expect(() => validateJsonlReplay('{not json}')).toThrow('line 1: invalid JSON');
     expect(() =>
       validateJsonlReplay(
-        '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"log_started","data":{"format":"smartcube-example","version":2}}',
+        '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"log_started","data":{"format":"regrip","version":2}}',
       ),
     ).toThrow('line 1: unsupported version 2');
     expect(() =>

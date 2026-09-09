@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving smartcube-example. Small, focused changes with a clear hardware or browser
+Thanks for improving Regrip. Small, focused changes with a clear hardware or browser
 test result are especially valuable.
 
 ## Before you start

@@ -1,4 +1,4 @@
-{"recordedAt":"2026-09-09T12:30:00.000Z","type":"log_started","data":{"format":"smartcube-example","version":1,"session":{"device":"GoCube Edge","protocol":"gocube"}}}
+{"recordedAt":"2026-09-09T12:30:00.000Z","type":"log_started","data":{"format":"regrip","version":1,"session":{"device":"GoCube Edge","protocol":"gocube"}}}
 {"recordedAt":"2026-09-09T12:30:00.010Z","type":"cube_event","data":{"type":"HARDWARE","timestamp":10,"hardwareName":"GoCube Edge","gyroSupported":true}}
 {"recordedAt":"2026-09-09T12:30:00.020Z","type":"cube_event","data":{"type":"BATTERY","timestamp":20,"batteryLevel":98}}
 {"recordedAt":"2026-09-09T12:30:00.030Z","type":"cube_event","data":{"type":"FACELETS","timestamp":30,"facelets":"UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}}

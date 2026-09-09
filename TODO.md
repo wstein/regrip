@@ -2,7 +2,7 @@
 
 ## Immediate delivery
 
-- [ ] Push verified local `main` to `wstein/smartcube-example`, then close or
+- [ ] Push verified local `main` to `wstein/regrip`, then close or
       rebase the stale Vitest-5 and ESLint-10 Dependabot PRs. They are known
       incompatible with `rescript-vitest@3` and `eslint-plugin-import@2`.
 - [ ] Confirm the first `main` CI run and GitHub Pages deployment are green

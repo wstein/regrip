@@ -55,7 +55,7 @@ export default defineConfig(async ({ command }) => {
   return {
     // GitHub Pages serves the built site below the repository name; Vite's
     // development server should remain available at localhost:5173/.
-    base: command === 'serve' ? '/' : '/smartcube-example/',
+    base: command === 'serve' ? '/' : '/regrip/',
     // Passive keeps the dock out of the demo until the developer invokes it
     // (Shift+Option+D on macOS); dev-only plugins never enter Pages builds.
     plugins,

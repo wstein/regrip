@@ -29,7 +29,7 @@ describe.skipIf(!capturesAvailable)('smart cube session over the library Bluetoo
     // the mutable browser-shaped global it expects.
     vi.stubGlobal('navigator', {});
     const { device, replayer } = installMockBluetoothFromFixture(fixture, {
-      deviceId: 'smartcube-example-e2e',
+      deviceId: 'regrip-e2e',
       maxAutoFlushNotifies: 5,
     });
     const session = createSmartCubeSession({
@@ -66,7 +66,7 @@ describe.skipIf(!capturesAvailable)('smart cube session over the library Bluetoo
     const fixture = JSON.parse(await readFile(ganFixtureUrl, 'utf8')) as FixtureSession;
     vi.stubGlobal('navigator', {});
     const { device, replayer } = installMockBluetoothFromFixture(fixture, {
-      deviceId: 'smartcube-example-gan-e2e',
+      deviceId: 'regrip-gan-e2e',
       maxAutoFlushNotifies: 0,
     });
     const serviceUuids = new Set(
