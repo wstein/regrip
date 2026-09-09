@@ -30,6 +30,28 @@ export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCatego
   }
 }
 
+export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
+  const data = entry.data as Record<string, unknown>;
+  if (entry.type === 'cube_event') {
+    const eventType = data.type;
+    if (eventType === 'MOVE' && typeof data.move === 'string') return ['MOVE', data.move];
+    if (eventType === 'DISCONNECT') return ['STATE', 'cube disconnected'];
+    if (eventType === 'BATTERY' && typeof data.batteryLevel === 'number') return ['EVENT', `battery ${data.batteryLevel}%`];
+    if (eventType === 'HARDWARE') return ['EVENT', typeof data.hardwareName === 'string' ? data.hardwareName : 'hardware'];
+    return ['EVENT', typeof eventType === 'string' ? eventType.toLowerCase() : 'cube event'];
+  }
+  if (entry.type === 'virtual_regrip') {
+    return ['REGRIP', `${String(data.notationToken)} (${String(data.sensorFrameToken)})`];
+  }
+  if (entry.type === 'custom_trigger') return ['TRIGGER', String(data.move)];
+  if (entry.type === 'gyro_stabilizer') return ['GYRO', 'stabilized gyro'];
+  if (entry.type === 'session_status') return ['STATE', String(data.status)];
+  if (entry.type === 'log_started') return ['STATE', 'recording started'];
+  if (entry.type === 'log_stopped') return ['STATE', `recording stopped · ${String(data.entries)} events`];
+  if (entry.type === 'profile_selected') return ['EVENT', `profile ${String(data.id)}`];
+  return ['EVENT', entry.type.replace(/_/g, ' ')];
+}
+
 function displayTime(timestamp: number): string {
   const date = new Date(timestamp);
   return `${date.toLocaleTimeString([], { hour12: false })}.${String(date.getMilliseconds()).padStart(3, '0')}`;
@@ -143,11 +165,10 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     updateSelection();
   };
 
-  const append = (category: TraceCategory, message: string, timestamp = now().getTime(), data: JsonValue = { message }): void => {
+  const appendEntry = (category: TraceCategory, message: string, log: LogEntry): void => {
     if (!enabled.has(category)) return;
     entries.push({
-      id: nextId++, category, message,
-      log: { recordedAt: new Date(timestamp).toISOString(), type: category.toLowerCase(), data },
+      id: nextId++, category, message, log,
     });
     while (entries.length > maxRows) {
       const removed = entries.shift()!;
@@ -155,6 +176,10 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     }
     render();
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
+  };
+
+  const append = (category: TraceCategory, message: string, timestamp = now().getTime(), data: JsonValue = { message }): void => {
+    appendEntry(category, message, { recordedAt: new Date(timestamp).toISOString(), type: category.toLowerCase(), data });
   };
 
   document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach(button => {
@@ -192,6 +217,10 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     appendSessionEvent(event: SmartCubeSessionEvent): void {
       const [category, message] = describeSessionEvent(event);
       append(category, message, eventTimestamp(event), event as unknown as JsonValue);
+    },
+    appendLogEntry(entry: LogEntry): void {
+      const [category, message] = describeLogEntry(entry);
+      appendEntry(category, message, entry);
     },
     getEntries: (): readonly TraceEntry[] => entries,
     getSelectedEntries: (): TraceEntry[] => selectedEntries(),

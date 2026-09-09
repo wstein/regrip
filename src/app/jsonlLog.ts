@@ -10,27 +10,50 @@ export function serializeJsonl(entries: readonly LogEntry[]): string {
   return entries.map(entry => JSON.stringify(entry)).join('\n') + (entries.length > 0 ? '\n' : '');
 }
 
-/** In-memory JSONL recorder. Browser download is deliberately kept at the UI edge. */
+type LogListener = (entry: LogEntry, recordingCount: number) => void;
+
+const maxEntries = 10_000;
+
+/**
+ * Bounded, always-on JSONL event buffer. Recording marks an export cursor;
+ * browser download is deliberately kept at the UI edge.
+ */
 export function createJsonlLog(now: () => string = () => new Date().toISOString()) {
   let entries: LogEntry[] = [];
   let active = false;
+  let cursor = 0;
+  let recordedEventCount = 0;
+  const listeners = new Set<LogListener>();
 
   const record = (type: string, data: JsonValue): void => {
-    if (active) entries.push({ recordedAt: now(), type, data });
+    const entry = { recordedAt: now(), type, data };
+    entries.push(entry);
+    while (entries.length > maxEntries) {
+      entries.shift();
+      cursor = Math.max(0, cursor - 1);
+    }
+    if (active && type !== 'log_started' && type !== 'log_stopped') recordedEventCount += 1;
+    listeners.forEach(listener => listener(entry, recordedEventCount));
   };
 
   return {
     get active(): boolean { return active; },
+    get recordingCount(): number { return recordedEventCount; },
     start(context: JsonValue): void {
-      entries = [];
+      cursor = entries.length;
+      recordedEventCount = 0;
       active = true;
       record('log_started', context);
     },
     record,
     stop(): string {
-      record('log_stopped', { entries: entries.length });
+      record('log_stopped', { entries: recordedEventCount });
       active = false;
-      return serializeJsonl(entries);
+      return serializeJsonl(entries.slice(cursor));
+    },
+    subscribe(listener: LogListener): () => void {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
   };
 }

@@ -67,9 +67,13 @@ export function setConnectionStatus(status: string): void {
   connectionStatus.dataset.state = status.toLowerCase().replace(/[^a-z]+/g, '-');
 }
 
-export function setLogRecording(recording: boolean): void {
-  button('start-log').disabled = recording;
-  button('stop-log').disabled = !recording;
+export function setLogRecording(recording: boolean, count = 0): void {
+  const start = button('start-log');
+  const stop = button('stop-log');
+  start.disabled = recording;
+  stop.disabled = !recording;
+  stop.textContent = `⏹ ${count} · Stop & download`;
+  byId('event-log').classList.toggle('is-recording', recording);
 }
 
 /** Append a detected move while leaving the field editable for correction/copying. */

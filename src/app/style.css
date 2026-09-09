@@ -20,8 +20,15 @@ body {
 }
 .trace-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; padding: 0.8rem 0.8rem 0.55rem; border-bottom: 1px solid #283653; }
 .trace-heading h2 { margin: 0; color: #dce6ff; font-size: 0.85rem; letter-spacing: 0.05em; }
-.trace-heading-actions { display: flex; gap: 0.3rem; }
+.trace-heading-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.3rem; }
 .trace-heading button { padding: 0.25rem 0.45rem; font-size: 0.68rem; }
+.trace-record-button { border-color: #6f4051; color: #ffdbe3; background: #3c1d2a; }
+.trace-record-button:hover:not(:disabled) { border-color: #e86b87; background: #592536; }
+#event-log.is-recording .trace-heading h2::before {
+  content: '●'; display: inline-block; margin-right: 0.35rem; color: #ff607d;
+  animation: trace-recording-pulse 1.15s ease-in-out infinite;
+}
+@keyframes trace-recording-pulse { 50% { opacity: 0.3; transform: scale(0.75); } }
 .trace-filters { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.65rem 0.8rem; border-bottom: 1px solid #283653; }
 .trace-filters button { padding: 0.25rem 0.4rem; color: #75829e; background: #111a2d; border-color: #2c3956; border-radius: 0.35rem; font-size: 0.64rem; }
 .trace-filters button.is-active { color: #d9e6ff; background: #1d365c; border-color: #4d78b8; }
@@ -69,7 +76,7 @@ body {
   font: 700 0.95rem/1.55 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; caret-color: #74a7ff;
 }
 
-.detected-moves-actions, .controls, .control-actions, .log-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.detected-moves-actions, .controls, .control-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .detected-moves-actions { margin-top: 0.65rem; }
 .controls { justify-content: space-between; margin-top: 1rem; }
 button {
@@ -79,8 +86,6 @@ button {
 }
 button:hover:not(:disabled) { background: #27395e; border-color: #7299e5; transform: translateY(-1px); }
 button:disabled { cursor: not-allowed; opacity: 0.45; }
-.log-actions button { border-color: #2e6c9e; background: #173c61; }
-.log-actions button:hover:not(:disabled) { background: #1e4f7e; }
 #connect[data-state="disconnect"] { border-color: #a95365; background: #542634; }
 #connect[data-state="disconnect"]:hover:not(:disabled) { background: #713244; }
 

@@ -37,6 +37,10 @@ const liveLog = createLiveLog({
     infoPanel.setDetectedMoves(algorithm);
   },
 });
+eventLog.subscribe((entry, recordingCount) => {
+  liveLog.appendLogEntry(entry);
+  infoPanel.setLogRecording(eventLog.active, recordingCount);
+});
 const virtualMoveFrame = createVirtualMoveFrame();
 const virtualFrameQuaternion = new THREE.Quaternion();
 const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
@@ -129,7 +133,6 @@ const cubeEvents = createCubeEventController({
 
 applyProfile(session.getState().profile.value);
 session.subscribeEvents(event => {
-  liveLog.appendSessionEvent(event);
   if (event.type === 'GYRO') {
     cubeEvents.handleCalibratedGyro(event, event.relative);
     return;
@@ -165,12 +168,6 @@ session.subscribe(state => {
   }
   if (state.status === previousStatus) return;
   previousStatus = state.status;
-  liveLog.append(
-    'STATE',
-    state.status === 'error' ? `failed: ${state.error}` : state.status,
-    undefined,
-    { status: state.status, error: state.error ?? null },
-  );
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
@@ -230,14 +227,14 @@ infoPanel.on('start-log', 'click', () => {
       profileValue: state.profile.value,
     },
   });
-  infoPanel.setLogRecording(true);
+  infoPanel.setLogRecording(true, eventLog.recordingCount);
 });
 
 infoPanel.on('stop-log', 'click', () => {
   if (!eventLog.active) return;
   const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
   downloadJsonl(eventLog.stop(), filename);
-  infoPanel.setLogRecording(false);
+  infoPanel.setLogRecording(false, eventLog.recordingCount);
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
