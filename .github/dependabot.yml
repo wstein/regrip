@@ -7,6 +7,9 @@ updates:
     ignore:
       # This protocol dependency is deliberately pinned to a reviewed commit.
       - dependency-name: smartcube-web-bluetooth
+      # rescript-vitest@3 uses the Vitest 4 API. Upgrade both deliberately.
+      - dependency-name: vitest
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
