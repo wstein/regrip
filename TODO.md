@@ -46,8 +46,9 @@
       redacted JSONL replay fixture snapshots session-only trigger semantics.
 - [x] Add browser-level coverage for live-trace filtering, selection,
       JSONL export/copy, fixed detail pane, and local move replay.
-- [ ] Add browser-level coverage for live-trace auto-follow and the R/U/F
-      gizmo rendering path.
+- [ ] Add browser-level coverage for live-trace auto-follow.
+- [x] Render the R/U/F gizmo in Chromium and verify red/white/green WebGL
+      axis pixels without a platform-specific screenshot baseline.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
       a cardinal confirmation pose) after hardware traces establish its impact.
 - [x] Run and resolve the remaining dependency audit findings without

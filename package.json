@@ -24,6 +24,7 @@
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "rescript && vitest run",
+    "test:browser": "playwright test",
     "test:snapshot": "rescript && vitest run src/session/jsonlMock.e2e.test.ts --update",
     "test:watch": "run-p res:watch test:vitest",
     "test:vitest": "vitest"
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
+    "@playwright/test": "^1.63.0",
     "@types/aes-js": "^3.1.4",
     "@types/node": "^26.4.1",
     "@types/three": "^0.165.0",

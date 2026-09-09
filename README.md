@@ -83,6 +83,7 @@ npm install
 npm run dev      # ReScript watch + Vite dev server
 npm test         # Compile ReScript and run Vitest specs
 npm run test:snapshot # Refresh the deterministic JSONL session-contract snapshot
+npm run test:browser  # Run Chromium coverage for the WebGL orientation gizmo
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
 npm run format    # Format ReScript and all supported text sources
