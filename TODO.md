@@ -10,7 +10,7 @@
 
 ## Core extraction and CubeLab migration
 
-- [ ] Carve the MIT, unpublished `packages/core` source package out of Regrip.
+- [x] Carve the MIT, unpublished `packages/core` source package out of Regrip.
       Its public surface is the smart-cube session, normalized transport contract,
       profiles/features, commands, and deterministic JSONL replay; it excludes the
       lab UI, Three adapter, timer UI, and cube-state presentation.
@@ -25,6 +25,8 @@
       during rollout. Migrate MoYu and GiiKER only after both cutovers are stable.
 - [ ] Keep the core MIT and unpublished while its API settles; CubeLab consumes a
       local or Git-pinned source dependency rather than a public npm release.
+- [ ] Add a reproducible unpublished-consumer fixture before CubeLab depends on
+      the package: verify `npm pack` contents and ReScript/TypeScript imports.
 
 ## Validate on real cubes
 

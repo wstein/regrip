@@ -1,0 +1,5 @@
+lib/
+src/**/*_test.res
+src/**/*_test.res.mjs
+src/**/*.test.ts
+src/**/__snapshots__/
