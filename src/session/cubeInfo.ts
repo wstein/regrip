@@ -35,6 +35,40 @@ export function formatOfflineStats(stats: GoCubeOfflineStats): {
   };
 }
 
+const corners = ['URF', 'UFL', 'ULB', 'UBR', 'DFR', 'DLF', 'DBL', 'DRB'];
+const edges = ['UR', 'UF', 'UL', 'UB', 'DR', 'DF', 'DL', 'DB', 'FR', 'FL', 'BL', 'BR'];
+
+function cycles(
+  permutation: number[],
+  orientation: number[],
+  names: string[],
+  signs: string[],
+): string {
+  if (
+    permutation.length !== names.length ||
+    orientation.length !== names.length ||
+    permutation.some((piece) => !Number.isInteger(piece) || piece < 0 || piece >= names.length) ||
+    orientation.some((value) => !Number.isInteger(value) || value < 0 || value >= signs.length)
+  ) {
+    return '(unavailable)';
+  }
+  const visited = new Array(names.length).fill(false);
+  const result: string[] = [];
+  for (let start = 0; start < names.length; start += 1) {
+    if (visited[start]) continue;
+    const cycle: string[] = [];
+    let position = start;
+    while (!visited[position]) {
+      visited[position] = true;
+      cycle.push(`${names[permutation[position]]!}${signs[orientation[position]]!}`);
+      position = permutation[position]!;
+    }
+    if (cycle.length > 1 || orientation[start] !== 0) result.push(`(${cycle.join(',')})`);
+  }
+  return result.join(' ') || '(solved)';
+}
+
+/** Human-readable Singmaster cycle notation for a cubie's current state. */
 export function formatCubieState(state: SmartCubeCubieState): string {
-  return `CP ${state.CP.join(',')} | CO ${state.CO.join(',')} | EP ${state.EP.join(',')} | EO ${state.EO.join(',')}`;
+  return `Corners ${cycles(state.CP, state.CO, corners, ['', '+', '-'])} | Edges ${cycles(state.EP, state.EO, edges, ['', '+'])}`;
 }

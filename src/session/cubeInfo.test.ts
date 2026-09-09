@@ -24,14 +24,25 @@ describe('cube information formatters', () => {
     });
   });
 
-  it('formats optional cubie state compactly', () => {
+  it('formats cubie state in Singmaster cycle notation', () => {
     expect(
       formatCubieState({
-        CP: [0, 1],
-        CO: [2, 0],
-        EP: [3, 4],
-        EO: [1, 0],
+        CP: [0, 1, 2, 3, 4, 5, 6, 7],
+        CO: [0, 0, 0, 0, 0, 0, 0, 0],
+        EP: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       }),
-    ).toBe('CP 0,1 | CO 2,0 | EP 3,4 | EO 1,0');
+    ).toBe('Corners (solved) | Edges (solved)');
+  });
+
+  it('shows oriented piece cycles and handles incomplete protocol state', () => {
+    expect(
+      formatCubieState({
+        CP: [1, 0, 2, 3, 4, 5, 6, 7],
+        CO: [1, 2, 0, 0, 0, 0, 0, 0],
+        EP: [0, 1],
+        EO: [0, 0],
+      }),
+    ).toBe('Corners (UFL+,URF-) | Edges (unavailable)');
   });
 });
