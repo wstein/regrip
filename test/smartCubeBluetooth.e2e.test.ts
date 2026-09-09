@@ -4,10 +4,16 @@ import { connectSmartCube } from 'smartcube-web-bluetooth';
 
 import { installMockBluetoothFromFixture } from '../node_modules/smartcube-web-bluetooth/src/test/bluetooth-mock/index.ts';
 import type { FixtureSession } from '../node_modules/smartcube-web-bluetooth/src/test/fixtures/types.ts';
+import { ganProtocol } from '../node_modules/smartcube-web-bluetooth/src/smartcube/protocols/gan.ts';
 import { createSmartCubeSession } from '../src/session/smartCubeSession';
 
 const fixtureUrl = new URL(
   '../node_modules/smartcube-web-bluetooth/captures/fixture_GoCube_gocube_2026-04-14T11-43-52.json',
+  import.meta.url,
+);
+
+const ganFixtureUrl = new URL(
+  '../node_modules/smartcube-web-bluetooth/captures/fixture_GANicXXX_gan-gen2_2026-04-14T11-39-47.json',
   import.meta.url,
 );
 
@@ -47,6 +53,56 @@ describe('smart cube session over the library Bluetooth mock', () => {
     expect(session.getState().status, session.getState().error ?? undefined).toBe('connected');
     expect(session.getState().connection?.protocol.id).toBe('gocube');
     expect(received).toEqual(expect.arrayContaining(['FACELETS', 'GYRO', 'MOVE', 'REGRIP']));
+
+    await session.disconnect();
+    expect(session.getState().status).toBe('disconnected');
+    expect(device.gatt?.connected).toBe(false);
+  }, 20_000);
+
+  it('replays a MAC-salted GAN gen2 capture through the session lifecycle', async () => {
+    const fixture = JSON.parse(await readFile(ganFixtureUrl, 'utf8')) as FixtureSession;
+    vi.stubGlobal('navigator', {});
+    const { device, replayer } = installMockBluetoothFromFixture(fixture, {
+      deviceId: 'smartcube-example-gan-e2e',
+      maxAutoFlushNotifies: 0,
+    });
+    const serviceUuids = new Set(
+      fixture.traffic
+        .filter((entry) => entry.op === 'discover-service')
+        .map((entry) => entry.service),
+    );
+    const session = createSmartCubeSession({
+      connect: async () => {
+        const connection = await ganProtocol.connect(
+          device,
+          async () => fixture.device.mac ?? null,
+          {
+            serviceUuids,
+            advertisementManufacturerData: null,
+            enableAddressSearch: false,
+            onStatus: undefined,
+            signal: undefined,
+          },
+        );
+        // The transport fixture starts with GAN initialization traffic, not
+        // app-level REQUEST_* writes. Preserve strict replay matching while its
+        // unsolicited FACELETS/HARDWARE/BATTERY packets establish state.
+        connection.capabilities.hardware = false;
+        connection.capabilities.facelets = false;
+        connection.capabilities.battery = false;
+        return connection;
+      },
+    });
+    const received: string[] = [];
+    session.subscribeEvents((event) => received.push(event.type));
+
+    await session.connect();
+    await replayer.drainNotificationsAsync();
+    await vi.waitFor(() => expect(received).toContain('FACELETS'));
+
+    expect(session.getState().status, session.getState().error ?? undefined).toBe('connected');
+    expect(session.getState().connection?.protocol.id).toBe('gan-gen2');
+    expect(received).toEqual(expect.arrayContaining(['FACELETS', 'MOVE']));
 
     await session.disconnect();
     expect(session.getState().status).toBe('disconnected');
