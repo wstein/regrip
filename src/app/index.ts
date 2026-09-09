@@ -73,10 +73,19 @@ let renderLoopStarted = false;
 infoPanel.on('reset-state', 'click', async () => {
   if (!window.confirm("Reset the cube state? This clears the cube's stored state.")) return;
   const conn = session.getState().connection;
-  if (conn?.capabilities.reset) {
-    await conn.sendCommand({ type: 'REQUEST_RESET' });
+  if (!conn?.capabilities.reset) {
+    infoPanel.showFeedback('This cube does not support resetting its stored state.');
+    return;
   }
-  twistyPlayer.alg = '';
+  try {
+    await session.sendCommand({ type: 'REQUEST_RESET' });
+    twistyPlayer.alg = '';
+    infoPanel.showFeedback('Cube state reset requested.');
+  } catch (error) {
+    infoPanel.showFeedback(
+      `Could not reset cube state: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 });
 
 infoPanel.on('reset-gyro', 'click', async () => {
@@ -84,6 +93,7 @@ infoPanel.on('reset-gyro', 'click', async () => {
   session.resetGyro();
   virtualMoveFrame.reset();
   syncVirtualFrameOrientation();
+  infoPanel.showFeedback('Gyro and virtual move frame reset.');
 });
 
 function applyProfile(profile: SmartCubeProfile): void {
@@ -159,6 +169,7 @@ session.subscribeEvents((event) => {
   }
   if (event.type === 'CUSTOM_TRIGGER') {
     eventLog.record('custom_trigger', event);
+    infoPanel.showFeedback(`Custom trigger detected: ${event.move}`);
     return;
   }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
@@ -257,6 +268,7 @@ infoPanel.on('start-log', 'click', () => {
     },
   });
   infoPanel.setLogRecording(true, eventLog.recordingCount);
+  infoPanel.showFeedback('Session recording started.');
 });
 
 infoPanel.on('stop-log', 'click', () => {
@@ -264,6 +276,7 @@ infoPanel.on('stop-log', 'click', () => {
   const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
   downloadJsonl(eventLog.stop(), filename);
   infoPanel.setLogRecording(false, eventLog.recordingCount);
+  infoPanel.showFeedback('Recording downloaded.');
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
@@ -273,8 +286,14 @@ infoPanel.on('clear-detected-moves', 'click', () => {
 infoPanel.on('copy-detected-moves', 'click', () => {
   void infoPanel
     .copyDetectedMoves()
-    .catch((error) => console.error('unable to copy detected moves', error));
+    .then(() => infoPanel.showFeedback('Detected moves copied.'))
+    .catch((error) => {
+      console.error('unable to copy detected moves', error);
+      infoPanel.showFeedback('Could not copy detected moves.');
+    });
 });
+
+infoPanel.on('detectedMoves', 'input', () => infoPanel.syncDetectedMoveCount());
 
 document.addEventListener('keydown', (event) => {
   if (event.key === ' ') {

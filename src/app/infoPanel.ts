@@ -38,6 +38,28 @@ function button(id: string): HTMLButtonElement {
   return element;
 }
 
+/** Count whitespace-delimited move tokens while preserving editable free-form text. */
+export function countDetectedMoves(value: string): number {
+  const trimmed = value.trim();
+  return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+}
+
+export function syncDetectedMoveCount(): void {
+  byId('moveCount').textContent = String(countDetectedMoves(textarea('detectedMoves').value));
+}
+
+let feedbackTimeout: number | undefined;
+
+export function showFeedback(message: string): void {
+  const feedback = byId('app-feedback');
+  feedback.textContent = message;
+  feedback.hidden = false;
+  window.clearTimeout(feedbackTimeout);
+  feedbackTimeout = window.setTimeout(() => {
+    feedback.hidden = true;
+  }, 3200);
+}
+
 export function setInfo(id: string, value: string): void {
   input(id).value = value;
 }
@@ -86,14 +108,17 @@ export function setLogRecording(recording: boolean, count = 0): void {
 export function appendDetectedMove(move: string): void {
   const moves = textarea('detectedMoves');
   moves.value = moves.value ? `${moves.value} ${move}` : move;
+  syncDetectedMoveCount();
 }
 
 export function clearDetectedMoves(): void {
   textarea('detectedMoves').value = '';
+  syncDetectedMoveCount();
 }
 
 export function setDetectedMoves(moves: string): void {
   textarea('detectedMoves').value = moves;
+  syncDetectedMoveCount();
 }
 
 export async function copyDetectedMoves(): Promise<void> {
