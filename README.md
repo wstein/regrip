@@ -26,6 +26,9 @@ to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a c
 - Editable detected moves, cube state, solve timer, JSONL recording, and a local live event trace.
   The trace supports filters, sort direction, fixed JSON detail, selection, copy/export, and replay
   of selected moves.
+- A capability-gated command panel: state/battery/hardware refresh plus supported vendor controls.
+  GoCube controls include backlight actions, gyro calibration, orientation enablement, and confirmed
+  reboot; every command result is recorded in the local trace and JSONL capture.
 
 The dependency is pinned to a tested `smartcube-web-bluetooth` commit. Update it deliberately, run
 the checks below, and commit the resulting lockfile change together with the package change.
