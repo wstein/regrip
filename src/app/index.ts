@@ -15,6 +15,7 @@ import { connectCube } from '../session/connection';
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../session/jsonlFormat';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
+import { featurePresets } from '../session/features';
 import { createSmartCubeSession } from '../session/smartCubeSession';
 import { createVirtualMoveFrame } from '../session/virtualMoveFrame';
 
@@ -26,7 +27,7 @@ infoPanel.clearInfo();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
-const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
+const session = createSmartCubeSession({ connect: connectCube, features: featurePresets.all });
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
