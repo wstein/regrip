@@ -1,3 +1,4 @@
+git diff --check
 npx lint-staged
 npm run format:check
 npm run docs:check

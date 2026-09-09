@@ -28,9 +28,15 @@
   },
   "lint-staged": {
     "*.{res,resi}": "rescript format",
-    "*.{ts,tsx,js,mjs,cjs,css,html,json,md,yml,yaml}": "prettier --write"
+    "src/**/*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{js,mjs,cjs,css,html,json,md,yml,yaml}": "prettier --write"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@types/aes-js": "^3.1.4",
     "@types/node": "^26.4.1",
     "@types/three": "^0.165.0",
