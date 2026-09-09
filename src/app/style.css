@@ -27,8 +27,13 @@ body {
   box-sizing: border-box;
 }
 .help {
-  max-width: 37rem;
+  max-width: 48rem;
   margin: 0 0 1.25rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #2b3859;
+  border-radius: 0.75rem;
+  background: #10192ce8;
+  box-shadow: 0 0.6rem 1.6rem rgb(0 0 0 / 14%);
   color: #aebbd9;
   font-size: 0.9rem;
   line-height: 1.45;
