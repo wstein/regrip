@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`JSONL session replay contract > replays initial state, regrip, custom trigger, and disconnect deterministically 1`] = `
+[
+  "HARDWARE",
+  "BATTERY",
+  "FACELETS",
+  "GYRO",
+  "GYRO",
+  "REGRIP:x'",
+  "MOVE",
+  "MOVE",
+  "CUSTOM_TRIGGER",
+  "DISCONNECT",
+]
+`;

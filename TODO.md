@@ -40,9 +40,10 @@
 
 ## Testing and reliability
 
-- [ ] Add a mock-Bluetooth end-to-end test using
+- [x] Add a mock-Bluetooth end-to-end test using
       `smartcube-web-bluetooth/src/test/bluetooth-mock`: connect, initial state,
-      moves, facelets, gyro/regrip, custom trigger, and disconnect.
+      moves, facelets, gyro/regrip, custom trigger, and disconnect. A compact,
+      redacted JSONL replay fixture snapshots session-only trigger semantics.
 - [x] Add browser-level coverage for live-trace filtering, selection,
       JSONL export/copy, fixed detail pane, and local move replay.
 - [ ] Add browser-level coverage for live-trace auto-follow and the R/U/F

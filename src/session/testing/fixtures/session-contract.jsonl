@@ -1,0 +1,8 @@
+{"recordedAt":"2026-09-09T10:00:00.000Z","type":"cube_event","data":{"type":"HARDWARE","timestamp":1,"hardwareName":"GoCube","gyroSupported":true}}
+{"recordedAt":"2026-09-09T10:00:00.010Z","type":"cube_event","data":{"type":"BATTERY","timestamp":10,"batteryLevel":98}}
+{"recordedAt":"2026-09-09T10:00:00.020Z","type":"cube_event","data":{"type":"FACELETS","timestamp":20,"facelets":"UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"}}
+{"recordedAt":"2026-09-09T10:00:00.030Z","type":"cube_event","data":{"type":"GYRO","timestamp":30,"quaternion":{"x":0,"y":0,"z":0,"w":1}}}
+{"recordedAt":"2026-09-09T10:00:00.040Z","type":"cube_event","data":{"type":"GYRO","timestamp":40,"quaternion":{"x":0.5446390350150271,"y":0,"z":0,"w":0.838670567945424}}}
+{"recordedAt":"2026-09-09T10:00:01.000Z","type":"cube_event","data":{"type":"MOVE","timestamp":1000,"move":"R","face":1,"direction":0,"localTimestamp":1000,"cubeTimestamp":null}}
+{"recordedAt":"2026-09-09T10:00:01.299Z","type":"cube_event","data":{"type":"MOVE","timestamp":1299,"move":"R'","face":1,"direction":1,"localTimestamp":1299,"cubeTimestamp":null}}
+{"recordedAt":"2026-09-09T10:00:02.000Z","type":"cube_event","data":{"type":"DISCONNECT","timestamp":2000}}

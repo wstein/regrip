@@ -57,7 +57,7 @@ independent and `session` does not depend on presentation layers.
 | `src/app/`                        | DOM, trace/JSONL tooling, styles, and composition root                    |
 | `src/session/smartCubeSession.ts` | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
 | `src/session/profile/`            | Profile inheritance, matching, overrides, and per-field provenance        |
-| `src/session/virtualMoveFrame.ts` | Reframe physical face moves after virtual `x`/`y`/`z` rotations           |
+| `src/session/virtualMoveFrame.ts` | Thin TypeScript adapter for the domain virtual cube frame                 |
 | `src/session/timerController.ts`  | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
 | `src/adapters/cubing/`            | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
 | `src/adapters/three/`             | Three.js scene, orientation render loop, and R/U/F gizmo                  |
@@ -82,11 +82,15 @@ Hand-written `*.res.d.mts` files define the TypeScript boundary for those compil
 npm install
 npm run dev      # ReScript watch + Vite dev server
 npm test         # Compile ReScript and run Vitest specs
+npm run test:snapshot # Refresh the deterministic JSONL session-contract snapshot
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
 npm run format    # Format ReScript and all supported text sources
 npm run docs:api # Generate TypeDoc to docs/api/
 ```
+
+The JSONL replay fixture is deliberately synthetic and redacted. Do not commit unreviewed hardware
+captures: exported logs can contain device and session data.
 
 Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
 
