@@ -11,7 +11,8 @@
   "exports": {
     "./bindings/*.res.mjs": "./src/bindings/*.res.mjs",
     "./bindings/*": "./src/bindings/*.ts",
-    "./domain/*.res.mjs": "./src/domain/*.res.mjs"
+    "./domain/*.res.mjs": "./src/domain/*.res.mjs",
+    "./session/*": "./src/session/*.ts"
   },
   "peerDependencies": {
     "rxjs": "^7.8.2",

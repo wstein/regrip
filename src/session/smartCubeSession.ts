@@ -11,7 +11,10 @@ import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
-import { disconnectConnection, requestInitialState } from './connection';
+import {
+  disconnectConnection,
+  requestInitialState,
+} from '@wstein/regrip-core/session/connectionLifecycle';
 import {
   resolveSessionFeatures,
   mergeSessionFeatures,
