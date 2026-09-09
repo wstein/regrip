@@ -189,17 +189,18 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     root.replaceChildren(
       ...ordered.map((entry) => {
         const row = document.createElement('article');
+        const isSelected = selected.has(entry.id);
         row.className = `trace-row trace-${entry.category.toLowerCase()}`;
         row.dataset.traceId = String(entry.id);
         row.tabIndex = 0;
-        row.classList.toggle('is-selected', selected.has(entry.id));
+        row.classList.toggle('is-selected', isSelected);
         row.classList.toggle('is-focused', focusedId === entry.id);
-        row.setAttribute('aria-selected', String(selected.has(entry.id)));
+        row.setAttribute('aria-selected', String(isSelected));
 
         const badge = document.createElement('button');
         badge.type = 'button';
         badge.className = 'trace-badge';
-        badge.textContent = entry.category;
+        badge.textContent = `${isSelected ? '✓ ' : ''}${entry.category}`;
         badge.title = `Select all ${entry.category} events`;
         badge.addEventListener('click', (event) => {
           event.stopPropagation();

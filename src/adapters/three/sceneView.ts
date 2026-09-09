@@ -30,7 +30,7 @@ export function startSceneRenderLoop(
           orientationIndicator = createOrientationIndicator();
           // cubing.js scene units project much larger than the rendered cube;
           // keep the compass compact and comfortably inside the viewport.
-          orientationIndicator.scale.setScalar(0.4);
+          orientationIndicator.scale.setScalar(0.32);
           scene.add(orientationIndicator);
         }
       }

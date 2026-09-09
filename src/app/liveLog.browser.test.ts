@@ -88,9 +88,7 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector('[data-trace-id="1"]')?.classList.contains('is-selected')).toBe(
       true,
     );
-    expect(document.querySelector('[data-trace-id="1"] .trace-badge')?.textContent).toContain(
-      'MOVE',
-    );
+    expect(document.querySelector('[data-trace-id="1"] .trace-badge')?.textContent).toBe('✓ MOVE');
 
     click('#copy-trace');
     await Promise.resolve();

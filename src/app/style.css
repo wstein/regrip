@@ -173,18 +173,21 @@ body {
   background: #111d35;
 }
 .trace-row.is-selected {
-  background: #172b4d;
-  box-shadow: inset 0.18rem 0 #72a1f1;
+  background: #213d66;
+  box-shadow:
+    inset 0.24rem 0 #91b6ff,
+    inset 0 0 0 1px rgb(145 182 255 / 45%);
 }
-.trace-row.is-selected .trace-badge::after {
-  content: ' ✓';
+.trace-row.is-selected .trace-badge {
+  color: #fff;
+  background: #3b6095;
 }
 .trace-row.is-focused {
-  outline: 1px solid #91b6ff;
+  outline: 1px solid #d7e4ff;
   outline-offset: -1px;
 }
 .trace-row.is-selected.is-focused {
-  background: #1d3965;
+  background: #2b507f;
 }
 .trace-row time {
   color: #75829e;
