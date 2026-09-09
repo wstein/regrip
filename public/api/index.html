@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>smartcube-example API</title>
+    <style>
+      :root {
+        color: #edf2ff;
+        background: #090d18;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        max-width: 46rem;
+        margin: 4rem auto;
+        padding: 0 1.5rem;
+        line-height: 1.55;
+      }
+      code {
+        padding: 0.15rem 0.3rem;
+        border-radius: 0.25rem;
+        background: #18233c;
+      }
+      pre {
+        overflow-x: auto;
+        padding: 1rem;
+        border: 1px solid #2b3859;
+        border-radius: 0.5rem;
+        background: #10192c;
+      }
+      a {
+        color: #9cbcff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>smartcube-example API</h1>
+    <p>
+      The generated API reference is added during the GitHub Pages deployment. Run the following
+      locally to generate and inspect the TypeScript-facing API:
+    </p>
+    <pre><code>npm install
+npm run docs:api
+open docs/api/index.html</code></pre>
+    <p>
+      The source-native ReScript documentation is available as structured JSON for tooling and
+      custom documentation views:
+    </p>
+    <pre><code>npx rescript-tools doc src/domain/Quaternion.resi</code></pre>
+    <p><a href="../">Return to the smart cube example.</a></p>
+  </body>
+</html>
