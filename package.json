@@ -2,6 +2,11 @@
   "name": "smartcube-example",
   "private": true,
   "version": "1.0.0",
+  "author": {
+    "name": "Werner Stein",
+    "email": "werner.stein@gmail.com",
+    "url": "https://github.com/wstein"
+  },
   "type": "module",
   "scripts": {
     "res:build": "rescript",
@@ -9,6 +14,8 @@
     "res:clean": "rescript clean",
     "dev": "run-s res:build && run-p res:watch dev:vite",
     "dev:vite": "vite",
+    "format": "rescript format && prettier --write .",
+    "format:check": "rescript format --check && prettier --check .",
     "build": "rescript && tsc && vite build",
     "lint": "eslint src",
     "preview": "vite preview",
@@ -22,9 +29,11 @@
     "@types/three": "^0.165.0",
     "ajv": "^8.20.0",
     "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "jsdom": "^30.0.1",
     "npm-run-all2": "^9.0.3",
+    "prettier": "^3.9.6",
     "rescript": "^12.3.1",
     "rescript-vitest": "^3.0.1",
     "typescript": "^5.9.3",

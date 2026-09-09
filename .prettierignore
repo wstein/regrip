@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+lib/
+.rescript/
+*.res.mjs
+*.gen.ts
+package-lock.json
+bun.lock
+repomix-handover.*
