@@ -18,9 +18,14 @@ let apply = (raw: Quaternion.t, target: Quaternion.t, ~velocity=0., ~config=defa
   if angle >= radius || gate <= 0. {
     raw
   } else if angle <= snap {
-    // Smooth the final degree into the exact snap pose.
+    // Ease the final degree into the exact snap pose.  At `snap` this must
+    // meet the outer well's pull—not fall to zero—or resting jitter visibly
+    // jumps between a near-lock and raw passthrough.
     let core = radians(1.)
-    let pull = angle <= snap -. core ? 1. : (snap -. angle) /. core
+    let outerPull = Math.sqrt(1. -. (snap /. radius) *. (snap /. radius))
+    let pull = angle <= snap -. core
+      ? 1.
+      : outerPull +. (1. -. outerPull) *. (snap -. angle) /. core
     Quaternion.slerp(raw, target, pull *. gate)
   } else {
     let n = angle /. radius
