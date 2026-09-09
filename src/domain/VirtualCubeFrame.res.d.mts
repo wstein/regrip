@@ -14,5 +14,5 @@ export function reset(frame: VirtualCubeFrame): void;
 export function applyRegrip(frame: VirtualCubeFrame, notationToken: string): void;
 export function translate(frame: VirtualCubeFrame, move: string): string;
 export function orientation(frame: VirtualCubeFrame): VirtualOrientation;
-export function logicalFaceForPhysical(frame: VirtualCubeFrame, physicalFace: string): string;
+export function solverFaceForBody(frame: VirtualCubeFrame, bodyFace: string): string;
 export function reframeFacelets(frame: VirtualCubeFrame, facelets: string): string;

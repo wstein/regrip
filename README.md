@@ -21,6 +21,23 @@ to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a c
   and a configurable drift adjustment.
 - Virtual `x`, `y`, and `z` regrips from calibrated gyro poses. Face moves and the R/U/F orientation
   gizmo stay in the current virtual cube frame.
+
+### Coordinate frames
+
+The app keeps protocol and user notation deliberately separate:
+
+| Frame  | Purpose                                                                                               |
+| ------ | ----------------------------------------------------------------------------------------------------- |
+| Sensor | Raw BLE quaternion from the IMU die.                                                                  |
+| Body   | Cube shell: protocol `MOVE`/`FACELETS` values and URFDLB labels.                                      |
+| World  | Calibrated gyro pose used only for regrip detection and rendering.                                    |
+| Solver | User-facing white-up/green-front notation, maintained as an exact integer solver-to-body permutation. |
+| Scene  | Renderer home pose applied after the world-relative gyro pose.                                        |
+
+`SensorToBody` is a fixed per-model axis convention; `GyroOrientation` then captures a per-session
+body-to-world basis. World quaternions never translate moves or facelets: those use `VirtualCubeFrame`'s
+integer Body↔Solver mapping, updated only by detected `x/y/z` regrips.
+
 - A 300 ms returned-face custom trigger (`R R'`, for example), detected independently of the gyro
   magnet layer.
 - Editable detected moves, cube state, solve timer, JSONL recording, and a local live event trace.
@@ -65,14 +82,14 @@ independent and `session` does not depend on presentation layers.
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 
-| Module                                                                     | Responsibility                                                    |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `Cube333.res` / `CubeFacelets.res`                                         | Pure solved-state detection and facelet conversion                |
-| `Timer.res` / `Time.res` / `MoveBuffer.res`                                | Solve-timer state machine, formatting, and recent-move buffers    |
-| `Quaternion.res` / `CubeSymmetry.res`                                      | Quaternion math and the 24 cube orientations                      |
-| `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res` | Detents, hysteresis, velocity gating, drift, and calibrated poses |
-| `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res`      | Virtual rotations, face remapping, and returned-face triggers     |
-| `src/session/Bindings_SmartCube.res`                                       | Typed timestamp-helper boundary to the Bluetooth library          |
+| Module                                                                                     | Responsibility                                                                    |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `Cube333.res` / `CubeFacelets.res`                                                         | Pure solved-state detection and facelet conversion                                |
+| `Timer.res` / `Time.res` / `MoveBuffer.res`                                                | Solve-timer state machine, formatting, and recent-move buffers                    |
+| `Quaternion.res` / `CubeSymmetry.res`                                                      | Quaternion math and the 24 cube orientations                                      |
+| `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res`                 | Detents, hysteresis, velocity gating, drift, and calibrated poses                 |
+| `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face triggers |
+| `src/session/Bindings_SmartCube.res`                                                       | Typed timestamp-helper boundary to the Bluetooth library                          |
 
 Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
 

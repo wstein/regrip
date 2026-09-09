@@ -12,23 +12,27 @@ let home = Quaternion.fromEuler({
 type t = {
   mutable basis: option<Quaternion.t>,
   home: Quaternion.t,
-  mutable bodyToWorld: BodyToWorld.t,
+  mutable sensorToBody: SensorToBody.t,
 }
 
-let makeWithHome = (home: Quaternion.t): t => {basis: None, home, bodyToWorld: BodyToWorld.default}
+let makeWithHome = (home: Quaternion.t): t => {
+  basis: None,
+  home,
+  sensorToBody: SensorToBody.default,
+}
 
 let make = (): t => makeWithHome(home)
 
 let resetBasis = (t: t): unit => t.basis = None
-let setBodyToWorld = (t: t, bodyToWorld: BodyToWorld.t): unit => {
-  t.bodyToWorld = bodyToWorld
+let setSensorToBody = (t: t, sensorToBody: SensorToBody.t): unit => {
+  t.sensorToBody = sensorToBody
   resetBasis(t)
 }
 
 // `raw` is the cube's reported quaternion. The axis swap {x, z, -y, w} matches
 // `new THREE.Quaternion(qx, qz, -qy, qw)` in the original handler.
 let relative = (t: t, raw: Quaternion.t): Quaternion.t => {
-  let q = BodyToWorld.apply(t.bodyToWorld, raw)
+  let q = SensorToBody.apply(t.sensorToBody, raw)
   let basis = switch t.basis {
   | Some(b) => b
   | None => {

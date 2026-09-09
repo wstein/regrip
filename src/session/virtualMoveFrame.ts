@@ -9,7 +9,7 @@ export type VirtualOrientation = {
 };
 
 /**
- * Maps the cube's fixed BLE face labels into the user-facing frame established
+ * Maps the cube's fixed body-local BLE face labels into the solver frame established
  * by emitted virtual x/y/z regrips. This is presentation/history state only;
  * the physical move stream and Twisty player remain in protocol URFDLB.
  */
@@ -32,7 +32,7 @@ export function createVirtualMoveFrame() {
   };
 
   /**
-   * Express physical Kociemba facelets in the current logical regrip frame.
+   * Express body-local Kociemba facelets in the current solver regrip frame.
    * Both sticker positions/grid orientation and sticker colour labels change.
    */
   const reframeFacelets = (facelets: string): string =>

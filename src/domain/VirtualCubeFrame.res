@@ -11,7 +11,7 @@ type orientation = {
   frontFace: string,
 }
 
-type t = {mutable logicalToPhysical: string}
+type t = {mutable solverToBody: string}
 
 let faceOrder = "URFDLB"
 let positions = [0, 1, 2, 3, 4, 5]
@@ -66,15 +66,15 @@ let faceForNormal = (direction: vector): string =>
   | None => ""
   }
 
-let make = (): t => {logicalToPhysical: faceOrder}
-let reset = (frame: t): unit => frame.logicalToPhysical = faceOrder
+let make = (): t => {solverToBody: faceOrder}
+let reset = (frame: t): unit => frame.solverToBody = faceOrder
 
 let applyRegrip = (frame: t, notationToken: string): unit => {
   let step = RegripDetector.faceOrderForNotation(notationToken)
-  frame.logicalToPhysical =
+  frame.solverToBody =
     positions
     ->Array.map(index => {
-      let physicalAtLogical = charAt(frame.logicalToPhysical, index)
+      let physicalAtLogical = charAt(frame.solverToBody, index)
       charAt(step, faceIndex(physicalAtLogical))
     })
     ->Array.join("")
@@ -84,9 +84,8 @@ let translate = (frame: t, move: string): string => {
   if String.length(move) == 0 {
     move
   } else {
-    let physicalFace = charAt(move, 0)
-    let logicalIndex =
-      positions->Array.find(index => charAt(frame.logicalToPhysical, index) == physicalFace)
+    let bodyFace = charAt(move, 0)
+    let logicalIndex = positions->Array.find(index => charAt(frame.solverToBody, index) == bodyFace)
     switch logicalIndex {
     | Some(index) =>
       `${charAt(faceOrder, index)}${String.substring(move, ~start=1, ~end=String.length(move))}`
@@ -96,9 +95,9 @@ let translate = (frame: t, move: string): string => {
 }
 
 let orientation = (frame: t): orientation => {
-  let rightFace = charAt(frame.logicalToPhysical, 1)
-  let upFace = charAt(frame.logicalToPhysical, 0)
-  let frontFace = charAt(frame.logicalToPhysical, 2)
+  let rightFace = charAt(frame.solverToBody, 1)
+  let upFace = charAt(frame.solverToBody, 0)
+  let frontFace = charAt(frame.solverToBody, 2)
   {
     right: normal(rightFace),
     up: normal(upFace),
@@ -109,14 +108,14 @@ let orientation = (frame: t): orientation => {
   }
 }
 
-let logicalFaceForPhysical = (frame: t, physicalFace: string): string => {
-  switch positions->Array.find(index => charAt(frame.logicalToPhysical, index) == physicalFace) {
+let solverFaceForBody = (frame: t, bodyFace: string): string => {
+  switch positions->Array.find(index => charAt(frame.solverToBody, index) == bodyFace) {
   | Some(index) => charAt(faceOrder, index)
-  | None => physicalFace
+  | None => bodyFace
   }
 }
 
-/** Re-express physical Kociemba facelets in this logical regrip frame. */
+/** Re-express body Kociemba facelets in this solver regrip frame. */
 let reframeFacelets = (frame: t, facelets: string): string =>
   if String.length(facelets) != 54 {
     facelets
@@ -134,8 +133,8 @@ let reframeFacelets = (frame: t, facelets: string): string =>
     positions
     ->Array.map(logicalIndex => {
       let logical = geometry(charAt(faceOrder, logicalIndex))
-      let physicalFace = faceForNormal(rotate(logical.normal))
-      let physical = geometry(physicalFace)
+      let bodyFace = faceForNormal(rotate(logical.normal))
+      let physical = geometry(bodyFace)
       let rotatedRight = rotate(logical.right)
       let rotatedDown = rotate(logical.down)
       stickerPositions
@@ -146,8 +145,8 @@ let reframeFacelets = (frame: t, facelets: string): string =>
           column * dot(rotatedRight, physical.down) + row * dot(rotatedDown, physical.down) + 1
         let physicalColumn =
           column * dot(rotatedRight, physical.right) + row * dot(rotatedDown, physical.right) + 1
-        let rawIndex = faceIndex(physicalFace) * 9 + physicalRow * 3 + physicalColumn
-        logicalFaceForPhysical(frame, charAt(facelets, rawIndex))
+        let rawIndex = faceIndex(bodyFace) * 9 + physicalRow * 3 + physicalColumn
+        solverFaceForBody(frame, charAt(facelets, rawIndex))
       })
       ->Array.join("")
     })

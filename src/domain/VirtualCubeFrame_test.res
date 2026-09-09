@@ -10,7 +10,7 @@ describe("VirtualCubeFrame", () => {
     t
     ->expect((orientation.rightFace, orientation.upFace, orientation.frontFace))
     ->Expect.toEqual(("B", "U", "R"))
-    t->expect(VirtualCubeFrame.logicalFaceForPhysical(frame, "B"))->Expect.toBe("R")
+    t->expect(VirtualCubeFrame.solverFaceForBody(frame, "B"))->Expect.toBe("R")
   })
 
   test("reframes all 54 facelets after a virtual regrip", t => {
