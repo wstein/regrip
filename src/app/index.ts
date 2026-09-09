@@ -33,6 +33,7 @@ const virtualMoveFrame = createVirtualMoveFrame();
 let renderLoopStarted = false;
 
 infoPanel.on('reset-state', 'click', async () => {
+  if (!window.confirm('Reset the cube state? This clears the cube\'s stored state.')) return;
   const conn = session.getState().connection;
   if (conn?.capabilities.reset) {
     await conn.sendCommand({ type: "REQUEST_RESET" });
