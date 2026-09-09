@@ -10,6 +10,7 @@ import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
+import { simplifyMoves } from './moveSimplifier';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube } from '../session/connection';
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../session/jsonlFormat';
@@ -266,6 +267,11 @@ infoPanel.on('stop-log', 'click', () => {
 
 infoPanel.on('clear-detected-moves', 'click', () => {
   infoPanel.clearDetectedMoves();
+});
+
+infoPanel.on('simplify-detected-moves', 'click', () => {
+  infoPanel.simplifyDetectedMoves(simplifyMoves);
+  infoPanel.showFeedback('Detected moves simplified.');
 });
 
 infoPanel.on('copy-detected-moves', 'click', () => {

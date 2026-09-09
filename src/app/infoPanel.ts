@@ -116,6 +116,12 @@ export function clearDetectedMoves(): void {
   syncDetectedMoveCount();
 }
 
+export function simplifyDetectedMoves(simplify: (moves: string) => string): void {
+  const moves = textarea('detectedMoves');
+  moves.value = simplify(moves.value);
+  syncDetectedMoveCount();
+}
+
 export function setDetectedMoves(moves: string): void {
   textarea('detectedMoves').value = moves;
   syncDetectedMoveCount();
