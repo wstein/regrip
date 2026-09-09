@@ -7,6 +7,50 @@
 [![Web Bluetooth](https://img.shields.io/badge/Web_Bluetooth-enabled-0082fc?logo=bluetooth&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
+## Event pipeline
+
+Two entry points, one pipeline. State lives in the session's reducer chain — never in the UI.
+
+```mermaid
+flowchart LR
+  subgraph Sources
+    BLE["🦷 BLE hardware\n(GAN / GoCube / …)"]
+    JSONL["📄 JSONL replay\n(jsonlMock.e2e.test.ts)"]
+  end
+
+  subgraph Session ["src/session/ — adapter + effects"]
+    SC["smartCubeSession.ts\nlifecycle · calibration"]
+    TC["timerController.ts\nbatching · flush · skew"]
+    CE["cubeEvents.ts\nrouter · formatters"]
+  end
+
+  subgraph Domain ["src/domain/ — pure ReScript reducers"]
+    MB["MoveBuffer"]
+    OS["OrientationStabilizer"]
+    RD["RegripDetector"]
+    MBT["MoveBackTrigger"]
+    VCF["VirtualCubeFrame"]
+    TM["Timer"]
+  end
+
+  subgraph App ["src/app/ — presentation"]
+    IP["infoPanel.ts"]
+    LL["liveLog.ts"]
+    SV["sceneView (Three.js)"]
+  end
+
+  BLE -->|"typed SmartCubeEvent"| SC
+  JSONL -->|"same typed events\n(timestamps injected)"| SC
+  SC --> TC --> CE
+  CE -->|"(state, action) → state"| MB & OS & RD & MBT & VCF & TM
+  MB & OS & RD & MBT & VCF & TM -->|"new immutable state"| CE
+  CE --> IP & LL & SV
+```
+
+> **JSONL replay** feeds the exact same event types with recorded timestamps into `smartCubeSession.ts`,
+> so the pure reducers produce byte-identical output to the original live session.
+> See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design rationale.
+
 A single-page [Vite](https://vite.dev) example for the
 [Generic Smart Cube API](https://github.com/wstein/smartcube-web-bluetooth). It uses Web Bluetooth
 to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a cubing.js
