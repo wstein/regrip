@@ -12,6 +12,7 @@ import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import {
   resolveSessionFeatures,
+  mergeSessionFeatures,
   stabilizerConfig,
   type SessionFeatures,
   type SessionFeaturesPatch,
@@ -113,6 +114,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   // The session owns calibration once; both regrip detection and display
   // stabilization consume the resulting calibrated pose.
   const gyroPipeline = GyroPipeline.make(stabilizerConfig(state.features));
+  let runtimeFeatures: SessionFeatures | undefined;
   const applyProfileAxisMap = (profile: ResolvedProfile): void =>
     GyroPipeline.setSensorToBody(
       gyroPipeline,
@@ -128,6 +130,12 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   function resetFeatureDetectors(features: SessionFeatures): void {
     regripDetector = RegripDetector.make({ thresholdDeg: features.regrip.thresholdDeg });
     moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(features) ?? 300 });
+  }
+
+  function applyFeatures(features: SessionFeatures): void {
+    GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
+    resetFeatureDetectors(features);
+    setState({ features });
   }
 
   const publish = (): void => listeners.forEach((listener) => listener(state));
@@ -171,11 +179,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         goCubeType: event.goCubeType?.name,
       });
       if (!sameProfile(state.profile, profile)) {
-        const features = resolveSessionFeatures(profile.value.features);
-        GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
+        const features = runtimeFeatures ?? resolveSessionFeatures(profile.value.features);
         applyProfileAxisMap(profile);
-        resetFeatureDetectors(features);
-        setState({ profile, features });
+        setState({ profile });
+        applyFeatures(features);
       }
     }
     eventListeners.forEach((listener) => listener(sessionEvent));
@@ -220,10 +227,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         deviceName: connection.deviceName,
         deviceMAC: connection.deviceMAC,
       });
-      const features = resolveSessionFeatures(profile.value.features);
-      GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
+      const features = runtimeFeatures ?? resolveSessionFeatures(profile.value.features);
       applyProfileAxisMap(profile);
-      resetFeatureDetectors(features);
+      applyFeatures(features);
       setState({
         connection,
         profile,
@@ -299,6 +305,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     connect,
     disconnect,
     resetGyro,
+    /** Apply a runtime feature patch and reset any detector state it affects. */
+    configureFeatures(patch: SessionFeaturesPatch): void {
+      runtimeFeatures = mergeSessionFeatures(state.features, patch);
+      applyFeatures(runtimeFeatures);
+    },
     sendCommand,
     sendVendorCommand,
   };

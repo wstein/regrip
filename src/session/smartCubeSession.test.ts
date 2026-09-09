@@ -185,6 +185,33 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('reconfigures features at runtime and resets affected detectors', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({ connect: async () => connection(events$) });
+    const regrips: SmartCubeSessionEvent[] = [];
+    session.on('REGRIP', (event) => regrips.push(event));
+
+    await session.connect();
+    session.configureFeatures({ regrip: { enabled: true, thresholdDeg: 60 } });
+    expect(session.getState().features.regrip.enabled).toBe(true);
+    events$.next({ type: 'GYRO', timestamp: 0, quaternion: Quaternion.identity });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 1,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(66), y: 0, z: 0 }),
+    });
+    expect(regrips).toHaveLength(1);
+
+    session.configureFeatures({ regrip: { enabled: false } });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(156), y: 0, z: 0 }),
+    });
+    expect(regrips).toHaveLength(1);
+    await session.disconnect();
+  });
+
   it('exposes profile-resolved features and maps the deprecated regrip option once', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const session = createSmartCubeSession({
