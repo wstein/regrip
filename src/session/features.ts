@@ -11,6 +11,8 @@ export type SessionFeatures = {
     radiusDeg: number;
     snapDeg: number;
     velocityMax: number;
+    /** Suppress display events whose calibrated pose changed less than this amount. */
+    microJitterDeg: number;
     hysteresis: { enabled: boolean; marginDeg: number };
     drift: { enabled: boolean; degPerSec: number };
   };
@@ -24,6 +26,7 @@ export type SessionFeaturesPatch = {
     radiusDeg?: number;
     snapDeg?: number;
     velocityMax?: number;
+    microJitterDeg?: number;
     hysteresis?: { enabled?: boolean; marginDeg?: number };
     drift?: { enabled?: boolean; degPerSec?: number };
   };
@@ -37,6 +40,7 @@ export const defaultSessionFeatures: SessionFeatures = {
     radiusDeg: 35,
     snapDeg: 4,
     velocityMax: 2.5,
+    microJitterDeg: 0.5,
     hysteresis: { enabled: true, marginDeg: 6 },
     drift: { enabled: true, degPerSec: 2 },
   },

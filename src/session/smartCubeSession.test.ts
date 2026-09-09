@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as Quaternion from '../domain/Quaternion.res.mjs';
-import { createSmartCubeSession, type SmartCubeSessionEvent } from './smartCubeSession';
+import {
+  createSmartCubeSession,
+  type GyroFrameScheduler,
+  type SmartCubeSessionEvent,
+} from './smartCubeSession';
 
 function connection(
   events$: Subject<SmartCubeEvent>,
@@ -23,6 +27,26 @@ function connection(
     events$,
     sendCommand: vi.fn(async () => {}),
     disconnect: vi.fn(async () => {}),
+  };
+}
+
+function queuedGyroFrames(): { scheduler: GyroFrameScheduler; flush: () => void } {
+  const callbacks = new Map<number, () => void>();
+  let nextHandle = 0;
+  return {
+    scheduler: {
+      schedule: (flush) => {
+        nextHandle += 1;
+        callbacks.set(nextHandle, flush);
+        return nextHandle;
+      },
+      cancel: (handle) => callbacks.delete(handle as number),
+    },
+    flush: () => {
+      const next = [...callbacks.values()];
+      callbacks.clear();
+      next.forEach((flush) => flush());
+    },
   };
 }
 
@@ -100,6 +124,65 @@ describe('smart cube session', () => {
       relative: deliberateTurn,
       stabilized: deliberateTurn,
     });
+    await session.disconnect();
+  });
+
+  it('coalesces a contiguous BLE gyro burst to the latest display-frame sample', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const frames = queuedGyroFrames();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      gyroFrameScheduler: frames.scheduler,
+    });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => received.push(event));
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(5), y: 0, z: 0 }),
+    });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 3,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(15), y: 0, z: 0 }),
+    });
+
+    expect(received.map((event) => event.type)).toEqual(['GYRO']);
+    frames.flush();
+    expect(
+      received.filter((event) => event.type === 'GYRO').map((event) => event.timestamp),
+    ).toEqual([1, 3]);
+    await session.disconnect();
+  });
+
+  it('suppresses sub-threshold calibrated gyro microjitter', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: { stabilizer: { microJitterDeg: 0.5 } },
+    });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => received.push(event));
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(0.25), y: 0, z: 0 }),
+    });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 3,
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(0.75), y: 0, z: 0 }),
+    });
+
+    expect(
+      received.filter((event) => event.type === 'GYRO').map((event) => event.timestamp),
+    ).toEqual([1, 3]);
     await session.disconnect();
   });
 

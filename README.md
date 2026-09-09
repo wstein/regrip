@@ -19,8 +19,8 @@ flowchart LR
   end
 
   subgraph Session ["src/session/ — adapter + effects"]
-    SC["smartCubeSession.ts\nlifecycle · calibration"]
-    TC["timerController.ts\nbatching · flush · skew"]
+    SC["smartCubeSession.ts\nlifecycle · calibration · gyro flush"]
+    TC["timerController.ts\ntimer effects · skew"]
     CE["cubeEvents.ts\nrouter · formatters"]
   end
 
@@ -63,6 +63,8 @@ to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a c
 - Per-model profiles for stabilization, gyro axes, battery presentation, and protocol quirks.
 - Pure ReScript magnetic gyro stabilization: cube-symmetry detents, hysteresis, velocity gating,
   and a configurable drift adjustment.
+- Display-rate gyro coalescing and a profile-configurable 0.5° microjitter threshold keep high-rate
+  BLE orientation packets from flooding the UI without changing the calibrated domain math.
 - Virtual `x`, `y`, and `z` regrips from calibrated gyro poses. Face moves and the R/U/F orientation
   gizmo stay in the current virtual cube frame.
 

@@ -15,6 +15,7 @@
       "radiusDeg": 35,
       "snapDeg": 4,
       "velocityMax": 2.5,
+      "microJitterDeg": 0.5,
       "hysteresis": { "enabled": true, "marginDeg": 6 },
       "drift": { "enabled": true, "degPerSec": 2 }
     },

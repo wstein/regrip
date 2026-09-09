@@ -101,8 +101,8 @@ The architecture treats time as controlled test data, not ambient system state.
 `src/session/` is intentionally complex. Its job is to:
 
 1. **Buffer** high-frequency BLE events (gyro can arrive at 50+ Hz)
-2. **Batch and flush** at the render rate (≈60 Hz via `requestAnimationFrame`)
-3. **Filter** sub-threshold microjitter before it crosses the domain boundary
+2. **Batch and flush** contiguous BLE gyro packets at the render rate (≈60 Hz via `requestAnimationFrame`)
+3. **Filter** sub-threshold microjitter from the emitted display stream (default: 0.5°)
 4. **Format** raw wire data into typed actions the domain understands
 5. **Apply effects** returned by pure reducers (start timer, play sound, update DOM)
 

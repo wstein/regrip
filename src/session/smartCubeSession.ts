@@ -8,6 +8,7 @@ import type {
 
 import * as GyroPipeline from '../domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
+import * as Quaternion from '../domain/Quaternion.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import type { RegripToken } from '../domain/CubeNotation.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
@@ -71,6 +72,11 @@ export type SmartCubeSessionState = {
 export type SmartCubeSessionOptions = {
   connect: () => Promise<SmartCubeConnection>;
   /**
+   * Schedules the latest contiguous gyro packet at display cadence. Supplying
+   * this is primarily useful for deterministic hosts and tests.
+   */
+  gyroFrameScheduler?: GyroFrameScheduler;
+  /**
    * @deprecated Use `features.regrip.enabled`. This compatibility option will
    * be removed after downstream callers migrate to the profile feature model.
    */
@@ -79,9 +85,35 @@ export type SmartCubeSessionOptions = {
   features?: SessionFeaturesPatch;
 };
 
+export type GyroFrameScheduler = {
+  schedule: (flush: () => void) => unknown;
+  cancel: (handle: unknown) => void;
+};
+
+const browserGyroFrameScheduler: GyroFrameScheduler =
+  typeof requestAnimationFrame === 'function'
+    ? {
+        schedule: (flush) => requestAnimationFrame(flush),
+        cancel: (handle) => cancelAnimationFrame(handle as number),
+      }
+    : {
+        // Keep headless replay synchronous. Browsers use requestAnimationFrame
+        // and therefore receive the real 60 Hz coalescing behavior.
+        schedule: (flush) => {
+          flush();
+          return undefined;
+        },
+        cancel: () => {},
+      };
+
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
   let connectionGeneration = 0;
+  const gyroFrameScheduler = options.gyroFrameScheduler ?? browserGyroFrameScheduler;
+  let pendingGyro: Extract<SmartCubeEvent, { type: 'GYRO' }> | undefined;
+  let pendingGyroFrame: unknown | undefined;
+  let hasCalibratedGyro = false;
+  let lastPublishedRelative: Quaternion.Quaternion | undefined;
   if (options.virtualRegrips !== undefined) {
     console.warn(
       'virtualRegrips is deprecated; use features: { regrip: { enabled: ... } } instead.',
@@ -154,6 +186,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   function applyFeatures(features: SessionFeatures): void {
     gyroConfig = GyroPipeline.withStabilizerConfig(gyroConfig, stabilizerConfig(features));
     gyroState = GyroPipeline.resetStabilizer(gyroState);
+    lastPublishedRelative = undefined;
     resetFeatureDetectors();
     setState({ features });
   }
@@ -166,7 +199,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   const sameProfile = (left: ResolvedProfile, right: ResolvedProfile): boolean =>
     left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
 
-  const onEvent = (event: SmartCubeEvent): void => {
+  function shouldPublishGyro(relative: Quaternion.Quaternion): boolean {
+    const previous = lastPublishedRelative;
+    if (!previous) return true;
+    const thresholdRadians = Quaternion.degreesToRadians(state.features.stabilizer.microJitterDeg);
+    return thresholdRadians <= 0 || Quaternion.angle(previous, relative) >= thresholdRadians;
+  }
+
+  const processEvent = (event: SmartCubeEvent): void => {
     const sessionEvent: SmartCubeSessionEvent = (() => {
       if (event.type !== 'GYRO') return event;
       const [nextGyroState, sample] = GyroPipeline.step(
@@ -180,6 +220,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       gyroState = nextGyroState;
       return { ...event, ...sample };
     })();
+    const publishGyro = sessionEvent.type !== 'GYRO' || shouldPublishGyro(sessionEvent.relative);
+    if (sessionEvent.type === 'GYRO' && publishGyro) {
+      lastPublishedRelative = sessionEvent.relative;
+    }
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
       calibrated && state.features.regrip.enabled ? observeRegrip(calibrated) : undefined;
@@ -189,7 +233,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       moveBackWindow(state.features) !== undefined
         ? observeMoveBack(event.move, event.timestamp)
         : undefined;
-    setState({ lastEvent: sessionEvent });
+    if (publishGyro) setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
       const profile = resolveSessionProfile({
         protocol: state.connection.protocol.id,
@@ -205,7 +249,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         applyFeatures(features);
       }
     }
-    eventListeners.forEach((listener) => listener(sessionEvent));
+    if (publishGyro) eventListeners.forEach((listener) => listener(sessionEvent));
     if (regrip) {
       eventListeners.forEach((listener) =>
         listener({
@@ -228,7 +272,49 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     if (event.type === 'DISCONNECT') void disconnect();
   };
 
+  const flushPendingGyro = (): void => {
+    const event = pendingGyro;
+    pendingGyro = undefined;
+    if (pendingGyroFrame !== undefined) {
+      gyroFrameScheduler.cancel(pendingGyroFrame);
+      pendingGyroFrame = undefined;
+    }
+    if (event) processEvent(event);
+  };
+
+  const scheduleGyro = (event: Extract<SmartCubeEvent, { type: 'GYRO' }>): void => {
+    // The calibration sample establishes an exact identity-relative pose for
+    // both the regrip ratchet and render pipeline. Do not drop it in a burst.
+    if (!hasCalibratedGyro) {
+      hasCalibratedGyro = true;
+      processEvent(event);
+      return;
+    }
+    pendingGyro = event;
+    if (pendingGyroFrame !== undefined) return;
+    const handle = gyroFrameScheduler.schedule(flushPendingGyro);
+    // The headless scheduler may flush synchronously. Only retain a handle
+    // when a gyro packet is still pending after schedule() returns.
+    if (pendingGyro !== undefined && pendingGyroFrame === undefined) pendingGyroFrame = handle;
+  };
+
+  const onEvent = (event: SmartCubeEvent): void => {
+    if (event.type === 'GYRO') {
+      scheduleGyro(event);
+      return;
+    }
+    // Do not let a following MOVE/FACELETS/DISCONNECT overtake the final gyro
+    // sample in the preceding BLE packet burst.
+    flushPendingGyro();
+    processEvent(event);
+  };
+
   const resetGyro = (): void => {
+    pendingGyro = undefined;
+    if (pendingGyroFrame !== undefined) gyroFrameScheduler.cancel(pendingGyroFrame);
+    pendingGyroFrame = undefined;
+    hasCalibratedGyro = false;
+    lastPublishedRelative = undefined;
     gyroState = GyroPipeline.reset(gyroState);
     regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
