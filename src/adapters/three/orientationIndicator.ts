@@ -5,19 +5,19 @@ type ColorMaterial = THREE.Material & { color?: THREE.Color };
 const axes = [
   // In the cube's right-handed local frame, +X/+Y/+Z point through R/U/F.
   {
-    name: 'r',
+    name: 'x',
     direction: new THREE.Vector3(1, 0, 0),
     labelOffset: new THREE.Vector3(0, 0.13, -0.1),
     color: 0xd9493f,
   },
   {
-    name: 'u',
+    name: 'y',
     direction: new THREE.Vector3(0, 1, 0),
     labelOffset: new THREE.Vector3(0.13, 0, -0.1),
     color: 0xf4f4f4,
   },
   {
-    name: 'f',
+    name: 'z',
     direction: new THREE.Vector3(0, 0, 1),
     labelOffset: new THREE.Vector3(-0.2, 0.14, 0),
     color: 0x4caf67,
@@ -57,7 +57,7 @@ function label(axis: string, color: number, position: THREE.Vector3): THREE.Spri
   return sprite;
 }
 
-/** A compact, labelled R/U/F triad in cube-local coordinates. */
+/** A compact, labelled X/Y/Z triad in cube-local coordinates. */
 export function createOrientationIndicator(includeLabels = true): THREE.Group {
   const indicator = new THREE.Group();
   indicator.name = 'orientation-indicator';
@@ -109,7 +109,7 @@ export function createOrientationIndicator(includeLabels = true): THREE.Group {
   return indicator;
 }
 
-/** Recolor logical R/U/F axes to match their current physical facelets. */
+/** Recolor logical X/Y/Z axes to match their current physical R/U/F facelets. */
 export function setOrientationIndicatorColors(
   indicator: THREE.Group,
   colors: OrientationIndicatorColors,

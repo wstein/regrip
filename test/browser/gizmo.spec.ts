@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('renders a visible R/U/F orientation gizmo in a real WebGL canvas', async ({ page }) => {
+test('renders a visible X/Y/Z orientation gizmo in a real WebGL canvas', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
 
@@ -15,7 +15,7 @@ test('renders a visible R/U/F orientation gizmo in a real WebGL canvas', async (
     number
   >;
 
-  // R is red, U is white, and F is green. Counting their rendered pixels is
+  // X is red, Y is white, and Z is green. Counting their rendered pixels is
   // intentionally less brittle than a cross-platform screenshot baseline.
   expect(pixels.red).toBeGreaterThan(30);
   expect(pixels.white).toBeGreaterThan(30);

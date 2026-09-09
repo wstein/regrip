@@ -52,7 +52,7 @@ eventLog.subscribe((entry, recordingCount) => {
 const solverFrame = createSolverFrame();
 let cubeExportSource: CubeExportSource | undefined;
 const virtualFrameQuaternion = new THREE.Quaternion();
-const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
+const virtualFrameColors: OrientationIndicatorColors = { x: 0xff3131, y: 0xffffff, z: 0x78ed3e };
 const faceColors: Record<string, number> = {
   U: 0xffffff,
   R: 0xff3131,
@@ -71,9 +71,9 @@ function syncVirtualFrameOrientation(): void {
       new THREE.Vector3(...front),
     ),
   );
-  virtualFrameColors.r = faceColors[faces.right]!;
-  virtualFrameColors.u = faceColors[faces.up]!;
-  virtualFrameColors.f = faceColors[faces.front]!;
+  virtualFrameColors.x = faceColors[faces.right]!;
+  virtualFrameColors.y = faceColors[faces.up]!;
+  virtualFrameColors.z = faceColors[faces.front]!;
 }
 
 let renderLoopStarted = false;
