@@ -8,6 +8,7 @@ import { startSceneRenderLoop } from '../adapters/three/sceneView';
 import type { OrientationIndicatorColors } from '../adapters/three/orientationIndicator';
 import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
+import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { createCubeEventController } from '../session/cubeEvents';
@@ -29,6 +30,7 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
+const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
@@ -203,9 +205,21 @@ session.subscribe((state) => {
     infoPanel.setInfo('capabilities', formatCapabilities(connection.capabilities));
     infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
+    commandPanel.render(connection.capabilities, {
+      sendCommand: session.sendCommand,
+      sendVendorCommand: session.sendVendorCommand,
+      onResult: (name, error) => {
+        eventLog.record('cube_command', {
+          name,
+          status: error ? 'failed' : 'sent',
+          error: error instanceof Error ? error.message : error ? String(error) : null,
+        });
+      },
+    });
     return;
   }
   if (state.status === 'disconnected') {
+    commandPanel.clear();
     virtualMoveFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
@@ -215,6 +229,7 @@ session.subscribe((state) => {
     return;
   }
   if (state.status === 'error') {
+    commandPanel.clear();
     virtualMoveFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();

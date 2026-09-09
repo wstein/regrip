@@ -378,6 +378,25 @@ body {
   justify-content: space-between;
   margin-top: 1rem;
 }
+.command-panel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2b3859;
+}
+.command-panel h3 {
+  margin: 0 0 0.65rem;
+  color: #dce6ff;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+.command-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.command-panel-actions button {
+  font-size: 0.74rem;
+}
 button {
   border: 1px solid #465a85;
   border-radius: 0.6rem;
