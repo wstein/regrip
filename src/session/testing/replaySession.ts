@@ -6,14 +6,18 @@ import type {
 } from 'smartcube-web-bluetooth';
 
 import * as ReplayCursor from '../../domain/ReplayCursor.res.mjs';
+import type { RegripToken } from '../../domain/CubeNotation.res.mjs';
 import { resolveSessionFeatures } from '../features';
 import { bundledProfiles } from '../profile/bundled';
 import { resolveProfile } from '../profile/resolveProfile';
 import {
   createSmartCubeSession,
+  type CustomTriggerEvent,
+  type SessionGyroEvent,
   type SmartCubeSession,
   type SmartCubeSessionEvent,
   type SmartCubeSessionState,
+  type VirtualRegripEvent,
 } from '../smartCubeSession';
 import {
   createJsonlMockConnection,
@@ -33,6 +37,10 @@ type ReplayItem = {
 
 type ReplayListener = () => void;
 type RawGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }>;
+type Quaternion = RawGyroEvent['quaternion'];
+type Vector3 = NonNullable<RawGyroEvent['velocity']>;
+
+const regripTokens = new Set<RegripToken>(['x', "x'", 'x2', 'y', "y'", 'y2', 'z', "z'", 'z2']);
 
 const synchronousGyroScheduler = {
   schedule(flush: () => void): undefined {
@@ -50,12 +58,11 @@ function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
   );
 }
 
-function recordedTimestamp(entry: { recordedAt: string }, fallback: number): number {
-  const timestamp = Date.parse(entry.recordedAt);
-  return Number.isFinite(timestamp) ? timestamp : fallback;
+function number(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-function quaternion(value: unknown): RawGyroEvent['quaternion'] | undefined {
+function quaternion(value: unknown): Quaternion | undefined {
   if (!value || typeof value !== 'object') return undefined;
   const candidate = value as Record<string, unknown>;
   if (
@@ -69,6 +76,15 @@ function quaternion(value: unknown): RawGyroEvent['quaternion'] | undefined {
   return { x: candidate.x, y: candidate.y, z: candidate.z, w: candidate.w };
 }
 
+function vector3(value: unknown): Vector3 | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const candidate = value as Record<string, unknown>;
+  const x = number(candidate.x);
+  const y = number(candidate.y);
+  const z = number(candidate.z);
+  return x === undefined || y === undefined || z === undefined ? undefined : { x, y, z };
+}
+
 /**
  * Older app exports only persisted derived gyro samples. They still contain
  * the raw quaternion needed to reconstruct the connection/session pipeline.
@@ -77,84 +93,134 @@ function gyroFromStabilizer(
   data: Record<string, unknown>,
   fallbackTimestamp: number,
 ): RawGyroEvent | undefined {
-  const value = quaternion(data.quaternion);
-  if (!value) return undefined;
-  const velocity = data.velocity;
-  const validVelocity =
-    velocity &&
-    typeof velocity === 'object' &&
-    typeof (velocity as Record<string, unknown>).x === 'number' &&
-    typeof (velocity as Record<string, unknown>).y === 'number' &&
-    typeof (velocity as Record<string, unknown>).z === 'number'
-      ? (velocity as RawGyroEvent['velocity'])
-      : undefined;
+  const quaternionValue = quaternion(data.quaternion);
+  if (!quaternionValue) return undefined;
+  const validVelocity = vector3(data.velocity);
   return {
     type: 'GYRO',
-    timestamp: typeof data.timestamp === 'number' ? data.timestamp : fallbackTimestamp,
-    quaternion: value,
+    timestamp: number(data.timestamp) ?? fallbackTimestamp,
+    quaternion: quaternionValue,
     ...(validVelocity ? { velocity: validVelocity } : {}),
   };
+}
+
+function sessionGyroFromRecord(
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+): SessionGyroEvent | undefined {
+  const timestamp = number(data.timestamp) ?? fallbackTimestamp;
+  const quaternionValue = quaternion(data.quaternion);
+  const relative = quaternion(data.relative);
+  const stabilized = quaternion(data.stabilized);
+  const velocityMagnitude = number(data.velocityMagnitude);
+  const dtSeconds = number(data.dtSeconds);
+  if (
+    !quaternionValue ||
+    !relative ||
+    !stabilized ||
+    velocityMagnitude === undefined ||
+    dtSeconds === undefined
+  ) {
+    return undefined;
+  }
+  const velocity = vector3(data.velocity);
+  return {
+    type: 'GYRO',
+    timestamp,
+    quaternion: quaternionValue,
+    ...(velocity ? { velocity } : {}),
+    relative,
+    stabilized,
+    velocityMagnitude,
+    dtSeconds,
+  };
+}
+
+function regripFromRecord(
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+): VirtualRegripEvent | undefined {
+  const timestamp = number(data.timestamp) ?? fallbackTimestamp;
+  const notationToken = data.notationToken;
+  const sensorFrameToken = data.sensorFrameToken;
+  if (
+    typeof notationToken !== 'string' ||
+    !regripTokens.has(notationToken as RegripToken) ||
+    typeof sensorFrameToken !== 'string' ||
+    !regripTokens.has(sensorFrameToken as RegripToken)
+  ) {
+    return undefined;
+  }
+  return {
+    type: 'REGRIP',
+    timestamp,
+    notationToken: notationToken as RegripToken,
+    sensorFrameToken: sensorFrameToken as RegripToken,
+  };
+}
+
+function customTriggerFromRecord(
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+): CustomTriggerEvent | undefined {
+  const timestamp = number(data.timestamp) ?? fallbackTimestamp;
+  return typeof data.move === 'string' && data.move.length > 0
+    ? { type: 'CUSTOM_TRIGGER', timestamp, move: data.move }
+    : undefined;
 }
 
 function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
   const { entries } = validateJsonlReplay(contents);
   const items: ReplayItem[] = [];
+  let firstRecordedAt: number | undefined;
+  let firstTimelineTimestamp: number | undefined;
+  let previousTimelineTimestamp = 0;
   const hasRawGyro = entries.some(
     (entry) => entry.type === 'cube_event' && entry.data.type === 'GYRO',
   );
+  const add = (
+    entry: (typeof entries)[number],
+    index: number,
+    value: Omit<ReplayItem, 'timestamp'>,
+    sourceTimestamp?: number,
+  ): void => {
+    const recordedAt = Date.parse(entry.recordedAt);
+    if (firstRecordedAt === undefined && Number.isFinite(recordedAt)) firstRecordedAt = recordedAt;
+    if (firstTimelineTimestamp === undefined) firstTimelineTimestamp = sourceTimestamp ?? index;
+    const elapsed =
+      firstRecordedAt === undefined || !Number.isFinite(recordedAt)
+        ? index
+        : recordedAt - firstRecordedAt;
+    const timestamp = Math.max(
+      previousTimelineTimestamp,
+      firstTimelineTimestamp + Math.max(0, elapsed),
+    );
+    previousTimelineTimestamp = timestamp;
+    items.push({ ...value, timestamp });
+  };
   entries.forEach((entry, index) => {
     const data = entry.data as Record<string, unknown>;
-    const fallbackTimestamp = recordedTimestamp(entry, index);
+    const fallbackTimestamp = index;
     if (feed === 'connection') {
       if (entry.type === 'cube_event' && isSmartCubeEvent(data)) {
-        items.push({
-          timestamp: data.timestamp ?? fallbackTimestamp,
-          event: data as SmartCubeSessionEvent,
-        });
+        add(entry, index, { event: data as SmartCubeEvent }, number(data.timestamp));
       } else if (entry.type === 'gyro_stabilizer' && !hasRawGyro) {
         const event = gyroFromStabilizer(data, fallbackTimestamp);
-        if (event) items.push({ timestamp: event.timestamp, event });
+        if (event) add(entry, index, { event }, event.timestamp);
       }
       return;
     }
     if (entry.type === 'cube_event' && data.type !== 'GYRO' && isSmartCubeEvent(data)) {
-      items.push({
-        timestamp: data.timestamp ?? fallbackTimestamp,
-        event: data as SmartCubeSessionEvent,
-      });
+      add(entry, index, { event: data as SmartCubeSessionEvent }, number(data.timestamp));
     } else if (entry.type === 'gyro_stabilizer') {
-      items.push({
-        timestamp: typeof data.timestamp === 'number' ? data.timestamp : fallbackTimestamp,
-        event: {
-          type: 'GYRO',
-          timestamp: typeof data.timestamp === 'number' ? data.timestamp : fallbackTimestamp,
-          quaternion: data.quaternion as SmartCubeEvent extends infer _ ? never : never,
-          velocity: (data.velocity ?? undefined) as never,
-          relative: data.relative as never,
-          stabilized: data.stabilized as never,
-          velocityMagnitude: Number(data.velocityMagnitude ?? 0),
-          dtSeconds: Number(data.dtSeconds ?? 0),
-        } as SmartCubeSessionEvent,
-      });
+      const event = sessionGyroFromRecord(data, fallbackTimestamp);
+      if (event) add(entry, index, { event }, event.timestamp);
     } else if (entry.type === 'virtual_regrip') {
-      items.push({
-        timestamp: typeof data.timestamp === 'number' ? data.timestamp : fallbackTimestamp,
-        event: {
-          type: 'REGRIP',
-          timestamp: Number(data.timestamp ?? fallbackTimestamp),
-          notationToken: data.notationToken as never,
-          sensorFrameToken: data.sensorFrameToken as never,
-        },
-      });
+      const event = regripFromRecord(data, fallbackTimestamp);
+      if (event) add(entry, index, { event }, event.timestamp);
     } else if (entry.type === 'custom_trigger') {
-      items.push({
-        timestamp: typeof data.timestamp === 'number' ? data.timestamp : fallbackTimestamp,
-        event: {
-          type: 'CUSTOM_TRIGGER',
-          timestamp: Number(data.timestamp ?? fallbackTimestamp),
-          move: String(data.move),
-        },
-      });
+      const event = customTriggerFromRecord(data, fallbackTimestamp);
+      if (event) add(entry, index, { event }, event.timestamp);
     } else if (entry.type === 'session_status' && typeof data.status === 'string') {
       const status = data.status;
       if (
@@ -163,11 +229,11 @@ function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
         status === 'connected' ||
         status === 'error'
       ) {
-        items.push({ timestamp: fallbackTimestamp, status });
+        add(entry, index, { status });
       }
     }
   });
-  return items.sort((left, right) => left.timestamp - right.timestamp);
+  return items;
 }
 
 function createOutputSession(connection: SmartCubeConnection): SmartCubeSession {
@@ -254,11 +320,26 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   let current!: SmartCubeSession;
   let unsubscribeState: (() => void) | undefined;
   let unsubscribeEvents: (() => void) | undefined;
+  let transportGeneration = 0;
+  let transport = Promise.resolve();
   const stateListeners = new Set<(state: SmartCubeSessionState) => void>();
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
   const cursorListeners = new Set<ReplayListener>();
 
   const notifyCursor = (): void => cursorListeners.forEach((listener) => listener());
+  const enqueue = <T>(operation: (generation: number) => Promise<T>): Promise<T> => {
+    const generation = ++transportGeneration;
+    const task = transport.then(
+      () => operation(generation),
+      () => operation(generation),
+    );
+    transport = task.then(
+      () => undefined,
+      () => undefined,
+    );
+    return task;
+  };
+  const isCurrent = (generation: number): boolean => generation === transportGeneration;
   const bind = (): void => {
     unsubscribeState?.();
     unsubscribeEvents?.();
@@ -298,8 +379,10 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   const ensureConnected = async (): Promise<void> => {
     if (!current.getState().connection) await current.connect();
   };
-  const run = async (indices: readonly number[]): Promise<void> => {
+  const run = async (indices: readonly number[], generation: number): Promise<void> => {
+    if (!isCurrent(generation)) return;
     await ensureConnected();
+    if (!isCurrent(generation)) return;
     indices.forEach(emit);
     notifyCursor();
   };
@@ -351,26 +434,34 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
       return () => cursorListeners.delete(listener);
     },
     async stepOne(): Promise<void> {
-      const [next, index] = ReplayCursor.stepOne(cursor, timestamps);
-      cursor = next;
-      await run(index === undefined ? [] : [index]);
+      return enqueue(async (generation) => {
+        if (!isCurrent(generation)) return;
+        const [next, index] = ReplayCursor.stepOne(cursor, timestamps);
+        cursor = next;
+        await run(index === undefined ? [] : [index], generation);
+      });
     },
     async advanceTo(targetMs: number): Promise<void> {
-      const [next, indices] = ReplayCursor.advanceTo(cursor, timestamps, targetMs);
-      cursor = next;
-      await run(indices);
+      return enqueue(async (generation) => {
+        if (!isCurrent(generation)) return;
+        const [next, indices] = ReplayCursor.advanceTo(cursor, timestamps, targetMs);
+        cursor = next;
+        await run(indices, generation);
+      });
     },
     async seekTo(index: number): Promise<void> {
-      rebuild();
-      cursor = ReplayCursor.initial;
-      const target = Math.max(0, Math.min(index, items.length));
-      const prefix = Array.from({ length: target }, (_, itemIndex) => itemIndex);
-      cursor = ReplayCursor.seekTo(timestamps, target);
-      await run(prefix);
+      return enqueue(async (generation) => {
+        if (!isCurrent(generation)) return;
+        rebuild();
+        const target = Math.max(0, Math.min(index, items.length));
+        const prefix = Array.from({ length: target }, (_, itemIndex) => itemIndex);
+        cursor = ReplayCursor.seekTo(timestamps, target);
+        await run(prefix, generation);
+      });
     },
     async seekToTimestamp(timestamp: number): Promise<void> {
-      const index = timestamps.findIndex((candidate) => candidate >= timestamp);
-      await this.seekTo(index === -1 ? items.length : index + 1);
+      const index = timestamps.findIndex((candidate) => candidate > timestamp);
+      await this.seekTo(index === -1 ? items.length : index);
     },
     async reset(): Promise<void> {
       await this.seekTo(0);

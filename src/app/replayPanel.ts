@@ -48,9 +48,11 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     render();
   };
   const tick = async (now: number): Promise<void> => {
+    if (!playing) return;
     const delta = now - previousNow;
     previousNow = now;
     await replay.advanceTo(replay.virtualNowMs + delta * Number(speed.value));
+    if (!playing) return;
     if (replay.done) pause();
     else frame = requestAnimationFrame((next) => void tick(next));
   };
@@ -68,7 +70,9 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     pause();
     void replay.reset();
   });
-  scrubber.addEventListener('input', () => {
+  // Seek once on release rather than rebuilding the session for every pixel
+  // crossed while dragging the range control.
+  scrubber.addEventListener('change', () => {
     const target = Number(scrubber.value);
     pause();
     void replay.seekTo(target);

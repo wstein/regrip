@@ -14,7 +14,7 @@ test('steps, seeks, and resets a JSONL fixture in the real lab', async ({ page }
 
   await page.locator('#replay-scrubber').evaluate((node: HTMLInputElement) => {
     node.value = node.max;
-    node.dispatchEvent(new Event('input', { bubbles: true }));
+    node.dispatchEvent(new Event('change', { bubbles: true }));
   });
   await expect(position).toHaveText(/^(\d+) \/ \1$/);
 
@@ -29,6 +29,32 @@ test('plays immediately from the first capture timestamp', async ({ page }) => {
   await page.locator('#replay-play').click();
 
   await expect(page.locator('#replay-position')).not.toHaveText(/0 \/ \d+/);
+});
+
+test('pause stops the virtual transport before another frame can advance it', async ({ page }) => {
+  const header =
+    '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1}}';
+  const events = Array.from({ length: 4 }, (_, index) =>
+    JSON.stringify({
+      recordedAt: `2026-09-09T10:00:0${index + 1}.000Z`,
+      type: 'cube_event',
+      data: { type: 'BATTERY', timestamp: (index + 1) * 1_000, batteryLevel: 98 },
+    }),
+  );
+  await page.goto('/test/browser/mock-app.html?replay');
+  await page.evaluate(
+    (contents) => sessionStorage.setItem('regrip.replay.jsonl', contents),
+    [header, ...events].join('\n'),
+  );
+  await page.goto('/test/browser/mock-app.html?replay&fixture=local');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.locator('#replay-play').click();
+  await expect(page.locator('#replay-position')).toHaveText('1 / 4');
+  await page.locator('#replay-play').click();
+  await expect(page.locator('#replay-play')).toHaveText('Play');
+  await page.waitForTimeout(150);
+  await expect(page.locator('#replay-position')).toHaveText('1 / 4');
 });
 
 test('loads a pasted JSONL capture locally and exposes its identity', async ({ page }) => {
