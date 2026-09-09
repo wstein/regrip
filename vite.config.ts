@@ -4,8 +4,10 @@ import { fileURLToPath, URL } from 'node:url';
 const workerImportMetaUrlRE =
   /\bnew\s+(?:Worker|SharedWorker)\s*\(\s*(new\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*\))/g;
 
-export default defineConfig({
-  base: '/smartcube-example',
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves the built site below the repository name; Vite's
+  // development server should remain available at localhost:5173/.
+  base: command === 'serve' ? '/' : '/smartcube-example/',
   resolve: {
     alias: {
       'smartcube-web-bluetooth': fileURLToPath(
@@ -47,4 +49,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
