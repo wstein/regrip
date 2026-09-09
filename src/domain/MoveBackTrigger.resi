@@ -1,8 +1,7 @@
 type config = {windowMs: float}
-type t
+type state
 
 let defaults: config
-let make: (~config: config=?) => t
-let reset: t => unit
+let initial: state
 /** Returns the initiating move when `move` returns it within the time window. */
-let observe: (t, string, float) => option<string>
+let step: (state, string, float, ~config: config=?) => (state, option<string>)

@@ -121,7 +121,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       parseSensorToBodyAxisMap(profile.value.gyro?.axisMap) ?? SensorToBody.default,
     );
   let regripDetector = RegripDetector.make({ thresholdDeg: state.features.regrip.thresholdDeg });
-  let moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(state.features) ?? 300 });
+  let moveBackState = MoveBackTrigger.initial;
 
   function moveBackWindow(features: SessionFeatures): number | undefined {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
@@ -129,7 +129,15 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   function resetFeatureDetectors(features: SessionFeatures): void {
     regripDetector = RegripDetector.make({ thresholdDeg: features.regrip.thresholdDeg });
-    moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(features) ?? 300 });
+    moveBackState = MoveBackTrigger.initial;
+  }
+
+  function observeMoveBack(move: string, timestamp: number): string | undefined {
+    const [nextState, trigger] = MoveBackTrigger.step(moveBackState, move, timestamp, {
+      windowMs: moveBackWindow(state.features) ?? 300,
+    });
+    moveBackState = nextState;
+    return trigger;
   }
 
   function applyFeatures(features: SessionFeatures): void {
@@ -167,7 +175,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       event.type === 'MOVE' &&
       state.features.customTrigger.enabled &&
       moveBackWindow(state.features) !== undefined
-        ? MoveBackTrigger.observe(moveBackTrigger, event.move, event.timestamp)
+        ? observeMoveBack(event.move, event.timestamp)
         : undefined;
     setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
@@ -211,7 +219,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   const resetGyro = (): void => {
     GyroPipeline.reset(gyroPipeline);
     RegripDetector.reset(regripDetector);
-    MoveBackTrigger.reset(moveBackTrigger);
+    moveBackState = MoveBackTrigger.initial;
   };
 
   async function connect(): Promise<void> {

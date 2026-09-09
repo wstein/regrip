@@ -2,11 +2,10 @@
 // state: session code supplies move tokens and transport timestamps.
 
 type config = {windowMs: float}
-type t = {mutable previous: option<(string, float)>, config: config}
+type state = option<(string, float)>
 
 let defaults = {windowMs: 300.}
-let make = (~config=defaults): t => {previous: None, config}
-let reset = (detector: t): unit => detector.previous = None
+let initial: state = None
 
 let inverse = (move: string): option<string> => {
   switch String.length(move) {
@@ -18,21 +17,24 @@ let inverse = (move: string): option<string> => {
 }
 
 /** Returns the initiating move when `move` returns it within the time window. */
-let observe = (detector: t, move: string, timestamp: float): option<string> => {
-  let result = switch (detector.previous, inverse(move)) {
+let step = (state: state, move: string, timestamp: float, ~config=defaults): (
+  state,
+  option<string>,
+) => {
+  let result = switch (state, inverse(move)) {
   | (Some((previousMove, previousTimestamp)), Some(expected))
     if previousMove == expected &&
     timestamp >= previousTimestamp &&
-    timestamp -. previousTimestamp <= detector.config.windowMs =>
+    timestamp -. previousTimestamp <= config.windowMs =>
     Some(previousMove)
   | _ => None
   }
 
   // Gestures are non-overlapping: a matched return cannot become the start
   // of a second trigger. An unmatched move starts a fresh candidate instead.
-  detector.previous = switch result {
+  let nextState = switch result {
   | Some(_) => None
   | None => Some((move, timestamp))
   }
-  result
+  (nextState, result)
 }
