@@ -5,9 +5,9 @@ import { createJsonlLog, downloadJsonl } from './jsonlLog';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('JSONL log', () => {
-  it('records only between start and stop as newline-delimited JSON', () => {
+  it('keeps a local buffer but exports only the range marked by start and stop', () => {
     const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
-    log.record('ignored', {});
+    log.record('before_recording', {});
     log.start({ profile: 'gocube' });
     log.record('cube_event', { type: 'BATTERY', batteryLevel: 98 });
     const lines = log.stop().trim().split('\n').map(line => JSON.parse(line));
@@ -15,8 +15,25 @@ describe('JSONL log', () => {
     expect(lines).toEqual([
       { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_started', data: { profile: 'gocube' } },
       { recordedAt: '2026-09-08T12:00:00.000Z', type: 'cube_event', data: { type: 'BATTERY', batteryLevel: 98 } },
-      { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_stopped', data: { entries: 2 } },
+      { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_stopped', data: { entries: 1 } },
     ]);
+  });
+
+  it('notifies the live trace for every local entry and reports the recording count', () => {
+    const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
+    const seen: Array<[string, number]> = [];
+    log.subscribe((entry, count) => seen.push([entry.type, count]));
+
+    log.record('before_recording', {});
+    log.start({ profile: 'gocube' });
+    log.record('cube_event', { type: 'MOVE', move: 'R' });
+
+    expect(seen).toEqual([
+      ['before_recording', 0],
+      ['log_started', 0],
+      ['cube_event', 1],
+    ]);
+    expect(log.recordingCount).toBe(1);
   });
 
   it('attaches the download link and releases its blob URL after the click task', () => {
