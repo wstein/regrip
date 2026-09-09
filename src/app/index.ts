@@ -101,8 +101,8 @@ const cubeEvents = createCubeEventController({
 
 applyProfile(session.getState().profile.value);
 session.subscribeEvents(event => {
-  if (event.type === 'CALIBRATED_GYRO') {
-    cubeEvents.handleCalibratedGyro(event.event, event.relative);
+  if (event.type === 'GYRO') {
+    cubeEvents.handleCalibratedGyro(event, event.relative);
     return;
   }
   if (event.type === 'REGRIP') {
@@ -113,9 +113,6 @@ session.subscribeEvents(event => {
     virtualMoveFrame.applyRegrip(event.notationToken);
     return;
   }
-  // Calibrated gyro samples are captured below as compact stabilizer records.
-  // Keeping the raw ~100 Hz BLE packets would drown every useful JSONL event.
-  if (event.type === 'GYRO') return;
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });

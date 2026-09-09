@@ -8,14 +8,6 @@ import { bundledProfiles } from './profile/bundled';
 import { resolveProfile } from './profile/resolveProfile';
 import type { ResolvedProfile } from './profile/types';
 
-export type SmartCubeSessionState = {
-  status: 'disconnected' | 'connecting' | 'connected' | 'error';
-  connection: SmartCubeConnection | null;
-  lastEvent: SmartCubeEvent | null;
-  profile: ResolvedProfile;
-  error: string | null;
-};
-
 export type VirtualRegripEvent = {
   type: 'REGRIP';
   timestamp: number;
@@ -25,14 +17,20 @@ export type VirtualRegripEvent = {
   sensorFrameToken: string;
 };
 
-export type CalibratedGyroEvent = {
-  type: 'CALIBRATED_GYRO';
-  event: Extract<SmartCubeEvent, { type: 'GYRO' }>;
+export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
 };
 
-export type SmartCubeSessionEvent = SmartCubeEvent | CalibratedGyroEvent | VirtualRegripEvent;
+export type SmartCubeSessionEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }> | SessionGyroEvent | VirtualRegripEvent;
+
+export type SmartCubeSessionState = {
+  status: 'disconnected' | 'connecting' | 'connected' | 'error';
+  connection: SmartCubeConnection | null;
+  lastEvent: SmartCubeSessionEvent | null;
+  profile: ResolvedProfile;
+  error: string | null;
+};
 
 export type SmartCubeSessionOptions = {
   connect: () => Promise<SmartCubeConnection>;
@@ -63,13 +61,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
 
   const onEvent = (event: SmartCubeEvent): void => {
-    const calibrated = event.type === 'GYRO'
-      ? GyroOrientation.relative(gyro, event.quaternion)
-      : undefined;
+    const sessionEvent: SmartCubeSessionEvent = event.type === 'GYRO'
+      ? { ...event, relative: GyroOrientation.relative(gyro, event.quaternion) }
+      : event;
+    const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip = calibrated && options.virtualRegrips
       ? RegripDetector.observe(regripDetector, calibrated)
       : undefined;
-    setState({ lastEvent: event });
+    setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
       const profile = resolveProfile({
         protocol: state.connection.protocol.id,
@@ -80,12 +79,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       }, bundledProfiles);
       if (!sameProfile(state.profile, profile)) setState({ profile });
     }
-    eventListeners.forEach(listener => listener(event));
-    if (calibrated && event.type === 'GYRO') {
-      eventListeners.forEach(listener => listener({
-        type: 'CALIBRATED_GYRO', event, relative: calibrated,
-      }));
-    }
+    eventListeners.forEach(listener => listener(sessionEvent));
     if (regrip) {
       eventListeners.forEach(listener => listener({
         type: 'REGRIP', timestamp: event.timestamp,

@@ -48,9 +48,9 @@ describe('smart cube session', () => {
       connect: async () => connection(events$),
       virtualRegrips: true,
     });
-    const received: string[] = [];
+    const received: SmartCubeSessionEvent[] = [];
     session.subscribeEvents(event => {
-      received.push(event.type === 'REGRIP' ? event.notationToken : event.type);
+      received.push(event);
     });
 
     await session.connect();
@@ -60,7 +60,9 @@ describe('smart cube session', () => {
       quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(66), y: 0, z: 0 }),
     });
 
-    expect(received).toEqual(['GYRO', 'CALIBRATED_GYRO', 'GYRO', 'CALIBRATED_GYRO', "x'"]);
+    expect(received.map(event => event.type === 'REGRIP' ? event.notationToken : event.type))
+      .toEqual(['GYRO', 'GYRO', "x'"]);
+    expect(received[0]).toMatchObject({ type: 'GYRO', relative: Quaternion.identity });
     await session.disconnect();
   });
 
