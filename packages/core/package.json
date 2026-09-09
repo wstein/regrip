@@ -18,5 +18,13 @@
   "peerDependencies": {
     "rxjs": "^7.8.2",
     "smartcube-web-bluetooth": "*"
+  },
+  "peerDependenciesMeta": {
+    "rxjs": {
+      "optional": true
+    },
+    "smartcube-web-bluetooth": {
+      "optional": true
+    }
   }
 }
