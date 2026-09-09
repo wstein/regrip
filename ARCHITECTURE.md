@@ -89,7 +89,8 @@ This is not pedantry. It is what makes **JSONL session replay** work:
 2. You feed that file into `jsonlMock.e2e.test.ts`, which injects each event with its **recorded**
    timestamp into `smartCubeSession.ts`.
 3. The pure domain functions receive those historical timestamps and produce byte-identical output
-   to the original live session — down to the millisecond.
+   to the original live session — down to the millisecond. The UI's local solve-clock is an effect,
+   so replay supplies its virtual clock instead of wall time while it is displayed.
 
 If `now()` were called inside the domain, replay would produce different results every run.
 The architecture treats time as controlled test data, not ambient system state.

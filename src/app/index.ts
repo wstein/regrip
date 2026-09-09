@@ -115,11 +115,14 @@ infoPanel.on('reset-gyro', 'click', async () => {
 
 const timerController = createTimerController({
   isConnected: () => session.getState().status === 'connected',
+  now: replay ? () => replay.virtualNowMs : undefined,
   setTimer: infoPanel.setTimer,
   showTimer: infoPanel.showTimer,
   setTimerColor: infoPanel.setTimerColor,
   setSkew: (value) => infoPanel.setInfo('skew', value),
 });
+replay?.subscribeRebuild(() => timerController.reset());
+replay?.subscribeCursor(() => timerController.refresh());
 
 const cubeEvents = createCubeEventController({
   timer: timerController,

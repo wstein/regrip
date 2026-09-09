@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createReplaySession } from './replaySession';
 
@@ -100,6 +100,30 @@ describe('replay session', () => {
     await replay.seekTo(2);
 
     expect(events).toEqual(['BATTERY', 'MOVE']);
+  });
+
+  it('notifies hosts before a backward seek rebuilds the session', async () => {
+    const replay = createReplaySession(rawLog, 'connection');
+    const rebuild = vi.fn();
+    replay.subscribeRebuild(rebuild);
+
+    await replay.seekTo(2);
+    await replay.seekTo(1);
+
+    expect(rebuild).toHaveBeenCalledTimes(1);
+  });
+
+  it('seeks by timestamp with the same inclusive boundary as forward playback', async () => {
+    const replay = createReplaySession(rawLog, 'connection');
+
+    await replay.seekToTimestamp(5);
+    expect(replay.position).toBe(0);
+
+    await replay.seekToTimestamp(10);
+    expect(replay.position).toBe(1);
+
+    await replay.seekToTimestamp(15);
+    expect(replay.position).toBe(1);
   });
 
   it('preserves captured lifecycle order in session-output mode', async () => {

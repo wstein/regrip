@@ -352,8 +352,10 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   const stateListeners = new Set<(state: SmartCubeSessionState) => void>();
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
   const cursorListeners = new Set<ReplayListener>();
+  const rebuildListeners = new Set<ReplayListener>();
 
   const notifyCursor = (): void => cursorListeners.forEach((listener) => listener());
+  const notifyRebuild = (): void => rebuildListeners.forEach((listener) => listener());
   const enqueue = <T>(operation: (generation: number) => Promise<T>): Promise<T> => {
     const generation = ++transportGeneration;
     const task = transport.then(
@@ -377,7 +379,8 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
       eventListeners.forEach((listener) => listener(event)),
     );
   };
-  const rebuild = (): void => {
+  const rebuild = (notify = false): void => {
+    if (notify) notifyRebuild();
     mock = createJsonlMockConnection(contents);
     if (feed === 'connection') {
       output = undefined;
@@ -461,6 +464,11 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
       cursorListeners.add(listener);
       return () => cursorListeners.delete(listener);
     },
+    /** Fires immediately before a backward seek reconstructs the session. */
+    subscribeRebuild(listener: ReplayListener): () => void {
+      rebuildListeners.add(listener);
+      return () => rebuildListeners.delete(listener);
+    },
     async stepOne(): Promise<void> {
       return enqueue(async (generation) => {
         if (!isCurrent(generation)) return;
@@ -493,7 +501,7 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
           await run(forward, generation);
           return;
         }
-        rebuild();
+        rebuild(true);
         const prefix = Array.from({ length: target }, (_, itemIndex) => itemIndex);
         cursor = ReplayCursor.seekTo(timestamps, target);
         await run(prefix, generation);

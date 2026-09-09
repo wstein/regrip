@@ -11,7 +11,7 @@ function xRotation(degrees: number): Quaternion.Quaternion {
 
 function makeController() {
   const setOrientation = vi.fn();
-  const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() };
+  const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() };
   const controller = createCubeEventController({
     timer,
     solveScramble: async () => '',
@@ -50,7 +50,7 @@ describe('cube event gyro bridge', () => {
     const { controller } = makeController();
     const moves: string[] = [];
     const moveController = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() },
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: async () => '',
       addMove: (move) => moves.push(move),
       setOrientation: vi.fn(),

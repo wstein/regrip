@@ -1,30 +1,42 @@
 import { interval } from 'rxjs';
 import type { Subscription } from 'rxjs';
-import { now } from 'smartcube-web-bluetooth';
+import { now as deviceNow } from 'smartcube-web-bluetooth';
 import type { SmartCubeMoveEvent } from 'smartcube-web-bluetooth';
 import * as SmartCubeBindings from '../bindings/Bindings_SmartCube.res.mjs';
 import * as MoveBuffer from '../domain/MoveBuffer.res.mjs';
 import * as Time from '../domain/Time.res.mjs';
 import * as Timer from '../domain/Timer.res.mjs';
 
-export function createLocalTimer(setValue: (milliseconds: number) => void) {
+export function createLocalTimer(
+  setValue: (milliseconds: number) => void,
+  clock: () => number = deviceNow,
+) {
   let subscription: Subscription | null = null;
+  let startedAt: number | undefined;
+
+  const refresh = (): void => {
+    if (startedAt !== undefined) setValue(clock() - startedAt);
+  };
 
   return {
     start(): void {
-      const startedAt = now();
+      startedAt = clock();
       subscription?.unsubscribe();
-      subscription = interval(30).subscribe(() => setValue(now() - startedAt));
+      subscription = interval(30).subscribe(refresh);
     },
     stop(): void {
       subscription?.unsubscribe();
       subscription = null;
+      startedAt = undefined;
     },
+    refresh,
   };
 }
 
 type TimerControllerOptions = {
   isConnected: () => boolean;
+  /** Injected by deterministic replay; live sessions use the device clock. */
+  now?: () => number;
   setTimer: (value: string) => void;
   showTimer: (show: boolean) => void;
   setTimerColor: (color: string) => void;
@@ -41,7 +53,7 @@ export function createTimerController(options: TimerControllerOptions) {
   let state: Timer.State = 'idle';
   let moves = MoveBuffer.initial<SmartCubeMoveEvent>();
   const setTimerValue = (milliseconds: number) => options.setTimer(Time.format(milliseconds));
-  const localTimer = createLocalTimer(setTimerValue);
+  const localTimer = createLocalTimer(setTimerValue, options.now);
 
   function applyEffect(effect: Timer.Effect): void {
     if (typeof effect === 'string') {
@@ -109,7 +121,7 @@ export function createTimerController(options: TimerControllerOptions) {
     dispatch('disconnected');
   }
 
-  return { dispatch, onMove, reset };
+  return { dispatch, onMove, reset, refresh: localTimer.refresh };
 }
 
 export type TimerController = ReturnType<typeof createTimerController>;
