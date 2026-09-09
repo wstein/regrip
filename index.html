@@ -38,6 +38,7 @@
             <button id="replay-reset" type="button">Reset</button>
             <button id="replay-play" type="button">Play</button>
             <button id="replay-step" type="button">Step</button>
+            <button id="replay-load" type="button">Load JSONL</button>
             <select id="replay-speed" aria-label="Replay speed">
               <option value="0.25">0.25×</option>
               <option value="1" selected>1×</option>
@@ -52,6 +53,22 @@
               aria-label="Replay position"
             />
             <span id="replay-position">0 / 0</span>
+            <span id="replay-identity" class="replay-identity"></span>
+            <section id="replay-import" hidden aria-label="Import JSONL replay">
+              <label for="replay-jsonl">Paste JSONL or drop a .jsonl file</label>
+              <textarea
+                id="replay-jsonl"
+                rows="5"
+                spellcheck="false"
+                placeholder='{"recordedAt": ...}'
+              ></textarea>
+              <div id="replay-dropzone" tabindex="0">Drop a local .jsonl file here</div>
+              <div class="replay-import-actions">
+                <button id="replay-import-submit" type="button">Load locally</button>
+                <button id="replay-import-cancel" type="button">Cancel</button>
+                <span id="replay-import-status" aria-live="polite"></span>
+              </div>
+            </section>
           </section>
           <div class="trace-filters" aria-label="Trace filters">
             <button data-trace-filter="MOVE" aria-pressed="true">Move</button>

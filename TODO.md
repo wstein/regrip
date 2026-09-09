@@ -56,7 +56,8 @@
       streams, including feature changes during a replay.
 - [x] Add an in-lab, virtual-clock JSONL replay transport with connection and
       session-output feeds, step/seek/speed controls, fixture-derived device
-      identity, and browser-tested GoCube Edge/GAN UI12 visual baselines.
+      identity, browser-local paste/drop import validation, and browser-tested
+      GoCube Edge/GAN UI12 visual baselines.
 - [x] Run and resolve the remaining dependency audit findings without
       needlessly accepting breaking upgrades. _(Current `npm audit`: clean;
       retain this as a periodic check.)_

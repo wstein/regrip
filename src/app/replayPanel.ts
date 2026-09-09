@@ -1,4 +1,6 @@
 import type { ReplayFeed, ReplaySessionController } from '../session/testing/replaySession';
+import { REPLAY_STORAGE_KEY } from '../session/testing/replaySession';
+import { readJsonlMockIdentity, validateJsonlReplay } from '../session/testing/jsonlMock';
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -16,9 +18,18 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
   const position = element<HTMLElement>('replay-position');
   const speed = element<HTMLSelectElement>('replay-speed');
   const feed = element<HTMLSelectElement>('replay-feed');
+  const load = element<HTMLButtonElement>('replay-load');
+  const identity = element<HTMLElement>('replay-identity');
+  const importer = element<HTMLElement>('replay-import');
+  const jsonl = element<HTMLTextAreaElement>('replay-jsonl');
+  const dropzone = element<HTMLElement>('replay-dropzone');
+  const submit = element<HTMLButtonElement>('replay-import-submit');
+  const cancel = element<HTMLButtonElement>('replay-import-cancel');
+  const importStatus = element<HTMLElement>('replay-import-status');
   panel.hidden = false;
   feed.value = replay.feed;
   scrubber.max = String(replay.length);
+  identity.textContent = `${replay.identity.deviceName} · ${replay.identity.protocol.id}`;
 
   let playing = false;
   let frame: number | undefined;
@@ -66,6 +77,47 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     const nextFeed: ReplayFeed = feed.value === 'session' ? 'session' : 'connection';
     params.set('feed', nextFeed);
     location.search = params.toString();
+  });
+  const setImportStatus = (message = '', error = false): void => {
+    importStatus.textContent = message;
+    importStatus.dataset.error = String(error);
+  };
+  const showImporter = (): void => {
+    importer.hidden = false;
+    setImportStatus();
+    jsonl.focus();
+  };
+  const importContents = (contents: string): void => {
+    try {
+      validateJsonlReplay(contents);
+      const importedIdentity = readJsonlMockIdentity(contents);
+      sessionStorage.setItem(REPLAY_STORAGE_KEY, contents);
+      setImportStatus(`Loaded ${importedIdentity.deviceName} · ${importedIdentity.protocol.id}`);
+      const params = new URLSearchParams(location.search);
+      params.set('replay', '');
+      params.set('fixture', 'local');
+      location.search = params.toString();
+    } catch (error) {
+      setImportStatus(error instanceof Error ? error.message : 'Unable to load JSONL.', true);
+    }
+  };
+  load.addEventListener('click', showImporter);
+  cancel.addEventListener('click', () => {
+    importer.hidden = true;
+    setImportStatus();
+  });
+  submit.addEventListener('click', () => importContents(jsonl.value));
+  dropzone.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    dropzone.classList.add('is-dragging');
+  });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragging'));
+  dropzone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropzone.classList.remove('is-dragging');
+    const file = event.dataTransfer?.files.item(0);
+    if (!file) return;
+    void file.text().then(importContents, () => setImportStatus('Unable to read that file.', true));
   });
   replay.subscribeCursor(render);
   render();

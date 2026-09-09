@@ -15,9 +15,15 @@ import {
   type SmartCubeSessionEvent,
   type SmartCubeSessionState,
 } from '../smartCubeSession';
-import { createJsonlMockConnection, validateJsonlReplay } from './jsonlMock';
+import {
+  createJsonlMockConnection,
+  type JsonlMockIdentity,
+  validateJsonlReplay,
+} from './jsonlMock';
 
 export type ReplayFeed = 'connection' | 'session';
+/** Browser-local storage used only by the dev replay harness. */
+export const REPLAY_STORAGE_KEY = 'regrip.replay.jsonl';
 
 type ReplayItem = {
   timestamp: number;
@@ -276,6 +282,9 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
     } as SmartCubeSession,
     get feed(): ReplayFeed {
       return feed;
+    },
+    get identity(): JsonlMockIdentity {
+      return mock.identity;
     },
     get length(): number {
       return items.length;

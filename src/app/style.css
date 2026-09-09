@@ -132,6 +132,55 @@ body {
   min-width: 4rem;
   accent-color: #78a9ff;
 }
+.replay-identity {
+  flex: 1 0 100%;
+  color: #94a6ca;
+}
+#replay-import {
+  display: grid;
+  flex: 1 0 100%;
+  gap: 0.35rem;
+  color: #b8c8e9;
+}
+#replay-import[hidden] {
+  display: none;
+}
+#replay-import textarea,
+#replay-dropzone {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px dashed #516b9f;
+  border-radius: 0.35rem;
+  color: #dce6ff;
+  background: #0c1528;
+  font:
+    0.61rem/1.35 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+#replay-import textarea {
+  min-height: 4.5rem;
+  padding: 0.35rem;
+  resize: vertical;
+}
+#replay-dropzone {
+  padding: 0.45rem;
+  text-align: center;
+}
+#replay-dropzone.is-dragging {
+  border-color: #91b5ff;
+  background: #17284b;
+}
+.replay-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+#replay-import-status[data-error='true'] {
+  color: #ff9ba6;
+}
 .trace-download-button {
   border-color: #4d78b8;
   color: #d9e6ff;

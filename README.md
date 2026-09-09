@@ -162,8 +162,10 @@ captures: exported logs can contain device and session data.
 To inspect a fixture interactively in the real lab, run `npm run dev`, then open
 `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). The dev-only Replay
 strip supports connection-feed replay through the complete session, session-output replay for UI
-inspection (`&feed=session`), play/pause, stepping, seeking, and speed selection. New JSONL exports
-include the captured device and protocol identity so replay selects the same profile as the device.
+inspection (`&feed=session`), play/pause, stepping, seeking, and speed selection. Use **Load JSONL**
+to paste or drop an arbitrary local capture; it validates the replay header before retaining the text
+only in browser session storage. New JSONL exports include the captured device and protocol identity
+so replay selects the same profile as the device.
 
 Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
 
