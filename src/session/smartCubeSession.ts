@@ -52,6 +52,9 @@ export type SmartCubeSessionEvent =
   | VirtualRegripEvent
   | CustomTriggerEvent;
 
+type SessionEventType = SmartCubeSessionEvent['type'];
+type SessionEventOf<T extends SessionEventType> = Extract<SmartCubeSessionEvent, { type: T }>;
+
 export type SmartCubeSessionState = {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
   connection: SmartCubeConnection | null;
@@ -110,9 +113,18 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   // stabilization consume the resulting calibrated pose.
   const gyro = GyroOrientation.make();
   const stabilizer = OrientationStabilizer.make(stabilizerConfig(state.features));
-  const regripDetector = RegripDetector.make();
-  const moveBackTrigger = MoveBackTrigger.make();
+  let regripDetector = RegripDetector.make({ thresholdDeg: state.features.regrip.thresholdDeg });
+  let moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(state.features) ?? 300 });
   let previousGyroTimestamp: number | undefined;
+
+  function moveBackWindow(features: SessionFeatures): number | undefined {
+    return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
+  }
+
+  function resetFeatureDetectors(features: SessionFeatures): void {
+    regripDetector = RegripDetector.make({ thresholdDeg: features.regrip.thresholdDeg });
+    moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(features) ?? 300 });
+  }
 
   const publish = (): void => listeners.forEach((listener) => listener(state));
   const setState = (next: Partial<SmartCubeSessionState>): void => {
@@ -145,7 +157,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         ? RegripDetector.observe(regripDetector, calibrated)
         : undefined;
     const customTrigger =
-      event.type === 'MOVE'
+      event.type === 'MOVE' &&
+      state.features.customTrigger.enabled &&
+      moveBackWindow(state.features) !== undefined
         ? MoveBackTrigger.observe(moveBackTrigger, event.move, event.timestamp)
         : undefined;
     setState({ lastEvent: sessionEvent });
@@ -160,6 +174,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       if (!sameProfile(state.profile, profile)) {
         const features = resolveSessionFeatures(profile.value.features);
         OrientationStabilizer.setConfig(stabilizer, stabilizerConfig(features));
+        resetFeatureDetectors(features);
         setState({ profile, features });
       }
     }
@@ -209,6 +224,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       });
       const features = resolveSessionFeatures(profile.value.features);
       OrientationStabilizer.setConfig(stabilizer, stabilizerConfig(features));
+      resetFeatureDetectors(features);
       setState({
         connection,
         profile,
@@ -271,6 +287,15 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     subscribeEvents(listener: (event: SmartCubeSessionEvent) => void): () => void {
       eventListeners.add(listener);
       return () => eventListeners.delete(listener);
+    },
+    /** Observe one event type without creating a parallel event channel. */
+    on<T extends SessionEventType>(
+      type: T,
+      listener: (event: SessionEventOf<T>) => void,
+    ): () => void {
+      return this.subscribeEvents((event) => {
+        if (event.type === type) listener(event as SessionEventOf<T>);
+      });
     },
     connect,
     disconnect,
