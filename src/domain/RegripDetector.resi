@@ -1,7 +1,7 @@
 // Detects discrete virtual x/y/z regrips from calibrated gyro orientation.
 // It is intentionally independent from display stabilization and detents.
 
-type config = {thresholdDeg: float, confirmDeg: float}
+type config = {thresholdDeg: float}
 type observation = {sensorFrameToken: string, notationToken: string}
 type t
 
