@@ -35,6 +35,7 @@ export type SmartCubeSessionOptions = {
 
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
+  let connectionGeneration = 0;
   let state: SmartCubeSessionState = {
     status: 'disconnected', connection: null, lastEvent: null, error: null,
     profile: resolveProfile({}, bundledProfiles),
@@ -51,6 +52,8 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     state = { ...state, ...next };
     publish();
   };
+  const sameProfile = (left: ResolvedProfile, right: ResolvedProfile): boolean =>
+    left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
 
   const onEvent = (event: SmartCubeEvent): void => {
     const regrip = event.type === 'GYRO' && options.virtualRegrips
@@ -58,13 +61,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       : undefined;
     setState({ lastEvent: event });
     if (event.type === 'HARDWARE' && state.connection) {
-      setState({ profile: resolveProfile({
+      const profile = resolveProfile({
         protocol: state.connection.protocol.id,
         deviceName: state.connection.deviceName,
         deviceMAC: state.connection.deviceMAC,
         hardwareName: event.hardwareName,
         goCubeType: event.goCubeType?.name,
-      }, bundledProfiles) });
+      }, bundledProfiles);
+      if (!sameProfile(state.profile, profile)) setState({ profile });
     }
     eventListeners.forEach(listener => listener(event));
     if (regrip) {
@@ -84,6 +88,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   async function connect(): Promise<void> {
     if (state.status === 'connecting' || state.connection) return;
+    const generation = ++connectionGeneration;
     setState({ status: 'connecting', error: null });
     resetVirtualRegrips();
     let connection: SmartCubeConnection | null = null;
@@ -96,8 +101,12 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       }, bundledProfiles) });
       subscription = connection.events$.subscribe(onEvent);
       await requestInitialState(connection);
+      // A device can send DISCONNECT while initial commands are in flight.
+      // Never let that earlier attempt restore a dead connection afterwards.
+      if (generation !== connectionGeneration || state.connection !== connection) return;
       setState({ status: 'connected', connection });
     } catch (error) {
+      if (generation !== connectionGeneration) return;
       subscription?.unsubscribe();
       subscription = null;
       await disconnectConnection(connection);
@@ -106,6 +115,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   }
 
   async function disconnect(): Promise<void> {
+    connectionGeneration += 1;
     subscription?.unsubscribe();
     subscription = null;
     const connection = state.connection;
