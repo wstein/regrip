@@ -44,7 +44,7 @@
     "vitest": "~4.1.11"
   },
   "dependencies": {
-    "@types/web-bluetooth": "^0.0.20",
+    "@types/web-bluetooth": "^0.0.21",
     "cubing": "^0.51.2",
     "rxjs": "^7.8.2",
     "smartcube-web-bluetooth": "github:wstein/smartcube-web-bluetooth#559399122d7b590f5d4d38e9700e73de13e712ab",
