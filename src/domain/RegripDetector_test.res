@@ -20,10 +20,14 @@ describe("RegripDetector", () => {
     t->expect(RegripDetector.observe(detector, rotation(~x=59.)))->Expect.toBe(None)
   })
 
-  test("emits opposite Singmaster notation for a positive sensor turn", t => {
+  test("confirms a regrip only near its cardinal quarter turn", t => {
     let detector = RegripDetector.make()
     RegripDetector.observe(detector, Quaternion.identity)->ignore
-    let observation = observe(detector, rotation(~x=66.))
+    // A handling peek may cross the entry threshold, but must not alter the
+    // move frame until it reaches the 90° cardinal neighbourhood.
+    t->expect(RegripDetector.observe(detector, rotation(~x=74.)))->Expect.toBe(None)
+    t->expect(RegripDetector.observe(detector, Quaternion.identity))->Expect.toBe(None)
+    let observation = observe(detector, rotation(~x=80.))
     t->expect(observation.sensorFrameToken)->Expect.toBe("x")
     t->expect(observation.notationToken)->Expect.toBe("x'")
   })
@@ -31,9 +35,18 @@ describe("RegripDetector", () => {
   test("rebases to cardinal steps during a continuous full turn", t => {
     let detector = RegripDetector.make()
     RegripDetector.observe(detector, Quaternion.identity)->ignore
-    let tokens = [66., 156., 246., 336.]
+    let tokens = [80., 170., 260., 350.]
       ->Array.map(degrees => observe(detector, rotation(~x=degrees)).notationToken)
     t->expect(tokens)->Expect.toEqual(["x'", "x'", "x'", "x'"])
+  })
+
+  test("does not emit a reverse regrip after a sub-cardinal peek returns", t => {
+    let detector = RegripDetector.make()
+    RegripDetector.observe(detector, Quaternion.identity)->ignore
+    [60., 74., 40., 0.]
+      ->Array.forEach(degrees =>
+        t->expect(RegripDetector.observe(detector, rotation(~x=degrees)))->Expect.toBe(None)
+      )
   })
 
   test("preserves local mixed-axis order", t => {
@@ -41,8 +54,8 @@ describe("RegripDetector", () => {
     let x = rotation(~x=90.)
     let y = rotation(~y=90.)
     RegripDetector.observe(detector, Quaternion.identity)->ignore
-    let first = observe(detector, rotation(~x=66.))
-    let second = observe(detector, Quaternion.multiply(x, rotation(~y=66.)))
+    let first = observe(detector, rotation(~x=80.))
+    let second = observe(detector, Quaternion.multiply(x, rotation(~y=80.)))
     t->expect([first.notationToken, second.notationToken])->Expect.toEqual(["x'", "y'"])
     t->expect(Quaternion.angle(Quaternion.multiply(x, y), Quaternion.multiply(y, x)) > 0.)->Expect.toBe(true)
   })

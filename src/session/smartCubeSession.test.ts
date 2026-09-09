@@ -57,7 +57,7 @@ describe('smart cube session', () => {
     events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
     events$.next({
       type: 'GYRO', timestamp: 2,
-      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(66), y: 0, z: 0 }),
+      quaternion: Quaternion.fromEuler({ x: Quaternion.degreesToRadians(80), y: 0, z: 0 }),
     });
 
     expect(received).toEqual(['GYRO', 'CALIBRATED_GYRO', 'GYRO', 'CALIBRATED_GYRO', "x'"]);

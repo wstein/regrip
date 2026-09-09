@@ -1,10 +1,12 @@
 // Discrete virtual regrip detection. This is separate from OrientationStabilizer:
 // it consumes calibrated, unmodified gyro poses and only owns an event baseline.
 
-type config = {thresholdDeg: float}
+type config = {thresholdDeg: float, confirmDeg: float}
 type observation = {sensorFrameToken: string, notationToken: string}
 
-let defaults = {thresholdDeg: 60.}
+// Threshold avoids treating tiny ordinary handling as a regrip. Confirmation
+// requires reaching the intended 90° pose before a virtual move is emitted.
+let defaults = {thresholdDeg: 60., confirmDeg: 15.}
 
 type t = {mutable baseline: option<Quaternion.t>, config: config}
 
@@ -78,19 +80,19 @@ let observe = (t: t, current: Quaternion.t): option<observation> => {
   | Some(baseline) => {
       // GyroOrientation.relative is in the cube's local calibrated frame.
       let delta = Quaternion.multiply(Quaternion.conjugate(baseline), current)
-      if Quaternion.angle(Quaternion.identity, delta) < Quaternion.degreesToRadians(t.config.thresholdDeg) {
+      let deltaAngle = Quaternion.angle(Quaternion.identity, delta)
+      let cardinal = CubeSymmetry.nearest(delta, None, 0.)
+      let confirmsCardinal = Quaternion.angle(delta, cardinal) <= Quaternion.degreesToRadians(t.config.confirmDeg)
+      if deltaAngle < Quaternion.degreesToRadians(t.config.thresholdDeg)
+        || Quaternion.angle(Quaternion.identity, cardinal) < 0.00001
+        || !confirmsCardinal {
         None
       } else {
-        let cardinal = CubeSymmetry.nearest(delta, None, 0.)
-        if Quaternion.angle(Quaternion.identity, cardinal) < 0.00001 {
-          None
-        } else {
-          let (axis, positive) = axisAndPolarity(delta)
-          // Project to an exact cardinal quarter turn rather than using the
-          // threshold packet, so a continuous rotation yields four steps.
-          t.baseline = Some(Quaternion.multiply(baseline, quarter(axis, positive)))
-          Some({sensorFrameToken: sensorToken(axis, positive), notationToken: notationToken(axis, positive)})
-        }
+        let (axis, positive) = axisAndPolarity(delta)
+        // Project to an exact cardinal quarter turn rather than using the
+        // confirmation packet, so a continuous rotation yields four steps.
+        t.baseline = Some(Quaternion.multiply(baseline, quarter(axis, positive)))
+        Some({sensorFrameToken: sensorToken(axis, positive), notationToken: notationToken(axis, positive)})
       }
     }
   }
