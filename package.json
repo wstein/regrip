@@ -17,6 +17,7 @@
     "dev:vite": "vite",
     "docs:api": "typedoc --options typedoc.json",
     "docs:check": "typedoc --options typedoc.json --emit none --treatValidationWarningsAsErrors",
+    "check:events": "node scripts/check-smartcube-events.mjs",
     "format": "rescript format && prettier --write .",
     "format:check": "rescript format --check && prettier --check .",
     "build": "rescript && tsc && vite build",
