@@ -89,6 +89,7 @@ export function createLiveLog({
   const root = document.getElementById('event-log-rows');
   const clear = document.getElementById('clear-trace');
   const sort = document.getElementById('sort-trace');
+  const follow = document.getElementById('follow-trace');
   const selection = document.getElementById('trace-selection');
   const selectionCount = document.getElementById('trace-selection-count');
   const selectAll = document.getElementById('select-all-trace');
@@ -108,6 +109,7 @@ export function createLiveLog({
     !root ||
     !clear ||
     !sort ||
+    !follow ||
     !selection ||
     !selectionCount ||
     !selectAll ||
@@ -136,6 +138,7 @@ export function createLiveLog({
   );
   const selected = new Set<number>();
   let newestFirst = true;
+  let autoFollow = true;
   let nextId = 1;
   let lastSelectedId: number | undefined;
   let focusedId: number | undefined;
@@ -147,6 +150,18 @@ export function createLiveLog({
     selectedEntries()
       .filter((entry) => entry.category === 'MOVE')
       .map((entry) => entry.message);
+
+  const followEdge = (): number => (newestFirst ? 0 : root.scrollHeight);
+  const isAtFollowEdge = (): boolean => {
+    const tolerance = 2;
+    return newestFirst
+      ? root.scrollTop <= tolerance
+      : root.scrollTop + root.clientHeight >= root.scrollHeight - tolerance;
+  };
+  const updateFollowButton = (): void => {
+    follow.toggleAttribute('disabled', autoFollow);
+    follow.textContent = autoFollow ? 'Following newest' : 'Newest';
+  };
 
   const updateSelection = (): void => {
     const count = selected.size;
@@ -261,7 +276,7 @@ export function createLiveLog({
     );
     updateSelection();
     updateDetail();
-    root.scrollTop = previousScrollTop;
+    root.scrollTop = autoFollow ? followEdge() : previousScrollTop;
   };
 
   const appendEntry = (category: TraceCategory, message: string, log: LogEntry): void => {
@@ -281,7 +296,7 @@ export function createLiveLog({
     }
     entries.value = nextEntries;
     render();
-    root.scrollTop = newestFirst ? 0 : root.scrollHeight;
+    if (autoFollow) root.scrollTop = followEdge();
   };
 
   const append = (
@@ -325,7 +340,20 @@ export function createLiveLog({
     sort.setAttribute('aria-label', newestFirst ? 'Sort newest first' : 'Sort oldest first');
     sort.setAttribute('title', newestFirst ? 'Sort newest first' : 'Sort oldest first');
     render();
-    root.scrollTop = newestFirst ? 0 : root.scrollHeight;
+    autoFollow = true;
+    root.scrollTop = followEdge();
+    updateFollowButton();
+  });
+  follow.addEventListener('click', () => {
+    autoFollow = true;
+    root.scrollTop = followEdge();
+    updateFollowButton();
+  });
+  root.addEventListener('scroll', () => {
+    const nextAutoFollow = isAtFollowEdge();
+    if (nextAutoFollow === autoFollow) return;
+    autoFollow = nextAutoFollow;
+    updateFollowButton();
   });
   selectAll.addEventListener('click', () => {
     visibleEntries.value.forEach((entry) => selected.add(entry.id));
@@ -367,6 +395,7 @@ export function createLiveLog({
   document.addEventListener('click', (event) => {
     if (!contextMenu.hidden && !contextMenu.contains(event.target as Node)) hideContextMenu();
   });
+  updateFollowButton();
 
   return {
     append,

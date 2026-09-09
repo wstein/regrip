@@ -69,8 +69,9 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     void replay.reset();
   });
   scrubber.addEventListener('input', () => {
+    const target = Number(scrubber.value);
     pause();
-    void replay.seekTo(Number(scrubber.value));
+    void replay.seekTo(target);
   });
   feed.addEventListener('change', () => {
     const params = new URLSearchParams(location.search);

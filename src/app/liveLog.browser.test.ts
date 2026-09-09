@@ -7,7 +7,7 @@ const filters = ['MOVE', 'EVENT', 'STATE', 'GYRO', 'REGRIP', 'TRIGGER'];
 
 function mountTrace(): void {
   document.body.innerHTML = `
-    <button id="clear-trace"></button><button id="sort-trace"></button>
+    <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button>
     <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
     <div id="trace-selection" hidden><span id="trace-selection-count"></span>
       <button id="select-all-trace"></button><button id="export-trace"></button>
@@ -147,5 +147,28 @@ describe('live trace browser interactions', () => {
 
     expect(trace.getEntries()).toEqual([]);
     expect(onClear).toHaveBeenCalledOnce();
+  });
+
+  it('pauses auto-follow after manual scrolling and resumes from Newest', () => {
+    mountTrace();
+    const root = document.querySelector<HTMLElement>('#event-log-rows')!;
+    Object.defineProperties(root, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 500 },
+    });
+    const trace = createLiveLog();
+
+    trace.append('EVENT', 'first');
+    root.scrollTop = 240;
+    root.dispatchEvent(new Event('scroll'));
+    trace.append('EVENT', 'second');
+
+    expect(root.scrollTop).toBe(240);
+    expect(document.querySelector<HTMLButtonElement>('#follow-trace')?.disabled).toBe(false);
+
+    click('#follow-trace');
+    trace.append('EVENT', 'third');
+    expect(root.scrollTop).toBe(0);
+    expect(document.querySelector<HTMLButtonElement>('#follow-trace')?.disabled).toBe(true);
   });
 });
