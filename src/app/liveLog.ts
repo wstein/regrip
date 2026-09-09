@@ -1,6 +1,19 @@
 import type { SmartCubeSessionEvent } from '../session/smartCubeSession';
+import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
 export type TraceCategory = 'MOVE' | 'EVENT' | 'STATE' | 'GYRO' | 'REGRIP' | 'TRIGGER';
+
+export type TraceEntry = {
+  id: number;
+  category: TraceCategory;
+  message: string;
+  log: LogEntry;
+};
+
+type LiveLogOptions = {
+  onReproduceMoves?: (moves: string[]) => void;
+  now?: () => Date;
+};
 
 const maxRows = 300;
 
@@ -17,30 +30,130 @@ export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCatego
   }
 }
 
-function time(timestamp = Date.now()): string {
+function displayTime(timestamp: number): string {
   const date = new Date(timestamp);
   return `${date.toLocaleTimeString([], { hour12: false })}.${String(date.getMilliseconds()).padStart(3, '0')}`;
 }
 
-/** Always-on, bounded DOM trace. This intentionally has no JSONL dependency. */
-export function createLiveLog() {
+function eventTimestamp(event: SmartCubeSessionEvent): number {
+  return 'timestamp' in event ? event.timestamp : Date.now();
+}
+
+/** Always-on, bounded trace. Download recording remains a separate, opt-in concern. */
+export function createLiveLog({ onReproduceMoves, now = () => new Date() }: LiveLogOptions = {}) {
   const root = document.getElementById('event-log-rows');
   const clear = document.getElementById('clear-trace');
   const sort = document.getElementById('sort-trace');
-  if (!root || !clear || !sort) throw new Error('Missing live trace elements');
-  const enabled = new Set<TraceCategory>(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']);
-  let newestFirst = true;
+  const selection = document.getElementById('trace-selection');
+  const selectionCount = document.getElementById('trace-selection-count');
+  const selectAll = document.getElementById('select-all-trace');
+  const exportButton = document.getElementById('export-trace');
+  const copyButton = document.getElementById('copy-trace');
+  const reproduceButton = document.getElementById('reproduce-trace');
+  const clearSelection = document.getElementById('clear-trace-selection');
+  if (!root || !clear || !sort || !selection || !selectionCount || !selectAll || !exportButton || !copyButton || !reproduceButton || !clearSelection) {
+    throw new Error('Missing live trace elements');
+  }
 
-  const append = (category: TraceCategory, message: string, timestamp?: number): void => {
+  const enabled = new Set<TraceCategory>(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']);
+  const entries: TraceEntry[] = [];
+  const selected = new Set<number>();
+  let newestFirst = true;
+  let nextId = 1;
+  let lastSelectedId: number | undefined;
+
+  const selectedEntries = (): TraceEntry[] => entries.filter(entry => selected.has(entry.id));
+  const selectedMoves = (): string[] => selectedEntries()
+    .filter(entry => entry.category === 'MOVE')
+    .map(entry => entry.message);
+
+  const updateSelection = (): void => {
+    const count = selected.size;
+    selection.hidden = count === 0;
+    selectionCount.textContent = `${count} selected`;
+    reproduceButton.toggleAttribute('disabled', selectedMoves().length === 0);
+  };
+
+  const selectEntry = (id: number, range: boolean): void => {
+    if (range && lastSelectedId !== undefined) {
+      const start = entries.findIndex(entry => entry.id === lastSelectedId);
+      const end = entries.findIndex(entry => entry.id === id);
+      if (start !== -1 && end !== -1) {
+        const [from, to] = start < end ? [start, end] : [end, start];
+        entries.slice(from, to + 1).forEach(entry => selected.add(entry.id));
+      }
+    } else if (selected.has(id)) selected.delete(id);
+    else selected.add(id);
+    lastSelectedId = id;
+    render();
+  };
+
+  const render = (): void => {
+    const ordered = newestFirst ? [...entries].reverse() : entries;
+    root.replaceChildren(...ordered.map(entry => {
+      const row = document.createElement('article');
+      row.className = `trace-row trace-${entry.category.toLowerCase()}`;
+      row.dataset.traceId = String(entry.id);
+      row.tabIndex = 0;
+      row.setAttribute('aria-expanded', 'false');
+
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.className = 'trace-select';
+      check.checked = selected.has(entry.id);
+      check.setAttribute('aria-label', `Select ${entry.category} event`);
+      check.addEventListener('click', event => {
+        event.stopPropagation();
+        selectEntry(entry.id, (event as MouseEvent).shiftKey);
+      });
+
+      const badge = document.createElement('button');
+      badge.type = 'button';
+      badge.className = 'trace-badge';
+      badge.textContent = entry.category;
+      badge.title = `Select all ${entry.category} events`;
+      badge.addEventListener('click', event => {
+        event.stopPropagation();
+        entries.filter(candidate => candidate.category === entry.category).forEach(candidate => selected.add(candidate.id));
+        lastSelectedId = entry.id;
+        render();
+      });
+
+      const timestamp = document.createElement('time');
+      timestamp.textContent = displayTime(Date.parse(entry.log.recordedAt));
+      const message = document.createElement('span');
+      message.className = 'trace-message';
+      message.textContent = entry.message;
+      const details = document.createElement('pre');
+      details.className = 'trace-details';
+      details.hidden = true;
+      details.textContent = JSON.stringify(entry.log, null, 2);
+
+      row.append(check, badge, timestamp, message, details);
+      const toggleDetails = (): void => {
+        details.hidden = !details.hidden;
+        row.setAttribute('aria-expanded', String(!details.hidden));
+      };
+      row.addEventListener('click', toggleDetails);
+      row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleDetails(); }
+      });
+      return row;
+    }));
+    updateSelection();
+  };
+
+  const append = (category: TraceCategory, message: string, timestamp = now().getTime(), data: JsonValue = { message }): void => {
     if (!enabled.has(category)) return;
-    const row = document.createElement('div');
-    row.className = `trace-row trace-${category.toLowerCase()}`;
-    row.innerHTML = `<span class="trace-badge">${category}</span><time>${time(timestamp)}</time><span class="trace-message"></span>`;
-    row.querySelector<HTMLSpanElement>('.trace-message')!.textContent = message;
-    if (newestFirst) root.prepend(row); else root.append(row);
-    while (root.children.length > maxRows) {
-      (newestFirst ? root.lastElementChild : root.firstElementChild)?.remove();
+    entries.push({
+      id: nextId++, category, message,
+      log: { recordedAt: new Date(timestamp).toISOString(), type: category.toLowerCase(), data },
+    });
+    while (entries.length > maxRows) {
+      const removed = entries.shift()!;
+      selected.delete(removed.id);
     }
+    render();
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   };
 
@@ -53,21 +166,34 @@ export function createLiveLog() {
       button.setAttribute('aria-pressed', String(enabled.has(category)));
     });
   });
-  clear.addEventListener('click', () => { root.replaceChildren(); });
+  clear.addEventListener('click', () => { entries.splice(0); selected.clear(); lastSelectedId = undefined; render(); });
   sort.addEventListener('click', () => {
     newestFirst = !newestFirst;
-    root.replaceChildren(...Array.from(root.children).reverse());
     sort.textContent = newestFirst ? '↓ Newest' : '↑ Oldest';
     sort.setAttribute('aria-label', newestFirst ? 'Sort newest first' : 'Sort oldest first');
     sort.setAttribute('title', newestFirst ? 'Sort newest first' : 'Sort oldest first');
+    render();
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   });
+  selectAll.addEventListener('click', () => { entries.forEach(entry => selected.add(entry.id)); render(); });
+  clearSelection.addEventListener('click', () => { selected.clear(); lastSelectedId = undefined; render(); });
+  exportButton.addEventListener('click', () => {
+    const contents = serializeJsonl(selectedEntries().map(entry => entry.log));
+    if (contents) downloadJsonl(contents, `smartcube-trace-${now().toISOString().replace(/:/g, '-')}.jsonl`);
+  });
+  copyButton.addEventListener('click', () => {
+    const contents = serializeJsonl(selectedEntries().map(entry => entry.log));
+    if (contents) void navigator.clipboard?.writeText(contents);
+  });
+  reproduceButton.addEventListener('click', () => onReproduceMoves?.(selectedMoves()));
 
   return {
     append,
     appendSessionEvent(event: SmartCubeSessionEvent): void {
       const [category, message] = describeSessionEvent(event);
-      append(category, message, 'timestamp' in event ? event.timestamp : undefined);
+      append(category, message, eventTimestamp(event), event as unknown as JsonValue);
     },
+    getEntries: (): readonly TraceEntry[] => entries,
+    getSelectedEntries: (): TraceEntry[] => selectedEntries(),
   };
 }

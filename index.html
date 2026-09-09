@@ -33,6 +33,14 @@
           <button data-trace-filter="REGRIP" aria-pressed="true">Regrip</button>
           <button data-trace-filter="TRIGGER" aria-pressed="true">Trigger</button>
         </div>
+        <div id="trace-selection" class="trace-selection" hidden aria-live="polite">
+          <span id="trace-selection-count">0 selected</span>
+          <button id="select-all-trace" type="button">Select all</button>
+          <button id="export-trace" type="button">Export JSONL</button>
+          <button id="copy-trace" type="button">Copy JSONL</button>
+          <button id="reproduce-trace" type="button">Reproduce moves</button>
+          <button id="clear-trace-selection" type="button">Clear selection</button>
+        </div>
         <div id="event-log-rows" role="log" aria-live="polite"></div>
       </aside>
 

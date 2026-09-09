@@ -82,6 +82,10 @@ export function clearDetectedMoves(): void {
   textarea('detectedMoves').value = '';
 }
 
+export function setDetectedMoves(moves: string): void {
+  textarea('detectedMoves').value = moves;
+}
+
 export async function copyDetectedMoves(): Promise<void> {
   const moves = textarea('detectedMoves');
   if (navigator.clipboard?.writeText) {

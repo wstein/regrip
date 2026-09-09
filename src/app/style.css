@@ -25,11 +25,18 @@ body {
 .trace-filters { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.65rem 0.8rem; border-bottom: 1px solid #283653; }
 .trace-filters button { padding: 0.25rem 0.4rem; color: #75829e; background: #111a2d; border-color: #2c3956; border-radius: 0.35rem; font-size: 0.64rem; }
 .trace-filters button.is-active { color: #d9e6ff; background: #1d365c; border-color: #4d78b8; }
-#event-log-rows { max-height: calc(100vh - 11rem); overflow-y: auto; font: 0.68rem/1.35 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
-.trace-row { display: grid; grid-template-columns: 3.7rem max-content minmax(0, 1fr); gap: 0.4rem; align-items: baseline; padding: 0.38rem 0.55rem; border-bottom: 1px solid rgb(48 63 94 / 55%); }
+#trace-selection { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; padding: 0.55rem 0.8rem; border-bottom: 1px solid #283653; color: #bac8e5; font-size: 0.66rem; }
+#trace-selection button { padding: 0.22rem 0.36rem; font-size: 0.62rem; }
+#trace-selection-count { width: 100%; color: #dce6ff; font-weight: 700; }
+#event-log-rows { max-height: calc(100vh - 15rem); overflow-y: auto; font: 0.68rem/1.35 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+.trace-row { display: grid; grid-template-columns: min-content 3.7rem max-content minmax(0, 1fr); gap: 0.4rem; align-items: baseline; padding: 0.38rem 0.55rem; border-bottom: 1px solid rgb(48 63 94 / 55%); cursor: pointer; }
+.trace-row[aria-expanded="true"] { background: #111d35; }
+.trace-select { accent-color: #72a1f1; margin: 0; }
 .trace-row time { color: #75829e; font-size: 0.62rem; }
 .trace-message { overflow: hidden; color: #d5def3; text-overflow: ellipsis; white-space: nowrap; }
-.trace-badge { padding: 0.08rem 0.22rem; border-radius: 0.2rem; color: #c9d9f8; background: #263959; font-size: 0.59rem; font-weight: 800; text-align: center; }
+.trace-badge { padding: 0.08rem 0.22rem; border: 0; border-radius: 0.2rem; color: #c9d9f8; background: #263959; font-size: 0.59rem; font-weight: 800; text-align: center; }
+.trace-badge:hover:not(:disabled) { transform: none; filter: brightness(1.18); }
+.trace-details { grid-column: 1 / -1; max-height: 13rem; margin: 0.2rem 0 0; padding: 0.5rem; overflow: auto; border: 1px solid #344260; border-radius: 0.35rem; color: #b9c8e8; background: #080e1c; font: 0.61rem/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; white-space: pre-wrap; }
 .trace-move .trace-badge { color: #d9ffe9; background: #245840; }
 .trace-state .trace-badge { color: #dce6ff; background: #38476a; }
 .trace-regrip .trace-badge { color: #ffe4b5; background: #70502a; }

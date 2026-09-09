@@ -30,7 +30,13 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
-const liveLog = createLiveLog();
+const liveLog = createLiveLog({
+  onReproduceMoves: moves => {
+    const algorithm = moves.join(' ');
+    twistyPlayer.alg = algorithm;
+    infoPanel.setDetectedMoves(algorithm);
+  },
+});
 const virtualMoveFrame = createVirtualMoveFrame();
 const virtualFrameQuaternion = new THREE.Quaternion();
 const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
@@ -159,7 +165,12 @@ session.subscribe(state => {
   }
   if (state.status === previousStatus) return;
   previousStatus = state.status;
-  liveLog.append('STATE', state.status === 'error' ? `failed: ${state.error}` : state.status);
+  liveLog.append(
+    'STATE',
+    state.status === 'error' ? `failed: ${state.error}` : state.status,
+    undefined,
+    { status: state.status, error: state.error ?? null },
+  );
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {

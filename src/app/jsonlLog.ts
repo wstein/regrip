@@ -1,10 +1,14 @@
-type JsonValue = Record<string, unknown>;
+export type JsonValue = Record<string, unknown>;
 
-type LogEntry = {
+export type LogEntry = {
   recordedAt: string;
   type: string;
   data: JsonValue;
 };
+
+export function serializeJsonl(entries: readonly LogEntry[]): string {
+  return entries.map(entry => JSON.stringify(entry)).join('\n') + (entries.length > 0 ? '\n' : '');
+}
 
 /** In-memory JSONL recorder. Browser download is deliberately kept at the UI edge. */
 export function createJsonlLog(now: () => string = () => new Date().toISOString()) {
@@ -26,7 +30,7 @@ export function createJsonlLog(now: () => string = () => new Date().toISOString(
     stop(): string {
       record('log_stopped', { entries: entries.length });
       active = false;
-      return entries.map(entry => JSON.stringify(entry)).join('\n') + (entries.length > 0 ? '\n' : '');
+      return serializeJsonl(entries);
     },
   };
 }
