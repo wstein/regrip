@@ -7,7 +7,7 @@ import type {
 } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as GyroPipeline from '../domain/GyroPipeline.res.mjs';
-import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
+import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
 import * as Quaternion from '../domain/Quaternion.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import type { RegripToken } from '../domain/CubeNotation.res.mjs';
