@@ -118,6 +118,7 @@ independent and `session` does not depend on presentation layers.
 | Module                            | Responsibility                                                            |
 | --------------------------------- | ------------------------------------------------------------------------- |
 | `src/app/`                        | DOM, trace/JSONL tooling, styles, and composition root                    |
+| `src/app/sessionSignals.ts`       | App-only reactive mirror of headless session state and ordered events     |
 | `src/session/smartCubeSession.ts` | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
 | `src/session/profile/`            | Profile inheritance, matching, overrides, and per-field provenance        |
 | `src/session/virtualMoveFrame.ts` | Thin TypeScript adapter for the domain virtual cube frame                 |

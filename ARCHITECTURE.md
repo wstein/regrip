@@ -127,6 +127,14 @@ and makes the adapter a single, well-defined debugging target.
 
 `domain` imports nothing outside itself. Any violation is a **lint error in CI**.
 
+### Reactive UI boundary
+
+`@preact/signals-core` is confined to `src/app/`. `sessionSignals.ts` mirrors the headless
+session's state and ordered event stream into signals; it is the only bridge the DOM uses. The
+session itself remains callback-based and framework-free, so replay, tests, and downstream hosts
+do not acquire a UI dependency. ESLint rejects Signals imports from `session/`, `adapters/`, and
+`bindings/`.
+
 ---
 
 ## `Timer.res` is the canonical domain pattern
