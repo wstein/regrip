@@ -1,5 +1,6 @@
-// The smartcube package exposes timestamp helpers in JavaScript. Keep that
-// boundary here so application code never imports untyped helpers directly.
+// Typed FFI boundary for timestamp helpers exported by smartcube-web-bluetooth.
+// Bindings live outside domain so domain modules remain dependency-free and
+// reusable; any non-domain layer may opt into this package boundary.
 
 @module("smartcube-web-bluetooth")
 external cubeTimestampCalcSkew: array<'move> => float = "cubeTimestampCalcSkew"
