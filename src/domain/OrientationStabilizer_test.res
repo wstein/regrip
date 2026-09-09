@@ -72,4 +72,39 @@ describe("OrientationStabilizer", () => {
     let output = stabilizer->OrientationStabilizer.update(raw, ~velocity=2.5, ~dtSeconds=1.)
     expectSamePose(t, output, raw)
   })
+
+  test("keeps an oscillating resting hand bounded at one cardinal lock", t => {
+    let stabilizer = OrientationStabilizer.make()
+    let outputs = [3.8, 3.2, 3.9, 3.4, 3.7, 3.3]
+      ->Array.map(degrees =>
+        stabilizer->OrientationStabilizer.update(xRotation(degrees), ~dtSeconds=0.1)
+        ->angleToIdentity
+      )
+    let maximum = outputs->Array.reduce(0., (largest, value) => Math.max(largest, value))
+    // The snap well eliminates the 3–4° raw tremor rather than alternating
+    // between a raw sample and a cardinal pose at its former discontinuity.
+    t->expect(maximum < Quaternion.degreesToRadians(0.1))->Expect.toBe(true)
+    switch stabilizer->OrientationStabilizer.lockedPose {
+    | Some(lock) => expectSamePose(t, lock, Quaternion.identity)
+    | None => t->expect(false)->Expect.toBe(true)
+    }
+  })
+
+  test("passes through a deliberate turn before relocking with drift active", t => {
+    let stabilizer = OrientationStabilizer.make()
+    let midTurn = xRotation(67.5)
+    let whileTurning = stabilizer->OrientationStabilizer.update(
+      midTurn,
+      ~velocity=OrientationStabilizer.defaults.velocityMax,
+      ~dtSeconds=0.1,
+    )
+    expectSamePose(t, whileTurning, midTurn)
+
+    let landed = stabilizer->OrientationStabilizer.update(xRotation(90.), ~dtSeconds=0.1)
+    expectSamePose(t, landed, xRotation(90.))
+    switch stabilizer->OrientationStabilizer.lockedPose {
+    | Some(lock) => expectSamePose(t, lock, xRotation(90.))
+    | None => t->expect(false)->Expect.toBe(true)
+    }
+  })
 })
