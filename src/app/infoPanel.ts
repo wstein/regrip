@@ -38,7 +38,7 @@ export function setInfo(id: string, value: string): void {
 
 export function showInfo(id: string): void {
   input(id).hidden = false;
-  const label = document.querySelector<HTMLLabelElement>(`.info label[for="${id}"]`);
+  const label = document.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
   if (!label) throw new Error(`Missing label for #${id}`);
   label.hidden = false;
 }
@@ -89,12 +89,12 @@ export async function copyDetectedMoves(): Promise<void> {
 }
 
 export function clearInfo(): void {
-  document.querySelectorAll<HTMLInputElement>('.info input').forEach(element => {
+  document.querySelectorAll<HTMLInputElement>('.info input, .cubie-state-panel input').forEach(element => {
     element.value = notAvailable;
   });
   optionalInfoIds.forEach(id => {
     input(id).hidden = true;
-    const label = document.querySelector<HTMLLabelElement>(`.info label[for="${id}"]`);
+    const label = document.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
     if (!label) throw new Error(`Missing label for #${id}`);
     label.hidden = true;
   });
