@@ -64,3 +64,9 @@ npm test         # Compile ReScript and run Vitest specs
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
 ```
+
+## Community
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change.
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+- Report security issues according to [SECURITY.md](SECURITY.md), not in a public issue.

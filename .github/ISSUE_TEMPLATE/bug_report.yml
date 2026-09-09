@@ -1,0 +1,41 @@
+name: Bug report
+description: Report unexpected behavior in the demo, session, or supported cube protocol.
+title: 'bug: '
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include device MAC addresses, serial numbers, credentials, or unredacted JSONL logs.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the unexpected behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Connect …
+        2. Turn …
+        3. Observe …
+    validations:
+      required: true
+  - type: input
+    id: cube
+    attributes:
+      label: Cube model and protocol
+      placeholder: GoCube / gocube
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 140 on macOS
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics
+      description: Include console output or a minimal, redacted event sequence if useful.

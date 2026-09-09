@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement to the example, supported cube behavior, or developer experience.
+title: 'feat: '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do, and what is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the behavior and any protocol, UI, or API implications.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Domain logic
+        - Smart-cube session or protocol
+        - Rendering or gyro orientation
+        - Demo UI
+        - Documentation or tooling
