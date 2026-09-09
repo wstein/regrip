@@ -37,6 +37,8 @@ export function createLiveLog() {
     row.querySelector<HTMLSpanElement>('.trace-message')!.textContent = message;
     root.prepend(row);
     while (root.children.length > maxRows) root.lastElementChild?.remove();
+    // Rows are newest-first, so keep the current trace event in view.
+    root.scrollTop = 0;
   };
 
   document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach(button => {
