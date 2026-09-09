@@ -25,6 +25,8 @@
     "preview": "vite preview",
     "test": "rescript && vitest run",
     "test:browser": "playwright test",
+    "test:screenshots": "playwright test test/browser/ui-screenshots.spec.ts",
+    "test:screenshots:update": "playwright test test/browser/ui-screenshots.spec.ts --update-snapshots",
     "test:snapshot": "rescript && vitest run src/session/jsonlMock.e2e.test.ts --update",
     "test:watch": "run-p res:watch test:vitest",
     "test:vitest": "vitest"

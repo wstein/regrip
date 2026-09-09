@@ -7,6 +7,7 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:4173',
     viewport: { width: 640, height: 480 },
   },
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   webServer: {
     command: 'npm run dev:vite -- --host 127.0.0.1 --port 4173',
     url: 'http://127.0.0.1:4173',

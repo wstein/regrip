@@ -5,6 +5,7 @@ declare global {
   interface Window {
     /** Test harness only: supplies an in-memory connection before app bootstrap. */
     __smartcubeMockConnect?: () => Promise<SmartCubeConnection>;
+    __smartcubeMockReplay?: () => void;
   }
 }
 
