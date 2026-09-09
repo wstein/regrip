@@ -29,6 +29,15 @@ body {
   font-size: 0.9rem;
   line-height: 1.45;
 }
+.help a {
+  color: #8bb7ff;
+  font-weight: 700;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+.help a:hover {
+  color: #c3daff;
+}
 
 .app-layout {
   display: grid;
