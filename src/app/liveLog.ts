@@ -1,6 +1,7 @@
 import { computed, signal } from '@preact/signals-core';
 
 import type { SmartCubeSessionEvent } from '../session/smartCubeSession';
+import { byId } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
 export type TraceCategory = 'MOVE' | 'EVENT' | 'STATE' | 'GYRO' | 'REGRIP' | 'TRIGGER';
@@ -86,48 +87,25 @@ export function createLiveLog({
   onFocusEntry,
   now = () => new Date(),
 }: LiveLogOptions = {}) {
-  const root = document.getElementById('event-log-rows');
-  const clear = document.getElementById('clear-trace');
-  const sort = document.getElementById('sort-trace');
-  const follow = document.getElementById('follow-trace');
-  const selection = document.getElementById('trace-selection');
-  const selectionCount = document.getElementById('trace-selection-count');
-  const selectAll = document.getElementById('select-all-trace');
-  const exportButton = document.getElementById('export-trace');
-  const copyButton = document.getElementById('copy-trace');
-  const reproduceButton = document.getElementById('reproduce-trace');
-  const clearSelection = document.getElementById('clear-trace-selection');
-  const detail = document.getElementById('trace-detail');
-  const detailSummary = document.getElementById('trace-detail-summary');
-  const detailJson = document.getElementById('trace-detail-json');
-  const copyDetail = document.getElementById('copy-trace-detail');
-  const contextMenu = document.getElementById('trace-context-menu');
-  const selectContextEvent = document.getElementById('select-trace-event');
-  const copyContextEvent = document.getElementById('copy-trace-event');
-  const exportContextEvent = document.getElementById('export-trace-event');
-  if (
-    !root ||
-    !clear ||
-    !sort ||
-    !follow ||
-    !selection ||
-    !selectionCount ||
-    !selectAll ||
-    !exportButton ||
-    !copyButton ||
-    !reproduceButton ||
-    !clearSelection ||
-    !detail ||
-    !detailSummary ||
-    !detailJson ||
-    !copyDetail ||
-    !contextMenu ||
-    !selectContextEvent ||
-    !copyContextEvent ||
-    !exportContextEvent
-  ) {
-    throw new Error('Missing live trace elements');
-  }
+  const root = byId('event-log-rows');
+  const clear = byId('clear-trace');
+  const sort = byId('sort-trace');
+  const follow = byId<HTMLButtonElement>('follow-trace');
+  const selection = byId('trace-selection');
+  const selectionCount = byId('trace-selection-count');
+  const selectAll = byId('select-all-trace');
+  const exportButton = byId('export-trace');
+  const copyButton = byId('copy-trace');
+  const reproduceButton = byId<HTMLButtonElement>('reproduce-trace');
+  const clearSelection = byId('clear-trace-selection');
+  const detail = byId('trace-detail');
+  const detailSummary = byId('trace-detail-summary');
+  const detailJson = byId('trace-detail-json');
+  const copyDetail = byId('copy-trace-detail');
+  const contextMenu = byId('trace-context-menu');
+  const selectContextEvent = byId('select-trace-event');
+  const copyContextEvent = byId('copy-trace-event');
+  const exportContextEvent = byId('export-trace-event');
 
   const activeFilters = signal<ReadonlySet<TraceCategory>>(
     new Set(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']),
@@ -296,7 +274,6 @@ export function createLiveLog({
     }
     entries.value = nextEntries;
     render();
-    if (autoFollow) root.scrollTop = followEdge();
   };
 
   const append = (

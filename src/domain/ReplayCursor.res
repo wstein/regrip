@@ -54,19 +54,17 @@ let advanceTo = (state: state, timestamps: array<float>, targetMs: float): (stat
     targetMs
   }
   let cursor = ref(state)
-  let emitted = ref([])
+  let emitted: array<int> = []
   while (
     !done(cursor.contents, timestamps) &&
     timestamps->Array.getUnsafe(cursor.contents.nextIndex) <= target
   ) {
-    let (next, index) = stepOne(cursor.contents, timestamps)
-    cursor := next
-    switch index {
-    | Some(value) => emitted := [...emitted.contents, value]
-    | None => ()
-    }
+    let index = cursor.contents.nextIndex
+    let timestamp = timestamps->Array.getUnsafe(index)
+    cursor := {nextIndex: index + 1, virtualNowMs: timestamp}
+    emitted->Array.push(index)
   }
-  ({...cursor.contents, virtualNowMs: target}, emitted.contents)
+  ({...cursor.contents, virtualNowMs: target}, emitted)
 }
 
 let reset = (_: state): state => initial

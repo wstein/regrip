@@ -1,4 +1,19 @@
 type ParsedMove = { face: string; turns: number };
+type WideMoveRule = {
+  face: string;
+  axis: string;
+  wideFace: string;
+  inverseRotation: boolean;
+};
+
+const wideMoveRules: readonly WideMoveRule[] = [
+  { face: 'L', axis: 'x', wideFace: 'Rw', inverseRotation: false },
+  { face: 'R', axis: 'x', wideFace: 'Lw', inverseRotation: true },
+  { face: 'D', axis: 'y', wideFace: 'Uw', inverseRotation: false },
+  { face: 'U', axis: 'y', wideFace: 'Dw', inverseRotation: true },
+  { face: 'B', axis: 'z', wideFace: 'Fw', inverseRotation: false },
+  { face: 'F', axis: 'z', wideFace: 'Bw', inverseRotation: true },
+];
 
 function parseMove(token: string): ParsedMove | undefined {
   const match = /^([URFDLB]w?|[xyz])([2']?)$/.exec(token);
@@ -7,7 +22,14 @@ function parseMove(token: string): ParsedMove | undefined {
 }
 
 function formatMove({ face, turns }: ParsedMove): string {
-  return turns === 1 ? face : turns === 2 ? `${face}2` : `${face}'`;
+  switch (turns) {
+    case 1:
+      return face;
+    case 2:
+      return `${face}2`;
+    default:
+      return `${face}'`;
+  }
 }
 
 function inverseTurns(turns: number): number {
@@ -19,44 +41,30 @@ function inverseTurns(turns: number): number {
  * conventional fixed-frame spelling: `L x` is `Rw`, `D y` is `Uw`, etc.
  */
 function toWideMove(face: ParsedMove, rotation: ParsedMove): ParsedMove | undefined {
-  const sameTurn = face.turns === rotation.turns;
-  const inverseTurn = inverseTurns(face.turns) === rotation.turns;
-  if (face.face === 'L' && rotation.face === 'x' && sameTurn)
-    return { face: 'Rw', turns: face.turns };
-  if (face.face === 'R' && rotation.face === 'x' && inverseTurn)
-    return { face: 'Lw', turns: face.turns };
-  if (face.face === 'D' && rotation.face === 'y' && sameTurn)
-    return { face: 'Uw', turns: face.turns };
-  if (face.face === 'U' && rotation.face === 'y' && inverseTurn)
-    return { face: 'Dw', turns: face.turns };
-  if (face.face === 'B' && rotation.face === 'z' && sameTurn)
-    return { face: 'Fw', turns: face.turns };
-  if (face.face === 'F' && rotation.face === 'z' && inverseTurn)
-    return { face: 'Bw', turns: face.turns };
-  return undefined;
+  const rule = wideMoveRules.find(
+    (candidate) => candidate.face === face.face && candidate.axis === rotation.face,
+  );
+  if (!rule) return undefined;
+  const expectedTurns = rule.inverseRotation ? inverseTurns(face.turns) : face.turns;
+  return rotation.turns === expectedTurns ? { face: rule.wideFace, turns: face.turns } : undefined;
 }
 
 /** Combine adjacent turns of the same face or whole-cube axis. */
 export function simplifyMoves(value: string): string {
   const result: Array<ParsedMove | string> = [];
   const reduceTail = (): void => {
-    let reduced = true;
-    while (reduced) {
-      reduced = false;
+    while (true) {
       const last = result.at(-1);
       const previous = result.at(-2);
-      if (!last || !previous || typeof last === 'string' || typeof previous === 'string') return;
+      if (!last || !previous || typeof last === 'string' || typeof previous === 'string') break;
       if (previous.face === last.face) {
         const turns = (previous.turns + last.turns) % 4;
         result.splice(-2, 2);
         if (turns !== 0) result.push({ face: previous.face, turns });
-        reduced = true;
-        continue;
-      }
-      const wide = toWideMove(previous, last);
-      if (wide) {
+      } else {
+        const wide = toWideMove(previous, last);
+        if (!wide) break;
         result.splice(-2, 2, wide);
-        reduced = true;
       }
     }
   };

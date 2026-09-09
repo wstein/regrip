@@ -1,3 +1,5 @@
+import { byId } from './dom';
+
 const notAvailable = '- n/a -';
 const optionalInfoIds = [
   'eventSerial',
@@ -9,12 +11,6 @@ const optionalInfoIds = [
   'offlineSolves',
   'velocity',
 ];
-
-function byId(id: string): HTMLElement {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`Missing element #${id}`);
-  return element;
-}
 
 function input(id: string): HTMLInputElement {
   const element = byId(id);

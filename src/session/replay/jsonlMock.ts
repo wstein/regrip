@@ -26,9 +26,16 @@ export type JsonlMockIdentity = {
   protocol: { id: string; name: string };
 };
 
-type ValidatedJsonlEntry = Omit<JsonlEntry, 'data'> & {
+export type ValidatedJsonlEntry = Omit<JsonlEntry, 'data'> & {
   recordedAt: string;
   data: Record<string, unknown>;
+};
+
+export type JsonlReplay = {
+  entries: readonly ValidatedJsonlEntry[];
+  header: JsonlReplayHeader | null;
+  identity: JsonlMockIdentity;
+  events: readonly SmartCubeEvent[];
 };
 
 function fail(lineNumber: number, message: string): never {
@@ -57,7 +64,7 @@ function readHeader(entry: ValidatedJsonlEntry, lineNumber: number): JsonlReplay
   return { format, version };
 }
 
-function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
+export function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
   if (!value || typeof value !== 'object') return false;
   const event = value as { type?: unknown; timestamp?: unknown };
   return typeof event.type === 'string' && typeof event.timestamp === 'number';
@@ -94,21 +101,7 @@ export function validateJsonlReplay(contents: string): {
   return { entries, header };
 }
 
-/** Parse only validated raw cube events; derived UI records are ignored. */
-export function parseJsonlCubeEvents(contents: string): SmartCubeEvent[] {
-  const events: SmartCubeEvent[] = [];
-  for (const entry of validateJsonlReplay(contents).entries) {
-    if (entry.type === 'cube_event' && isSmartCubeEvent(entry.data)) events.push(entry.data);
-  }
-  return events;
-}
-
-/**
- * Reads capture identity from the replay header. Older, headerless exports
- * deliberately retain the generic mock identity so they remain replayable.
- */
-export function readJsonlMockIdentity(contents: string): JsonlMockIdentity {
-  const { entries } = validateJsonlReplay(contents);
+function identityFromEntries(entries: readonly ValidatedJsonlEntry[]): JsonlMockIdentity {
   const header = entries[0];
   const session = header && isRecord(header.data.session) ? header.data.session : undefined;
   const protocol = session && isRecord(session.protocol) ? session.protocol : undefined;
@@ -136,10 +129,32 @@ export function readJsonlMockIdentity(contents: string): JsonlMockIdentity {
   };
 }
 
+/** Parse once, then share validated identity and raw events across rebuilds. */
+export function createJsonlReplay(contents: string): JsonlReplay {
+  const { entries, header } = validateJsonlReplay(contents);
+  const events = entries.flatMap((entry) =>
+    entry.type === 'cube_event' && isSmartCubeEvent(entry.data) ? [entry.data] : [],
+  );
+  return { entries, header, identity: identityFromEntries(entries), events };
+}
+
+/** Parse only validated raw cube events; derived UI records are ignored. */
+export function parseJsonlCubeEvents(contents: string): SmartCubeEvent[] {
+  return [...createJsonlReplay(contents).events];
+}
+
+/**
+ * Reads capture identity from the replay header. Older, headerless exports
+ * deliberately retain the generic mock identity so they remain replayable.
+ */
+export function readJsonlMockIdentity(contents: string): JsonlMockIdentity {
+  return createJsonlReplay(contents).identity;
+}
+
 /** In-memory connection for replaying redacted JSONL exports through a session. */
-export function createJsonlMockConnection(contents: string) {
-  const events = parseJsonlCubeEvents(contents);
-  const identity = readJsonlMockIdentity(contents);
+export function createJsonlMockConnection(source: string | JsonlReplay) {
+  const replay = typeof source === 'string' ? createJsonlReplay(source) : source;
+  const { events, identity } = replay;
   const events$ = new Subject<SmartCubeEvent>();
   const sentCommands: SmartCubeCommand[] = [];
   const connection: SmartCubeConnection = {

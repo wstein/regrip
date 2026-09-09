@@ -1,31 +1,26 @@
 import type { ReplayFeed, ReplaySessionController } from '../session/replay/replaySession';
 import { REPLAY_STORAGE_KEY } from '../session/replay/replaySession';
 import { readJsonlMockIdentity, validateJsonlReplay } from '../session/replay/jsonlMock';
-
-function element<T extends HTMLElement>(id: string): T {
-  const value = document.getElementById(id);
-  if (!(value instanceof HTMLElement)) throw new Error(`Missing replay element #${id}`);
-  return value as T;
-}
+import { byId } from './dom';
 
 /** Dev-only virtual transport UI for a JSONL replay controller. */
 export function mountReplayPanel(replay: ReplaySessionController): void {
-  const panel = element<HTMLElement>('replay-panel');
-  const reset = element<HTMLButtonElement>('replay-reset');
-  const play = element<HTMLButtonElement>('replay-play');
-  const step = element<HTMLButtonElement>('replay-step');
-  const scrubber = element<HTMLInputElement>('replay-scrubber');
-  const position = element<HTMLElement>('replay-position');
-  const speed = element<HTMLSelectElement>('replay-speed');
-  const feed = element<HTMLSelectElement>('replay-feed');
-  const load = element<HTMLButtonElement>('replay-load');
-  const identity = element<HTMLElement>('replay-identity');
-  const importer = element<HTMLElement>('replay-import');
-  const jsonl = element<HTMLTextAreaElement>('replay-jsonl');
-  const dropzone = element<HTMLElement>('replay-dropzone');
-  const submit = element<HTMLButtonElement>('replay-import-submit');
-  const cancel = element<HTMLButtonElement>('replay-import-cancel');
-  const importStatus = element<HTMLElement>('replay-import-status');
+  const panel = byId('replay-panel');
+  const reset = byId<HTMLButtonElement>('replay-reset');
+  const play = byId<HTMLButtonElement>('replay-play');
+  const step = byId<HTMLButtonElement>('replay-step');
+  const scrubber = byId<HTMLInputElement>('replay-scrubber');
+  const position = byId('replay-position');
+  const speed = byId<HTMLSelectElement>('replay-speed');
+  const feed = byId<HTMLSelectElement>('replay-feed');
+  const load = byId<HTMLButtonElement>('replay-load');
+  const identity = byId('replay-identity');
+  const importer = byId('replay-import');
+  const jsonl = byId<HTMLTextAreaElement>('replay-jsonl');
+  const dropzone = byId('replay-dropzone');
+  const submit = byId<HTMLButtonElement>('replay-import-submit');
+  const cancel = byId<HTMLButtonElement>('replay-import-cancel');
+  const importStatus = byId('replay-import-status');
   panel.hidden = false;
   feed.value = replay.feed;
   scrubber.max = String(replay.length);

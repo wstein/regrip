@@ -2,9 +2,10 @@ import { createReplaySession, REPLAY_STORAGE_KEY } from '../../src/session/repla
 import gocube from '../../src/session/replay/fixtures/gocube-edge-ui.jsonl?raw';
 import gan from '../../src/session/replay/fixtures/gan-ui12-ui.jsonl?raw';
 
-const kind = new URLSearchParams(location.search).get('fixture');
-const autoplay = new URLSearchParams(location.search).has('autoplay');
-const replayRequested = new URLSearchParams(location.search).has('replay');
+const params = new URLSearchParams(location.search);
+const kind = params.get('fixture');
+const autoplay = params.has('autoplay');
+const replayRequested = params.has('replay');
 const contents =
   kind === 'gan-ui12'
     ? gan
@@ -14,8 +15,7 @@ const contents =
         ? sessionStorage.getItem(REPLAY_STORAGE_KEY)
         : undefined;
 if (replayRequested) {
-  const feed =
-    new URLSearchParams(location.search).get('feed') === 'session' ? 'session' : 'connection';
+  const feed = params.get('feed') === 'session' ? 'session' : 'connection';
   window.__smartcubeReplay = createReplaySession(
     contents ??
       '{"recordedAt":"2026-01-01T00:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1}}',

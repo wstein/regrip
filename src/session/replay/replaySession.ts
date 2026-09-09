@@ -20,9 +20,11 @@ import {
   type VirtualRegripEvent,
 } from '../smartCubeSession';
 import {
+  createJsonlReplay,
   createJsonlMockConnection,
+  isSmartCubeEvent,
   type JsonlMockIdentity,
-  validateJsonlReplay,
+  type JsonlReplay,
 } from './jsonlMock';
 
 export type ReplayFeed = 'connection' | 'session';
@@ -34,6 +36,12 @@ type ReplayItem = {
   event?: SmartCubeEvent | SmartCubeSessionEvent;
   status?: SmartCubeSessionState['status'];
 };
+type ReplayItemPayload = Omit<ReplayItem, 'timestamp'>;
+type BuiltReplayItem = { payload: ReplayItemPayload; sourceTimestamp?: number };
+type ReplayItemBuilder = (
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+) => BuiltReplayItem | undefined;
 
 type ReplayListener = () => void;
 type RawGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }>;
@@ -48,20 +56,23 @@ type ReplayOutputSession = SmartCubeSession & {
 const regripTokens = new Set<RegripToken>(['x', "x'", 'x2', 'y', "y'", 'y2', 'z', "z'", 'z2']);
 
 const synchronousGyroScheduler = {
-  schedule(flush: () => void): undefined {
+  schedule(flush: () => void): void {
     flush();
-    return undefined;
   },
   cancel(): void {},
 };
 
-function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
-  return (
-    Boolean(value) &&
-    typeof value === 'object' &&
-    typeof (value as { type?: unknown }).type === 'string' &&
-    typeof (value as { timestamp?: unknown }).timestamp === 'number'
-  );
+function createFanout<T>() {
+  const listeners = new Set<(value: T) => void>();
+  return {
+    emit(value: T): void {
+      listeners.forEach((listener) => listener(value));
+    },
+    subscribe(listener: (value: T) => void): () => void {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
 }
 
 function isRawSessionEvent(
@@ -193,8 +204,56 @@ function customTriggerFromRecord(
     : undefined;
 }
 
-function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
-  const { entries } = validateJsonlReplay(contents);
+function statusFromRecord(
+  data: Record<string, unknown>,
+): SmartCubeSessionState['status'] | undefined {
+  const status = data.status;
+  return status === 'disconnected' ||
+    status === 'connecting' ||
+    status === 'connected' ||
+    status === 'error'
+    ? status
+    : undefined;
+}
+
+function connectionBuilders(hasRawGyro: boolean): Record<string, ReplayItemBuilder> {
+  return {
+    cube_event: (data) =>
+      isSmartCubeEvent(data)
+        ? { payload: { event: data }, sourceTimestamp: data.timestamp }
+        : undefined,
+    gyro_stabilizer: (data, fallbackTimestamp) => {
+      if (hasRawGyro) return undefined;
+      const event = gyroFromStabilizer(data, fallbackTimestamp);
+      return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
+    },
+  };
+}
+
+const sessionBuilders: Record<string, ReplayItemBuilder> = {
+  cube_event: (data) =>
+    isRawSessionEvent(data)
+      ? { payload: { event: data }, sourceTimestamp: data.timestamp }
+      : undefined,
+  gyro_stabilizer: (data, fallbackTimestamp) => {
+    const event = sessionGyroFromRecord(data, fallbackTimestamp);
+    return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
+  },
+  virtual_regrip: (data, fallbackTimestamp) => {
+    const event = regripFromRecord(data, fallbackTimestamp);
+    return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
+  },
+  custom_trigger: (data, fallbackTimestamp) => {
+    const event = customTriggerFromRecord(data, fallbackTimestamp);
+    return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
+  },
+  session_status: (data) => {
+    const status = statusFromRecord(data);
+    return status ? { payload: { status } } : undefined;
+  },
+};
+
+function parseReplayItems(entries: JsonlReplay['entries'], feed: ReplayFeed): ReplayItem[] {
   const items: ReplayItem[] = [];
   let firstRecordedAt: number | undefined;
   let firstTimelineTimestamp: number | undefined;
@@ -202,10 +261,11 @@ function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
   const hasRawGyro = entries.some(
     (entry) => entry.type === 'cube_event' && entry.data.type === 'GYRO',
   );
+  const builders = feed === 'connection' ? connectionBuilders(hasRawGyro) : sessionBuilders;
   const add = (
     entry: (typeof entries)[number],
     index: number,
-    value: Omit<ReplayItem, 'timestamp'>,
+    value: ReplayItemPayload,
     sourceTimestamp?: number,
   ): void => {
     const recordedAt = Date.parse(entry.recordedAt);
@@ -223,39 +283,8 @@ function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
     items.push({ ...value, timestamp });
   };
   entries.forEach((entry, index) => {
-    const data = entry.data as Record<string, unknown>;
-    const fallbackTimestamp = index;
-    if (feed === 'connection') {
-      if (entry.type === 'cube_event' && isSmartCubeEvent(data)) {
-        add(entry, index, { event: data as SmartCubeEvent }, number(data.timestamp));
-      } else if (entry.type === 'gyro_stabilizer' && !hasRawGyro) {
-        const event = gyroFromStabilizer(data, fallbackTimestamp);
-        if (event) add(entry, index, { event }, event.timestamp);
-      }
-      return;
-    }
-    if (entry.type === 'cube_event' && isRawSessionEvent(data)) {
-      add(entry, index, { event: data }, data.timestamp);
-    } else if (entry.type === 'gyro_stabilizer') {
-      const event = sessionGyroFromRecord(data, fallbackTimestamp);
-      if (event) add(entry, index, { event }, event.timestamp);
-    } else if (entry.type === 'virtual_regrip') {
-      const event = regripFromRecord(data, fallbackTimestamp);
-      if (event) add(entry, index, { event }, event.timestamp);
-    } else if (entry.type === 'custom_trigger') {
-      const event = customTriggerFromRecord(data, fallbackTimestamp);
-      if (event) add(entry, index, { event }, event.timestamp);
-    } else if (entry.type === 'session_status' && typeof data.status === 'string') {
-      const status = data.status;
-      if (
-        status === 'disconnected' ||
-        status === 'connecting' ||
-        status === 'connected' ||
-        status === 'error'
-      ) {
-        add(entry, index, { status });
-      }
-    }
+    const built = builders[entry.type]?.(entry.data, index);
+    if (built) add(entry, index, built.payload, built.sourceTimestamp);
   });
   return items;
 }
@@ -279,26 +308,24 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
     features: resolveSessionFeatures(profile.value.features),
     error: null,
   };
-  const stateListeners = new Set<(state: SmartCubeSessionState) => void>();
-  const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
+  const states = createFanout<SmartCubeSessionState>();
+  const events = createFanout<SmartCubeSessionEvent>();
   const setState = (patch: Partial<SmartCubeSessionState>): void => {
     state = { ...state, ...patch };
-    stateListeners.forEach((listener) => listener(state));
+    states.emit(state);
   };
   const emit = (event: SmartCubeSessionEvent): void => {
     setState({ lastEvent: event });
-    eventListeners.forEach((listener) => listener(event));
+    events.emit(event);
   };
 
   const subscribeEvents: SmartCubeSession['subscribeEvents'] = (listener) => {
-    eventListeners.add(listener);
-    return () => eventListeners.delete(listener);
+    return events.subscribe(listener);
   };
   const output: ReplayOutputSession = {
     getState: () => state,
     subscribe(listener) {
-      stateListeners.add(listener);
-      return () => stateListeners.delete(listener);
+      return states.subscribe(listener);
     },
     subscribeEvents,
     on(type, listener) {
@@ -339,23 +366,24 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
 export type ReplaySessionController = ReturnType<typeof createReplaySession>;
 
 export function createReplaySession(contents: string, feed: ReplayFeed = 'connection') {
-  const items = parseReplayItems(contents, feed);
+  const replayData = createJsonlReplay(contents);
+  const items = parseReplayItems(replayData.entries, feed);
   const timestamps = items.map((item) => item.timestamp);
   let cursor = ReplayCursor.seekTo(timestamps, 0);
-  let mock = createJsonlMockConnection(contents);
+  let mock!: ReturnType<typeof createJsonlMockConnection>;
   let current!: SmartCubeSession;
   let output: ReplayOutputSession | undefined;
   let unsubscribeState: (() => void) | undefined;
   let unsubscribeEvents: (() => void) | undefined;
   let transportGeneration = 0;
   let transport = Promise.resolve();
-  const stateListeners = new Set<(state: SmartCubeSessionState) => void>();
-  const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
-  const cursorListeners = new Set<ReplayListener>();
-  const rebuildListeners = new Set<ReplayListener>();
+  const states = createFanout<SmartCubeSessionState>();
+  const events = createFanout<SmartCubeSessionEvent>();
+  const cursors = createFanout<void>();
+  const rebuilds = createFanout<void>();
 
-  const notifyCursor = (): void => cursorListeners.forEach((listener) => listener());
-  const notifyRebuild = (): void => rebuildListeners.forEach((listener) => listener());
+  const notifyCursor = (): void => cursors.emit();
+  const notifyRebuild = (): void => rebuilds.emit();
   const enqueue = <T>(operation: (generation: number) => Promise<T>): Promise<T> => {
     const generation = ++transportGeneration;
     const task = transport.then(
@@ -372,16 +400,12 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   const bind = (): void => {
     unsubscribeState?.();
     unsubscribeEvents?.();
-    unsubscribeState = current.subscribe((state) =>
-      stateListeners.forEach((listener) => listener(state)),
-    );
-    unsubscribeEvents = current.subscribeEvents((event) =>
-      eventListeners.forEach((listener) => listener(event)),
-    );
+    unsubscribeState = current.subscribe(states.emit);
+    unsubscribeEvents = current.subscribeEvents(events.emit);
   };
   const rebuild = (notify = false): void => {
     if (notify) notifyRebuild();
-    mock = createJsonlMockConnection(contents);
+    mock = createJsonlMockConnection(replayData);
     if (feed === 'connection') {
       output = undefined;
       current = createSmartCubeSession({
@@ -419,12 +443,10 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   const session: SmartCubeSession = {
     getState: () => current.getState(),
     subscribe(listener: (state: SmartCubeSessionState) => void) {
-      stateListeners.add(listener);
-      return () => stateListeners.delete(listener);
+      return states.subscribe(listener);
     },
     subscribeEvents(listener: (event: SmartCubeSessionEvent) => void) {
-      eventListeners.add(listener);
-      return () => eventListeners.delete(listener);
+      return events.subscribe(listener);
     },
     on(type, listener) {
       return this.subscribeEvents((event) => {
@@ -446,7 +468,7 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
       return feed;
     },
     get identity(): JsonlMockIdentity {
-      return mock.identity;
+      return replayData.identity;
     },
     get length(): number {
       return items.length;
@@ -461,13 +483,11 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
       return ReplayCursor.done(cursor, timestamps);
     },
     subscribeCursor(listener: ReplayListener): () => void {
-      cursorListeners.add(listener);
-      return () => cursorListeners.delete(listener);
+      return cursors.subscribe(listener);
     },
     /** Fires immediately before a backward seek reconstructs the session. */
     subscribeRebuild(listener: ReplayListener): () => void {
-      rebuildListeners.add(listener);
-      return () => rebuildListeners.delete(listener);
+      return rebuilds.subscribe(listener);
     },
     async stepOne(): Promise<void> {
       return enqueue(async (generation) => {
