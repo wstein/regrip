@@ -20,7 +20,10 @@
       <aside id="event-log" aria-label="Live event trace">
         <div class="trace-heading">
           <h2>Live Trace</h2>
-          <button id="clear-trace" type="button">Clear</button>
+          <div class="trace-heading-actions">
+            <button id="sort-trace" type="button" aria-label="Sort newest first" title="Sort newest first">↓ Newest</button>
+            <button id="clear-trace" type="button">Clear</button>
+          </div>
         </div>
         <div class="trace-filters" aria-label="Trace filters">
           <button data-trace-filter="MOVE" aria-pressed="true">Move</button>

@@ -26,8 +26,10 @@ function time(timestamp = Date.now()): string {
 export function createLiveLog() {
   const root = document.getElementById('event-log-rows');
   const clear = document.getElementById('clear-trace');
-  if (!root || !clear) throw new Error('Missing live trace elements');
+  const sort = document.getElementById('sort-trace');
+  if (!root || !clear || !sort) throw new Error('Missing live trace elements');
   const enabled = new Set<TraceCategory>(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']);
+  let newestFirst = true;
 
   const append = (category: TraceCategory, message: string, timestamp?: number): void => {
     if (!enabled.has(category)) return;
@@ -35,10 +37,11 @@ export function createLiveLog() {
     row.className = `trace-row trace-${category.toLowerCase()}`;
     row.innerHTML = `<span class="trace-badge">${category}</span><time>${time(timestamp)}</time><span class="trace-message"></span>`;
     row.querySelector<HTMLSpanElement>('.trace-message')!.textContent = message;
-    root.prepend(row);
-    while (root.children.length > maxRows) root.lastElementChild?.remove();
-    // Rows are newest-first, so keep the current trace event in view.
-    root.scrollTop = 0;
+    if (newestFirst) root.prepend(row); else root.append(row);
+    while (root.children.length > maxRows) {
+      (newestFirst ? root.lastElementChild : root.firstElementChild)?.remove();
+    }
+    root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   };
 
   document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach(button => {
@@ -51,6 +54,14 @@ export function createLiveLog() {
     });
   });
   clear.addEventListener('click', () => { root.replaceChildren(); });
+  sort.addEventListener('click', () => {
+    newestFirst = !newestFirst;
+    root.replaceChildren(...Array.from(root.children).reverse());
+    sort.textContent = newestFirst ? '↓ Newest' : '↑ Oldest';
+    sort.setAttribute('aria-label', newestFirst ? 'Sort newest first' : 'Sort oldest first');
+    sort.setAttribute('title', newestFirst ? 'Sort newest first' : 'Sort oldest first');
+    root.scrollTop = newestFirst ? 0 : root.scrollHeight;
+  });
 
   return {
     append,

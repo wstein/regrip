@@ -18,8 +18,9 @@ body {
   position: sticky; top: 1rem; box-sizing: border-box; max-height: calc(100vh - 2rem); overflow: hidden;
   border: 1px solid #2b3859; border-radius: 1rem; background: #0a1121e8; box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 25%);
 }
-.trace-heading { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 0.8rem 0.55rem; border-bottom: 1px solid #283653; }
+.trace-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; padding: 0.8rem 0.8rem 0.55rem; border-bottom: 1px solid #283653; }
 .trace-heading h2 { margin: 0; color: #dce6ff; font-size: 0.85rem; letter-spacing: 0.05em; }
+.trace-heading-actions { display: flex; gap: 0.3rem; }
 .trace-heading button { padding: 0.25rem 0.45rem; font-size: 0.68rem; }
 .trace-filters { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.65rem 0.8rem; border-bottom: 1px solid #283653; }
 .trace-filters button { padding: 0.25rem 0.4rem; color: #75829e; background: #111a2d; border-color: #2c3956; border-radius: 0.35rem; font-size: 0.64rem; }
