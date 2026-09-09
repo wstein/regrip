@@ -51,6 +51,9 @@
       axis pixels without a platform-specific screenshot baseline.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
       a cardinal confirmation pose) after hardware traces establish its impact.
+- [ ] Make JSONL replay deterministic end-to-end: thread the pure
+      `MoveBackTrigger` and `RegripDetector` reducer states through recorded
+      streams, including feature changes during a replay.
 - [x] Run and resolve the remaining dependency audit findings without
       needlessly accepting breaking upgrades. _(Current `npm audit`: clean;
       retain this as a periodic check.)_
@@ -68,8 +71,21 @@
 
 ## Core/package boundary
 
+- [x] Extract session-owned gyro normalization, velocity/delta-time sampling,
+      stabilization, and sensor-to-body axis mapping into `GyroPipeline.res`.
+      `cubeEvents.ts` now only applies the display-home transform and routes UI
+      callbacks.
 - [x] Move the remaining pure facelet-grid reframing adapter from
       `session/virtualMoveFrame.ts` into `domain/VirtualCubeFrame`.
+- [x] Complete the solver-frame adapter port and remove the duplicate
+      `session/virtualMoveFrame.ts` implementation; the Three adapter consumes
+      `VirtualCubeFrame` directly.
+- [ ] Introduce shared, unboxed typed `axis`, `turn`, and `face` variants at
+      the domain boundary, then keep their hand-written `.res.d.mts` surface
+      covered by the declaration-drift check.
+- [ ] Convert larger mutable domain cells (`GyroOrientation`,
+      `OrientationStabilizer`, and `MoveBuffer`) to pure reducers only where
+      deterministic replay materially benefits.
 - [ ] Finish Stage 3 packaging: publishable root/core exports, peer dependency
       boundary for `smartcube-web-bluetooth`, private `examples/web` workspace,
       split TypeScript/Vitest configs, and `npm pack` smoke test.
