@@ -89,7 +89,7 @@ The core domain logic is [ReScript](https://rescript-lang.org), compiled in-sour
 | `Quaternion.res` / `CubeSymmetry.res`                                                      | Quaternion math and the 24 cube orientations                                      |
 | `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res`                 | Detents, hysteresis, velocity gating, drift, and calibrated poses                 |
 | `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face triggers |
-| `src/session/Bindings_SmartCube.res`                                                       | Typed timestamp-helper boundary to the Bluetooth library                          |
+| `src/bindings/Bindings_SmartCube.res`                                                      | Typed timestamp-helper boundary to the Bluetooth library                          |
 
 Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
 

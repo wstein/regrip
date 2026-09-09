@@ -19,7 +19,7 @@
     "src/domain/Time.res.d.mts",
     "src/domain/Timer.res.d.mts",
     "src/domain/VirtualCubeFrame.res.d.mts",
-    "src/session/Bindings_SmartCube.res.d.mts"
+    "src/bindings/Bindings_SmartCube.res.d.mts"
   ],
   "out": "docs/api",
   "readme": "none",
