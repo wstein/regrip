@@ -4,9 +4,24 @@ type ColorMaterial = THREE.Material & { color?: THREE.Color };
 
 const axes = [
   // In the cube's right-handed local frame, +X/+Y/+Z point through R/U/F.
-  { name: 'r', direction: new THREE.Vector3(1, 0, 0), color: 0xd9493f },
-  { name: 'u', direction: new THREE.Vector3(0, 1, 0), color: 0xf4f4f4 },
-  { name: 'f', direction: new THREE.Vector3(0, 0, 1), color: 0x4caf67 },
+  {
+    name: 'r',
+    direction: new THREE.Vector3(1, 0, 0),
+    labelOffset: new THREE.Vector3(0, 0.13, -0.1),
+    color: 0xd9493f,
+  },
+  {
+    name: 'u',
+    direction: new THREE.Vector3(0, 1, 0),
+    labelOffset: new THREE.Vector3(0.13, 0, -0.1),
+    color: 0xf4f4f4,
+  },
+  {
+    name: 'f',
+    direction: new THREE.Vector3(0, 0, 1),
+    labelOffset: new THREE.Vector3(-0.2, 0.14, 0),
+    color: 0x4caf67,
+  },
 ] as const;
 
 export type OrientationIndicatorColors = Record<(typeof axes)[number]['name'], number>;
@@ -18,10 +33,13 @@ function label(axis: string, color: number, position: THREE.Vector3): THREE.Spri
   canvas.height = 96;
   const context = canvas.getContext('2d');
   if (!context) return undefined;
+  context.strokeStyle = '#10192c';
+  context.lineWidth = 8;
   context.fillStyle = '#ffffff';
   context.font = 'bold 54px Arial';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
+  context.strokeText(axis.toUpperCase(), 48, 50);
   context.fillText(axis.toUpperCase(), 48, 50);
 
   const sprite = new THREE.Sprite(
@@ -80,7 +98,11 @@ export function createOrientationIndicator(includeLabels = true): THREE.Group {
     });
     indicator.add(arrow);
     if (includeLabels) {
-      const axisLabel = label(axis.name, axis.color, axis.direction.clone().multiplyScalar(0.98));
+      const axisLabel = label(
+        axis.name,
+        axis.color,
+        axis.direction.clone().multiplyScalar(0.98).add(axis.labelOffset),
+      );
       if (axisLabel) indicator.add(axisLabel);
     }
   }
