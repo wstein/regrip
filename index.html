@@ -101,6 +101,26 @@
             <section class="cubie-state-panel">
               <label for="cubieState" hidden>Cubie State</label>
               <input id="cubieState" type="text" readonly value="- n/a -" hidden />
+              <div class="cube-export">
+                <button
+                  id="copy-cube-state"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="cube-export-menu"
+                >
+                  Copy as…
+                </button>
+                <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
+                  <button id="copy-compact-facelets" type="button" role="menuitem">
+                    Compact facelets
+                  </button>
+                  <button id="copy-spaced-facelets" type="button" role="menuitem">
+                    Spaced facelets
+                  </button>
+                  <button id="copy-singmaster" type="button" role="menuitem">Singmaster</button>
+                  <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
+                </div>
+              </div>
             </section>
 
             <div class="controls">

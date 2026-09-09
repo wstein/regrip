@@ -16,6 +16,11 @@ import { connectCube } from '../session/connection';
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../session/jsonlFormat';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
+import {
+  formatCubeExport,
+  type CubeExportFormat,
+  type CubeExportSource,
+} from '../session/cubeExport';
 import { featurePresets } from '../session/features';
 import { createSmartCubeSession } from '../session/smartCubeSession';
 import { createSolverFrame } from '../adapters/three/solverFrame';
@@ -43,6 +48,7 @@ eventLog.subscribe((entry, recordingCount) => {
   infoPanel.setLogRecording(eventLog.active, recordingCount);
 });
 const solverFrame = createSolverFrame();
+let cubeExportSource: CubeExportSource | undefined;
 const virtualFrameQuaternion = new THREE.Quaternion();
 const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
 const faceColors: Record<string, number> = {
@@ -136,6 +142,9 @@ const cubeEvents = createCubeEventController({
       stabilized: event.stabilized,
     });
   },
+  onFacelets: (source) => {
+    cubeExportSource = source;
+  },
 });
 
 session.subscribeEvents((event) => {
@@ -178,6 +187,7 @@ session.subscribe((state) => {
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
+    cubeExportSource = undefined;
     solverFrame.reset();
     syncVirtualFrameOrientation();
     infoPanel.clearInfo();
@@ -215,6 +225,7 @@ session.subscribe((state) => {
     return;
   }
   if (state.status === 'disconnected') {
+    cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
     syncVirtualFrameOrientation();
@@ -225,6 +236,7 @@ session.subscribe((state) => {
     return;
   }
   if (state.status === 'error') {
+    cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
     syncVirtualFrameOrientation();
@@ -284,6 +296,41 @@ infoPanel.on('copy-detected-moves', 'click', () => {
       infoPanel.showFeedback('Could not copy detected moves.');
     });
 });
+
+const cubeExportButton = document.getElementById('copy-cube-state') as HTMLButtonElement;
+const cubeExportMenu = document.getElementById('cube-export-menu') as HTMLElement;
+
+infoPanel.on('copy-cube-state', 'click', () => {
+  const open = cubeExportMenu.hidden;
+  cubeExportMenu.hidden = !open;
+  cubeExportButton.setAttribute('aria-expanded', String(open));
+});
+
+function copyCubeExport(format: CubeExportFormat, label: string): void {
+  const value = formatCubeExport(cubeExportSource, format);
+  cubeExportMenu.hidden = true;
+  cubeExportButton.setAttribute('aria-expanded', 'false');
+  if (!value) {
+    infoPanel.showFeedback(`No valid cube state is available for ${label}.`);
+    return;
+  }
+  void infoPanel
+    .copyText(value)
+    .then(() => infoPanel.showFeedback(`${label} copied.`))
+    .catch((error) => {
+      console.error(`unable to copy ${label}`, error);
+      infoPanel.showFeedback(`Could not copy ${label}.`);
+    });
+}
+
+infoPanel.on('copy-compact-facelets', 'click', () =>
+  copyCubeExport('compact-facelets', 'Compact facelets'),
+);
+infoPanel.on('copy-spaced-facelets', 'click', () =>
+  copyCubeExport('spaced-facelets', 'Spaced facelets'),
+);
+infoPanel.on('copy-singmaster', 'click', () => copyCubeExport('singmaster', 'Singmaster state'));
+infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 token'));
 
 infoPanel.on('detectedMoves', 'input', () => infoPanel.syncDetectedMoveCount());
 

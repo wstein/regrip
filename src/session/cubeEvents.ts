@@ -1,7 +1,8 @@
-import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
+import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as Cube333 from '../domain/Cube333.res.mjs';
+import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
 import * as Quaternion from '../domain/Quaternion.res.mjs';
 import { formatCubieState, formatOfflineStats } from './cubeInfo';
 import type { SessionGyroEvent } from './smartCubeSession';
@@ -10,6 +11,17 @@ import type { TimerController } from './timerController';
 export type ScrambleSolver = (facelets: string) => Promise<string>;
 export type SolveDetector = (cube: Cube333.Cube333) => boolean;
 export const defaultSolveDetector: SolveDetector = Cube333.isSolved;
+
+function cubieStateFromFacelets(facelets: string): SmartCubeCubieState | undefined {
+  const decoded = CubeFacelets.decodeFacelets(facelets);
+  if (decoded.TAG !== 'Ok') return undefined;
+  return {
+    CP: decoded._0.CORNERS.pieces,
+    CO: decoded._0.CORNERS.orientation,
+    EP: decoded._0.EDGES.pieces,
+    EO: decoded._0.EDGES.orientation,
+  };
+}
 
 type CubeEventControllerOptions = {
   homeOrientation?: Quaternion.Quaternion;
@@ -26,6 +38,8 @@ type CubeEventControllerOptions = {
   onSolved: () => void;
   onGyro?: (sample: { event: SessionGyroEvent }) => void;
   onHardware?: (event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>) => void;
+  /** The canonical solver-frame state available for copy/export controls. */
+  onFacelets?: (source: { facelets: string; state?: SmartCubeCubieState }) => void;
   solveDetector?: SolveDetector;
   onUnknownEvent?: (event: unknown) => void;
 };
@@ -78,11 +92,15 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       options.showInfo('eventSerial');
       options.setInfo('eventSerial', String(event.serial));
     }
-    if (event.state) {
-      options.showInfo('cubieState');
-      options.setInfo('cubieState', formatCubieState(event.state));
-    }
     const facelets = options.reframeFacelets?.(event.facelets) ?? event.facelets;
+    // Reframe all exports together: body-local CP/CO/EP/EO cannot describe a
+    // solver-frame facelet string after a virtual x/y/z regrip.
+    const state = cubieStateFromFacelets(facelets) ?? event.state;
+    if (state) {
+      options.showInfo('cubieState');
+      options.setInfo('cubieState', formatCubieState(state));
+    }
+    options.onFacelets?.({ facelets, state });
     const cube = Cube333.fromFacelets(facelets);
     const solved = (options.solveDetector ?? defaultSolveDetector)(cube);
     if (solved) options.onSolved();

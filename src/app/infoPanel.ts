@@ -128,13 +128,23 @@ export function setDetectedMoves(moves: string): void {
 }
 
 export async function copyDetectedMoves(): Promise<void> {
-  const moves = textarea('detectedMoves');
+  await copyText(textarea('detectedMoves').value);
+}
+
+/** Copy plain text with a legacy fallback for browsers without Clipboard API support. */
+export async function copyText(value: string): Promise<void> {
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(moves.value);
+    await navigator.clipboard.writeText(value);
     return;
   }
-  moves.select();
+  const fallback = document.createElement('textarea');
+  fallback.value = value;
+  fallback.style.position = 'fixed';
+  fallback.style.opacity = '0';
+  document.body.append(fallback);
+  fallback.select();
   document.execCommand('copy');
+  fallback.remove();
 }
 
 export function clearInfo(): void {
