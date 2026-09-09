@@ -1,6 +1,7 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "name": "Smartcube Example API",
+  "name": "Regrip API",
+  "sourceLinkTemplate": "https://github.com/wstein/regrip/blob/{gitRevision}/{path}#L{line}",
   "entryPointStrategy": "expand",
   "entryPoints": [
     "src/domain/Cube333.res.d.mts",
