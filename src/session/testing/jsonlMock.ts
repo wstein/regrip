@@ -20,6 +20,12 @@ type JsonlReplayHeader = {
   version: typeof JSONL_REPLAY_VERSION;
 };
 
+export type JsonlMockIdentity = {
+  deviceName: string;
+  deviceMAC: string;
+  protocol: { id: string; name: string };
+};
+
 type ValidatedJsonlEntry = Omit<JsonlEntry, 'data'> & {
   recordedAt: string;
   data: Record<string, unknown>;
@@ -97,15 +103,49 @@ export function parseJsonlCubeEvents(contents: string): SmartCubeEvent[] {
   return events;
 }
 
+/**
+ * Reads capture identity from the replay header. Older, headerless exports
+ * deliberately retain the generic mock identity so they remain replayable.
+ */
+export function readJsonlMockIdentity(contents: string): JsonlMockIdentity {
+  const { entries } = validateJsonlReplay(contents);
+  const header = entries[0];
+  const session = header && isRecord(header.data.session) ? header.data.session : undefined;
+  const protocol = session && isRecord(session.protocol) ? session.protocol : undefined;
+  const protocolId =
+    typeof session?.protocol === 'string'
+      ? session.protocol
+      : typeof protocol?.id === 'string'
+        ? protocol.id
+        : 'jsonl-mock';
+  const protocolName =
+    typeof protocol?.name === 'string'
+      ? protocol.name
+      : protocolId === 'jsonl-mock'
+        ? 'JSONL mock'
+        : protocolId;
+  return {
+    deviceName:
+      typeof session?.device === 'string'
+        ? session.device
+        : typeof session?.deviceName === 'string'
+          ? session.deviceName
+          : 'JSONL mock cube',
+    deviceMAC: typeof session?.deviceMAC === 'string' ? session.deviceMAC : '',
+    protocol: { id: protocolId, name: protocolName },
+  };
+}
+
 /** In-memory connection for replaying redacted JSONL exports through a session. */
 export function createJsonlMockConnection(contents: string) {
   const events = parseJsonlCubeEvents(contents);
+  const identity = readJsonlMockIdentity(contents);
   const events$ = new Subject<SmartCubeEvent>();
   const sentCommands: SmartCubeCommand[] = [];
   const connection: SmartCubeConnection = {
-    deviceName: 'JSONL mock cube',
-    deviceMAC: '',
-    protocol: { id: 'jsonl-mock', name: 'JSONL mock' },
+    deviceName: identity.deviceName,
+    deviceMAC: identity.deviceMAC,
+    protocol: identity.protocol,
     capabilities: { gyroscope: true, battery: true, facelets: true, hardware: true, reset: true },
     events$,
     sendCommand: async (command) => {
@@ -118,6 +158,7 @@ export function createJsonlMockConnection(contents: string) {
 
   return {
     connection,
+    identity,
     events,
     sentCommands,
     replay(options: ReplayOptions = {}): void {
@@ -125,6 +166,9 @@ export function createJsonlMockConnection(contents: string) {
         options.beforeEvent?.(event, index);
         events$.next(event);
       });
+    },
+    emit(event: SmartCubeEvent): void {
+      events$.next(event);
     },
   };
 }

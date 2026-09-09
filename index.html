@@ -29,6 +29,30 @@
               <button id="clear-trace" type="button">Clear</button>
             </div>
           </div>
+          <section id="replay-panel" hidden aria-label="JSONL replay transport">
+            <strong>Replay</strong>
+            <select id="replay-feed" aria-label="Replay feed">
+              <option value="connection">Connection feed</option>
+              <option value="session">Session feed</option>
+            </select>
+            <button id="replay-reset" type="button">Reset</button>
+            <button id="replay-play" type="button">Play</button>
+            <button id="replay-step" type="button">Step</button>
+            <select id="replay-speed" aria-label="Replay speed">
+              <option value="0.25">0.25×</option>
+              <option value="1" selected>1×</option>
+              <option value="4">4×</option>
+              <option value="10">10×</option>
+            </select>
+            <input
+              id="replay-scrubber"
+              type="range"
+              min="0"
+              value="0"
+              aria-label="Replay position"
+            />
+            <span id="replay-position">0 / 0</span>
+          </section>
           <div class="trace-filters" aria-label="Trace filters">
             <button data-trace-filter="MOVE" aria-pressed="true">Move</button>
             <button data-trace-filter="EVENT" aria-pressed="true">Event</button>

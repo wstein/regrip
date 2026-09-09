@@ -15,6 +15,7 @@ export type TraceEntry = {
 type LiveLogOptions = {
   onReproduceMoves?: (moves: string[]) => void;
   onClear?: () => void;
+  onFocusEntry?: (entry: TraceEntry) => void;
   now?: () => Date;
 };
 
@@ -82,6 +83,7 @@ function eventTimestamp(event: SmartCubeSessionEvent): number {
 export function createLiveLog({
   onReproduceMoves,
   onClear,
+  onFocusEntry,
   now = () => new Date(),
 }: LiveLogOptions = {}) {
   const root = document.getElementById('event-log-rows');
@@ -232,6 +234,7 @@ export function createLiveLog({
         row.append(badge, timestamp, message);
         const focusDetails = (): void => {
           focusedId = entry.id;
+          onFocusEntry?.(entry);
           updateDetail();
           render();
         };

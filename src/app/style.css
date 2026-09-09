@@ -98,6 +98,40 @@ body {
   padding: 0.25rem 0.45rem;
   font-size: 0.68rem;
 }
+#replay-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid #283653;
+  color: #c9d9f8;
+  font-size: 0.66rem;
+}
+#replay-panel[hidden] {
+  display: none;
+}
+#replay-panel strong {
+  color: #dce6ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+#replay-panel button,
+#replay-panel select {
+  padding: 0.2rem 0.35rem;
+  font-size: 0.61rem;
+}
+#replay-panel select {
+  color: #dce6ff;
+  border: 1px solid #465a85;
+  border-radius: 0.35rem;
+  background: #111c35;
+}
+#replay-scrubber {
+  flex: 1 1 5rem;
+  min-width: 4rem;
+  accent-color: #78a9ff;
+}
 .trace-download-button {
   border-color: #4d78b8;
   color: #d9e6ff;

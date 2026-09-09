@@ -90,6 +90,8 @@ export type GyroFrameScheduler = {
   cancel: (handle: unknown) => void;
 };
 
+export type SmartCubeSession = ReturnType<typeof createSmartCubeSession>;
+
 const browserGyroFrameScheduler: GyroFrameScheduler =
   typeof requestAnimationFrame === 'function'
     ? {

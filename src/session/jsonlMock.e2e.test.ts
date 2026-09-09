@@ -7,6 +7,7 @@ import {
   JSONL_REPLAY_FORMAT,
   JSONL_REPLAY_VERSION,
   parseJsonlCubeEvents,
+  readJsonlMockIdentity,
   validateJsonlReplay,
 } from './testing/jsonlMock';
 
@@ -116,6 +117,19 @@ describe('JSONL session replay contract', () => {
       });
       expect(parseJsonlCubeEvents(contents)).not.toHaveLength(0);
     }
+  });
+
+  it('uses capture identity so replay resolves the matching device profile', async () => {
+    const [gocube, gan] = await Promise.all(uiFixtures.map((fixture) => readFile(fixture, 'utf8')));
+
+    expect(readJsonlMockIdentity(gocube)).toMatchObject({
+      deviceName: 'GoCube Edge',
+      protocol: { id: 'gocube' },
+    });
+    expect(createJsonlMockConnection(gan).connection).toMatchObject({
+      deviceName: 'GAN12 UI',
+      protocol: { id: 'gan-gen2' },
+    });
   });
 
   it('rejects malformed JSONL before replay with the source line number', () => {

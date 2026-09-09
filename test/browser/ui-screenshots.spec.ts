@@ -8,7 +8,7 @@ test.use({ viewport: { width: 1920, height: 1600 } });
 for (const fixture of ['disconnected', 'gocube-edge', 'gan-ui12'] as const) {
   test(`captures ${fixture} UI`, async ({ page }) => {
     await page.goto(
-      `/test/browser/mock-app.html${fixture === 'disconnected' ? '' : `?fixture=${fixture}`}`,
+      `/test/browser/mock-app.html${fixture === 'disconnected' ? '' : `?replay&fixture=${fixture}&autoplay`}`,
     );
     await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
     await expect(page.locator('#app')).toHaveScreenshot(`${fixture}.png`, {

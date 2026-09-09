@@ -115,17 +115,17 @@ available, the app prompts for one and explains how to enable
 downward from `app` to `adapters`, `session`, and `domain`; ESLint enforces that `domain` stays
 independent and `session` does not depend on presentation layers.
 
-| Module                            | Responsibility                                                            |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| `src/app/`                        | DOM, trace/JSONL tooling, styles, and composition root                    |
-| `src/app/sessionSignals.ts`       | App-only reactive mirror of headless session state and ordered events     |
-| `src/session/smartCubeSession.ts` | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
-| `src/session/profile/`            | Profile inheritance, matching, overrides, and per-field provenance        |
-| `src/session/virtualMoveFrame.ts` | Thin TypeScript adapter for the domain virtual cube frame                 |
-| `src/session/timerController.ts`  | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
-| `src/adapters/cubing/`            | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
-| `src/adapters/three/`             | Three.js scene, orientation render loop, and R/U/F gizmo                  |
-| `src/domain/`                     | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
+| Module                                 | Responsibility                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `src/app/`                             | DOM, trace/JSONL tooling, styles, and composition root                    |
+| `src/app/sessionSignals.ts`            | App-only reactive mirror of headless session state and ordered events     |
+| `src/session/smartCubeSession.ts`      | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
+| `src/session/profile/`                 | Profile inheritance, matching, overrides, and per-field provenance        |
+| `src/session/testing/replaySession.ts` | Deterministic virtual-clock JSONL replay at connection or session output  |
+| `src/session/timerController.ts`       | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
+| `src/adapters/cubing/`                 | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
+| `src/adapters/three/`                  | Three.js scene, orientation render loop, and R/U/F gizmo                  |
+| `src/domain/`                          | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 
@@ -148,6 +148,8 @@ npm run dev      # ReScript watch + Vite dev server
 npm test         # Compile ReScript and run Vitest specs
 npm run test:snapshot # Refresh the deterministic JSONL session-contract snapshot
 npm run test:browser  # Run Chromium coverage for the WebGL orientation gizmo
+npm run test:screenshots # Verify disconnected, GoCube Edge, and GAN UI12 UI baselines
+npm run test:screenshots:update # Intentionally refresh those PNG baselines
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
 npm run format    # Format ReScript and all supported text sources
@@ -156,6 +158,12 @@ npm run docs:api # Generate TypeDoc to docs/api/
 
 The JSONL replay fixture is deliberately synthetic and redacted. Do not commit unreviewed hardware
 captures: exported logs can contain device and session data.
+
+To inspect a fixture interactively in the real lab, run `npm run dev`, then open
+`/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). The dev-only Replay
+strip supports connection-feed replay through the complete session, session-output replay for UI
+inspection (`&feed=session`), play/pause, stepping, seeking, and speed selection. New JSONL exports
+include the captured device and protocol identity so replay selects the same profile as the device.
 
 Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
 

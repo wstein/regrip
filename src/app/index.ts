@@ -34,12 +34,22 @@ infoPanel.clearInfo();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
-const session = createSmartCubeSession({ connect: connectCube, features: featurePresets.all });
+// The harness installs this dev-only global before app bootstrap. Production
+// pages never create it, so the replay UI is absent from normal sessions.
+const replay = window.__smartcubeReplay;
+const session =
+  replay?.session ?? createSmartCubeSession({ connect: connectCube, features: featurePresets.all });
+if (replay) void import('./replayPanel').then(({ mountReplayPanel }) => mountReplayPanel(replay));
 const sessionSignals = createSessionSignals(session);
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
   onClear: () => eventLog.clear(),
+  onFocusEntry: (entry) => {
+    if (!replay) return;
+    const timestamp = (entry.log.data as Record<string, unknown>).timestamp;
+    if (typeof timestamp === 'number') void replay.seekToTimestamp(timestamp);
+  },
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
     twistyPlayer.alg = algorithm;
@@ -265,6 +275,9 @@ infoPanel.on('download-log', 'click', () => {
     version: JSONL_REPLAY_VERSION,
     session: {
       status: state.status,
+      device: state.connection?.deviceName ?? null,
+      deviceMAC: state.connection?.deviceMAC ?? null,
+      protocol: state.connection?.protocol ?? null,
       profile: state.profile.id,
       profileValue: state.profile.value,
     },
