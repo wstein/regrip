@@ -27,11 +27,12 @@ export const REPLAY_STORAGE_KEY = 'regrip.replay.jsonl';
 
 type ReplayItem = {
   timestamp: number;
-  event?: SmartCubeSessionEvent;
+  event?: SmartCubeEvent | SmartCubeSessionEvent;
   status?: SmartCubeSessionState['status'];
 };
 
 type ReplayListener = () => void;
+type RawGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }>;
 
 const synchronousGyroScheduler = {
   schedule(flush: () => void): undefined {
@@ -54,9 +55,53 @@ function recordedTimestamp(entry: { recordedAt: string }, fallback: number): num
   return Number.isFinite(timestamp) ? timestamp : fallback;
 }
 
+function quaternion(value: unknown): RawGyroEvent['quaternion'] | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const candidate = value as Record<string, unknown>;
+  if (
+    typeof candidate.x !== 'number' ||
+    typeof candidate.y !== 'number' ||
+    typeof candidate.z !== 'number' ||
+    typeof candidate.w !== 'number'
+  ) {
+    return undefined;
+  }
+  return { x: candidate.x, y: candidate.y, z: candidate.z, w: candidate.w };
+}
+
+/**
+ * Older app exports only persisted derived gyro samples. They still contain
+ * the raw quaternion needed to reconstruct the connection/session pipeline.
+ */
+function gyroFromStabilizer(
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+): RawGyroEvent | undefined {
+  const value = quaternion(data.quaternion);
+  if (!value) return undefined;
+  const velocity = data.velocity;
+  const validVelocity =
+    velocity &&
+    typeof velocity === 'object' &&
+    typeof (velocity as Record<string, unknown>).x === 'number' &&
+    typeof (velocity as Record<string, unknown>).y === 'number' &&
+    typeof (velocity as Record<string, unknown>).z === 'number'
+      ? (velocity as RawGyroEvent['velocity'])
+      : undefined;
+  return {
+    type: 'GYRO',
+    timestamp: typeof data.timestamp === 'number' ? data.timestamp : fallbackTimestamp,
+    quaternion: value,
+    ...(validVelocity ? { velocity: validVelocity } : {}),
+  };
+}
+
 function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
   const { entries } = validateJsonlReplay(contents);
   const items: ReplayItem[] = [];
+  const hasRawGyro = entries.some(
+    (entry) => entry.type === 'cube_event' && entry.data.type === 'GYRO',
+  );
   entries.forEach((entry, index) => {
     const data = entry.data as Record<string, unknown>;
     const fallbackTimestamp = recordedTimestamp(entry, index);
@@ -66,6 +111,9 @@ function parseReplayItems(contents: string, feed: ReplayFeed): ReplayItem[] {
           timestamp: data.timestamp ?? fallbackTimestamp,
           event: data as SmartCubeSessionEvent,
         });
+      } else if (entry.type === 'gyro_stabilizer' && !hasRawGyro) {
+        const event = gyroFromStabilizer(data, fallbackTimestamp);
+        if (event) items.push({ timestamp: event.timestamp, event });
       }
       return;
     }
@@ -243,7 +291,7 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
         emit?: (event: SmartCubeSessionEvent) => void;
         setReplayStatus?: (status: SmartCubeSessionState['status']) => void;
       };
-      if (item.event) output.emit?.(item.event);
+      if (item.event) output.emit?.(item.event as SmartCubeSessionEvent);
       if (item.status) output.setReplayStatus?.(item.status);
     }
   };

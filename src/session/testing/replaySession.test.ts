@@ -46,6 +46,17 @@ describe('replay session', () => {
     expect(replay.done).toBe(true);
   });
 
+  it('reconstructs connection-feed gyro from older stabilized-only exports', async () => {
+    const replay = createReplaySession(sessionLog, 'connection');
+    const events: string[] = [];
+    replay.session.subscribeEvents((event) => events.push(event.type));
+
+    await replay.advanceTo(10);
+
+    expect(replay.length).toBe(1);
+    expect(events).toEqual(['GYRO']);
+  });
+
   it('retains the captured device profile in session-output mode', () => {
     const replay = createReplaySession(
       [identifiedHeader, ...rawLog.split('\n').slice(1)].join('\n'),
