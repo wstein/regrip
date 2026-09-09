@@ -68,7 +68,7 @@ function cycles(
   return result.join(' ') || '(solved)';
 }
 
-/** Human-readable Singmaster cycle notation for a cubie's current state. */
+/** Copy-ready Singmaster cycle notation for a cubie's current state. */
 export function formatCubieState(state: SmartCubeCubieState): string {
-  return `Corners ${cycles(state.CP, state.CO, corners, ['', '+', '-'])} | Edges ${cycles(state.EP, state.EO, edges, ['', '+'])}`;
+  return `${cycles(state.CP, state.CO, corners, ['', '+', '-'])} ${cycles(state.EP, state.EO, edges, ['', '+'])}`;
 }
