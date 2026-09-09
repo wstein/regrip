@@ -22,7 +22,6 @@ describe("RegripDetector", () => {
 
   test("emits opposite Singmaster notation for a positive sensor turn", t => {
     let detector = RegripDetector.make()
-    RegripDetector.observe(detector, Quaternion.identity)->ignore
     let observation = observe(detector, rotation(~x=66.))
     t->expect(observation.sensorFrameToken)->Expect.toBe(RegripDetector.SensorX)
     t->expect(observation.notationToken)->Expect.toBe(RegripDetector.NotationXPrime)
@@ -30,7 +29,6 @@ describe("RegripDetector", () => {
 
   test("rebases to cardinal steps during a continuous full turn", t => {
     let detector = RegripDetector.make()
-    RegripDetector.observe(detector, Quaternion.identity)->ignore
     let tokens =
       [66., 156., 246., 336.]->Array.map(
         degrees => observe(detector, rotation(~x=degrees)).notationToken,
@@ -49,7 +47,6 @@ describe("RegripDetector", () => {
     let detector = RegripDetector.make()
     let x = rotation(~x=90.)
     let y = rotation(~y=90.)
-    RegripDetector.observe(detector, Quaternion.identity)->ignore
     let first = observe(detector, rotation(~x=66.))
     let second = observe(detector, Quaternion.multiply(x, rotation(~y=66.)))
     t

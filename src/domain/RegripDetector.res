@@ -1,5 +1,5 @@
 // Discrete virtual regrip detection. This is separate from OrientationStabilizer:
-// it consumes calibrated, unmodified gyro poses and only owns an event baseline.
+// it consumes calibrated relative poses and owns only an accumulated ratchet.
 
 type config = {thresholdDeg: float}
 @unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
@@ -23,10 +23,10 @@ type observation = {sensorFrameToken: sensorFrameToken, notationToken: notationT
 
 let defaults = {thresholdDeg: 60.}
 
-type t = {mutable baseline: option<Quaternion.t>, config: config}
+type t = {mutable ratchet: Quaternion.t, config: config}
 
-let make = (~config=defaults): t => {baseline: None, config}
-let reset = (t: t): unit => t.baseline = None
+let make = (~config=defaults): t => {ratchet: Quaternion.identity, config}
+let reset = (t: t): unit => t.ratchet = Quaternion.identity
 
 let quarter = (axis: axis, positive: bool): Quaternion.t => {
   let angle = Quaternion.degreesToRadians(
@@ -114,35 +114,28 @@ let permuteFaceOrder = (order: string, permutation: string): string =>
 
 let observe = (t: t, current: Quaternion.t): option<observation> => {
   let current = Quaternion.normalize(current)
-  switch t.baseline {
-  | None => {
-      t.baseline = Some(current)
+  // Precondition: `current` is GyroOrientation.relative output, whose
+  // calibration zero is identity. The ratchet records only detected quarters.
+  let delta = Quaternion.multiply(Quaternion.conjugate(t.ratchet), current)
+  if (
+    Quaternion.angle(Quaternion.identity, delta) <
+    Quaternion.degreesToRadians(t.config.thresholdDeg)
+  ) {
+    None
+  } else {
+    let cardinal = CubeSymmetry.nearest(delta, None, 0.)
+    if Quaternion.angle(Quaternion.identity, cardinal) < 0.00001 {
       None
-    }
-  | Some(baseline) => {
-      // GyroOrientation.relative is in the cube's local calibrated frame.
-      let delta = Quaternion.multiply(Quaternion.conjugate(baseline), current)
-      if (
-        Quaternion.angle(Quaternion.identity, delta) <
-        Quaternion.degreesToRadians(t.config.thresholdDeg)
-      ) {
-        None
-      } else {
-        let cardinal = CubeSymmetry.nearest(delta, None, 0.)
-        if Quaternion.angle(Quaternion.identity, cardinal) < 0.00001 {
-          None
-        } else {
-          let (axis, positive) = axisAndPolarity(delta)
+    } else {
+      let (axis, positive) = axisAndPolarity(delta)
 
-          // Project to an exact cardinal quarter turn rather than using the
-          // threshold packet, so a continuous rotation yields four steps.
-          t.baseline = Some(Quaternion.multiply(baseline, quarter(axis, positive)))
-          Some({
-            sensorFrameToken: sensorToken(axis, positive),
-            notationToken: notationToken(axis, positive),
-          })
-        }
-      }
+      // Project to an exact cardinal quarter turn rather than using the
+      // threshold packet, so a continuous rotation yields four steps.
+      t.ratchet = Quaternion.multiply(t.ratchet, quarter(axis, positive))
+      Some({
+        sensorFrameToken: sensorToken(axis, positive),
+        notationToken: notationToken(axis, positive),
+      })
     }
   }
 }

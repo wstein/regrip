@@ -1,5 +1,6 @@
 // Detects discrete virtual x/y/z regrips from calibrated gyro orientation.
 // It is intentionally independent from display stabilization and detents.
+// Input must be a calibrated relative pose whose zero is identity.
 
 type config = {thresholdDeg: float}
 @unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
