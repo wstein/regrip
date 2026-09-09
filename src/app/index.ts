@@ -153,8 +153,9 @@ session.subscribeEvents((event) => {
     return;
   }
   if (event.type === 'CUSTOM_TRIGGER') {
-    eventLog.record('custom_trigger', event);
-    infoPanel.showFeedback(`Custom trigger detected: ${event.move}`);
+    const solverMove = virtualMoveFrame.translate(event.move);
+    eventLog.record('custom_trigger', { ...event, solverMove });
+    infoPanel.showFeedback(`Custom trigger detected: ${solverMove}`);
     return;
   }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
