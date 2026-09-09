@@ -136,4 +136,16 @@ describe('live trace browser interactions', () => {
     click('#export-trace-event');
     expect(createObjectURL).toHaveBeenCalledOnce();
   });
+
+  it('clears the always-on export buffer with the visible trace', () => {
+    mountTrace();
+    const onClear = vi.fn();
+    const trace = createLiveLog({ onClear });
+    trace.append('MOVE', 'R');
+
+    click('#clear-trace');
+
+    expect(trace.getEntries()).toEqual([]);
+    expect(onClear).toHaveBeenCalledOnce();
+  });
 });

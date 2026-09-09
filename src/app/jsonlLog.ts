@@ -12,19 +12,16 @@ export function serializeJsonl(entries: readonly LogEntry[]): string {
   );
 }
 
-type LogListener = (entry: LogEntry, recordingCount: number) => void;
+type LogListener = (entry: LogEntry) => void;
 
 const maxEntries = 10_000;
 
 /**
- * Bounded, always-on JSONL event buffer. Recording marks an export cursor;
- * browser download is deliberately kept at the UI edge.
+ * Bounded, always-on JSONL event buffer. A replay header is added only when
+ * the current buffer is exported; browser download remains at the UI edge.
  */
 export function createJsonlLog(now: () => string = () => new Date().toISOString()) {
   let entries: LogEntry[] = [];
-  let active = false;
-  let cursor = 0;
-  let recordedEventCount = 0;
   const listeners = new Set<LogListener>();
 
   const record = (type: string, data: JsonValue): void => {
@@ -32,30 +29,20 @@ export function createJsonlLog(now: () => string = () => new Date().toISOString(
     entries.push(entry);
     while (entries.length > maxEntries) {
       entries.shift();
-      cursor = Math.max(0, cursor - 1);
     }
-    if (active && type !== 'log_started' && type !== 'log_stopped') recordedEventCount += 1;
-    listeners.forEach((listener) => listener(entry, recordedEventCount));
+    listeners.forEach((listener) => listener(entry));
   };
 
   return {
-    get active(): boolean {
-      return active;
-    },
-    get recordingCount(): number {
-      return recordedEventCount;
-    },
-    start(context: JsonValue): void {
-      cursor = entries.length;
-      recordedEventCount = 0;
-      active = true;
-      record('log_started', context);
-    },
     record,
-    stop(): string {
-      record('log_stopped', { entries: recordedEventCount });
-      active = false;
-      return serializeJsonl(entries.slice(cursor));
+    clear(): void {
+      entries = [];
+    },
+    toJsonl(header: JsonValue): string {
+      return serializeJsonl([
+        { recordedAt: now(), type: 'trace_header', data: header },
+        ...entries,
+      ]);
     },
     subscribe(listener: LogListener): () => void {
       listeners.add(listener);

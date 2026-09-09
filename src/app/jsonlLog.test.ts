@@ -5,43 +5,48 @@ import { createJsonlLog, downloadJsonl } from './jsonlLog';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('JSONL log', () => {
-  it('keeps a local buffer but exports only the range marked by start and stop', () => {
+  it('keeps a local buffer and exports its current entries with a replay header', () => {
     const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
-    log.record('before_recording', {});
-    log.start({ profile: 'gocube' });
+    log.record('session_status', { status: 'connected' });
     log.record('cube_event', { type: 'BATTERY', batteryLevel: 98 });
     const lines = log
-      .stop()
+      .toJsonl({ format: 'regrip', version: 1, profile: 'gocube' })
       .trim()
       .split('\n')
       .map((line) => JSON.parse(line));
 
     expect(lines).toEqual([
-      { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_started', data: { profile: 'gocube' } },
+      {
+        recordedAt: '2026-09-08T12:00:00.000Z',
+        type: 'trace_header',
+        data: { format: 'regrip', version: 1, profile: 'gocube' },
+      },
+      {
+        recordedAt: '2026-09-08T12:00:00.000Z',
+        type: 'session_status',
+        data: { status: 'connected' },
+      },
       {
         recordedAt: '2026-09-08T12:00:00.000Z',
         type: 'cube_event',
         data: { type: 'BATTERY', batteryLevel: 98 },
       },
-      { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_stopped', data: { entries: 1 } },
     ]);
   });
 
-  it('notifies the live trace for every local entry and reports the recording count', () => {
+  it('notifies the live trace for every local entry and clears the export buffer', () => {
     const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
-    const seen: Array<[string, number]> = [];
-    log.subscribe((entry, count) => seen.push([entry.type, count]));
+    const seen: string[] = [];
+    log.subscribe((entry) => seen.push(entry.type));
 
-    log.record('before_recording', {});
-    log.start({ profile: 'gocube' });
+    log.record('session_status', {});
     log.record('cube_event', { type: 'MOVE', move: 'R' });
 
-    expect(seen).toEqual([
-      ['before_recording', 0],
-      ['log_started', 0],
-      ['cube_event', 1],
-    ]);
-    expect(log.recordingCount).toBe(1);
+    expect(seen).toEqual(['session_status', 'cube_event']);
+    log.clear();
+    expect(log.toJsonl({ format: 'regrip', version: 1 }).trim()).toBe(
+      '{"recordedAt":"2026-09-08T12:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1}}',
+    );
   });
 
   it('attaches the download link and releases its blob URL after the click task', () => {

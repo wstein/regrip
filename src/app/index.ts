@@ -39,15 +39,15 @@ const sessionSignals = createSessionSignals(session);
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
+  onClear: () => eventLog.clear(),
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
     twistyPlayer.alg = algorithm;
     infoPanel.setDetectedMoves(algorithm);
   },
 });
-eventLog.subscribe((entry, recordingCount) => {
+eventLog.subscribe((entry) => {
   liveLog.appendLogEntry(entry);
-  infoPanel.setLogRecording(eventLog.active, recordingCount);
 });
 const solverFrame = createSolverFrame();
 let cubeExportSource: CubeExportSource | undefined;
@@ -258,9 +258,9 @@ infoPanel.on('connect', 'click', async () => {
   else await session.connect();
 });
 
-infoPanel.on('start-log', 'click', () => {
+infoPanel.on('download-log', 'click', () => {
   const state = session.getState();
-  eventLog.start({
+  const contents = eventLog.toJsonl({
     format: JSONL_REPLAY_FORMAT,
     version: JSONL_REPLAY_VERSION,
     session: {
@@ -269,16 +269,9 @@ infoPanel.on('start-log', 'click', () => {
       profileValue: state.profile.value,
     },
   });
-  infoPanel.setLogRecording(true, eventLog.recordingCount);
-  infoPanel.showFeedback('Session recording started.');
-});
-
-infoPanel.on('stop-log', 'click', () => {
-  if (!eventLog.active) return;
   const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
-  downloadJsonl(eventLog.stop(), filename);
-  infoPanel.setLogRecording(false, eventLog.recordingCount);
-  infoPanel.showFeedback('Recording downloaded.');
+  downloadJsonl(contents, filename);
+  infoPanel.showFeedback('Trace downloaded.');
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {

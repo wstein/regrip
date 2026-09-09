@@ -14,6 +14,7 @@ export type TraceEntry = {
 
 type LiveLogOptions = {
   onReproduceMoves?: (moves: string[]) => void;
+  onClear?: () => void;
   now?: () => Date;
 };
 
@@ -77,8 +78,12 @@ function eventTimestamp(event: SmartCubeSessionEvent): number {
   return 'timestamp' in event ? event.timestamp : Date.now();
 }
 
-/** Always-on, bounded trace. Download recording remains a separate, opt-in concern. */
-export function createLiveLog({ onReproduceMoves, now = () => new Date() }: LiveLogOptions = {}) {
+/** Always-on, bounded trace with local selection and export affordances. */
+export function createLiveLog({
+  onReproduceMoves,
+  onClear,
+  now = () => new Date(),
+}: LiveLogOptions = {}) {
   const root = document.getElementById('event-log-rows');
   const clear = document.getElementById('clear-trace');
   const sort = document.getElementById('sort-trace');
@@ -309,6 +314,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     focusedId = undefined;
     hideContextMenu();
     render();
+    onClear?.();
   });
   sort.addEventListener('click', () => {
     newestFirst = !newestFirst;

@@ -43,7 +43,7 @@ function isJsonlEntry(value: unknown): value is ValidatedJsonlEntry {
 }
 
 function readHeader(entry: ValidatedJsonlEntry, lineNumber: number): JsonlReplayHeader | null {
-  if (entry.type !== 'log_started') return null;
+  if (entry.type !== 'trace_header' && entry.type !== 'log_started') return null;
   const { format, version } = entry.data;
   if (format === undefined && version === undefined) return null;
   if (format !== JSONL_REPLAY_FORMAT) fail(lineNumber, `unsupported format ${String(format)}`);
@@ -58,8 +58,8 @@ function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
 }
 
 /**
- * Validate an app JSONL export before replaying it. Logs without a `log_started`
- * format header are accepted as legacy exports; all new recordings use v1.
+ * Validate an app JSONL export before replaying it. Logs without a header are
+ * accepted as legacy exports; `log_started` remains accepted for older files.
  */
 export function validateJsonlReplay(contents: string): {
   entries: readonly ValidatedJsonlEntry[];

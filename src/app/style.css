@@ -98,27 +98,14 @@ body {
   padding: 0.25rem 0.45rem;
   font-size: 0.68rem;
 }
-.trace-record-button {
-  border-color: #6f4051;
-  color: #ffdbe3;
-  background: #3c1d2a;
+.trace-download-button {
+  border-color: #4d78b8;
+  color: #d9e6ff;
+  background: #1d365c;
 }
-.trace-record-button:hover:not(:disabled) {
-  border-color: #e86b87;
-  background: #592536;
-}
-#event-log.is-recording .trace-heading h2::before {
-  content: '●';
-  display: inline-block;
-  margin-right: 0.35rem;
-  color: #ff607d;
-  animation: trace-recording-pulse 1.15s ease-in-out infinite;
-}
-@keyframes trace-recording-pulse {
-  50% {
-    opacity: 0.3;
-    transform: scale(0.75);
-  }
+.trace-download-button:hover:not(:disabled) {
+  border-color: #7299e5;
+  background: #273f69;
 }
 .trace-filters {
   display: flex;
