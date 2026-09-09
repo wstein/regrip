@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { startSceneRenderLoop } from '../adapters/three/sceneView';
+import type { OrientationIndicatorColors } from '../adapters/three/orientationIndicator';
 import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
@@ -29,6 +30,23 @@ const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
 const virtualMoveFrame = createVirtualMoveFrame();
+const virtualFrameQuaternion = new THREE.Quaternion();
+const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
+const faceColors: Record<string, number> = {
+  U: 0xffffff, R: 0xff3131, F: 0x78ed3e, D: 0xfff34a, L: 0xff8a2a, B: 0x3568ff,
+};
+
+function syncVirtualFrameOrientation(): void {
+  const { right, up, front, faces } = virtualMoveFrame.orientation();
+  virtualFrameQuaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+    new THREE.Vector3(...right),
+    new THREE.Vector3(...up),
+    new THREE.Vector3(...front),
+  ));
+  virtualFrameColors.r = faceColors[faces.right]!;
+  virtualFrameColors.u = faceColors[faces.up]!;
+  virtualFrameColors.f = faceColors[faces.front]!;
+}
 
 let renderLoopStarted = false;
 
@@ -45,6 +63,7 @@ infoPanel.on('reset-gyro', 'click', async () => {
   OrientationStabilizer.reset(stabilizer);
   session.resetGyro();
   virtualMoveFrame.reset();
+  syncVirtualFrameOrientation();
 });
 
 function applyProfile(profile: SmartCubeProfile): void {
@@ -112,6 +131,7 @@ session.subscribeEvents(event => {
     eventLog.record('virtual_regrip', event);
     infoPanel.appendDetectedMove(event.notationToken);
     virtualMoveFrame.applyRegrip(event.notationToken);
+    syncVirtualFrameOrientation();
     return;
   }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
@@ -136,6 +156,7 @@ session.subscribe(state => {
 
   if (state.status === 'connecting') {
     virtualMoveFrame.reset();
+    syncVirtualFrameOrientation();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Connecting…');
     return;
@@ -144,7 +165,7 @@ session.subscribe(state => {
     const connection = state.connection;
     if (!renderLoopStarted) {
       renderLoopStarted = true;
-      startSceneRenderLoop(twistyPlayer, cubeQuaternion);
+      startSceneRenderLoop(twistyPlayer, cubeQuaternion, virtualFrameQuaternion, virtualFrameColors);
     }
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
@@ -156,6 +177,7 @@ session.subscribe(state => {
   }
   if (state.status === 'disconnected') {
     virtualMoveFrame.reset();
+    syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus('Disconnected');
@@ -164,6 +186,7 @@ session.subscribe(state => {
   }
   if (state.status === 'error') {
     virtualMoveFrame.reset();
+    syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);

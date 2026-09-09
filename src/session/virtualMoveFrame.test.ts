@@ -47,6 +47,19 @@ describe('virtual move frame', () => {
     expect(frame.translate("F'")).toBe("R'");
   });
 
+  it('exposes logical R/U/F directions after virtual regrips', () => {
+    const frame = createVirtualMoveFrame();
+    expect(frame.orientation()).toEqual({
+      right: [1, 0, 0], up: [0, 1, 0], front: [0, 0, 1], faces: { right: 'R', up: 'U', front: 'F' },
+    });
+
+    frame.applyRegrip('y');
+    // After logical y, the physical B/U/R faces occupy logical R/U/F.
+    expect(frame.orientation()).toEqual({
+      right: [0, 0, -1], up: [0, 1, 0], front: [1, 0, 0], faces: { right: 'B', up: 'U', front: 'R' },
+    });
+  });
+
   it('reframes all 54 facelets, including face-grid orientation and centre colours', () => {
     const solved = 'U'.repeat(9) + 'R'.repeat(9) + 'F'.repeat(9)
       + 'D'.repeat(9) + 'L'.repeat(9) + 'B'.repeat(9);

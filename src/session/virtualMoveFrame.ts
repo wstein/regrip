@@ -2,8 +2,14 @@ import { faceOrderForNotation } from '../domain/RegripDetector.res.mjs';
 
 const faceOrder = 'URFDLB';
 
-type Vector = readonly [number, number, number];
+export type Vector = readonly [number, number, number];
 type FaceGeometry = { normal: Vector; right: Vector; down: Vector };
+export type VirtualOrientation = {
+  right: Vector;
+  up: Vector;
+  front: Vector;
+  faces: { right: string; up: string; front: string };
+};
 
 // Kociemba URFDLB facelet grids, viewed from outside each face.
 const geometry: Record<string, FaceGeometry> = {
@@ -51,6 +57,19 @@ export function createVirtualMoveFrame() {
     return logicalIndex === -1 ? move : `${faceOrder[logicalIndex]}${match[2]}`;
   };
 
+  /** Physical directions occupied by the user-facing logical R/U/F axes. */
+  const orientation = (): VirtualOrientation => {
+    const faces = {
+      right: logicalToPhysical[1]!, up: logicalToPhysical[0]!, front: logicalToPhysical[2]!,
+    };
+    return {
+      right: geometry[faces.right]!.normal,
+      up: geometry[faces.up]!.normal,
+      front: geometry[faces.front]!.normal,
+      faces,
+    };
+  };
+
   /**
    * Express physical Kociemba facelets in the current logical regrip frame.
    * Both sticker positions/grid orientation and sticker colour labels change.
@@ -90,5 +109,5 @@ export function createVirtualMoveFrame() {
     }).join('');
   };
 
-  return { applyRegrip, reframeFacelets, reset, translate };
+  return { applyRegrip, orientation, reframeFacelets, reset, translate };
 }
