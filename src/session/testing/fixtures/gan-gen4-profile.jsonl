@@ -1,0 +1,5 @@
+{"recordedAt":"2026-09-09T21:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1,"session":{"device":"GANi4_REDACTED","protocol":"gan-gen4"}}}
+{"recordedAt":"2026-09-09T21:00:00.010Z","type":"cube_event","data":{"type":"HARDWARE","timestamp":10,"hardwareName":"GANi4","gyroSupported":true}}
+{"recordedAt":"2026-09-09T21:00:00.020Z","type":"cube_event","data":{"type":"BATTERY","timestamp":20,"batteryLevel":80}}
+{"recordedAt":"2026-09-09T21:00:00.030Z","type":"cube_event","data":{"type":"GYRO","timestamp":30,"quaternion":{"x":0,"y":0,"z":0,"w":1}}}
+{"recordedAt":"2026-09-09T21:00:00.040Z","type":"cube_event","data":{"type":"MOVE","timestamp":40,"move":"R"}}

@@ -18,6 +18,15 @@ describe('resolveProfile', () => {
     );
   });
 
+  it('selects the dedicated GAN Gen4 profile for GANi4 devices', () => {
+    const profile = resolveProfile(
+      { protocol: 'gan-gen4', deviceName: 'GANi4_REDACTED' },
+      bundledProfiles,
+    );
+    expect(profile.id).toBe('gan-gen4');
+    expect(profile.sources['gyro.axisMap']).toBe('base');
+  });
+
   it('preserves per-field provenance across app, user, and runtime layers', () => {
     const profile = resolveProfile({ protocol: 'gocube' }, bundledProfiles, {
       app: { stabilizer: { snapDeg: 5 } },

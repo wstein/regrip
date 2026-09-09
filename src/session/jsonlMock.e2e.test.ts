@@ -16,6 +16,7 @@ const uiFixtures = [
   new URL('./testing/fixtures/gocube-edge-ui.jsonl', import.meta.url),
   new URL('./testing/fixtures/gan-ui12-ui.jsonl', import.meta.url),
 ];
+const ganGen4ProfileFixture = new URL('./testing/fixtures/gan-gen4-profile.jsonl', import.meta.url);
 
 describe('JSONL session replay contract', () => {
   it('replays initial state, regrip, custom trigger, and disconnect deterministically', async () => {
@@ -130,6 +131,18 @@ describe('JSONL session replay contract', () => {
       deviceName: 'GAN12 UI',
       protocol: { id: 'gan-gen2' },
     });
+  });
+
+  it('selects the GAN Gen4 profile from the redacted GANi4 replay fixture', async () => {
+    const jsonl = await readFile(ganGen4ProfileFixture, 'utf8');
+    const mock = createJsonlMockConnection(jsonl);
+    const session = createSmartCubeSession({ connect: async () => mock.connection });
+
+    await session.connect();
+
+    expect(session.getState().profile.id).toBe('gan-gen4');
+    expect(mock.connection.deviceMAC).toBe('');
+    await session.disconnect();
   });
 
   it('rejects malformed JSONL before replay with the source line number', () => {

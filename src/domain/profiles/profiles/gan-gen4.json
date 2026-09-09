@@ -1,0 +1,8 @@
+{
+  "id": "gan-gen4",
+  "extends": "gan-gen2",
+  "match": {
+    "protocol": "gan-gen4",
+    "deviceName": "GANi4_.*"
+  }
+}
