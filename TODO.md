@@ -4,7 +4,7 @@
 
 - [ ] Smoke-tune GoCube and GAN profiles: `radiusDeg`, `snapDeg`,
   `hysteresisDeg`, `velocityMax`, and `driftDegPerSec`.
-- [ ] Validate virtual x/y/z regrips and the R/U/F gizmo against captured and
+- [x] Validate virtual x/y/z regrips and the R/U/F gizmo against captured and
   live hardware sessions, including mixed-axis and quick reversal handling.
 - [ ] Tune or make configurable the 300 ms returned-face `CUSTOM_TRIGGER`
   window after real-cube testing.
