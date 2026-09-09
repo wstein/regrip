@@ -12,10 +12,25 @@ A single-page [Vite](https://vite.dev) example for the
 to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a cubing.js
 `TwistyPlayer`, and provides a basic solve timer with gyro orientation.
 
+## Highlights
+
+- A session-owned Bluetooth lifecycle with connection status, initial-state requests, safe teardown,
+  and profile resolution.
+- Per-model profiles for stabilization, gyro axes, battery presentation, and protocol quirks.
+- Pure ReScript magnetic gyro stabilization: cube-symmetry detents, hysteresis, velocity gating,
+  and a configurable drift adjustment.
+- Virtual `x`, `y`, and `z` regrips from calibrated gyro poses. Face moves and the R/U/F orientation
+  gizmo stay in the current virtual cube frame.
+- A 300 ms returned-face custom trigger (`R R'`, for example), detected independently of the gyro
+  magnet layer.
+- Editable detected moves, cube state, solve timer, JSONL recording, and a local live event trace.
+  The trace supports filters, sort direction, fixed JSON detail, selection, copy/export, and replay
+  of selected moves.
+
 The dependency is pinned to a tested `smartcube-web-bluetooth` commit. Update it deliberately, run
 the checks below, and commit the resulting lockfile change together with the package change.
 
-## What the panel shows
+## Cube information and hardware notes
 
 - Connection state, selected protocol, capabilities, device and hardware details, and battery level.
 - Standard `MOVE`, `FACELETS`, `GYRO`, `HARDWARE`, `BATTERY`, and `DISCONNECT` events.
@@ -30,28 +45,31 @@ available, the app prompts for one and explains how to enable
 
 ## Architecture
 
-`src/app/index.ts` is the composition root: it mounts the player, wires controls, and coordinates the
-connection lifecycle. Imports flow downward from `app` to `adapters`, `session`, and `domain`; ESLint
-enforces that `domain` stays independent and `session` does not depend on presentation layers.
+`src/app/index.ts` is the composition root: it mounts the player and DOM controls. Imports flow
+downward from `app` to `adapters`, `session`, and `domain`; ESLint enforces that `domain` stays
+independent and `session` does not depend on presentation layers.
 
-| Module                                           | Responsibility                                                       |
-| ------------------------------------------------ | -------------------------------------------------------------------- |
-| `src/app/`                                       | DOM panel, styles, and composition root                              |
-| `src/session/connection.ts` / `cubeEvents.ts`    | Generic connection plus headless event/timer orchestration           |
-| `src/session/timerController.ts` / `cubeInfo.ts` | Timer effects, clock/skew handling, and protocol-metadata formatting |
-| `src/adapters/cubing/`                           | cubing.js scramble solver, facelet bridge, and TwistyPlayer          |
-| `src/adapters/three/`                            | Three.js render loop                                                 |
-| `src/domain/`                                    | Pure ReScript state, timing, facelet, and orientation logic          |
+| Module                            | Responsibility                                                            |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `src/app/`                        | DOM, trace/JSONL tooling, styles, and composition root                    |
+| `src/session/smartCubeSession.ts` | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
+| `src/session/profile/`            | Profile inheritance, matching, overrides, and per-field provenance        |
+| `src/session/virtualMoveFrame.ts` | Reframe physical face moves after virtual `x`/`y`/`z` rotations           |
+| `src/session/timerController.ts`  | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
+| `src/adapters/cubing/`            | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
+| `src/adapters/three/`             | Three.js scene, orientation render loop, and R/U/F gizmo                  |
+| `src/domain/`                     | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 
-| Module                                              | Responsibility                                                           |
-| --------------------------------------------------- | ------------------------------------------------------------------------ |
-| `src/domain/CubeFacelets.res`                       | Facelet string ⇄ KPatternData conversion                                 |
-| `src/domain/Timer.res` / `Time.res`                 | Pure solve-timer state machine and `m:ss.mmm` formatting                 |
-| `src/domain/MoveBuffer.res`                         | Pure rolling recent-move and solution buffers                            |
-| `src/domain/Quaternion.res` / `GyroOrientation.res` | Three.js-compatible gyro orientation math                                |
-| `src/session/Bindings_SmartCube.res`                | Typed boundary for timestamp helper functions from the Bluetooth library |
+| Module                                                                     | Responsibility                                                    |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `Cube333.res` / `CubeFacelets.res`                                         | Pure solved-state detection and facelet conversion                |
+| `Timer.res` / `Time.res` / `MoveBuffer.res`                                | Solve-timer state machine, formatting, and recent-move buffers    |
+| `Quaternion.res` / `CubeSymmetry.res`                                      | Quaternion math and the 24 cube orientations                      |
+| `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res` | Detents, hysteresis, velocity gating, drift, and calibrated poses |
+| `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res`      | Virtual rotations, face remapping, and returned-face triggers     |
+| `src/session/Bindings_SmartCube.res`                                       | Typed timestamp-helper boundary to the Bluetooth library          |
 
 Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
 
@@ -63,6 +81,24 @@ npm run dev      # ReScript watch + Vite dev server
 npm test         # Compile ReScript and run Vitest specs
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
+npm run format    # Format ReScript and all supported text sources
+npm run docs:api # Generate TypeDoc to docs/api/
+```
+
+Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
+
+## API documentation
+
+Run `npm run docs:api`, then visit
+[`http://localhost:5173/docs/api/index.html`](http://localhost:5173/docs/api/index.html) while the
+dev server is running. Before generation, that route provides a fallback page with the local commands.
+
+GitHub Pages generates and serves the same reference at
+[`/smartcube-example/docs/api/index.html`](https://wstein.github.io/smartcube-example/docs/api/index.html).
+For source-native ReScript documentation JSON, use:
+
+```sh
+npx rescript-tools doc src/domain/Quaternion.resi
 ```
 
 ## Community
