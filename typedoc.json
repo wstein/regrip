@@ -12,14 +12,14 @@
     "src/domain/GyroOrientation.res.d.mts",
     "src/domain/MagneticDetent.res.d.mts",
     "src/domain/MoveBackTrigger.res.d.mts",
-    "src/domain/MoveBuffer.res.d.mts",
+    "packages/core/src/domain/MoveBuffer.res.d.mts",
     "src/domain/OrientationStabilizer.res.d.mts",
     "src/domain/Quaternion.res.d.mts",
     "src/domain/RegripDetector.res.d.mts",
-    "src/domain/Time.res.d.mts",
-    "src/domain/Timer.res.d.mts",
+    "packages/core/src/domain/Time.res.d.mts",
+    "packages/core/src/domain/Timer.res.d.mts",
     "src/domain/VirtualCubeFrame.res.d.mts",
-    "src/bindings/Bindings_SmartCube.res.d.mts"
+    "packages/core/src/bindings/Bindings_SmartCube.res.d.mts"
   ],
   "out": "docs/api",
   "readme": "none",
