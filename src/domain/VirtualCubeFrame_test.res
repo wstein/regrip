@@ -12,4 +12,18 @@ describe("VirtualCubeFrame", () => {
     ->Expect.toEqual(("B", "U", "R"))
     t->expect(VirtualCubeFrame.logicalFaceForPhysical(frame, "B"))->Expect.toBe("R")
   })
+
+  test("reframes all 54 facelets after a virtual regrip", t => {
+    let solved =
+      "U"->String.repeat(9) ++
+      "R"->String.repeat(9) ++
+      "F"->String.repeat(9) ++
+      "D"->String.repeat(9) ++
+      "L"->String.repeat(9) ++
+      "B"->String.repeat(9)
+    let frame = VirtualCubeFrame.make()
+    VirtualCubeFrame.applyRegrip(frame, "y")
+    t->expect(VirtualCubeFrame.reframeFacelets(frame, solved))->Expect.toBe(solved)
+    t->expect(VirtualCubeFrame.reframeFacelets(frame, "short"))->Expect.toBe("short")
+  })
 })

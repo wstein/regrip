@@ -15,3 +15,5 @@ let applyRegrip: (t, string) => unit
 let translate: (t, string) => string
 let orientation: t => orientation
 let logicalFaceForPhysical: (t, string) => string
+/** Re-express a physical Kociemba URFDLB facelet string in this logical frame. */
+let reframeFacelets: (t, string) => string

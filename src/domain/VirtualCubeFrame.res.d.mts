@@ -15,3 +15,4 @@ export function applyRegrip(frame: VirtualCubeFrame, notationToken: string): voi
 export function translate(frame: VirtualCubeFrame, move: string): string;
 export function orientation(frame: VirtualCubeFrame): VirtualOrientation;
 export function logicalFaceForPhysical(frame: VirtualCubeFrame, physicalFace: string): string;
+export function reframeFacelets(frame: VirtualCubeFrame, facelets: string): string;

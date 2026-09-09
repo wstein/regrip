@@ -15,6 +15,7 @@ type t = {mutable logicalToPhysical: string}
 
 let faceOrder = "URFDLB"
 let positions = [0, 1, 2, 3, 4, 5]
+let stickerPositions = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 let charAt = (value: string, index: int): string =>
   String.substring(value, ~start=index, ~end=index + 1)
@@ -38,6 +39,31 @@ let normal = (face: string): vector =>
   | "D" => {x: 0, y: -1, z: 0}
   | "L" => {x: -1, y: 0, z: 0}
   | _ => {x: 0, y: 0, z: -1}
+  }
+
+type faceGeometry = {normal: vector, right: vector, down: vector}
+
+// Kociemba URFDLB facelet grids, viewed from outside each face.
+let geometry = (face: string): faceGeometry =>
+  switch face {
+  | "U" => {normal: {x: 0, y: 1, z: 0}, right: {x: 1, y: 0, z: 0}, down: {x: 0, y: 0, z: 1}}
+  | "R" => {normal: {x: 1, y: 0, z: 0}, right: {x: 0, y: 0, z: -1}, down: {x: 0, y: -1, z: 0}}
+  | "F" => {normal: {x: 0, y: 0, z: 1}, right: {x: 1, y: 0, z: 0}, down: {x: 0, y: -1, z: 0}}
+  | "D" => {normal: {x: 0, y: -1, z: 0}, right: {x: 1, y: 0, z: 0}, down: {x: 0, y: 0, z: -1}}
+  | "L" => {normal: {x: -1, y: 0, z: 0}, right: {x: 0, y: 0, z: 1}, down: {x: 0, y: -1, z: 0}}
+  | _ => {normal: {x: 0, y: 0, z: -1}, right: {x: -1, y: 0, z: 0}, down: {x: 0, y: -1, z: 0}}
+  }
+
+let dot = (left: vector, right: vector): int =>
+  left.x * right.x + left.y * right.y + left.z * right.z
+
+let faceForNormal = (direction: vector): string =>
+  switch positions->Array.find(index => {
+    let face = charAt(faceOrder, index)
+    dot(geometry(face).normal, direction) == 1
+  }) {
+  | Some(index) => charAt(faceOrder, index)
+  | None => ""
   }
 
 let make = (): t => {logicalToPhysical: faceOrder}
@@ -89,3 +115,41 @@ let logicalFaceForPhysical = (frame: t, physicalFace: string): string => {
   | None => physicalFace
   }
 }
+
+/** Re-express physical Kociemba facelets in this logical regrip frame. */
+let reframeFacelets = (frame: t, facelets: string): string =>
+  if String.length(facelets) != 54 {
+    facelets
+  } else {
+    let frameOrientation = orientation(frame)
+    let physicalX = geometry(frameOrientation.rightFace).normal
+    let physicalY = geometry(frameOrientation.upFace).normal
+    let physicalZ = geometry(frameOrientation.frontFace).normal
+    let rotate = (direction: vector): vector => {
+      x: direction.x * physicalX.x + direction.y * physicalY.x + direction.z * physicalZ.x,
+      y: direction.x * physicalX.y + direction.y * physicalY.y + direction.z * physicalZ.y,
+      z: direction.x * physicalX.z + direction.y * physicalY.z + direction.z * physicalZ.z,
+    }
+
+    positions
+    ->Array.map(logicalIndex => {
+      let logical = geometry(charAt(faceOrder, logicalIndex))
+      let physicalFace = faceForNormal(rotate(logical.normal))
+      let physical = geometry(physicalFace)
+      let rotatedRight = rotate(logical.right)
+      let rotatedDown = rotate(logical.down)
+      stickerPositions
+      ->Array.map(stickerIndex => {
+        let row = stickerIndex / 3 - 1
+        let column = stickerIndex % 3 - 1
+        let physicalRow =
+          column * dot(rotatedRight, physical.down) + row * dot(rotatedDown, physical.down) + 1
+        let physicalColumn =
+          column * dot(rotatedRight, physical.right) + row * dot(rotatedDown, physical.right) + 1
+        let rawIndex = faceIndex(physicalFace) * 9 + physicalRow * 3 + physicalColumn
+        logicalFaceForPhysical(frame, charAt(facelets, rawIndex))
+      })
+      ->Array.join("")
+    })
+    ->Array.join("")
+  }
