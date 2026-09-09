@@ -13,7 +13,14 @@ function mountTrace(): void {
       <button id="select-all-trace"></button><button id="export-trace"></button>
       <button id="copy-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
     </div>
-    <div id="event-log-rows"></div>`;
+    <div id="event-log-rows"></div>
+    <section id="trace-detail" hidden><span id="trace-detail-summary"></span>
+      <button id="copy-trace-detail"></button><button id="export-trace-detail"></button>
+      <pre id="trace-detail-json"></pre>
+    </section>
+    <menu id="trace-context-menu" hidden><button id="select-trace-event"></button>
+      <button id="copy-trace-event"></button><button id="export-trace-event"></button>
+    </menu>`;
 }
 
 function click(selector: string, options: MouseEventInit = {}): void {
@@ -28,7 +35,7 @@ afterEach(() => {
 });
 
 describe('live trace browser interactions', () => {
-  it('filters future events and expands an event into its local JSON detail', () => {
+  it('filters future events and shows a clicked event in the fixed detail pane', () => {
     mountTrace();
     const trace = createLiveLog({ now: () => new Date('2026-09-09T10:00:00.000Z') });
     trace.append('GYRO', 'hidden');
@@ -40,12 +47,12 @@ describe('live trace browser interactions', () => {
     expect(trace.getEntries()).toHaveLength(2);
 
     click('[data-trace-id="2"]');
-    const details = document.querySelector<HTMLPreElement>('[data-trace-id="2"] .trace-details')!;
-    expect(details.hidden).toBe(false);
-    expect(details.textContent).toContain('"x": 0.1');
+    expect(document.querySelector<HTMLElement>('#trace-detail')?.hidden).toBe(false);
+    expect(document.querySelector('#trace-detail-json')?.textContent).toContain('"x": 0.1');
+    expect(document.querySelector('[data-trace-id="2"] .trace-details')).toBeNull();
   });
 
-  it('supports checkbox ranges, type bulk selection, copy, export, and local move reproduction', async () => {
+  it('supports shift-click ranges, type bulk selection, copy, export, and local move reproduction', async () => {
     mountTrace();
     const reproduce = vi.fn();
     const copy = vi.fn().mockResolvedValue(undefined);
@@ -65,8 +72,8 @@ describe('live trace browser interactions', () => {
     trace.append('EVENT', 'battery', 2, { battery: 98 });
     trace.append('MOVE', "U'", 3, { move: "U'" });
 
-    click('[data-trace-id="1"] .trace-select');
-    click('[data-trace-id="3"] .trace-select', { shiftKey: true });
+    click('[data-trace-id="1"]', { shiftKey: true });
+    click('[data-trace-id="3"]', { shiftKey: true });
     expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual([
       'R',
       'battery',
@@ -90,5 +97,34 @@ describe('live trace browser interactions', () => {
 
     click('#reproduce-trace');
     expect(reproduce).toHaveBeenCalledWith(['R', "U'"]);
+  });
+
+  it('offers single-event actions from the row context menu', async () => {
+    mountTrace();
+    const copy = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: copy },
+      configurable: true,
+    });
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:trace-event');
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const trace = createLiveLog();
+    trace.append('MOVE', 'R', 1, { move: 'R' });
+
+    const row = document.querySelector<HTMLElement>('[data-trace-id="1"]')!;
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 12, clientY: 34 }));
+    expect(document.querySelector<HTMLElement>('#trace-context-menu')?.hidden).toBe(false);
+
+    click('#select-trace-event');
+    expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual(['R']);
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    click('#copy-trace-event');
+    await Promise.resolve();
+    expect(copy).toHaveBeenCalledWith(expect.stringContaining('"move":"R"'));
+
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    click('#export-trace-event');
+    expect(createObjectURL).toHaveBeenCalledOnce();
   });
 });

@@ -87,6 +87,15 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   const copyButton = document.getElementById('copy-trace');
   const reproduceButton = document.getElementById('reproduce-trace');
   const clearSelection = document.getElementById('clear-trace-selection');
+  const detail = document.getElementById('trace-detail');
+  const detailSummary = document.getElementById('trace-detail-summary');
+  const detailJson = document.getElementById('trace-detail-json');
+  const copyDetail = document.getElementById('copy-trace-detail');
+  const exportDetail = document.getElementById('export-trace-detail');
+  const contextMenu = document.getElementById('trace-context-menu');
+  const selectContextEvent = document.getElementById('select-trace-event');
+  const copyContextEvent = document.getElementById('copy-trace-event');
+  const exportContextEvent = document.getElementById('export-trace-event');
   if (
     !root ||
     !clear ||
@@ -97,7 +106,16 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     !exportButton ||
     !copyButton ||
     !reproduceButton ||
-    !clearSelection
+    !clearSelection ||
+    !detail ||
+    !detailSummary ||
+    !detailJson ||
+    !copyDetail ||
+    !exportDetail ||
+    !contextMenu ||
+    !selectContextEvent ||
+    !copyContextEvent ||
+    !exportContextEvent
   ) {
     throw new Error('Missing live trace elements');
   }
@@ -108,6 +126,8 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   let newestFirst = true;
   let nextId = 1;
   let lastSelectedId: number | undefined;
+  let focusedId: number | undefined;
+  let contextId: number | undefined;
 
   const selectedEntries = (): TraceEntry[] => entries.filter((entry) => selected.has(entry.id));
   const selectedMoves = (): string[] =>
@@ -120,6 +140,35 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     selection.hidden = count === 0;
     selectionCount.textContent = `${count} selected`;
     reproduceButton.toggleAttribute('disabled', selectedMoves().length === 0);
+  };
+
+  const entryById = (id: number | undefined): TraceEntry | undefined =>
+    entries.find((entry) => entry.id === id);
+
+  const serializeEntry = (entry: TraceEntry): string => serializeJsonl([entry.log]);
+
+  const copyEntry = (entry: TraceEntry): void => {
+    void navigator.clipboard?.writeText(serializeEntry(entry));
+  };
+
+  const exportEntry = (entry: TraceEntry): void => {
+    downloadJsonl(
+      serializeEntry(entry),
+      `smartcube-trace-event-${entry.id}-${now().toISOString().replace(/:/g, '-')}.jsonl`,
+    );
+  };
+
+  const updateDetail = (): void => {
+    const entry = entryById(focusedId);
+    detail.hidden = !entry;
+    if (!entry) return;
+    detailSummary.textContent = `${entry.category} · ${displayTime(Date.parse(entry.log.recordedAt))}`;
+    detailJson.textContent = JSON.stringify(entry.log, null, 2);
+  };
+
+  const hideContextMenu = (): void => {
+    contextMenu.hidden = true;
+    contextId = undefined;
   };
 
   const selectEntry = (id: number, range: boolean): void => {
@@ -137,6 +186,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   };
 
   const render = (): void => {
+    const previousScrollTop = root.scrollTop;
     const ordered = newestFirst ? [...entries].reverse() : entries;
     root.replaceChildren(
       ...ordered.map((entry) => {
@@ -144,17 +194,9 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
         row.className = `trace-row trace-${entry.category.toLowerCase()}`;
         row.dataset.traceId = String(entry.id);
         row.tabIndex = 0;
-        row.setAttribute('aria-expanded', 'false');
-
-        const check = document.createElement('input');
-        check.type = 'checkbox';
-        check.className = 'trace-select';
-        check.checked = selected.has(entry.id);
-        check.setAttribute('aria-label', `Select ${entry.category} event`);
-        check.addEventListener('click', (event) => {
-          event.stopPropagation();
-          selectEntry(entry.id, (event as MouseEvent).shiftKey);
-        });
+        row.classList.toggle('is-selected', selected.has(entry.id));
+        row.classList.toggle('is-focused', focusedId === entry.id);
+        row.setAttribute('aria-selected', String(selected.has(entry.id)));
 
         const badge = document.createElement('button');
         badge.type = 'button';
@@ -175,27 +217,36 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
         const message = document.createElement('span');
         message.className = 'trace-message';
         message.textContent = entry.message;
-        const details = document.createElement('pre');
-        details.className = 'trace-details';
-        details.hidden = true;
-        details.textContent = JSON.stringify(entry.log, null, 2);
-
-        row.append(check, badge, timestamp, message, details);
-        const toggleDetails = (): void => {
-          details.hidden = !details.hidden;
-          row.setAttribute('aria-expanded', String(!details.hidden));
+        row.append(badge, timestamp, message);
+        const focusDetails = (): void => {
+          focusedId = entry.id;
+          updateDetail();
+          render();
         };
-        row.addEventListener('click', toggleDetails);
+        row.addEventListener('click', (event) => {
+          if ((event as MouseEvent).shiftKey) selectEntry(entry.id, true);
+          else focusDetails();
+        });
         row.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            toggleDetails();
+            if (event.shiftKey) selectEntry(entry.id, true);
+            else focusDetails();
           }
+        });
+        row.addEventListener('contextmenu', (event) => {
+          event.preventDefault();
+          contextId = entry.id;
+          contextMenu.hidden = false;
+          contextMenu.style.left = `${event.clientX}px`;
+          contextMenu.style.top = `${event.clientY}px`;
         });
         return row;
       }),
     );
     updateSelection();
+    updateDetail();
+    root.scrollTop = previousScrollTop;
   };
 
   const appendEntry = (category: TraceCategory, message: string, log: LogEntry): void => {
@@ -209,6 +260,7 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     while (entries.length > maxRows) {
       const removed = entries.shift()!;
       selected.delete(removed.id);
+      if (focusedId === removed.id) focusedId = undefined;
     }
     render();
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
@@ -241,6 +293,8 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     entries.splice(0);
     selected.clear();
     lastSelectedId = undefined;
+    focusedId = undefined;
+    hideContextMenu();
     render();
   });
   sort.addEventListener('click', () => {
@@ -270,6 +324,31 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     if (contents) void navigator.clipboard?.writeText(contents);
   });
   reproduceButton.addEventListener('click', () => onReproduceMoves?.(selectedMoves()));
+  copyDetail.addEventListener('click', () => {
+    const entry = entryById(focusedId);
+    if (entry) copyEntry(entry);
+  });
+  exportDetail.addEventListener('click', () => {
+    const entry = entryById(focusedId);
+    if (entry) exportEntry(entry);
+  });
+  selectContextEvent.addEventListener('click', () => {
+    if (contextId !== undefined) selectEntry(contextId, false);
+    hideContextMenu();
+  });
+  copyContextEvent.addEventListener('click', () => {
+    const entry = entryById(contextId);
+    if (entry) copyEntry(entry);
+    hideContextMenu();
+  });
+  exportContextEvent.addEventListener('click', () => {
+    const entry = entryById(contextId);
+    if (entry) exportEntry(entry);
+    hideContextMenu();
+  });
+  document.addEventListener('click', (event) => {
+    if (!contextMenu.hidden && !contextMenu.contains(event.target as Node)) hideContextMenu();
+  });
 
   return {
     append,
