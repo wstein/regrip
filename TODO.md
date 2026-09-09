@@ -1,5 +1,13 @@
 # Remaining topics
 
+## Immediate delivery
+
+- [ ] Push verified local `main` to `wstein/smartcube-example`, then close or
+      rebase the stale Vitest-5 and ESLint-10 Dependabot PRs. They are known
+      incompatible with `rescript-vitest@3` and `eslint-plugin-import@2`.
+- [ ] Confirm the first `main` CI run and GitHub Pages deployment are green
+      after the push; enable Pages' “GitHub Actions” source if required.
+
 ## Validate on real cubes
 
 - [ ] Smoke-tune GoCube and GAN profiles: `radiusDeg`, `snapDeg`,
@@ -39,8 +47,20 @@
       gizmo rendering path.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
       a cardinal confirmation pose) after hardware traces establish its impact.
-- [ ] Run and resolve the remaining dependency audit findings without
-      needlessly accepting breaking upgrades.
+- [x] Run and resolve the remaining dependency audit findings without
+      needlessly accepting breaking upgrades. _(Current `npm audit`: clean;
+      retain this as a periodic check.)_
+
+## Developer experience and documentation
+
+- [x] Add project-wide ReScript/Prettier formatting, a CI format gate, and
+      ignore generated ReScript declarations.
+- [x] Add `npm run docs:api` TypeDoc generation for the TypeScript public
+      boundary; generated `docs/api/` is intentionally untracked.
+- [ ] Publish the generated TypeDoc site under GitHub Pages at `/api/` as part
+      of the Pages build, after checking the navigation and Vite base path.
+- [ ] Use `rescript-tools doc` JSON as input for a ReScript-native documentation
+      view only if TypeDoc's TypeScript-facing API docs prove insufficient.
 
 ## Core/package boundary
 
