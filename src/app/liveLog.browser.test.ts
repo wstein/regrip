@@ -8,7 +8,7 @@ const filters = ['MOVE', 'EVENT', 'STATE', 'GYRO', 'REGRIP', 'TRIGGER'];
 function mountTrace(): void {
   document.body.innerHTML = `
     <button id="clear-trace"></button><button id="sort-trace"></button>
-    <div class="trace-filters">${filters.map(category => `<button data-trace-filter="${category}"></button>`).join('')}</div>
+    <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
     <div id="trace-selection" hidden><span id="trace-selection-count"></span>
       <button id="select-all-trace"></button><button id="export-trace"></button>
       <button id="copy-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
@@ -49,23 +49,33 @@ describe('live trace browser interactions', () => {
     mountTrace();
     const reproduce = vi.fn();
     const copy = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText: copy }, configurable: true });
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: copy },
+      configurable: true,
+    });
     const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:trace');
     const revokeObjectURL = vi.fn();
     vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
     const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    const trace = createLiveLog({ onReproduceMoves: reproduce, now: () => new Date('2026-09-09T10:00:00.000Z') });
+    const trace = createLiveLog({
+      onReproduceMoves: reproduce,
+      now: () => new Date('2026-09-09T10:00:00.000Z'),
+    });
     trace.append('MOVE', 'R', 1, { move: 'R' });
     trace.append('EVENT', 'battery', 2, { battery: 98 });
     trace.append('MOVE', "U'", 3, { move: "U'" });
 
     click('[data-trace-id="1"] .trace-select');
     click('[data-trace-id="3"] .trace-select', { shiftKey: true });
-    expect(trace.getSelectedEntries().map(entry => entry.message)).toEqual(['R', 'battery', "U'"]);
+    expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual([
+      'R',
+      'battery',
+      "U'",
+    ]);
 
     click('#clear-trace-selection');
     click('[data-trace-id="1"] .trace-badge');
-    expect(trace.getSelectedEntries().map(entry => entry.message)).toEqual(['R', "U'"]);
+    expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual(['R', "U'"]);
     expect(document.querySelector('#trace-selection-count')?.textContent).toBe('2 selected');
 
     click('#copy-trace');

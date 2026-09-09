@@ -46,14 +46,27 @@ export function createTimerController(options: TimerControllerOptions) {
   function applyEffect(effect: Timer.Effect): void {
     if (typeof effect === 'string') {
       switch (effect) {
-        case 'showTimer': options.showTimer(true); break;
-        case 'hideTimer': options.showTimer(false); break;
-        case 'startLocalTimer': localTimer.start(); break;
-        case 'stopLocalTimer': localTimer.stop(); break;
-        case 'clearSolutionMoves': MoveBuffer.clearSolution(moves); break;
+        case 'showTimer':
+          options.showTimer(true);
+          break;
+        case 'hideTimer':
+          options.showTimer(false);
+          break;
+        case 'startLocalTimer':
+          localTimer.start();
+          break;
+        case 'stopLocalTimer':
+          localTimer.stop();
+          break;
+        case 'clearSolutionMoves':
+          MoveBuffer.clearSolution(moves);
+          break;
         case 'showFinalTime': {
           const solutionMoves = MoveBuffer.solutionMoves(moves);
-          if (solutionMoves.length > 0 && solutionMoves.every(move => move.cubeTimestamp !== null)) {
+          if (
+            solutionMoves.length > 0 &&
+            solutionMoves.every((move) => move.cubeTimestamp !== null)
+          ) {
             const fitted = SmartCubeBindings.cubeTimestampLinearFit(solutionMoves);
             setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
           }
@@ -63,8 +76,12 @@ export function createTimerController(options: TimerControllerOptions) {
       return;
     }
     switch (effect.kind) {
-      case 'setPhase': options.setTimerColor(PHASE_COLOR[effect.phase]); break;
-      case 'setValueMs': setTimerValue(effect.ms); break;
+      case 'setPhase':
+        options.setTimerColor(PHASE_COLOR[effect.phase]);
+        break;
+      case 'setValueMs':
+        setTimerValue(effect.ms);
+        break;
     }
   }
 

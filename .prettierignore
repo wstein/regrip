@@ -4,7 +4,9 @@ dist-ssr/
 coverage/
 lib/
 .rescript/
+.remember/
 *.res.mjs
+*.res.d.mts
 *.gen.ts
 package-lock.json
 bun.lock

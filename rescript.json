@@ -12,7 +12,5 @@
     "in-source": true
   },
   "suffix": ".res.mjs",
-  "dependencies": [
-    "rescript-vitest"
-  ]
+  "dependencies": ["rescript-vitest"]
 }

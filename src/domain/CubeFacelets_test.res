@@ -36,7 +36,8 @@ let solvedPatternData: CubeFacelets.patternData = {
 // Decode helper: project the corner/edge orbits so array equality is easy to assert.
 let orbits = f =>
   switch CubeFacelets.decodeFacelets(f) {
-  | Ok(pd) => Some((pd.corners.pieces, pd.corners.orientation, pd.edges.pieces, pd.edges.orientation))
+  | Ok(pd) =>
+    Some((pd.corners.pieces, pd.corners.orientation, pd.edges.pieces, pd.edges.orientation))
   | Error(_) => None
   }
 
@@ -55,14 +56,19 @@ describe("patternDataToFacelets", () => {
   })
 
   test("rejects non-oriented centers", t => {
-    let pd = {...solvedPatternData, centers: {pieces: [1, 0, 2, 3, 4, 5], orientation: Array.make(~length=6, 0)}}
+    let pd = {
+      ...solvedPatternData,
+      centers: {pieces: [1, 0, 2, 3, 4, 5], orientation: Array.make(~length=6, 0)},
+    }
     t->expect(() => CubeFacelets.patternDataToFacelets(pd))->Expect.toThrow
   })
 })
 
 describe("decodeFacelets", () => {
   test("solved facelets -> solved orbits", t => {
-    t->expect(orbits(solved))->Expect.toEqual(
+    t
+    ->expect(orbits(solved))
+    ->Expect.toEqual(
       Some((
         [0, 1, 2, 3, 4, 5, 6, 7],
         Array.make(~length=8, 0),
@@ -73,7 +79,9 @@ describe("decodeFacelets", () => {
   })
 
   test("scrambled facelets -> matching orbits", t => {
-    t->expect(orbits(scrambled))->Expect.toEqual(
+    t
+    ->expect(orbits(scrambled))
+    ->Expect.toEqual(
       Some((scrambledCornerPieces, scrambledCornerOri, scrambledEdgePieces, scrambledEdgeOri)),
     )
   })
@@ -119,8 +127,8 @@ describe("decodeFacelets", () => {
       | Ok(pd) => CubeFacelets.patternDataToFacelets(pd)
       | Error(msg) => "ERR:" ++ msg
       }
-    [solved, scrambled, superflip, sune, slices]->Array.forEach(f =>
-      t->expect(roundtrip(f))->Expect.toBe(f)
+    [solved, scrambled, superflip, sune, slices]->Array.forEach(
+      f => t->expect(roundtrip(f))->Expect.toBe(f),
     )
   })
 

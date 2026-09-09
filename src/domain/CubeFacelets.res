@@ -21,22 +21,86 @@ let reidCenterOrder = ["U", "L", "F", "R", "B", "D"]
 // For each of the 54 facelets: (orbit, permutation index, orientation index).
 // orbit 0 = edges, 1 = corners, 2 = centers.
 let reidToFaceletsMap = [
-  (1, 2, 0), (0, 2, 0), (1, 1, 0), (0, 3, 0), (2, 0, 0), (0, 1, 0), (1, 3, 0), (0, 0, 0), (1, 0, 0),
-  (1, 0, 2), (0, 1, 1), (1, 1, 1), (0, 8, 1), (2, 3, 0), (0, 10, 1), (1, 4, 1), (0, 5, 1), (1, 7, 2),
-  (1, 3, 2), (0, 0, 1), (1, 0, 1), (0, 9, 0), (2, 2, 0), (0, 8, 0), (1, 5, 1), (0, 4, 1), (1, 4, 2),
-  (1, 5, 0), (0, 4, 0), (1, 4, 0), (0, 7, 0), (2, 5, 0), (0, 5, 0), (1, 6, 0), (0, 6, 0), (1, 7, 0),
-  (1, 2, 2), (0, 3, 1), (1, 3, 1), (0, 11, 1), (2, 1, 0), (0, 9, 1), (1, 6, 1), (0, 7, 1), (1, 5, 2),
-  (1, 1, 2), (0, 2, 1), (1, 2, 1), (0, 10, 0), (2, 4, 0), (0, 11, 0), (1, 7, 1), (0, 6, 1), (1, 6, 2),
+  (1, 2, 0),
+  (0, 2, 0),
+  (1, 1, 0),
+  (0, 3, 0),
+  (2, 0, 0),
+  (0, 1, 0),
+  (1, 3, 0),
+  (0, 0, 0),
+  (1, 0, 0),
+  (1, 0, 2),
+  (0, 1, 1),
+  (1, 1, 1),
+  (0, 8, 1),
+  (2, 3, 0),
+  (0, 10, 1),
+  (1, 4, 1),
+  (0, 5, 1),
+  (1, 7, 2),
+  (1, 3, 2),
+  (0, 0, 1),
+  (1, 0, 1),
+  (0, 9, 0),
+  (2, 2, 0),
+  (0, 8, 0),
+  (1, 5, 1),
+  (0, 4, 1),
+  (1, 4, 2),
+  (1, 5, 0),
+  (0, 4, 0),
+  (1, 4, 0),
+  (0, 7, 0),
+  (2, 5, 0),
+  (0, 5, 0),
+  (1, 6, 0),
+  (0, 6, 0),
+  (1, 7, 0),
+  (1, 2, 2),
+  (0, 3, 1),
+  (1, 3, 1),
+  (0, 11, 1),
+  (2, 1, 0),
+  (0, 9, 1),
+  (1, 6, 1),
+  (0, 7, 1),
+  (1, 5, 2),
+  (1, 1, 2),
+  (0, 2, 1),
+  (1, 2, 1),
+  (0, 10, 0),
+  (2, 4, 0),
+  (0, 11, 0),
+  (1, 7, 1),
+  (0, 6, 1),
+  (1, 6, 2),
 ]
 
 // Facelet indices (0..47, centers excluded) that make up each corner / edge cubie.
 let cornerMapping = [
-  [0, 21, 15], [5, 13, 47], [7, 45, 39], [2, 37, 23],
-  [29, 10, 16], [31, 18, 32], [26, 34, 40], [24, 42, 8],
+  [0, 21, 15],
+  [5, 13, 47],
+  [7, 45, 39],
+  [2, 37, 23],
+  [29, 10, 16],
+  [31, 18, 32],
+  [26, 34, 40],
+  [24, 42, 8],
 ]
 let edgeMapping = [
-  [1, 22], [3, 14], [6, 46], [4, 38], [30, 17], [27, 9],
-  [25, 41], [28, 33], [19, 12], [20, 35], [44, 11], [43, 36],
+  [1, 22],
+  [3, 14],
+  [6, 46],
+  [4, 38],
+  [30, 17],
+  [27, 9],
+  [25, 41],
+  [28, 33],
+  [19, 12],
+  [20, 35],
+  [44, 11],
+  [43, 36],
 ]
 
 let faceOrder = "URFDLB"
@@ -62,7 +126,10 @@ let pieceMap = {
 let centersOriented = (pd: patternData) => pd.centers.pieces->Array.everyWithIndex((p, i) => p == i)
 
 // (edges, corners, centers) as Reid piece-name arrays.
-let toReid333Struct = (pd: patternData): result<(array<string>, array<string>, array<string>), string> =>
+let toReid333Struct = (pd: patternData): result<
+  (array<string>, array<string>, array<string>),
+  string,
+> =>
   if !centersOriented(pd) {
     Error("non-oriented puzzles are not supported")
   } else {
@@ -115,10 +182,10 @@ let toStickers = (facelets: string): array<string> => {
   stickers
 }
 
-let decodeOrbit = (
-  mapping: array<array<int>>,
-  stickers: array<string>,
-): result<(array<int>, array<int>), string> => {
+let decodeOrbit = (mapping: array<array<int>>, stickers: array<string>): result<
+  (array<int>, array<int>),
+  string,
+> => {
   let pieces = []
   let orientation = []
   let error = ref(None)

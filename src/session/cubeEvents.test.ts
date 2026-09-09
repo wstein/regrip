@@ -31,12 +31,20 @@ function makeController() {
 describe('cube event gyro bridge', () => {
   it('does not magnetize a high-velocity deliberate turn', () => {
     const { controller, setOrientation } = makeController();
-    controller.handleCalibratedGyro({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity }, Quaternion.identity);
+    controller.handleCalibratedGyro(
+      { type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity },
+      Quaternion.identity,
+    );
     const rawTurn = xRotation(67.5);
-    controller.handleCalibratedGyro({
-      type: 'GYRO', timestamp: 2, quaternion: rawTurn,
-      velocity: { x: OrientationStabilizer.defaults.velocityMax, y: 0, z: 0 },
-    }, rawTurn);
+    controller.handleCalibratedGyro(
+      {
+        type: 'GYRO',
+        timestamp: 2,
+        quaternion: rawTurn,
+        velocity: { x: OrientationStabilizer.defaults.velocityMax, y: 0, z: 0 },
+      },
+      rawTurn,
+    );
 
     const output = setOrientation.mock.calls.at(-1)?.[0] as Quaternion.Quaternion;
     const expected = Quaternion.multiply(GyroOrientation.home, rawTurn);
@@ -51,7 +59,7 @@ describe('cube event gyro bridge', () => {
       stabilizer,
       timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() },
       solveScramble: async () => '',
-      addMove: move => moves.push(move),
+      addMove: (move) => moves.push(move),
       setOrientation: vi.fn(),
       setPlayerAlgorithm: vi.fn(),
       setInfo: vi.fn(),
@@ -61,10 +69,22 @@ describe('cube event gyro bridge', () => {
     });
     controller.reset();
     moveController.handle({
-      type: 'MOVE', timestamp: 1, face: 0, direction: 0, move: 'U', localTimestamp: 1, cubeTimestamp: null,
+      type: 'MOVE',
+      timestamp: 1,
+      face: 0,
+      direction: 0,
+      move: 'U',
+      localTimestamp: 1,
+      cubeTimestamp: null,
     });
     moveController.handle({
-      type: 'MOVE', timestamp: 2, face: 1, direction: 0, move: "R'", localTimestamp: 2, cubeTimestamp: null,
+      type: 'MOVE',
+      timestamp: 2,
+      face: 1,
+      direction: 0,
+      move: "R'",
+      localTimestamp: 2,
+      cubeTimestamp: null,
     });
 
     expect(moves).toEqual(['U', "R'"]);

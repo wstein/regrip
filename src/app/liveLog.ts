@@ -19,14 +19,25 @@ const maxRows = 300;
 
 export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCategory, string] {
   switch (event.type) {
-    case 'MOVE': return ['MOVE', event.move];
-    case 'GYRO': return ['GYRO', `q ${event.quaternion.x.toFixed(2)}, ${event.quaternion.y.toFixed(2)}, ${event.quaternion.z.toFixed(2)}`];
-    case 'REGRIP': return ['REGRIP', `${event.notationToken} (${event.sensorFrameToken})`];
-    case 'CUSTOM_TRIGGER': return ['TRIGGER', event.move];
-    case 'BATTERY': return ['EVENT', `battery ${event.batteryLevel}%`];
-    case 'HARDWARE': return ['EVENT', event.hardwareName ?? 'hardware'];
-    case 'FACELETS': return ['EVENT', 'facelets'];
-    case 'DISCONNECT': return ['STATE', 'cube disconnected'];
+    case 'MOVE':
+      return ['MOVE', event.move];
+    case 'GYRO':
+      return [
+        'GYRO',
+        `q ${event.quaternion.x.toFixed(2)}, ${event.quaternion.y.toFixed(2)}, ${event.quaternion.z.toFixed(2)}`,
+      ];
+    case 'REGRIP':
+      return ['REGRIP', `${event.notationToken} (${event.sensorFrameToken})`];
+    case 'CUSTOM_TRIGGER':
+      return ['TRIGGER', event.move];
+    case 'BATTERY':
+      return ['EVENT', `battery ${event.batteryLevel}%`];
+    case 'HARDWARE':
+      return ['EVENT', event.hardwareName ?? 'hardware'];
+    case 'FACELETS':
+      return ['EVENT', 'facelets'];
+    case 'DISCONNECT':
+      return ['STATE', 'cube disconnected'];
   }
 }
 
@@ -36,8 +47,10 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
     const eventType = data.type;
     if (eventType === 'MOVE' && typeof data.move === 'string') return ['MOVE', data.move];
     if (eventType === 'DISCONNECT') return ['STATE', 'cube disconnected'];
-    if (eventType === 'BATTERY' && typeof data.batteryLevel === 'number') return ['EVENT', `battery ${data.batteryLevel}%`];
-    if (eventType === 'HARDWARE') return ['EVENT', typeof data.hardwareName === 'string' ? data.hardwareName : 'hardware'];
+    if (eventType === 'BATTERY' && typeof data.batteryLevel === 'number')
+      return ['EVENT', `battery ${data.batteryLevel}%`];
+    if (eventType === 'HARDWARE')
+      return ['EVENT', typeof data.hardwareName === 'string' ? data.hardwareName : 'hardware'];
     return ['EVENT', typeof eventType === 'string' ? eventType.toLowerCase() : 'cube event'];
   }
   if (entry.type === 'virtual_regrip') {
@@ -47,7 +60,8 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
   if (entry.type === 'gyro_stabilizer') return ['GYRO', 'stabilized gyro'];
   if (entry.type === 'session_status') return ['STATE', String(data.status)];
   if (entry.type === 'log_started') return ['STATE', 'recording started'];
-  if (entry.type === 'log_stopped') return ['STATE', `recording stopped · ${String(data.entries)} events`];
+  if (entry.type === 'log_stopped')
+    return ['STATE', `recording stopped · ${String(data.entries)} events`];
   if (entry.type === 'profile_selected') return ['EVENT', `profile ${String(data.id)}`];
   return ['EVENT', entry.type.replace(/_/g, ' ')];
 }
@@ -73,7 +87,18 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   const copyButton = document.getElementById('copy-trace');
   const reproduceButton = document.getElementById('reproduce-trace');
   const clearSelection = document.getElementById('clear-trace-selection');
-  if (!root || !clear || !sort || !selection || !selectionCount || !selectAll || !exportButton || !copyButton || !reproduceButton || !clearSelection) {
+  if (
+    !root ||
+    !clear ||
+    !sort ||
+    !selection ||
+    !selectionCount ||
+    !selectAll ||
+    !exportButton ||
+    !copyButton ||
+    !reproduceButton ||
+    !clearSelection
+  ) {
     throw new Error('Missing live trace elements');
   }
 
@@ -84,10 +109,11 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
   let nextId = 1;
   let lastSelectedId: number | undefined;
 
-  const selectedEntries = (): TraceEntry[] => entries.filter(entry => selected.has(entry.id));
-  const selectedMoves = (): string[] => selectedEntries()
-    .filter(entry => entry.category === 'MOVE')
-    .map(entry => entry.message);
+  const selectedEntries = (): TraceEntry[] => entries.filter((entry) => selected.has(entry.id));
+  const selectedMoves = (): string[] =>
+    selectedEntries()
+      .filter((entry) => entry.category === 'MOVE')
+      .map((entry) => entry.message);
 
   const updateSelection = (): void => {
     const count = selected.size;
@@ -98,11 +124,11 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
 
   const selectEntry = (id: number, range: boolean): void => {
     if (range && lastSelectedId !== undefined) {
-      const start = entries.findIndex(entry => entry.id === lastSelectedId);
-      const end = entries.findIndex(entry => entry.id === id);
+      const start = entries.findIndex((entry) => entry.id === lastSelectedId);
+      const end = entries.findIndex((entry) => entry.id === id);
       if (start !== -1 && end !== -1) {
         const [from, to] = start < end ? [start, end] : [end, start];
-        entries.slice(from, to + 1).forEach(entry => selected.add(entry.id));
+        entries.slice(from, to + 1).forEach((entry) => selected.add(entry.id));
       }
     } else if (selected.has(id)) selected.delete(id);
     else selected.add(id);
@@ -112,63 +138,73 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
 
   const render = (): void => {
     const ordered = newestFirst ? [...entries].reverse() : entries;
-    root.replaceChildren(...ordered.map(entry => {
-      const row = document.createElement('article');
-      row.className = `trace-row trace-${entry.category.toLowerCase()}`;
-      row.dataset.traceId = String(entry.id);
-      row.tabIndex = 0;
-      row.setAttribute('aria-expanded', 'false');
+    root.replaceChildren(
+      ...ordered.map((entry) => {
+        const row = document.createElement('article');
+        row.className = `trace-row trace-${entry.category.toLowerCase()}`;
+        row.dataset.traceId = String(entry.id);
+        row.tabIndex = 0;
+        row.setAttribute('aria-expanded', 'false');
 
-      const check = document.createElement('input');
-      check.type = 'checkbox';
-      check.className = 'trace-select';
-      check.checked = selected.has(entry.id);
-      check.setAttribute('aria-label', `Select ${entry.category} event`);
-      check.addEventListener('click', event => {
-        event.stopPropagation();
-        selectEntry(entry.id, (event as MouseEvent).shiftKey);
-      });
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.className = 'trace-select';
+        check.checked = selected.has(entry.id);
+        check.setAttribute('aria-label', `Select ${entry.category} event`);
+        check.addEventListener('click', (event) => {
+          event.stopPropagation();
+          selectEntry(entry.id, (event as MouseEvent).shiftKey);
+        });
 
-      const badge = document.createElement('button');
-      badge.type = 'button';
-      badge.className = 'trace-badge';
-      badge.textContent = entry.category;
-      badge.title = `Select all ${entry.category} events`;
-      badge.addEventListener('click', event => {
-        event.stopPropagation();
-        entries.filter(candidate => candidate.category === entry.category).forEach(candidate => selected.add(candidate.id));
-        lastSelectedId = entry.id;
-        render();
-      });
+        const badge = document.createElement('button');
+        badge.type = 'button';
+        badge.className = 'trace-badge';
+        badge.textContent = entry.category;
+        badge.title = `Select all ${entry.category} events`;
+        badge.addEventListener('click', (event) => {
+          event.stopPropagation();
+          entries
+            .filter((candidate) => candidate.category === entry.category)
+            .forEach((candidate) => selected.add(candidate.id));
+          lastSelectedId = entry.id;
+          render();
+        });
 
-      const timestamp = document.createElement('time');
-      timestamp.textContent = displayTime(Date.parse(entry.log.recordedAt));
-      const message = document.createElement('span');
-      message.className = 'trace-message';
-      message.textContent = entry.message;
-      const details = document.createElement('pre');
-      details.className = 'trace-details';
-      details.hidden = true;
-      details.textContent = JSON.stringify(entry.log, null, 2);
+        const timestamp = document.createElement('time');
+        timestamp.textContent = displayTime(Date.parse(entry.log.recordedAt));
+        const message = document.createElement('span');
+        message.className = 'trace-message';
+        message.textContent = entry.message;
+        const details = document.createElement('pre');
+        details.className = 'trace-details';
+        details.hidden = true;
+        details.textContent = JSON.stringify(entry.log, null, 2);
 
-      row.append(check, badge, timestamp, message, details);
-      const toggleDetails = (): void => {
-        details.hidden = !details.hidden;
-        row.setAttribute('aria-expanded', String(!details.hidden));
-      };
-      row.addEventListener('click', toggleDetails);
-      row.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleDetails(); }
-      });
-      return row;
-    }));
+        row.append(check, badge, timestamp, message, details);
+        const toggleDetails = (): void => {
+          details.hidden = !details.hidden;
+          row.setAttribute('aria-expanded', String(!details.hidden));
+        };
+        row.addEventListener('click', toggleDetails);
+        row.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleDetails();
+          }
+        });
+        return row;
+      }),
+    );
     updateSelection();
   };
 
   const appendEntry = (category: TraceCategory, message: string, log: LogEntry): void => {
     if (!enabled.has(category)) return;
     entries.push({
-      id: nextId++, category, message, log,
+      id: nextId++,
+      category,
+      message,
+      log,
     });
     while (entries.length > maxRows) {
       const removed = entries.shift()!;
@@ -178,20 +214,35 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   };
 
-  const append = (category: TraceCategory, message: string, timestamp = now().getTime(), data: JsonValue = { message }): void => {
-    appendEntry(category, message, { recordedAt: new Date(timestamp).toISOString(), type: category.toLowerCase(), data });
+  const append = (
+    category: TraceCategory,
+    message: string,
+    timestamp = now().getTime(),
+    data: JsonValue = { message },
+  ): void => {
+    appendEntry(category, message, {
+      recordedAt: new Date(timestamp).toISOString(),
+      type: category.toLowerCase(),
+      data,
+    });
   };
 
-  document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach(button => {
+  document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach((button) => {
     const category = button.dataset.traceFilter as TraceCategory;
     button.classList.toggle('is-active', enabled.has(category));
     button.addEventListener('click', () => {
-      if (enabled.has(category)) enabled.delete(category); else enabled.add(category);
+      if (enabled.has(category)) enabled.delete(category);
+      else enabled.add(category);
       button.classList.toggle('is-active', enabled.has(category));
       button.setAttribute('aria-pressed', String(enabled.has(category)));
     });
   });
-  clear.addEventListener('click', () => { entries.splice(0); selected.clear(); lastSelectedId = undefined; render(); });
+  clear.addEventListener('click', () => {
+    entries.splice(0);
+    selected.clear();
+    lastSelectedId = undefined;
+    render();
+  });
   sort.addEventListener('click', () => {
     newestFirst = !newestFirst;
     sort.textContent = newestFirst ? '↓ Newest' : '↑ Oldest';
@@ -200,14 +251,22 @@ export function createLiveLog({ onReproduceMoves, now = () => new Date() }: Live
     render();
     root.scrollTop = newestFirst ? 0 : root.scrollHeight;
   });
-  selectAll.addEventListener('click', () => { entries.forEach(entry => selected.add(entry.id)); render(); });
-  clearSelection.addEventListener('click', () => { selected.clear(); lastSelectedId = undefined; render(); });
+  selectAll.addEventListener('click', () => {
+    entries.forEach((entry) => selected.add(entry.id));
+    render();
+  });
+  clearSelection.addEventListener('click', () => {
+    selected.clear();
+    lastSelectedId = undefined;
+    render();
+  });
   exportButton.addEventListener('click', () => {
-    const contents = serializeJsonl(selectedEntries().map(entry => entry.log));
-    if (contents) downloadJsonl(contents, `smartcube-trace-${now().toISOString().replace(/:/g, '-')}.jsonl`);
+    const contents = serializeJsonl(selectedEntries().map((entry) => entry.log));
+    if (contents)
+      downloadJsonl(contents, `smartcube-trace-${now().toISOString().replace(/:/g, '-')}.jsonl`);
   });
   copyButton.addEventListener('click', () => {
-    const contents = serializeJsonl(selectedEntries().map(entry => entry.log));
+    const contents = serializeJsonl(selectedEntries().map((entry) => entry.log));
     if (contents) void navigator.clipboard?.writeText(contents);
   });
   reproduceButton.addEventListener('click', () => onReproduceMoves?.(selectedMoves()));

@@ -28,12 +28,21 @@ let poses = {
   found
 }
 
-let nearest = (raw: Quaternion.t, current: option<Quaternion.t>, marginRad: float): Quaternion.t => {
+let nearest = (
+  raw: Quaternion.t,
+  current: option<Quaternion.t>,
+  marginRad: float,
+): Quaternion.t => {
   let best = poses->Array.reduce(Quaternion.identity, (best, candidate) =>
-    if Quaternion.angle(raw, candidate) < Quaternion.angle(raw, best) {candidate} else {best}
+    if Quaternion.angle(raw, candidate) < Quaternion.angle(raw, best) {
+      candidate
+    } else {
+      best
+    }
   )
   switch current {
-  | Some(locked) if Quaternion.angle(raw, best) +. marginRad >= Quaternion.angle(raw, locked) => locked
+  | Some(locked)
+    if Quaternion.angle(raw, best) +. marginRad >= Quaternion.angle(raw, locked) => locked
   | _ => best
   }
 }

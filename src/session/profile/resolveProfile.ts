@@ -1,5 +1,9 @@
 import type {
-  DeviceContext, ProfileOverrides, ResolvedProfile, SmartCubeProfile, SmartCubeProfilePatch,
+  DeviceContext,
+  ProfileOverrides,
+  ResolvedProfile,
+  SmartCubeProfile,
+  SmartCubeProfilePatch,
 } from './types';
 import { mergeProfiles } from './mergeProfiles';
 
@@ -22,7 +26,12 @@ function score(profile: SmartCubeProfile, context: DeviceContext): number {
   return result;
 }
 
-function recordLeafSources(value: object, source: string, sources: Record<string, string>, prefix = ''): void {
+function recordLeafSources(
+  value: object,
+  source: string,
+  sources: Record<string, string>,
+  prefix = '',
+): void {
   for (const [key, child] of Object.entries(value)) {
     const path = prefix ? `${prefix}.${key}` : key;
     if (child && typeof child === 'object' && !Array.isArray(child)) {
@@ -38,24 +47,34 @@ export function resolveProfile(
   profiles: readonly SmartCubeProfile[],
   overrides: ProfileOverrides = {},
 ): ResolvedProfile {
-  const byId = new Map(profiles.map(profile => [profile.id, profile]));
-  const resolveChain = (profile: SmartCubeProfile, visiting = new Set<string>()): SmartCubeProfile[] => {
+  const byId = new Map(profiles.map((profile) => [profile.id, profile]));
+  const resolveChain = (
+    profile: SmartCubeProfile,
+    visiting = new Set<string>(),
+  ): SmartCubeProfile[] => {
     if (visiting.has(profile.id)) throw new Error(`Profile inheritance cycle at '${profile.id}'`);
     const nextVisiting = new Set(visiting).add(profile.id);
     if (!profile.extends) return [profile];
     const parent = byId.get(profile.extends);
-    if (!parent) throw new Error(`Profile '${profile.id}' extends missing profile '${profile.extends}'`);
+    if (!parent)
+      throw new Error(`Profile '${profile.id}' extends missing profile '${profile.extends}'`);
     return [...resolveChain(parent, nextVisiting), profile];
   };
-  const matches = profiles.filter(profile => score(profile, context) >= 0).sort((a, b) => score(a, context) - score(b, context));
+  const matches = profiles
+    .filter((profile) => score(profile, context) >= 0)
+    .sort((a, b) => score(a, context) - score(b, context));
   const selected = matches.at(-1) ?? byId.get('unknown')!;
   const chain = resolveChain(selected);
   const layers: Array<[string, SmartCubeProfile | SmartCubeProfilePatch]> = [
-    ...chain.map(profile => [profile.id, profile] as [string, SmartCubeProfile]),
-    ...(['app', 'user', 'runtime'] as const)
-      .flatMap(layer => overrides[layer] ? [[layer, overrides[layer]] as [string, SmartCubeProfilePatch]] : []),
+    ...chain.map((profile) => [profile.id, profile] as [string, SmartCubeProfile]),
+    ...(['app', 'user', 'runtime'] as const).flatMap((layer) =>
+      overrides[layer] ? [[layer, overrides[layer]] as [string, SmartCubeProfilePatch]] : [],
+    ),
   ];
-  const value = layers.reduce((merged, [, layer]) => mergeProfiles(merged, layer), {} as SmartCubeProfile);
+  const value = layers.reduce(
+    (merged, [, layer]) => mergeProfiles(merged, layer),
+    {} as SmartCubeProfile,
+  );
   const sources: Record<string, string> = {};
   for (const [source, layer] of layers) recordLeafSources(layer, source, sources);
   return { id: selected.id, value, sources };

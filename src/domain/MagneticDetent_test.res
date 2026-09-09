@@ -10,12 +10,12 @@ let residual = degrees =>
 
 describe("MagneticDetent", () => {
   test("is monotonic throughout the magnetic well", t => {
-    let residuals = [0., 1., 2., 3., 3.5, 3.9, 4., 4.1, 5., 10., 20., 34., 35.]
-      ->Array.map(residual)
-    residuals->Array.forEachWithIndex((value, index) =>
-      if index > 0 {
-        t->expect(value >= residuals->Array.getUnsafe(index - 1))->Expect.toBe(true)
-      }
+    let residuals = [0., 1., 2., 3., 3.5, 3.9, 4., 4.1, 5., 10., 20., 34., 35.]->Array.map(residual)
+    residuals->Array.forEachWithIndex(
+      (value, index) =>
+        if index > 0 {
+          t->expect(value >= residuals->Array.getUnsafe(index - 1))->Expect.toBe(true)
+        },
     )
   })
 
@@ -31,7 +31,11 @@ describe("MagneticDetent", () => {
 
   test("does not pull against a turn at the configured velocity limit", t => {
     let raw = xRotation(20.)
-    let output = MagneticDetent.apply(raw, Quaternion.identity, ~velocity=MagneticDetent.defaults.velocityMax)
+    let output = MagneticDetent.apply(
+      raw,
+      Quaternion.identity,
+      ~velocity=MagneticDetent.defaults.velocityMax,
+    )
     t->expect(Quaternion.angle(output, raw))->Expect.Float.toBeCloseTo(0., 8)
   })
 })

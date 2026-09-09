@@ -56,13 +56,28 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     relative: Quaternion.Quaternion,
   ): void {
     const { x, y, z, w } = event.quaternion;
-    const velocity = event.velocity ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z) : 0;
-    const dtSeconds = previousGyroTimestamp === undefined ? 0 : Math.max(0, (event.timestamp - previousGyroTimestamp) / 1000);
+    const velocity = event.velocity
+      ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z)
+      : 0;
+    const dtSeconds =
+      previousGyroTimestamp === undefined
+        ? 0
+        : Math.max(0, (event.timestamp - previousGyroTimestamp) / 1000);
     previousGyroTimestamp = event.timestamp;
-    const stabilized = OrientationStabilizer.update(options.stabilizer, relative, velocity, dtSeconds);
-    options.setOrientation(Quaternion.multiply(options.homeOrientation ?? GyroOrientation.home, stabilized));
+    const stabilized = OrientationStabilizer.update(
+      options.stabilizer,
+      relative,
+      velocity,
+      dtSeconds,
+    );
+    options.setOrientation(
+      Quaternion.multiply(options.homeOrientation ?? GyroOrientation.home, stabilized),
+    );
     options.onGyro?.({ event, velocity, dtSeconds, relative, stabilized });
-    options.setInfo('quaternion', `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`);
+    options.setInfo(
+      'quaternion',
+      `x: ${x.toFixed(3)}, y: ${y.toFixed(3)}, z: ${z.toFixed(3)}, w: ${w.toFixed(3)}`,
+    );
     if (event.velocity) {
       const { x: vx, y: vy, z: vz } = event.velocity;
       options.showInfo('velocity');
@@ -83,7 +98,9 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     }
   }
 
-  async function handleFacelets(event: Extract<SmartCubeEvent, { type: 'FACELETS' }>): Promise<void> {
+  async function handleFacelets(
+    event: Extract<SmartCubeEvent, { type: 'FACELETS' }>,
+  ): Promise<void> {
     if (event.serial !== undefined) {
       options.showInfo('eventSerial');
       options.setInfo('eventSerial', String(event.serial));
@@ -104,10 +121,13 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function handleHardware(event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>): void {
     if (event.hardwareName !== undefined) options.setInfo('hardwareName', event.hardwareName);
-    if (event.hardwareVersion !== undefined) options.setInfo('hardwareVersion', event.hardwareVersion);
-    if (event.softwareVersion !== undefined) options.setInfo('softwareVersion', event.softwareVersion);
+    if (event.hardwareVersion !== undefined)
+      options.setInfo('hardwareVersion', event.hardwareVersion);
+    if (event.softwareVersion !== undefined)
+      options.setInfo('softwareVersion', event.softwareVersion);
     if (event.productDate !== undefined) options.setInfo('productDate', event.productDate);
-    if (event.gyroSupported !== undefined) options.setInfo('gyroSupported', event.gyroSupported ? 'YES' : 'NO');
+    if (event.gyroSupported !== undefined)
+      options.setInfo('gyroSupported', event.gyroSupported ? 'YES' : 'NO');
     if (event.goCubeType) {
       options.showInfo('goCubeType');
       options.setInfo('goCubeType', `${event.goCubeType.name} (${event.goCubeType.code})`);
@@ -124,12 +144,24 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function handle(event: NonGyroSmartCubeEvent): void {
     switch (event.type) {
-      case 'MOVE': handleMove(event); break;
-      case 'FACELETS': handleFacelets(event).catch(error => console.error('facelets handler failed', error)); break;
-      case 'HARDWARE': handleHardware(event); break;
-      case 'BATTERY': options.setInfo('batteryLevel', `${event.batteryLevel}%`); break;
-      case 'DISCONNECT': options.onDisconnect(); break;
-      default: options.onUnknownEvent?.(event); break;
+      case 'MOVE':
+        handleMove(event);
+        break;
+      case 'FACELETS':
+        handleFacelets(event).catch((error) => console.error('facelets handler failed', error));
+        break;
+      case 'HARDWARE':
+        handleHardware(event);
+        break;
+      case 'BATTERY':
+        options.setInfo('batteryLevel', `${event.batteryLevel}%`);
+        break;
+      case 'DISCONNECT':
+        options.onDisconnect();
+        break;
+      default:
+        options.onUnknownEvent?.(event);
+        break;
     }
   }
 

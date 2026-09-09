@@ -27,24 +27,24 @@ available, the app prompts for one and explains how to enable
 connection lifecycle. Imports flow downward from `app` to `adapters`, `session`, and `domain`; ESLint
 enforces that `domain` stays independent and `session` does not depend on presentation layers.
 
-| Module | Responsibility |
-|---|---|
-| `src/app/` | DOM panel, styles, and composition root |
-| `src/session/connection.ts` / `cubeEvents.ts` | Generic connection plus headless event/timer orchestration |
+| Module                                           | Responsibility                                                       |
+| ------------------------------------------------ | -------------------------------------------------------------------- |
+| `src/app/`                                       | DOM panel, styles, and composition root                              |
+| `src/session/connection.ts` / `cubeEvents.ts`    | Generic connection plus headless event/timer orchestration           |
 | `src/session/timerController.ts` / `cubeInfo.ts` | Timer effects, clock/skew handling, and protocol-metadata formatting |
-| `src/adapters/cubing/` | cubing.js scramble solver, facelet bridge, and TwistyPlayer |
-| `src/adapters/three/` | Three.js render loop |
-| `src/domain/` | Pure ReScript state, timing, facelet, and orientation logic |
+| `src/adapters/cubing/`                           | cubing.js scramble solver, facelet bridge, and TwistyPlayer          |
+| `src/adapters/three/`                            | Three.js render loop                                                 |
+| `src/domain/`                                    | Pure ReScript state, timing, facelet, and orientation logic          |
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 
-| Module | Responsibility |
-|---|---|
-| `src/domain/CubeFacelets.res` | Facelet string ⇄ KPatternData conversion |
-| `src/domain/Timer.res` / `Time.res` | Pure solve-timer state machine and `m:ss.mmm` formatting |
-| `src/domain/MoveBuffer.res` | Pure rolling recent-move and solution buffers |
-| `src/domain/Quaternion.res` / `GyroOrientation.res` | Three.js-compatible gyro orientation math |
-| `src/session/Bindings_SmartCube.res` | Typed boundary for timestamp helper functions from the Bluetooth library |
+| Module                                              | Responsibility                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------------------ |
+| `src/domain/CubeFacelets.res`                       | Facelet string ⇄ KPatternData conversion                                 |
+| `src/domain/Timer.res` / `Time.res`                 | Pure solve-timer state machine and `m:ss.mmm` formatting                 |
+| `src/domain/MoveBuffer.res`                         | Pure rolling recent-move and solution buffers                            |
+| `src/domain/Quaternion.res` / `GyroOrientation.res` | Three.js-compatible gyro orientation math                                |
+| `src/session/Bindings_SmartCube.res`                | Typed boundary for timestamp helper functions from the Bluetooth library |
 
 Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
 

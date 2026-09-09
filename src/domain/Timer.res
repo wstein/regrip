@@ -48,9 +48,7 @@ let step = (state: state, input: input, ~connected: bool): (state, array<effect>
   switch (state, input) {
   | (_, Disconnected) => idle
   | (Idle, Activate) =>
-    connected
-      ? (Ready, [SetValueMs({ms: 0.}), ShowTimer, SetPhase({phase: Ready})])
-      : idle
+    connected ? (Ready, [SetValueMs({ms: 0.}), ShowTimer, SetPhase({phase: Ready})]) : idle
   | (Ready | Running | Stopped, Activate) => idle
   | (Ready, MoveDetected) => (
       Running,

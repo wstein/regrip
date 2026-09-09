@@ -6,7 +6,9 @@ describe("Timer.step - Activate (SPACE / touch)", () => {
   test("Idle + connected -> Ready, shows a zeroed timer in the ready phase", t => {
     let (s, effects) = step(Idle, Activate, ~connected=true)
     t->expect(s)->Expect.toEqual(Timer.Ready)
-    t->expect(effects)->Expect.toEqual([
+    t
+    ->expect(effects)
+    ->Expect.toEqual([
       Timer.SetValueMs({ms: 0.}),
       Timer.ShowTimer,
       Timer.SetPhase({phase: Timer.Phase.Ready}),
@@ -40,7 +42,9 @@ describe("Timer.step - solve lifecycle", () => {
   test("Ready + MoveDetected -> Running, clears solution and starts the local clock", t => {
     let (s, effects) = step(Ready, MoveDetected, ~connected=true)
     t->expect(s)->Expect.toEqual(Timer.Running)
-    t->expect(effects)->Expect.toEqual([
+    t
+    ->expect(effects)
+    ->Expect.toEqual([
       Timer.ClearSolutionMoves,
       Timer.StartLocalTimer,
       Timer.SetPhase({phase: Timer.Phase.Running}),
@@ -50,7 +54,9 @@ describe("Timer.step - solve lifecycle", () => {
   test("Running + Solved -> Stopped, stops the clock and shows the fitted time", t => {
     let (s, effects) = step(Running, Solved, ~connected=true)
     t->expect(s)->Expect.toEqual(Timer.Stopped)
-    t->expect(effects)->Expect.toEqual([
+    t
+    ->expect(effects)
+    ->Expect.toEqual([
       Timer.StopLocalTimer,
       Timer.SetPhase({phase: Timer.Phase.Stopped}),
       Timer.ShowFinalTime,
@@ -105,7 +111,9 @@ describe("Timer.step - full solve sequence", () => {
     feed(Activate) // -> Idle
 
     t->expect(state.contents)->Expect.toEqual(Timer.Idle)
-    t->expect(log.contents)->Expect.toEqual([
+    t
+    ->expect(log.contents)
+    ->Expect.toEqual([
       Timer.SetValueMs({ms: 0.}),
       Timer.ShowTimer,
       Timer.SetPhase({phase: Timer.Phase.Ready}),

@@ -32,6 +32,7 @@ let relative = (t: t, raw: Quaternion.t): Quaternion.t => {
   q->Quaternion.premultiply(basis)
 }
 
-let applyHome = (t: t, relative: Quaternion.t): Quaternion.t => relative->Quaternion.premultiply(t.home)
+let applyHome = (t: t, relative: Quaternion.t): Quaternion.t =>
+  relative->Quaternion.premultiply(t.home)
 
 let update = (t: t, raw: Quaternion.t): Quaternion.t => applyHome(t, relative(t, raw))

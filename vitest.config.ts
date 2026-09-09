@@ -5,7 +5,7 @@ export default defineConfig({
   resolve: {
     alias: {
       'smartcube-web-bluetooth': fileURLToPath(
-        new URL('./node_modules/smartcube-web-bluetooth/src/index.ts', import.meta.url)
+        new URL('./node_modules/smartcube-web-bluetooth/src/index.ts', import.meta.url),
       ),
     },
   },

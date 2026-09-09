@@ -1,1 +1,1 @@
-{"id":"moyu-ai","extends":"base","match":{"protocol":"moyu"}}
+{ "id": "moyu-ai", "extends": "base", "match": { "protocol": "moyu" } }

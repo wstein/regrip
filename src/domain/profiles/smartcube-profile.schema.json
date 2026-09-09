@@ -28,8 +28,16 @@
       },
       "additionalProperties": false
     },
-    "battery": { "type": "object", "properties": { "curve": { "type": "string" } }, "additionalProperties": false },
-    "gyro": { "type": "object", "properties": { "axisMap": { "type": "string" } }, "additionalProperties": false },
+    "battery": {
+      "type": "object",
+      "properties": { "curve": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "gyro": {
+      "type": "object",
+      "properties": { "axisMap": { "type": "string" } },
+      "additionalProperties": false
+    },
     "quirks": { "type": "object", "additionalProperties": true }
   },
   "additionalProperties": false

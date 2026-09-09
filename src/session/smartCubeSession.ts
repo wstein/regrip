@@ -30,8 +30,11 @@ export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   relative: { x: number; y: number; z: number; w: number };
 };
 
-export type SmartCubeSessionEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>
-  | SessionGyroEvent | VirtualRegripEvent | CustomTriggerEvent;
+export type SmartCubeSessionEvent =
+  | Exclude<SmartCubeEvent, { type: 'GYRO' }>
+  | SessionGyroEvent
+  | VirtualRegripEvent
+  | CustomTriggerEvent;
 
 export type SmartCubeSessionState = {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -51,7 +54,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
   let connectionGeneration = 0;
   let state: SmartCubeSessionState = {
-    status: 'disconnected', connection: null, lastEvent: null, error: null,
+    status: 'disconnected',
+    connection: null,
+    lastEvent: null,
+    error: null,
     profile: resolveProfile({}, bundledProfiles),
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
@@ -62,7 +68,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   const regripDetector = RegripDetector.make();
   const moveBackTrigger = MoveBackTrigger.make();
 
-  const publish = (): void => listeners.forEach(listener => listener(state));
+  const publish = (): void => listeners.forEach((listener) => listener(state));
   const setState = (next: Partial<SmartCubeSessionState>): void => {
     state = { ...state, ...next };
     publish();
@@ -71,39 +77,52 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
 
   const onEvent = (event: SmartCubeEvent): void => {
-    const sessionEvent: SmartCubeSessionEvent = event.type === 'GYRO'
-      ? { ...event, relative: GyroOrientation.relative(gyro, event.quaternion) }
-      : event;
+    const sessionEvent: SmartCubeSessionEvent =
+      event.type === 'GYRO'
+        ? { ...event, relative: GyroOrientation.relative(gyro, event.quaternion) }
+        : event;
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
-    const regrip = calibrated && options.virtualRegrips
-      ? RegripDetector.observe(regripDetector, calibrated)
-      : undefined;
-    const customTrigger = event.type === 'MOVE'
-      ? MoveBackTrigger.observe(moveBackTrigger, event.move, event.timestamp)
-      : undefined;
+    const regrip =
+      calibrated && options.virtualRegrips
+        ? RegripDetector.observe(regripDetector, calibrated)
+        : undefined;
+    const customTrigger =
+      event.type === 'MOVE'
+        ? MoveBackTrigger.observe(moveBackTrigger, event.move, event.timestamp)
+        : undefined;
     setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
-      const profile = resolveProfile({
-        protocol: state.connection.protocol.id,
-        deviceName: state.connection.deviceName,
-        deviceMAC: state.connection.deviceMAC,
-        hardwareName: event.hardwareName,
-        goCubeType: event.goCubeType?.name,
-      }, bundledProfiles);
+      const profile = resolveProfile(
+        {
+          protocol: state.connection.protocol.id,
+          deviceName: state.connection.deviceName,
+          deviceMAC: state.connection.deviceMAC,
+          hardwareName: event.hardwareName,
+          goCubeType: event.goCubeType?.name,
+        },
+        bundledProfiles,
+      );
       if (!sameProfile(state.profile, profile)) setState({ profile });
     }
-    eventListeners.forEach(listener => listener(sessionEvent));
+    eventListeners.forEach((listener) => listener(sessionEvent));
     if (regrip) {
-      eventListeners.forEach(listener => listener({
-        type: 'REGRIP', timestamp: event.timestamp,
-        notationToken: regrip.notationToken,
-        sensorFrameToken: regrip.sensorFrameToken,
-      }));
+      eventListeners.forEach((listener) =>
+        listener({
+          type: 'REGRIP',
+          timestamp: event.timestamp,
+          notationToken: regrip.notationToken,
+          sensorFrameToken: regrip.sensorFrameToken,
+        }),
+      );
     }
     if (customTrigger) {
-      eventListeners.forEach(listener => listener({
-        type: 'CUSTOM_TRIGGER', timestamp: event.timestamp, move: customTrigger,
-      }));
+      eventListeners.forEach((listener) =>
+        listener({
+          type: 'CUSTOM_TRIGGER',
+          timestamp: event.timestamp,
+          move: customTrigger,
+        }),
+      );
     }
     if (event.type === 'DISCONNECT') void disconnect();
   };
@@ -122,11 +141,17 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     let connection: SmartCubeConnection | null = null;
     try {
       connection = await options.connect();
-      setState({ connection, profile: resolveProfile({
-        protocol: connection.protocol.id,
-        deviceName: connection.deviceName,
-        deviceMAC: connection.deviceMAC,
-      }, bundledProfiles) });
+      setState({
+        connection,
+        profile: resolveProfile(
+          {
+            protocol: connection.protocol.id,
+            deviceName: connection.deviceName,
+            deviceMAC: connection.deviceMAC,
+          },
+          bundledProfiles,
+        ),
+      });
       subscription = connection.events$.subscribe(onEvent);
       await requestInitialState(connection);
       // A device can send DISCONNECT while initial commands are in flight.
@@ -138,7 +163,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       subscription?.unsubscribe();
       subscription = null;
       await disconnectConnection(connection);
-      setState({ status: 'error', connection: null, error: error instanceof Error ? error.message : String(error) });
+      setState({
+        status: 'error',
+        connection: null,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

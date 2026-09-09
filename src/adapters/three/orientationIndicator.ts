@@ -24,9 +24,14 @@ function label(axis: string, color: number, position: THREE.Vector3): THREE.Spri
   context.textBaseline = 'middle';
   context.fillText(axis.toUpperCase(), 32, 34);
 
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: new THREE.CanvasTexture(canvas), color, depthTest: false, depthWrite: false,
-  }));
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(canvas),
+      color,
+      depthTest: false,
+      depthWrite: false,
+    }),
+  );
   sprite.name = `orientation-label-${axis}`;
   sprite.position.copy(position);
   sprite.scale.setScalar(0.27);
@@ -40,14 +45,22 @@ export function createOrientationIndicator(includeLabels = true): THREE.Group {
   indicator.name = 'orientation-indicator';
 
   for (const axis of axes) {
-    const arrow = new THREE.ArrowHelper(axis.direction, new THREE.Vector3(), 0.72, axis.color, 0.2, 0.12);
+    const arrow = new THREE.ArrowHelper(
+      axis.direction,
+      new THREE.Vector3(),
+      0.72,
+      axis.color,
+      0.2,
+      0.12,
+    );
     arrow.name = `orientation-axis-${axis.name}`;
     arrow.renderOrder = 1000;
-    arrow.traverse(object => {
-      const material = (object as THREE.Mesh | THREE.Line).material as ColorMaterial | ColorMaterial[];
+    arrow.traverse((object) => {
+      const material = (object as THREE.Mesh | THREE.Line).material as
+        ColorMaterial | ColorMaterial[];
       if (material) {
         const materials = Array.isArray(material) ? material : [material];
-        materials.forEach(value => {
+        materials.forEach((value) => {
           value.depthTest = false;
           value.depthWrite = false;
         });
@@ -63,13 +76,19 @@ export function createOrientationIndicator(includeLabels = true): THREE.Group {
 }
 
 /** Recolor logical R/U/F axes to match their current physical facelets. */
-export function setOrientationIndicatorColors(indicator: THREE.Group, colors: OrientationIndicatorColors): void {
+export function setOrientationIndicatorColors(
+  indicator: THREE.Group,
+  colors: OrientationIndicatorColors,
+): void {
   for (const axis of axes) {
     const color = colors[axis.name];
-    indicator.getObjectByName(`orientation-axis-${axis.name}`)?.traverse(object => {
-      const material = (object as THREE.Mesh | THREE.Line).material as ColorMaterial | ColorMaterial[];
+    indicator.getObjectByName(`orientation-axis-${axis.name}`)?.traverse((object) => {
+      const material = (object as THREE.Mesh | THREE.Line).material as
+        ColorMaterial | ColorMaterial[];
       if (!material) return;
-      (Array.isArray(material) ? material : [material]).forEach(value => value.color?.setHex(color));
+      (Array.isArray(material) ? material : [material]).forEach((value) =>
+        value.color?.setHex(color),
+      );
     });
     const axisLabel = indicator.getObjectByName(`orientation-label-${axis.name}`);
     if (axisLabel instanceof THREE.Sprite) axisLabel.material.color.setHex(color);

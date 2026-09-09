@@ -31,8 +31,10 @@ describe("RegripDetector", () => {
   test("rebases to cardinal steps during a continuous full turn", t => {
     let detector = RegripDetector.make()
     RegripDetector.observe(detector, Quaternion.identity)->ignore
-    let tokens = [66., 156., 246., 336.]
-      ->Array.map(degrees => observe(detector, rotation(~x=degrees)).notationToken)
+    let tokens =
+      [66., 156., 246., 336.]->Array.map(
+        degrees => observe(detector, rotation(~x=degrees)).notationToken,
+      )
     t->expect(tokens)->Expect.toEqual(["x'", "x'", "x'", "x'"])
   })
 
@@ -44,7 +46,9 @@ describe("RegripDetector", () => {
     let first = observe(detector, rotation(~x=66.))
     let second = observe(detector, Quaternion.multiply(x, rotation(~y=66.)))
     t->expect([first.notationToken, second.notationToken])->Expect.toEqual(["x'", "y'"])
-    t->expect(Quaternion.angle(Quaternion.multiply(x, y), Quaternion.multiply(y, x)) > 0.)->Expect.toBe(true)
+    t
+    ->expect(Quaternion.angle(Quaternion.multiply(x, y), Quaternion.multiply(y, x)) > 0.)
+    ->Expect.toBe(true)
   })
 
   test("maps canonical URFDLB and BOYGRW through paired rotations", t => {

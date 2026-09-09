@@ -8,4 +8,13 @@ import giiker from '../../domain/profiles/profiles/giiker.json';
 import unknown from '../../domain/profiles/profiles/unknown.json';
 import type { SmartCubeProfile } from './types';
 
-export const bundledProfiles: SmartCubeProfile[] = [base, ganGen2, ganI4, gocube, moyu, qiyi, giiker, unknown];
+export const bundledProfiles: SmartCubeProfile[] = [
+  base,
+  ganGen2,
+  ganI4,
+  gocube,
+  moyu,
+  qiyi,
+  giiker,
+  unknown,
+];

@@ -7,7 +7,9 @@ export type LogEntry = {
 };
 
 export function serializeJsonl(entries: readonly LogEntry[]): string {
-  return entries.map(entry => JSON.stringify(entry)).join('\n') + (entries.length > 0 ? '\n' : '');
+  return (
+    entries.map((entry) => JSON.stringify(entry)).join('\n') + (entries.length > 0 ? '\n' : '')
+  );
 }
 
 type LogListener = (entry: LogEntry, recordingCount: number) => void;
@@ -33,12 +35,16 @@ export function createJsonlLog(now: () => string = () => new Date().toISOString(
       cursor = Math.max(0, cursor - 1);
     }
     if (active && type !== 'log_started' && type !== 'log_stopped') recordedEventCount += 1;
-    listeners.forEach(listener => listener(entry, recordedEventCount));
+    listeners.forEach((listener) => listener(entry, recordedEventCount));
   };
 
   return {
-    get active(): boolean { return active; },
-    get recordingCount(): number { return recordedEventCount; },
+    get active(): boolean {
+      return active;
+    },
+    get recordingCount(): number {
+      return recordedEventCount;
+    },
     start(context: JsonValue): void {
       cursor = entries.length;
       recordedEventCount = 0;

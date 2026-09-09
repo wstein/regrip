@@ -13,7 +13,9 @@ describe('resolveProfile', () => {
   });
 
   it('selects the clockless GoCube profile', () => {
-    expect(resolveProfile({ protocol: 'gocube' }, bundledProfiles).value.quirks?.clockless).toBe(true);
+    expect(resolveProfile({ protocol: 'gocube' }, bundledProfiles).value.quirks?.clockless).toBe(
+      true,
+    );
   });
 
   it('preserves per-field provenance across app, user, and runtime layers', () => {

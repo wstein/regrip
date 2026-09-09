@@ -1,4 +1,8 @@
-import type { GoCubeOfflineStats, SmartCubeCapabilities, SmartCubeCubieState } from 'smartcube-web-bluetooth';
+import type {
+  GoCubeOfflineStats,
+  SmartCubeCapabilities,
+  SmartCubeCubieState,
+} from 'smartcube-web-bluetooth';
 
 export function formatCapabilities(capabilities: SmartCubeCapabilities): string {
   const supported = [
@@ -7,7 +11,9 @@ export function formatCapabilities(capabilities: SmartCubeCapabilities): string 
     ['facelets', capabilities.facelets],
     ['hardware', capabilities.hardware],
     ['reset', capabilities.reset],
-  ].filter(([, enabled]) => enabled).map(([name]) => name);
+  ]
+    .filter(([, enabled]) => enabled)
+    .map(([name]) => name);
   const controls = capabilities.vendorCommands;
   return controls?.length
     ? `${supported.join(', ')}; controls: ${controls.join(', ')}`
@@ -20,7 +26,7 @@ export function formatOfflineStats(stats: GoCubeOfflineStats): {
   solves: string;
 } {
   const hours = Math.floor(stats.timeSeconds / 3600);
-  const minutes = Math.floor(stats.timeSeconds % 3600 / 60);
+  const minutes = Math.floor((stats.timeSeconds % 3600) / 60);
   const seconds = stats.timeSeconds % 60;
   return {
     moves: stats.moves.toLocaleString(),

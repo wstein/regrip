@@ -1,1 +1,1 @@
-{"id":"gan-gen2","extends":"base","match":{"protocol":"gan"}}
+{ "id": "gan-gen2", "extends": "base", "match": { "protocol": "gan" } }

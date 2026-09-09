@@ -5,7 +5,9 @@ const faceOrder = 'URFDLB';
 export type Vector = readonly [number, number, number];
 type FaceGeometry = { normal: Vector; right: Vector; down: Vector };
 export type VirtualOrientation = {
-  right: Vector; up: Vector; front: Vector;
+  right: Vector;
+  up: Vector;
+  front: Vector;
   faces: { right: string; up: string; front: string };
 };
 
@@ -23,7 +25,7 @@ const dot = (left: Vector, right: Vector): number =>
   left[0] * right[0] + left[1] * right[1] + left[2] * right[2];
 
 const faceForNormal = (normal: Vector): string =>
-  faceOrder.split('').find(face => dot(geometry[face]!.normal, normal) === 1)!;
+  faceOrder.split('').find((face) => dot(geometry[face]!.normal, normal) === 1)!;
 
 /**
  * Maps the cube's fixed BLE face labels into the user-facing frame established
@@ -33,7 +35,8 @@ const faceForNormal = (normal: Vector): string =>
 export function createVirtualMoveFrame() {
   const frame = VirtualCubeFrame.make();
   const reset = (): void => VirtualCubeFrame.reset(frame);
-  const applyRegrip = (notationToken: string): void => VirtualCubeFrame.applyRegrip(frame, notationToken);
+  const applyRegrip = (notationToken: string): void =>
+    VirtualCubeFrame.applyRegrip(frame, notationToken);
   const translate = (move: string): string => VirtualCubeFrame.translate(frame, move);
 
   /** Physical directions occupied by the user-facing logical R/U/F axes. */
@@ -65,24 +68,26 @@ export function createVirtualMoveFrame() {
     const logicalForPhysicalColour = (colour: string): string =>
       VirtualCubeFrame.logicalFaceForPhysical(frame, colour);
 
-    return faceOrder.split('').flatMap(logicalFace => {
-      const logical = geometry[logicalFace]!;
-      const physicalFace = faceForNormal(rotate(logical.normal));
-      const physical = geometry[physicalFace]!;
-      return Array.from({ length: 9 }, (_, stickerIndex) => {
-        const row = Math.floor(stickerIndex / 3) - 1;
-        const column = stickerIndex % 3 - 1;
-        const rotatedRight = rotate(logical.right);
-        const rotatedDown = rotate(logical.down);
-        const physicalRow = column * dot(rotatedRight, physical.down)
-          + row * dot(rotatedDown, physical.down) + 1;
-        const physicalColumn = column * dot(rotatedRight, physical.right)
-          + row * dot(rotatedDown, physical.right) + 1;
-        const rawIndex = faceOrder.indexOf(physicalFace) * 9
-          + physicalRow * 3 + physicalColumn;
-        return logicalForPhysicalColour(facelets[rawIndex]!);
-      });
-    }).join('');
+    return faceOrder
+      .split('')
+      .flatMap((logicalFace) => {
+        const logical = geometry[logicalFace]!;
+        const physicalFace = faceForNormal(rotate(logical.normal));
+        const physical = geometry[physicalFace]!;
+        return Array.from({ length: 9 }, (_, stickerIndex) => {
+          const row = Math.floor(stickerIndex / 3) - 1;
+          const column = (stickerIndex % 3) - 1;
+          const rotatedRight = rotate(logical.right);
+          const rotatedDown = rotate(logical.down);
+          const physicalRow =
+            column * dot(rotatedRight, physical.down) + row * dot(rotatedDown, physical.down) + 1;
+          const physicalColumn =
+            column * dot(rotatedRight, physical.right) + row * dot(rotatedDown, physical.right) + 1;
+          const rawIndex = faceOrder.indexOf(physicalFace) * 9 + physicalRow * 3 + physicalColumn;
+          return logicalForPhysicalColour(facelets[rawIndex]!);
+        });
+      })
+      .join('');
   };
 
   return { applyRegrip, orientation, reframeFacelets, reset, translate };

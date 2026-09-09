@@ -7,7 +7,9 @@ describe("VirtualCubeFrame", () => {
     VirtualCubeFrame.applyRegrip(frame, "y")
     t->expect(VirtualCubeFrame.translate(frame, "F'"))->Expect.toBe("L'")
     let orientation = VirtualCubeFrame.orientation(frame)
-    t->expect((orientation.rightFace, orientation.upFace, orientation.frontFace))->Expect.toEqual(("B", "U", "R"))
+    t
+    ->expect((orientation.rightFace, orientation.upFace, orientation.frontFace))
+    ->Expect.toEqual(("B", "U", "R"))
     t->expect(VirtualCubeFrame.logicalFaceForPhysical(frame, "B"))->Expect.toBe("R")
   })
 })

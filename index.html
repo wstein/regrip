@@ -1,158 +1,164 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>smartcube-example</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smartcube-example</title>
-</head>
+  <body>
+    <div id="app">
+      <div class="help">
+        Scramble cube to arbitrary state then press SPACE or touch Cube to activate basic solving
+        timer
+      </div>
 
-<body>
-
-  <div id="app">
-
-    <div class="help">
-      Scramble cube to arbitrary state then press SPACE or touch Cube
-      to activate basic solving timer
-    </div>
-
-    <div class="app-layout">
-      <aside id="event-log" aria-label="Live event trace">
-        <div class="trace-heading">
-          <h2>Live Trace</h2>
-          <div class="trace-heading-actions">
-            <button id="start-log" type="button" class="trace-record-button">⏺ Record</button>
-            <button id="stop-log" type="button" class="trace-record-button" disabled>⏹ 0 · Stop &amp; download</button>
-            <button id="sort-trace" type="button" aria-label="Sort newest first" title="Sort newest first">↓ Newest</button>
-            <button id="clear-trace" type="button">Clear</button>
+      <div class="app-layout">
+        <aside id="event-log" aria-label="Live event trace">
+          <div class="trace-heading">
+            <h2>Live Trace</h2>
+            <div class="trace-heading-actions">
+              <button id="start-log" type="button" class="trace-record-button">⏺ Record</button>
+              <button id="stop-log" type="button" class="trace-record-button" disabled>
+                ⏹ 0 · Stop &amp; download
+              </button>
+              <button
+                id="sort-trace"
+                type="button"
+                aria-label="Sort newest first"
+                title="Sort newest first"
+              >
+                ↓ Newest
+              </button>
+              <button id="clear-trace" type="button">Clear</button>
+            </div>
           </div>
-        </div>
-        <div class="trace-filters" aria-label="Trace filters">
-          <button data-trace-filter="MOVE" aria-pressed="true">Move</button>
-          <button data-trace-filter="EVENT" aria-pressed="true">Event</button>
-          <button data-trace-filter="STATE" aria-pressed="true">State</button>
-          <button data-trace-filter="GYRO" aria-pressed="false">Gyro</button>
-          <button data-trace-filter="REGRIP" aria-pressed="true">Regrip</button>
-          <button data-trace-filter="TRIGGER" aria-pressed="true">Trigger</button>
-        </div>
-        <div id="trace-selection" class="trace-selection" hidden aria-live="polite">
-          <span id="trace-selection-count">0 selected</span>
-          <button id="select-all-trace" type="button">Select all</button>
-          <button id="export-trace" type="button">Export JSONL</button>
-          <button id="copy-trace" type="button">Copy JSONL</button>
-          <button id="reproduce-trace" type="button">Reproduce moves</button>
-          <button id="clear-trace-selection" type="button">Clear selection</button>
-        </div>
-        <div id="event-log-rows" role="log" aria-live="polite"></div>
-      </aside>
+          <div class="trace-filters" aria-label="Trace filters">
+            <button data-trace-filter="MOVE" aria-pressed="true">Move</button>
+            <button data-trace-filter="EVENT" aria-pressed="true">Event</button>
+            <button data-trace-filter="STATE" aria-pressed="true">State</button>
+            <button data-trace-filter="GYRO" aria-pressed="false">Gyro</button>
+            <button data-trace-filter="REGRIP" aria-pressed="true">Regrip</button>
+            <button data-trace-filter="TRIGGER" aria-pressed="true">Trigger</button>
+          </div>
+          <div id="trace-selection" class="trace-selection" hidden aria-live="polite">
+            <span id="trace-selection-count">0 selected</span>
+            <button id="select-all-trace" type="button">Select all</button>
+            <button id="export-trace" type="button">Export JSONL</button>
+            <button id="copy-trace" type="button">Copy JSONL</button>
+            <button id="reproduce-trace" type="button">Reproduce moves</button>
+            <button id="clear-trace-selection" type="button">Clear selection</button>
+          </div>
+          <div id="event-log-rows" role="log" aria-live="polite"></div>
+        </aside>
 
-    <div class="dashboard">
-      <main class="workspace-card">
-    <div class="cube-workspace">
-      <div class="cube-column">
-        <div id="cube"></div>
+        <div class="dashboard">
+          <main class="workspace-card">
+            <div class="cube-workspace">
+              <div class="cube-column">
+                <div id="cube"></div>
+              </div>
+
+              <section class="detected-moves-panel" aria-label="Detected Moves">
+                <label for="detectedMoves">Detected Moves</label>
+                <textarea
+                  id="detectedMoves"
+                  rows="10"
+                  placeholder="U R F D L B"
+                  autocomplete="off"
+                  spellcheck="false"
+                ></textarea>
+                <div class="detected-moves-actions">
+                  <button id="clear-detected-moves" type="button">Clear</button>
+                  <button id="copy-detected-moves" type="button">Copy</button>
+                </div>
+              </section>
+            </div>
+
+            <section class="cubie-state-panel">
+              <label for="cubieState" hidden>Cubie State</label>
+              <input id="cubieState" type="text" readonly value="- n/a -" hidden />
+            </section>
+
+            <div class="controls">
+              <div class="control-actions">
+                <button id="connect">Connect</button>
+                <button id="reset-state">Reset State</button>
+                <button id="reset-gyro">Reset Gyro</button>
+              </div>
+              <div class="log-actions"></div>
+            </div>
+          </main>
+
+          <aside class="device-card">
+            <h2>Cube Connection</h2>
+            <div class="info">
+              <label for="connectionStatus">Connection Status</label>
+              <input id="connectionStatus" type="text" readonly value="Disconnected" />
+
+              <label for="protocol">Protocol</label>
+              <input id="protocol" type="text" readonly value="- n/a -" />
+
+              <label for="capabilities">Capabilities</label>
+              <input id="capabilities" type="text" readonly value="- n/a -" />
+
+              <label for="deviceName">Device Name</label>
+              <input id="deviceName" type="text" readonly value="- n/a -" />
+
+              <label for="deviceMAC">Device MAC</label>
+              <input id="deviceMAC" type="text" readonly value="- n/a -" />
+
+              <label for="hardwareName">Hardware Name</label>
+              <input id="hardwareName" type="text" readonly value="- n/a -" />
+
+              <label for="hardwareVersion">Hardware Version</label>
+              <input id="hardwareVersion" type="text" readonly value="- n/a -" />
+
+              <label for="softwareVersion">Software Version</label>
+              <input id="softwareVersion" type="text" readonly value="- n/a -" />
+
+              <label for="productDate">Product Date</label>
+              <input id="productDate" type="text" readonly value="- n/a -" />
+
+              <label for="gyroSupported">Gyro Supported</label>
+              <input id="gyroSupported" type="text" readonly value="- n/a -" />
+
+              <label for="batteryLevel">Battery</label>
+              <input id="batteryLevel" type="text" readonly value="- n/a -" />
+
+              <label for="eventSerial">Event Serial</label>
+              <input id="eventSerial" type="text" readonly value="- n/a -" />
+
+              <label for="centerOrientation">GoCube Center Orientation</label>
+              <input id="centerOrientation" type="text" readonly value="- n/a -" />
+
+              <label for="goCubeType">GoCube Type</label>
+              <input id="goCubeType" type="text" readonly value="- n/a -" />
+
+              <label for="offlineMoves">GoCube Offline Moves</label>
+              <input id="offlineMoves" type="text" readonly value="- n/a -" />
+
+              <label for="offlineDuration">GoCube Offline Time</label>
+              <input id="offlineDuration" type="text" readonly value="- n/a -" />
+
+              <label for="offlineSolves">GoCube Offline Solves</label>
+              <input id="offlineSolves" type="text" readonly value="- n/a -" />
+
+              <label for="skew">Clock Skew</label>
+              <input id="skew" type="text" readonly value="- n/a -" />
+
+              <label for="quaternion">Quaternion</label>
+              <input id="quaternion" type="text" readonly value="- n/a -" />
+
+              <label for="velocity">Angular Velocity</label>
+              <input id="velocity" type="text" readonly value="- n/a -" />
+            </div>
+          </aside>
+        </div>
       </div>
 
-      <section class="detected-moves-panel" aria-label="Detected Moves">
-        <label for="detectedMoves">Detected Moves</label>
-        <textarea id="detectedMoves" rows="10" placeholder="U R F D L B" autocomplete="off" spellcheck="false"></textarea>
-        <div class="detected-moves-actions">
-          <button id="clear-detected-moves" type="button">Clear</button>
-          <button id="copy-detected-moves" type="button">Copy</button>
-        </div>
-      </section>
+      <div id="timer">0:00.000</div>
     </div>
-
-    <section class="cubie-state-panel">
-      <label for="cubieState" hidden>Cubie State</label>
-      <input id="cubieState" type="text" readonly value="- n/a -" hidden>
-    </section>
-
-    <div class="controls">
-      <div class="control-actions">
-        <button id="connect">Connect</button>
-        <button id="reset-state">Reset State</button>
-        <button id="reset-gyro">Reset Gyro</button>
-      </div>
-      <div class="log-actions">
-      </div>
-    </div>
-      </main>
-
-      <aside class="device-card">
-        <h2>Cube Connection</h2>
-    <div class="info">
-
-      <label for="connectionStatus">Connection Status</label>
-      <input id="connectionStatus" type="text" readonly value="Disconnected">
-
-      <label for="protocol">Protocol</label>
-      <input id="protocol" type="text" readonly value="- n/a -">
-
-      <label for="capabilities">Capabilities</label>
-      <input id="capabilities" type="text" readonly value="- n/a -">
-
-      <label for="deviceName">Device Name</label>
-      <input id="deviceName" type="text" readonly value="- n/a -">
-
-      <label for="deviceMAC">Device MAC</label>
-      <input id="deviceMAC" type="text" readonly value="- n/a -">
-
-      <label for="hardwareName">Hardware Name</label>
-      <input id="hardwareName" type="text" readonly value="- n/a -">
-
-      <label for="hardwareVersion">Hardware Version</label>
-      <input id="hardwareVersion" type="text" readonly value="- n/a -">
-
-      <label for="softwareVersion">Software Version</label>
-      <input id="softwareVersion" type="text" readonly value="- n/a -">
-
-      <label for="productDate">Product Date</label>
-      <input id="productDate" type="text" readonly value="- n/a -">
-
-      <label for="gyroSupported">Gyro Supported</label>
-      <input id="gyroSupported" type="text" readonly value="- n/a -">
-
-      <label for="batteryLevel">Battery</label>
-      <input id="batteryLevel" type="text" readonly value="- n/a -">
-
-      <label for="eventSerial">Event Serial</label>
-      <input id="eventSerial" type="text" readonly value="- n/a -">
-
-      <label for="centerOrientation">GoCube Center Orientation</label>
-      <input id="centerOrientation" type="text" readonly value="- n/a -">
-
-      <label for="goCubeType">GoCube Type</label>
-      <input id="goCubeType" type="text" readonly value="- n/a -">
-
-      <label for="offlineMoves">GoCube Offline Moves</label>
-      <input id="offlineMoves" type="text" readonly value="- n/a -">
-
-      <label for="offlineDuration">GoCube Offline Time</label>
-      <input id="offlineDuration" type="text" readonly value="- n/a -">
-
-      <label for="offlineSolves">GoCube Offline Solves</label>
-      <input id="offlineSolves" type="text" readonly value="- n/a -">
-
-      <label for="skew">Clock Skew</label>
-      <input id="skew" type="text" readonly value="- n/a -">
-
-      <label for="quaternion">Quaternion</label>
-      <input id="quaternion" type="text" readonly value="- n/a -">
-
-      <label for="velocity">Angular Velocity</label>
-      <input id="velocity" type="text" readonly value="- n/a -">
-
-    </div>
-      </aside>
-    </div>
-    </div>
-
-    <div id="timer">0:00.000</div>
-
-  </div>
-  <script type="module" src="/src/app/index.ts"></script>
-
-</body>
-
+    <script type="module" src="/src/app/index.ts"></script>
+  </body>
 </html>

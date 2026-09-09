@@ -1,5 +1,4 @@
-
-import './style.css'
+import './style.css';
 
 import * as THREE from 'three';
 
@@ -25,13 +24,13 @@ infoPanel.clearInfo();
 // Resting pose shown before any gyro data; the cube settles to
 // GyroOrientation.home once GYRO events start arriving.
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
-  new THREE.Euler(30 * Math.PI / 180, -30 * Math.PI / 180, 0)
+  new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
 const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
 const liveLog = createLiveLog({
-  onReproduceMoves: moves => {
+  onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
     twistyPlayer.alg = algorithm;
     infoPanel.setDetectedMoves(algorithm);
@@ -45,16 +44,23 @@ const virtualMoveFrame = createVirtualMoveFrame();
 const virtualFrameQuaternion = new THREE.Quaternion();
 const virtualFrameColors: OrientationIndicatorColors = { r: 0xff3131, u: 0xffffff, f: 0x78ed3e };
 const faceColors: Record<string, number> = {
-  U: 0xffffff, R: 0xff3131, F: 0x78ed3e, D: 0xfff34a, L: 0xff8a2a, B: 0x3568ff,
+  U: 0xffffff,
+  R: 0xff3131,
+  F: 0x78ed3e,
+  D: 0xfff34a,
+  L: 0xff8a2a,
+  B: 0x3568ff,
 };
 
 function syncVirtualFrameOrientation(): void {
   const { right, up, front, faces } = virtualMoveFrame.orientation();
-  virtualFrameQuaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
-    new THREE.Vector3(...right),
-    new THREE.Vector3(...up),
-    new THREE.Vector3(...front),
-  ));
+  virtualFrameQuaternion.setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(
+      new THREE.Vector3(...right),
+      new THREE.Vector3(...up),
+      new THREE.Vector3(...front),
+    ),
+  );
   virtualFrameColors.r = faceColors[faces.right]!;
   virtualFrameColors.u = faceColors[faces.up]!;
   virtualFrameColors.f = faceColors[faces.front]!;
@@ -63,10 +69,10 @@ function syncVirtualFrameOrientation(): void {
 let renderLoopStarted = false;
 
 infoPanel.on('reset-state', 'click', async () => {
-  if (!window.confirm('Reset the cube state? This clears the cube\'s stored state.')) return;
+  if (!window.confirm("Reset the cube state? This clears the cube's stored state.")) return;
   const conn = session.getState().connection;
   if (conn?.capabilities.reset) {
-    await conn.sendCommand({ type: "REQUEST_RESET" });
+    await conn.sendCommand({ type: 'REQUEST_RESET' });
   }
   twistyPlayer.alg = '';
 });
@@ -95,20 +101,23 @@ const timerController = createTimerController({
   setTimer: infoPanel.setTimer,
   showTimer: infoPanel.showTimer,
   setTimerColor: infoPanel.setTimerColor,
-  setSkew: value => infoPanel.setInfo('skew', value),
+  setSkew: (value) => infoPanel.setInfo('skew', value),
 });
 
 const cubeEvents = createCubeEventController({
   stabilizer,
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
-  reframeFacelets: facelets => virtualMoveFrame.reframeFacelets(facelets),
-  addMove: move => {
+  reframeFacelets: (facelets) => virtualMoveFrame.reframeFacelets(facelets),
+  addMove: (move) => {
     twistyPlayer.experimentalAddMove(move, { cancel: false });
     infoPanel.appendDetectedMove(virtualMoveFrame.translate(move));
   },
-  setOrientation: quaternion => cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-  setPlayerAlgorithm: algorithm => { twistyPlayer.alg = algorithm; },
+  setOrientation: (quaternion) =>
+    cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+  setPlayerAlgorithm: (algorithm) => {
+    twistyPlayer.alg = algorithm;
+  },
   setInfo: infoPanel.setInfo,
   showInfo: infoPanel.showInfo,
   onSolved: () => {
@@ -132,7 +141,7 @@ const cubeEvents = createCubeEventController({
 });
 
 applyProfile(session.getState().profile.value);
-session.subscribeEvents(event => {
+session.subscribeEvents((event) => {
   if (event.type === 'GYRO') {
     cubeEvents.handleCalibratedGyro(event, event.relative);
     return;
@@ -156,7 +165,7 @@ session.subscribeEvents(event => {
 
 let previousStatus = session.getState().status;
 let appliedProfile = session.getState().profile;
-session.subscribe(state => {
+session.subscribe((state) => {
   if (state.profile !== appliedProfile) {
     appliedProfile = state.profile;
     applyProfile(state.profile.value);
@@ -181,7 +190,12 @@ session.subscribe(state => {
     const connection = state.connection;
     if (!renderLoopStarted) {
       renderLoopStarted = true;
-      startSceneRenderLoop(twistyPlayer, cubeQuaternion, virtualFrameQuaternion, virtualFrameColors);
+      startSceneRenderLoop(
+        twistyPlayer,
+        cubeQuaternion,
+        virtualFrameQuaternion,
+        virtualFrameColors,
+      );
     }
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
@@ -242,16 +256,18 @@ infoPanel.on('clear-detected-moves', 'click', () => {
 });
 
 infoPanel.on('copy-detected-moves', 'click', () => {
-  void infoPanel.copyDetectedMoves().catch(error => console.error('unable to copy detected moves', error));
+  void infoPanel
+    .copyDetectedMoves()
+    .catch((error) => console.error('unable to copy detected moves', error));
 });
 
 document.addEventListener('keydown', (event) => {
   if (event.key === ' ') {
     event.preventDefault();
-    timerController.dispatch("activate");
+    timerController.dispatch('activate');
   }
 });
 
 infoPanel.on('cube', 'touchstart', () => {
-  timerController.dispatch("activate");
+  timerController.dispatch('activate');
 });

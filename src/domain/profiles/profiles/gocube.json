@@ -1,1 +1,7 @@
-{"id":"gocube","extends":"base","match":{"protocol":"gocube"},"battery":{"curve":"linear"},"quirks":{"clockless":true}}
+{
+  "id": "gocube",
+  "extends": "base",
+  "match": { "protocol": "gocube" },
+  "battery": { "curve": "linear" },
+  "quirks": { "clockless": true }
+}

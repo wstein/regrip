@@ -8,8 +8,10 @@ describe('orientation indicator', () => {
     const indicator = createOrientationIndicator(false);
 
     expect(indicator.name).toBe('orientation-indicator');
-    expect(indicator.children.map(child => child.name)).toEqual([
-      'orientation-axis-r', 'orientation-axis-u', 'orientation-axis-f',
+    expect(indicator.children.map((child) => child.name)).toEqual([
+      'orientation-axis-r',
+      'orientation-axis-u',
+      'orientation-axis-f',
     ]);
   });
 

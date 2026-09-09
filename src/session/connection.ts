@@ -6,11 +6,15 @@ export const macAddressProvider = async (
   isFallbackCall?: boolean,
 ): Promise<string | null> => {
   if (isFallbackCall) {
-    return prompt('Unable to determine cube MAC address!\nEnable chrome://flags/#enable-experimental-web-platform-features and reload, or enter it manually:');
+    return prompt(
+      'Unable to determine cube MAC address!\nEnable chrome://flags/#enable-experimental-web-platform-features and reload, or enter it manually:',
+    );
   }
   return typeof device.watchAdvertisements === 'function'
     ? null
-    : prompt('Web Bluetooth advertisement watching is unavailable.\nEnable chrome://flags/#enable-experimental-web-platform-features and reload, or enter the cube MAC address manually:');
+    : prompt(
+        'Web Bluetooth advertisement watching is unavailable.\nEnable chrome://flags/#enable-experimental-web-platform-features and reload, or enter the cube MAC address manually:',
+      );
 };
 
 export async function connectCube(): Promise<SmartCubeConnection> {
@@ -18,9 +22,9 @@ export async function connectCube(): Promise<SmartCubeConnection> {
 }
 
 export async function requestInitialState(connection: SmartCubeConnection): Promise<void> {
-  if (connection.capabilities.hardware) await connection.sendCommand({type: 'REQUEST_HARDWARE'});
-  if (connection.capabilities.facelets) await connection.sendCommand({type: 'REQUEST_FACELETS'});
-  if (connection.capabilities.battery) await connection.sendCommand({type: 'REQUEST_BATTERY'});
+  if (connection.capabilities.hardware) await connection.sendCommand({ type: 'REQUEST_HARDWARE' });
+  if (connection.capabilities.facelets) await connection.sendCommand({ type: 'REQUEST_FACELETS' });
+  if (connection.capabilities.battery) await connection.sendCommand({ type: 'REQUEST_BATTERY' });
 }
 
 export async function disconnectConnection(connection: SmartCubeConnection | null): Promise<void> {

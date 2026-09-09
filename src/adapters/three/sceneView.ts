@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { TwistyPlayer } from 'cubing/twisty';
 import {
-  createOrientationIndicator, setOrientationIndicatorColors, type OrientationIndicatorColors,
+  createOrientationIndicator,
+  setOrientationIndicatorColors,
+  type OrientationIndicatorColors,
 } from './orientationIndicator';
 
 export function startSceneRenderLoop(
@@ -23,7 +25,7 @@ export function startSceneRenderLoop(
       if (!scene || !vantage) {
         const vantages = await player.experimentalCurrentVantages();
         vantage = [...vantages][0];
-        scene = vantage && await vantage.scene.scene();
+        scene = vantage && (await vantage.scene.scene());
         if (scene) {
           orientationIndicator = createOrientationIndicator();
           // cubing.js scene units project much larger than the rendered cube;
@@ -39,10 +41,13 @@ export function startSceneRenderLoop(
         // Only the indicator is reframed: virtual x/y/z turns rename the
         // user's R/U/F frame without changing the physical gyro pose.
         orientationIndicator?.quaternion.copy(virtualFrameQuaternion);
-        if (orientationIndicator) setOrientationIndicatorColors(orientationIndicator, virtualFrameColors);
+        if (orientationIndicator)
+          setOrientationIndicatorColors(orientationIndicator, virtualFrameColors);
         // Compensate the parent transform for position only: this pins the
         // gizmo in view while preserving the inherited axis rotation.
-        orientationIndicator?.position.copy(indicatorPosition).applyQuaternion(scene.quaternion.clone().invert());
+        orientationIndicator?.position
+          .copy(indicatorPosition)
+          .applyQuaternion(scene.quaternion.clone().invert());
         vantage.render();
       }
     } catch (error) {

@@ -85,11 +85,7 @@ describe("Quaternion algebra", () => {
   test("multiply matches a hand-checked three.js Hamilton product", t => {
     let a: Quaternion.t = {x: 0.1, y: 0.2, z: 0.3, w: 0.4}
     let b: Quaternion.t = {x: 0.5, y: 0.6, z: 0.7, w: 0.8}
-    expectClose(
-      t,
-      Quaternion.multiply(a, b),
-      {x: 0.24, y: 0.48, z: 0.48, w: -0.06},
-    )
+    expectClose(t, Quaternion.multiply(a, b), {x: 0.24, y: 0.48, z: 0.48, w: -0.06})
   })
 
   test("multiply is not commutative", t => {
@@ -99,7 +95,9 @@ describe("Quaternion algebra", () => {
     let ba = Quaternion.multiply(b, a)
     // same scalar part, different vector part
     t->expect(ab.w)->Expect.Float.toBeCloseTo(ba.w, 9)
-    t->expect(Math.abs(ab.x -. ba.x) +. Math.abs(ab.y -. ba.y) +. Math.abs(ab.z -. ba.z) > 0.1)->Expect.toBe(true)
+    t
+    ->expect(Math.abs(ab.x -. ba.x) +. Math.abs(ab.y -. ba.y) +. Math.abs(ab.z -. ba.z) > 0.1)
+    ->Expect.toBe(true)
   })
 
   test("angle is sign-invariant and slerp reaches the exact endpoints", t => {
@@ -112,7 +110,9 @@ describe("Quaternion algebra", () => {
   test("slerp midpoint has half the angular distance and stays normalized", t => {
     let target = Quaternion.fromEuler({x: Quaternion.degreesToRadians(90.), y: 0., z: 0.})
     let midpoint = Quaternion.slerp(Quaternion.identity, target, 0.5)
-    t->expect(Quaternion.angle(Quaternion.identity, midpoint))->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(45.), 9)
+    t
+    ->expect(Quaternion.angle(Quaternion.identity, midpoint))
+    ->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(45.), 9)
     t->expect(Quaternion.dot(midpoint, midpoint))->Expect.Float.toBeCloseTo(1., 9)
   })
 })

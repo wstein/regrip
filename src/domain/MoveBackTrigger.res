@@ -21,11 +21,13 @@ let inverse = (move: string): option<string> => {
 let observe = (detector: t, move: string, timestamp: float): option<string> => {
   let result = switch (detector.previous, inverse(move)) {
   | (Some((previousMove, previousTimestamp)), Some(expected))
-    if previousMove == expected && timestamp >= previousTimestamp
-      && timestamp -. previousTimestamp <= detector.config.windowMs =>
+    if previousMove == expected &&
+    timestamp >= previousTimestamp &&
+    timestamp -. previousTimestamp <= detector.config.windowMs =>
     Some(previousMove)
   | _ => None
   }
+
   // Gestures are non-overlapping: a matched return cannot become the start
   // of a second trigger. An unmatched move starts a fresh candidate instead.
   detector.previous = switch result {

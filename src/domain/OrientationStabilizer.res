@@ -52,13 +52,17 @@ let update = (t: t, raw: Quaternion.t, ~velocity=0., ~dtSeconds=0.): Quaternion.
   )
   t.lockedPose = Some(target)
   let velocityGate = 1. -. Math.min(1., Math.abs(velocity) /. t.config.velocityMax)
-  let maximumStep = Quaternion.degreesToRadians(t.config.driftDegPerSec) *. dtSeconds *. velocityGate
+  let maximumStep =
+    Quaternion.degreesToRadians(t.config.driftDegPerSec) *. dtSeconds *. velocityGate
   if maximumStep > 0. {
     let difference = Quaternion.multiply(target, Quaternion.conjugate(corrected))
     let differenceAngle = Quaternion.angle(corrected, target)
     if differenceAngle > 0. {
       let fraction = Math.min(1., maximumStep /. differenceAngle)
-      t.driftOffset = Quaternion.multiply(Quaternion.slerp(Quaternion.identity, difference, fraction), t.driftOffset)
+      t.driftOffset = Quaternion.multiply(
+        Quaternion.slerp(Quaternion.identity, difference, fraction),
+        t.driftOffset,
+      )
     }
   }
   let adjusted = Quaternion.multiply(t.driftOffset, raw)

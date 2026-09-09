@@ -9,7 +9,9 @@ export type DeviceContext = {
 export type SmartCubeProfile = {
   id: string;
   extends?: string;
-  match?: Partial<Record<'protocol' | 'deviceName' | 'deviceMAC' | 'hardwareName' | 'goCubeType', string>>;
+  match?: Partial<
+    Record<'protocol' | 'deviceName' | 'deviceMAC' | 'hardwareName' | 'goCubeType', string>
+  >;
   stabilizer?: {
     radiusDeg?: number;
     snapDeg?: number;

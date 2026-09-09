@@ -10,11 +10,19 @@ describe('JSONL log', () => {
     log.record('before_recording', {});
     log.start({ profile: 'gocube' });
     log.record('cube_event', { type: 'BATTERY', batteryLevel: 98 });
-    const lines = log.stop().trim().split('\n').map(line => JSON.parse(line));
+    const lines = log
+      .stop()
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
 
     expect(lines).toEqual([
       { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_started', data: { profile: 'gocube' } },
-      { recordedAt: '2026-09-08T12:00:00.000Z', type: 'cube_event', data: { type: 'BATTERY', batteryLevel: 98 } },
+      {
+        recordedAt: '2026-09-08T12:00:00.000Z',
+        type: 'cube_event',
+        data: { type: 'BATTERY', batteryLevel: 98 },
+      },
       { recordedAt: '2026-09-08T12:00:00.000Z', type: 'log_stopped', data: { entries: 1 } },
     ]);
   });

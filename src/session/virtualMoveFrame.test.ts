@@ -50,27 +50,33 @@ describe('virtual move frame', () => {
   it('exposes logical R/U/F directions after virtual regrips', () => {
     const frame = createVirtualMoveFrame();
     expect(frame.orientation()).toEqual({
-      right: [1, 0, 0], up: [0, 1, 0], front: [0, 0, 1], faces: { right: 'R', up: 'U', front: 'F' },
+      right: [1, 0, 0],
+      up: [0, 1, 0],
+      front: [0, 0, 1],
+      faces: { right: 'R', up: 'U', front: 'F' },
     });
 
     frame.applyRegrip('y');
     // After logical y, the physical B/U/R faces occupy logical R/U/F.
     expect(frame.orientation()).toEqual({
-      right: [0, 0, -1], up: [0, 1, 0], front: [1, 0, 0], faces: { right: 'B', up: 'U', front: 'R' },
+      right: [0, 0, -1],
+      up: [0, 1, 0],
+      front: [1, 0, 0],
+      faces: { right: 'B', up: 'U', front: 'R' },
     });
   });
 
   it('reframes all 54 facelets, including face-grid orientation and centre colours', () => {
-    const solved = 'U'.repeat(9) + 'R'.repeat(9) + 'F'.repeat(9)
-      + 'D'.repeat(9) + 'L'.repeat(9) + 'B'.repeat(9);
+    const solved =
+      'U'.repeat(9) + 'R'.repeat(9) + 'F'.repeat(9) + 'D'.repeat(9) + 'L'.repeat(9) + 'B'.repeat(9);
     const frame = createVirtualMoveFrame();
     frame.applyRegrip('y');
 
     // A regripped solved cube remains solved in its logical URFDLB frame.
     expect(frame.reframeFacelets(solved)).toBe(solved);
 
-    const markedFaces = 'u'.repeat(9) + 'r'.repeat(9) + 'f'.repeat(9)
-      + 'd'.repeat(9) + 'l'.repeat(9) + 'b'.repeat(9);
+    const markedFaces =
+      'u'.repeat(9) + 'r'.repeat(9) + 'f'.repeat(9) + 'd'.repeat(9) + 'l'.repeat(9) + 'b'.repeat(9);
     expect(frame.reframeFacelets(markedFaces).slice(4, 5)).toBe('u');
     expect(frame.reframeFacelets(markedFaces).slice(13, 14)).toBe('b');
   });
@@ -84,15 +90,17 @@ describe('virtual move frame', () => {
     expect(new Set(once.reframeFacelets(facelets))).toHaveLength(54);
 
     const frame = createVirtualMoveFrame();
-    ['y', 'y', 'y', 'y'].forEach(token => frame.applyRegrip(token));
+    ['y', 'y', 'y', 'y'].forEach((token) => frame.applyRegrip(token));
     expect(frame.reframeFacelets(facelets)).toBe(facelets);
   });
 
   it('keeps a legal scrambled state legal after mixed regrips', () => {
     const scrambled = 'FBFRULDLFUBUURDBDBFFRLFFLURDBDUDFURLDBRLLURRBLDLRBDUFB';
     const frame = createVirtualMoveFrame();
-    ['x', "y'", 'z', 'x'].forEach(token => frame.applyRegrip(token));
+    ['x', "y'", 'z', 'x'].forEach((token) => frame.applyRegrip(token));
 
-    expect(() => CubeFacelets.faceletsToPatternData(frame.reframeFacelets(scrambled))).not.toThrow();
+    expect(() =>
+      CubeFacelets.faceletsToPatternData(frame.reframeFacelets(scrambled)),
+    ).not.toThrow();
   });
 });

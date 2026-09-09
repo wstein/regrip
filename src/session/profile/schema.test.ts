@@ -6,6 +6,7 @@ import { bundledProfiles } from './bundled';
 describe('bundled profile schema', () => {
   it('validates every bundled profile', () => {
     const validate = new Ajv2020().compile(schema);
-    for (const profile of bundledProfiles) expect(validate(profile), JSON.stringify(validate.errors)).toBe(true);
+    for (const profile of bundledProfiles)
+      expect(validate(profile), JSON.stringify(validate.errors)).toBe(true);
   });
 });

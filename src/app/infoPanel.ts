@@ -1,7 +1,13 @@
 const notAvailable = '- n/a -';
 const optionalInfoIds = [
-  'eventSerial', 'cubieState', 'centerOrientation', 'goCubeType',
-  'offlineMoves', 'offlineDuration', 'offlineSolves', 'velocity',
+  'eventSerial',
+  'cubieState',
+  'centerOrientation',
+  'goCubeType',
+  'offlineMoves',
+  'offlineDuration',
+  'offlineSolves',
+  'velocity',
 ];
 
 function byId(id: string): HTMLElement {
@@ -101,10 +107,12 @@ export async function copyDetectedMoves(): Promise<void> {
 }
 
 export function clearInfo(): void {
-  document.querySelectorAll<HTMLInputElement>('.info input, .cubie-state-panel input').forEach(element => {
-    element.value = notAvailable;
-  });
-  optionalInfoIds.forEach(id => {
+  document
+    .querySelectorAll<HTMLInputElement>('.info input, .cubie-state-panel input')
+    .forEach((element) => {
+      element.value = notAvailable;
+    });
+  optionalInfoIds.forEach((id) => {
     input(id).hidden = true;
     const label = document.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
     if (!label) throw new Error(`Missing label for #${id}`);
