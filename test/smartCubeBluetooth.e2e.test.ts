@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { connectSmartCube } from 'smartcube-web-bluetooth';
@@ -19,7 +20,9 @@ const ganFixtureUrl = new URL(
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe('smart cube session over the library Bluetooth mock', () => {
+const capturesAvailable = existsSync(fixtureUrl) && existsSync(ganFixtureUrl);
+
+describe.skipIf(!capturesAvailable)('smart cube session over the library Bluetooth mock', () => {
   it('connects, requests initial state, decodes captured GoCube events, and tears down', async () => {
     const fixture = JSON.parse(await readFile(fixtureUrl, 'utf8')) as FixtureSession;
     // Node 26 provides a read-only Navigator getter; give the upstream mock
