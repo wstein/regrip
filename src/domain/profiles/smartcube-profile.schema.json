@@ -11,12 +11,23 @@
       "properties": {
         "protocol": { "type": "string" },
         "deviceName": { "type": "string" },
+        "deviceMAC": { "type": "string" },
         "hardwareName": { "type": "string" },
         "goCubeType": { "type": "string" }
       },
       "additionalProperties": false
     },
-    "stabilizer": { "type": "object", "additionalProperties": { "type": "number" } },
+    "stabilizer": {
+      "type": "object",
+      "properties": {
+        "radiusDeg": { "type": "number" },
+        "snapDeg": { "type": "number" },
+        "hysteresisDeg": { "type": "number" },
+        "velocityMax": { "type": "number" },
+        "driftDegPerSec": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
     "battery": { "type": "object", "properties": { "curve": { "type": "string" } }, "additionalProperties": false },
     "gyro": { "type": "object", "properties": { "axisMap": { "type": "string" } }, "additionalProperties": false },
     "quirks": { "type": "object", "additionalProperties": true }
