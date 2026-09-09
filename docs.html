@@ -61,6 +61,18 @@
         padding: 14px;
         white-space: pre-wrap;
       }
+      .api-callout {
+        border: 2px solid var(--color-text);
+        padding: 20px 24px;
+        margin-bottom: 32px;
+        max-width: 640px;
+      }
+      .api-callout h6 {
+        margin: 0 0 8px;
+      }
+      .api-callout p {
+        margin: 0 0 16px;
+      }
       @media (max-width: 52rem) {
         .nav-tag {
           display: none;
@@ -97,10 +109,19 @@
           <a href="#doc-events">Events</a>
           <a href="#doc-moves">Moves API</a>
           <a href="#doc-protocols">Protocols</a>
-          <a href="./docs/api/index.html">Full API reference →</a>
         </nav>
 
         <div class="doc-content">
+          <section class="api-callout">
+            <h6>API reference</h6>
+            <p>
+              This page is the narrative guide. The full reference — every exported type and
+              function, one page per module — is generated from the TypeScript boundary with
+              TypeDoc.
+            </p>
+            <a href="./docs/api/" class="btn btn-primary">Open the API reference →</a>
+          </section>
+
           <h6 id="doc-start">Getting started</h6>
           <p>
             Open the lab in a Bluetooth-capable browser, click Connect, and pick your cube from the

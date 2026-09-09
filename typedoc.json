@@ -24,5 +24,12 @@
   "out": "docs/api",
   "readme": "none",
   "excludeInternal": true,
-  "excludePrivate": true
+  "excludePrivate": true,
+  "customCss": "./docs/api-theme.css",
+  "titleLink": "/regrip/",
+  "navigationLinks": {
+    "Lab": "/regrip/",
+    "Docs": "/regrip/docs.html",
+    "GitHub": "https://github.com/wstein/regrip"
+  }
 }
