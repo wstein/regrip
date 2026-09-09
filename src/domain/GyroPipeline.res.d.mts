@@ -9,19 +9,27 @@ export type GyroSample = {
   velocityMagnitude: number;
   dtSeconds: number;
 };
-export type GyroPipeline = unknown;
+export type GyroPipelineConfig = unknown;
+export type GyroPipelineState = unknown;
 
-export function make(config: OrientationStabilizerConfig): GyroPipeline;
-export function reset(pipeline: GyroPipeline): void;
-export function setStabilizerConfig(
-  pipeline: GyroPipeline,
-  config: OrientationStabilizerConfig,
-): void;
-export function setSensorToBody(pipeline: GyroPipeline, sensorToBody: SensorToBody): void;
-export function update(
-  pipeline: GyroPipeline,
+export function makeConfig(config: OrientationStabilizerConfig): GyroPipelineConfig;
+export const initial: GyroPipelineState;
+export function reset(state: GyroPipelineState): GyroPipelineState;
+/** Preserve calibration/timing while discarding a stale stabilizer lock. */
+export function resetStabilizer(state: GyroPipelineState): GyroPipelineState;
+export function withStabilizerConfig(
+  config: GyroPipelineConfig,
+  stabilizer: OrientationStabilizerConfig,
+): GyroPipelineConfig;
+export function withSensorToBody(
+  config: GyroPipelineConfig,
+  sensorToBody: SensorToBody,
+): GyroPipelineConfig;
+export function step(
+  state: GyroPipelineState,
   raw: Quaternion,
   timestamp: number,
   velocity: GyroVelocity | undefined,
+  config: GyroPipelineConfig,
   stabilizerEnabled: boolean,
-): GyroSample;
+): [GyroPipelineState, GyroSample];

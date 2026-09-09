@@ -8,13 +8,17 @@ export type OrientationStabilizerConfig = {
   /** Maximum resting drift correction, in degrees per second. */
   driftDegPerSec: number;
 };
-
-export type OrientationStabilizer = unknown;
+/** Opaque state for the orientation-stabilizer reducer. */
+export type OrientationStabilizerState = unknown;
 
 export const defaults: OrientationStabilizerConfig;
-export function make(config?: OrientationStabilizerConfig): OrientationStabilizer;
-export function reset(stabilizer: OrientationStabilizer): void;
-/** Reconfiguration starts a fresh lock so profiles cannot retain a stale pose. */
-export function setConfig(stabilizer: OrientationStabilizer, config: OrientationStabilizerConfig): void;
-export function lockedPose(stabilizer: OrientationStabilizer): Quaternion | undefined;
-export function update(stabilizer: OrientationStabilizer, raw: Quaternion, velocity?: number, dtSeconds?: number): Quaternion;
+export const initial: OrientationStabilizerState;
+export function reset(state: OrientationStabilizerState): OrientationStabilizerState;
+export function lockedPose(state: OrientationStabilizerState): Quaternion | undefined;
+export function step(
+  state: OrientationStabilizerState,
+  raw: Quaternion,
+  velocity?: number,
+  dtSeconds?: number,
+  config?: OrientationStabilizerConfig,
+): [OrientationStabilizerState, Quaternion];

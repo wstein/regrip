@@ -1,63 +1,75 @@
-// Session-owned gyro normalization and stabilization. This remains renderer
-// independent: callers choose how to apply their display-home orientation.
+// Session-facing pure gyro reducer: calibration, timing, and stabilization.
 
 type velocity = {x: float, y: float, z: float}
+type config = {stabilizer: OrientationStabilizer.config, sensorToBody: SensorToBody.t}
 type sample = {
   relative: Quaternion.t,
   stabilized: Quaternion.t,
   velocityMagnitude: float,
   dtSeconds: float,
 }
-
-type t = {
-  gyro: GyroOrientation.t,
-  stabilizer: OrientationStabilizer.t,
-  mutable previousTimestamp: option<float>,
+type state = {
+  gyro: GyroOrientation.state,
+  stabilizer: OrientationStabilizer.state,
+  previousTimestamp: option<float>,
 }
 
-let make = (config: OrientationStabilizer.config): t => {
-  gyro: GyroOrientation.make(),
-  stabilizer: OrientationStabilizer.make(~config),
+let makeConfig = (stabilizer: OrientationStabilizer.config): config => {
+  stabilizer,
+  sensorToBody: SensorToBody.default,
+}
+let initial: state = {
+  gyro: GyroOrientation.initial,
+  stabilizer: OrientationStabilizer.initial,
   previousTimestamp: None,
 }
 
-let reset = (pipeline: t): unit => {
-  pipeline.gyro->GyroOrientation.resetBasis
-  pipeline.stabilizer->OrientationStabilizer.reset
-  pipeline.previousTimestamp = None
+let reset = (_: state): state => initial
+/** Preserve calibration/timing while discarding a stale stabilizer lock. */
+let resetStabilizer = (state: state): state => {...state, stabilizer: OrientationStabilizer.initial}
+let withStabilizerConfig = (config: config, stabilizer: OrientationStabilizer.config): config => {
+  ...config,
+  stabilizer,
+}
+let withSensorToBody = (config: config, sensorToBody: SensorToBody.t): config => {
+  ...config,
+  sensorToBody,
 }
 
-let setStabilizerConfig = (pipeline: t, config: OrientationStabilizer.config): unit =>
-  pipeline.stabilizer->OrientationStabilizer.setConfig(config)
-
-let setSensorToBody = (pipeline: t, sensorToBody: SensorToBody.t): unit =>
-  pipeline.gyro->GyroOrientation.setSensorToBody(sensorToBody)
-
-let update = (
-  pipeline: t,
+let step = (
+  state: state,
   raw: Quaternion.t,
   timestamp: float,
   velocity: option<velocity>,
+  ~config: config,
   ~stabilizerEnabled: bool,
-): sample => {
-  let relative = pipeline.gyro->GyroOrientation.relative(raw)
+): (state, sample) => {
+  let (gyro, relative) = GyroOrientation.relative(
+    state.gyro,
+    raw,
+    ~sensorToBody=config.sensorToBody,
+  )
   let velocityMagnitude = switch velocity {
   | Some({x, y, z}) => Math.sqrt(x *. x +. y *. y +. z *. z)
   | None => 0.
   }
-  let dtSeconds = switch pipeline.previousTimestamp {
+  let dtSeconds = switch state.previousTimestamp {
   | Some(previous) => Math.max(0., (timestamp -. previous) /. 1000.)
   | None => 0.
   }
-  pipeline.previousTimestamp = Some(timestamp)
-  let stabilized = if stabilizerEnabled {
-    pipeline.stabilizer->OrientationStabilizer.update(
+  let (stabilizer, stabilized) = if stabilizerEnabled {
+    OrientationStabilizer.step(
+      state.stabilizer,
       relative,
       ~velocity=velocityMagnitude,
       ~dtSeconds,
+      ~config=config.stabilizer,
     )
   } else {
-    relative
+    (state.stabilizer, relative)
   }
-  {relative, stabilized, velocityMagnitude, dtSeconds}
+  (
+    {gyro, stabilizer, previousTimestamp: Some(timestamp)},
+    {relative, stabilized, velocityMagnitude, dtSeconds},
+  )
 }

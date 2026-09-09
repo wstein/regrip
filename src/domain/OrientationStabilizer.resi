@@ -6,13 +6,15 @@ type config = {
   /** Maximum resting drift correction, in degrees per second. */
   driftDegPerSec: float,
 }
-
-type t
-
+type state
 let defaults: config
-let make: (~config: config=?) => t
-let reset: t => unit
-/** Reconfiguration starts a fresh lock so profiles cannot retain a stale pose. */
-let setConfig: (t, config) => unit
-let lockedPose: t => option<Quaternion.t>
-let update: (t, Quaternion.t, ~velocity: float=?, ~dtSeconds: float=?) => Quaternion.t
+let initial: state
+let reset: state => state
+let lockedPose: state => option<Quaternion.t>
+let step: (
+  state,
+  Quaternion.t,
+  ~velocity: float=?,
+  ~dtSeconds: float=?,
+  ~config: config=?,
+) => (state, Quaternion.t)

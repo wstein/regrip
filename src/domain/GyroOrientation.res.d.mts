@@ -1,18 +1,21 @@
-// Hand-written types for the compiled ReScript module src/GyroOrientation.res.
-
 import type { Quaternion } from './Quaternion.res.mjs';
 import type { SensorToBody } from './SensorToBody.res.mjs';
 
-export type GyroOrientation = { basis: Quaternion | undefined };
+/** Opaque calibration state for the gyro orientation reducer. */
+export type GyroOrientationState = unknown;
 
 export const home: Quaternion;
-export function make(): GyroOrientation;
-export function makeWithHome(home: Quaternion): GyroOrientation;
-export function resetBasis(t: GyroOrientation): void;
-export function setSensorToBody(t: GyroOrientation, sensorToBody: SensorToBody): void;
-/** `raw` normalized against the initial sample, before applying `home`. */
-export function relative(t: GyroOrientation, raw: Quaternion): Quaternion;
-/** Apply this tracker's configured resting pose to a relative orientation. */
-export function applyHome(t: GyroOrientation, relative: Quaternion): Quaternion;
-/** `raw` is the cube's reported quaternion; returns the scene orientation. */
-export function update(t: GyroOrientation, raw: Quaternion): Quaternion;
+export const initial: GyroOrientationState;
+export function reset(state: GyroOrientationState): GyroOrientationState;
+export function relative(
+  state: GyroOrientationState,
+  raw: Quaternion,
+  sensorToBody?: SensorToBody,
+): [GyroOrientationState, Quaternion];
+export function applyHome(relative: Quaternion, home?: Quaternion): Quaternion;
+export function step(
+  state: GyroOrientationState,
+  raw: Quaternion,
+  sensorToBody?: SensorToBody,
+  home?: Quaternion,
+): [GyroOrientationState, Quaternion];

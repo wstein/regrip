@@ -83,9 +83,10 @@
 - [x] Introduce shared, unboxed typed `axis`, `turn`, and `face` variants at
       the domain boundary, then keep their hand-written `.res.d.mts` surface
       covered by the declaration-drift check.
-- [ ] Convert larger mutable domain cells (`GyroOrientation`,
-      `OrientationStabilizer`, and `MoveBuffer`) to pure reducers only where
-      deterministic replay materially benefits.
+- [x] Convert replay-relevant mutable domain cells (`GyroOrientation`,
+      `OrientationStabilizer`, and `MoveBuffer`) to pure reducers. The session
+      now owns explicit gyro-pipeline state/config and preserves calibration
+      across stabilizer-only feature changes.
 - [ ] Finish Stage 3 packaging: publishable root/core exports, peer dependency
       boundary for `smartcube-web-bluetooth`, private `examples/web` workspace,
       split TypeScript/Vitest configs, and `npm pack` smoke test.

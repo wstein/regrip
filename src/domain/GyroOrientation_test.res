@@ -18,33 +18,42 @@ let secondSample: Quaternion.t = {
   w: 0.8649200741956692,
 }
 
-describe("GyroOrientation.update", () => {
+describe("GyroOrientation reducer", () => {
   test("first sample lands exactly on the home orientation", t => {
-    let g = GyroOrientation.make()
-    let out = g->GyroOrientation.update({x: 0.1, y: 0.2, z: 0.3, w: w1})
+    let (_, out) = GyroOrientation.step(GyroOrientation.initial, {x: 0.1, y: 0.2, z: 0.3, w: w1})
     expectClose(t, out, GyroOrientation.home)
   })
 
   test("a caller can supply a custom resting orientation", t => {
     let customHome = Quaternion.fromEuler({x: 0., y: 0.5, z: 0.})
-    let g = GyroOrientation.makeWithHome(customHome)
-    let out = g->GyroOrientation.update({x: 0.1, y: 0.2, z: 0.3, w: w1})
+    let (_, out) = GyroOrientation.step(
+      GyroOrientation.initial,
+      {x: 0.1, y: 0.2, z: 0.3, w: w1},
+      ~home=customHome,
+    )
     expectClose(t, out, customHome)
   })
 
   test("later samples are relative to the captured basis", t => {
-    let g = GyroOrientation.make()
-    let _ = g->GyroOrientation.update({x: 0.1, y: 0.2, z: 0.3, w: w1})
-    let out = g->GyroOrientation.update({x: 0.2, y: 0.1, z: 0., w: w2})
+    let (state, _) = GyroOrientation.step(GyroOrientation.initial, {x: 0.1, y: 0.2, z: 0.3, w: w1})
+    let (_, out) = GyroOrientation.step(state, {x: 0.2, y: 0.1, z: 0., w: w2})
     expectClose(t, out, secondSample)
   })
 
-  test("resetBasis re-captures on the next sample", t => {
-    let g = GyroOrientation.make()
-    let _ = g->GyroOrientation.update({x: 0.1, y: 0.2, z: 0.3, w: w1})
-    let _ = g->GyroOrientation.update({x: 0.2, y: 0.1, z: 0., w: w2})
-    g->GyroOrientation.resetBasis
-    let out = g->GyroOrientation.update({x: 0.2, y: 0.1, z: 0., w: w2})
+  test("reset re-captures on the next sample", t => {
+    let (state, _) = GyroOrientation.step(GyroOrientation.initial, {x: 0.1, y: 0.2, z: 0.3, w: w1})
+    let (state, _) = GyroOrientation.step(state, {x: 0.2, y: 0.1, z: 0., w: w2})
+    let (_, out) = GyroOrientation.step(
+      GyroOrientation.reset(state),
+      {x: 0.2, y: 0.1, z: 0., w: w2},
+    )
     expectClose(t, out, GyroOrientation.home)
+  })
+
+  test("returns the same output from identical state and input", t => {
+    let raw: Quaternion.t = {x: 0.1, y: 0.2, z: 0.3, w: w1}
+    let (_, first) = GyroOrientation.step(GyroOrientation.initial, raw)
+    let (_, second) = GyroOrientation.step(GyroOrientation.initial, raw)
+    expectClose(t, first, second)
   })
 })

@@ -1,20 +1,16 @@
-// Gyro-to-scene orientation: captures the "basis" on the first sample so the
-// cube starts at `home`, then reports orientations relative to it.
-
-/** Resting pose the cube snaps to on the first gyro sample. */
+/** Pure gyro calibration: the first calibrated sample becomes identity. */
 let home: Quaternion.t
-
-type t
-
-let make: unit => t
-/** Construct an orientation tracker with a caller-provided resting pose. */
-let makeWithHome: Quaternion.t => t
-let resetBasis: t => unit
-/** Replace the fixed profile sensor-to-body map and reset session calibration. */
-let setSensorToBody: (t, SensorToBody.t) => unit
+type state
+let initial: state
+let reset: state => state
 /** `raw` normalized against the initial sample, before applying `home`. */
-let relative: (t, Quaternion.t) => Quaternion.t
-/** Apply this tracker's configured resting pose to a relative orientation. */
-let applyHome: (t, Quaternion.t) => Quaternion.t
-/** `raw` is the cube's reported quaternion; returns the scene orientation. */
-let update: (t, Quaternion.t) => Quaternion.t
+let relative: (state, Quaternion.t, ~sensorToBody: SensorToBody.t=?) => (state, Quaternion.t)
+/** Apply a caller-selected resting pose to a calibrated orientation. */
+let applyHome: (Quaternion.t, ~home: Quaternion.t=?) => Quaternion.t
+/** Normalize `raw` and apply a resting pose in one reducer step. */
+let step: (
+  state,
+  Quaternion.t,
+  ~sensorToBody: SensorToBody.t=?,
+  ~home: Quaternion.t=?,
+) => (state, Quaternion.t)

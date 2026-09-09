@@ -1,7 +1,5 @@
-// Gyro-to-scene orientation, extracted from handleGyroEvent in index.ts.
-// Holds the "basis" captured on the first gyro sample so the cube starts at the
-// home orientation; `update` returns the quaternion index.ts feeds to the
-// THREE.Quaternion driving the scene.
+// Gyro calibration is a pure reducer. The first sensor-to-body pose establishes
+// identity in the calibrated world frame; display-home composition stays pure.
 
 let home = Quaternion.fromEuler({
   x: Quaternion.degreesToRadians(15.),
@@ -9,42 +7,30 @@ let home = Quaternion.fromEuler({
   z: 0.,
 })
 
-type t = {
-  mutable basis: option<Quaternion.t>,
-  home: Quaternion.t,
-  mutable sensorToBody: SensorToBody.t,
-}
+type state = {basis: option<Quaternion.t>}
+let initial: state = {basis: None}
 
-let makeWithHome = (home: Quaternion.t): t => {
-  basis: None,
-  home,
-  sensorToBody: SensorToBody.default,
-}
+let reset = (_: state): state => initial
 
-let make = (): t => makeWithHome(home)
-
-let resetBasis = (t: t): unit => t.basis = None
-let setSensorToBody = (t: t, sensorToBody: SensorToBody.t): unit => {
-  t.sensorToBody = sensorToBody
-  resetBasis(t)
-}
-
-// `raw` is the cube's reported quaternion. The axis swap {x, z, -y, w} matches
-// `new THREE.Quaternion(qx, qz, -qy, qw)` in the original handler.
-let relative = (t: t, raw: Quaternion.t): Quaternion.t => {
-  let q = SensorToBody.apply(t.sensorToBody, raw)
-  let basis = switch t.basis {
-  | Some(b) => b
-  | None => {
-      let b = Quaternion.conjugate(q)
-      t.basis = Some(b)
-      b
-    }
+let relative = (state: state, raw: Quaternion.t, ~sensorToBody=SensorToBody.default): (
+  state,
+  Quaternion.t,
+) => {
+  let q = SensorToBody.apply(sensorToBody, raw)
+  let basis = switch state.basis {
+  | Some(basis) => basis
+  | None => Quaternion.conjugate(q)
   }
-  q->Quaternion.premultiply(basis)
+  ({basis: Some(basis)}, q->Quaternion.premultiply(basis))
 }
 
-let applyHome = (t: t, relative: Quaternion.t): Quaternion.t =>
-  relative->Quaternion.premultiply(t.home)
+let applyHome = (relative: Quaternion.t, ~home=home): Quaternion.t =>
+  relative->Quaternion.premultiply(home)
 
-let update = (t: t, raw: Quaternion.t): Quaternion.t => applyHome(t, relative(t, raw))
+let step = (state: state, raw: Quaternion.t, ~sensorToBody=SensorToBody.default, ~home=home): (
+  state,
+  Quaternion.t,
+) => {
+  let (nextState, calibrated) = relative(state, raw, ~sensorToBody)
+  (nextState, applyHome(calibrated, ~home))
+}
