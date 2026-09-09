@@ -51,7 +51,7 @@
       axis pixels without a platform-specific screenshot baseline.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
       a cardinal confirmation pose) after hardware traces establish its impact.
-- [ ] Make JSONL replay deterministic end-to-end: thread the pure
+- [x] Make JSONL replay deterministic end-to-end: thread the pure
       `MoveBackTrigger` and `RegripDetector` reducer states through recorded
       streams, including feature changes during a replay.
 - [x] Run and resolve the remaining dependency audit findings without

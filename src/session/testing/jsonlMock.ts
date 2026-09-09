@@ -8,6 +8,10 @@ import type {
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../jsonlFormat';
 
 type JsonlEntry = { type: string; data: unknown };
+type ReplayOptions = {
+  /** Invoked in recorded order immediately before a mock event is delivered. */
+  beforeEvent?: (event: SmartCubeEvent, index: number) => void;
+};
 
 export { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION };
 
@@ -116,8 +120,11 @@ export function createJsonlMockConnection(contents: string) {
     connection,
     events,
     sentCommands,
-    replay(): void {
-      events.forEach((event) => events$.next(event));
+    replay(options: ReplayOptions = {}): void {
+      events.forEach((event, index) => {
+        options.beforeEvent?.(event, index);
+        events$.next(event);
+      });
     },
   };
 }
