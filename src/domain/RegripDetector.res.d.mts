@@ -3,11 +3,13 @@ import type { Quaternion } from './Quaternion.res.mjs';
 /** Independent virtual x/y/z regrip detector over calibrated gyro poses. */
 export type RegripDetector = unknown;
 export type RegripDetectorConfig = { thresholdDeg: number };
+export type RegripAxis = 'x' | 'y' | 'z';
+export type RegripToken = 'x' | "x'" | 'y' | "y'" | 'z' | "z'";
 export type RegripObservation = {
   /** Raw positive/negative sensor-frame axis label. */
-  sensorFrameToken: string;
+  sensorFrameToken: RegripToken;
   /** Clockwise Singmaster x/y/z label. */
-  notationToken: string;
+  notationToken: RegripToken;
 };
 
 export const defaults: RegripDetectorConfig;

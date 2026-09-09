@@ -24,8 +24,8 @@ describe("RegripDetector", () => {
     let detector = RegripDetector.make()
     RegripDetector.observe(detector, Quaternion.identity)->ignore
     let observation = observe(detector, rotation(~x=66.))
-    t->expect(observation.sensorFrameToken)->Expect.toBe("x")
-    t->expect(observation.notationToken)->Expect.toBe("x'")
+    t->expect(observation.sensorFrameToken)->Expect.toBe(RegripDetector.SensorX)
+    t->expect(observation.notationToken)->Expect.toBe(RegripDetector.NotationXPrime)
   })
 
   test("rebases to cardinal steps during a continuous full turn", t => {
@@ -35,7 +35,14 @@ describe("RegripDetector", () => {
       [66., 156., 246., 336.]->Array.map(
         degrees => observe(detector, rotation(~x=degrees)).notationToken,
       )
-    t->expect(tokens)->Expect.toEqual(["x'", "x'", "x'", "x'"])
+    t
+    ->expect(tokens)
+    ->Expect.toEqual([
+      RegripDetector.NotationXPrime,
+      RegripDetector.NotationXPrime,
+      RegripDetector.NotationXPrime,
+      RegripDetector.NotationXPrime,
+    ])
   })
 
   test("preserves local mixed-axis order", t => {
@@ -45,7 +52,9 @@ describe("RegripDetector", () => {
     RegripDetector.observe(detector, Quaternion.identity)->ignore
     let first = observe(detector, rotation(~x=66.))
     let second = observe(detector, Quaternion.multiply(x, rotation(~y=66.)))
-    t->expect([first.notationToken, second.notationToken])->Expect.toEqual(["x'", "y'"])
+    t
+    ->expect([first.notationToken, second.notationToken])
+    ->Expect.toEqual([RegripDetector.NotationXPrime, RegripDetector.NotationYPrime])
     t
     ->expect(Quaternion.angle(Quaternion.multiply(x, y), Quaternion.multiply(y, x)) > 0.)
     ->Expect.toBe(true)

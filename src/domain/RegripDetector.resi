@@ -2,7 +2,24 @@
 // It is intentionally independent from display stabilization and detents.
 
 type config = {thresholdDeg: float}
-type observation = {sensorFrameToken: string, notationToken: string}
+@unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
+@unboxed
+type sensorFrameToken =
+  | @as("x") SensorX
+  | @as("x'") SensorXPrime
+  | @as("y") SensorY
+  | @as("y'") SensorYPrime
+  | @as("z") SensorZ
+  | @as("z'") SensorZPrime
+@unboxed
+type notationToken =
+  | @as("x") NotationX
+  | @as("x'") NotationXPrime
+  | @as("y") NotationY
+  | @as("y'") NotationYPrime
+  | @as("z") NotationZ
+  | @as("z'") NotationZPrime
+type observation = {sensorFrameToken: sensorFrameToken, notationToken: notationToken}
 type t
 
 let defaults: config

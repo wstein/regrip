@@ -2,7 +2,24 @@
 // it consumes calibrated, unmodified gyro poses and only owns an event baseline.
 
 type config = {thresholdDeg: float}
-type observation = {sensorFrameToken: string, notationToken: string}
+@unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
+@unboxed
+type sensorFrameToken =
+  | @as("x") SensorX
+  | @as("x'") SensorXPrime
+  | @as("y") SensorY
+  | @as("y'") SensorYPrime
+  | @as("z") SensorZ
+  | @as("z'") SensorZPrime
+@unboxed
+type notationToken =
+  | @as("x") NotationX
+  | @as("x'") NotationXPrime
+  | @as("y") NotationY
+  | @as("y'") NotationYPrime
+  | @as("z") NotationZ
+  | @as("z'") NotationZPrime
+type observation = {sensorFrameToken: sensorFrameToken, notationToken: notationToken}
 
 let defaults = {thresholdDeg: 60.}
 
@@ -11,7 +28,7 @@ type t = {mutable baseline: option<Quaternion.t>, config: config}
 let make = (~config=defaults): t => {baseline: None, config}
 let reset = (t: t): unit => t.baseline = None
 
-let quarter = (axis: string, positive: bool): Quaternion.t => {
+let quarter = (axis: axis, positive: bool): Quaternion.t => {
   let angle = Quaternion.degreesToRadians(
     if positive {
       90.
@@ -20,15 +37,15 @@ let quarter = (axis: string, positive: bool): Quaternion.t => {
     },
   )
   switch axis {
-  | "x" => Quaternion.fromEuler({x: angle, y: 0., z: 0.})
-  | "y" => Quaternion.fromEuler({x: 0., y: angle, z: 0.})
-  | _ => Quaternion.fromEuler({x: 0., y: 0., z: angle})
+  | X => Quaternion.fromEuler({x: angle, y: 0., z: 0.})
+  | Y => Quaternion.fromEuler({x: 0., y: angle, z: 0.})
+  | Z => Quaternion.fromEuler({x: 0., y: 0., z: angle})
   }
 }
 
-let axisAndPolarity = (q: Quaternion.t): (string, bool) => {
-  let values = [("x", q.x), ("y", q.y), ("z", q.z)]
-  let (axis, value) = values->Array.reduce(("x", 0.), ((bestAxis, bestValue), (axis, value)) =>
+let axisAndPolarity = (q: Quaternion.t): (axis, bool) => {
+  let values = [(X, q.x), (Y, q.y), (Z, q.z)]
+  let (axis, value) = values->Array.reduce((X, 0.), ((bestAxis, bestValue), (axis, value)) =>
     if Math.abs(value) > Math.abs(bestValue) {
       (axis, value)
     } else {
@@ -38,11 +55,27 @@ let axisAndPolarity = (q: Quaternion.t): (string, bool) => {
   (axis, value >= 0.)
 }
 
-let sensorToken = (axis: string, positive: bool): string => positive ? axis : `${axis}'`
+let sensorToken = (axis: axis, positive: bool): sensorFrameToken =>
+  switch (axis, positive) {
+  | (X, true) => SensorX
+  | (X, false) => SensorXPrime
+  | (Y, true) => SensorY
+  | (Y, false) => SensorYPrime
+  | (Z, true) => SensorZ
+  | (Z, false) => SensorZPrime
+  }
 
 // Positive right-hand sensor rotations are counter-clockwise. Singmaster
 // whole-cube x/y/z notation is clockwise, so only the emitted label inverts.
-let notationToken = (axis: string, positive: bool): string => sensorToken(axis, !positive)
+let notationToken = (axis: axis, positive: bool): notationToken =>
+  switch (axis, positive) {
+  | (X, true) => NotationXPrime
+  | (X, false) => NotationX
+  | (Y, true) => NotationYPrime
+  | (Y, false) => NotationY
+  | (Z, true) => NotationZPrime
+  | (Z, false) => NotationZ
+  }
 
 let faceOrderForSensor = token =>
   switch token {
