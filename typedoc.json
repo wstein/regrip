@@ -1,0 +1,25 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Smartcube Example API",
+  "entryPointStrategy": "expand",
+  "entryPoints": [
+    "src/domain/Cube333.res.d.mts",
+    "src/domain/CubeFacelets.res.d.mts",
+    "src/domain/CubeSymmetry.res.d.mts",
+    "src/domain/GyroOrientation.res.d.mts",
+    "src/domain/MagneticDetent.res.d.mts",
+    "src/domain/MoveBackTrigger.res.d.mts",
+    "src/domain/MoveBuffer.res.d.mts",
+    "src/domain/OrientationStabilizer.res.d.mts",
+    "src/domain/Quaternion.res.d.mts",
+    "src/domain/RegripDetector.res.d.mts",
+    "src/domain/Time.res.d.mts",
+    "src/domain/Timer.res.d.mts",
+    "src/domain/VirtualCubeFrame.res.d.mts",
+    "src/session/Bindings_SmartCube.res.d.mts"
+  ],
+  "out": "docs/api",
+  "readme": "none",
+  "excludeInternal": true,
+  "excludePrivate": true
+}
