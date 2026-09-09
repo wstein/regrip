@@ -1,13 +1,11 @@
-import { faceOrderForNotation } from '../domain/RegripDetector.res.mjs';
+import * as VirtualCubeFrame from '../domain/VirtualCubeFrame.res.mjs';
 
 const faceOrder = 'URFDLB';
 
 export type Vector = readonly [number, number, number];
 type FaceGeometry = { normal: Vector; right: Vector; down: Vector };
 export type VirtualOrientation = {
-  right: Vector;
-  up: Vector;
-  front: Vector;
+  right: Vector; up: Vector; front: Vector;
   faces: { right: string; up: string; front: string };
 };
 
@@ -33,40 +31,19 @@ const faceForNormal = (normal: Vector): string =>
  * the physical move stream and Twisty player remain in protocol URFDLB.
  */
 export function createVirtualMoveFrame() {
-  // For each logical URFDLB position, the currently occupying physical face.
-  let logicalToPhysical = faceOrder;
-
-  const reset = (): void => { logicalToPhysical = faceOrder; };
-
-  const applyRegrip = (notationToken: string): void => {
-    const step = faceOrderForNotation(notationToken);
-    // RegripDetector emits turns in the cube's local calibrated frame. A new
-    // local step therefore acts on the current physical face at each logical
-    // position (step ∘ current), not the other way around. This only differs
-    // after mixed x/y/z regrips, where rotations do not commute.
-    logicalToPhysical = [...logicalToPhysical].map(physicalAtLogical =>
-      step[faceOrder.indexOf(physicalAtLogical)]!,
-    ).join('');
-  };
-
-  const translate = (move: string): string => {
-    const match = /^([URFDLB])(.*)$/.exec(move);
-    if (!match) return move;
-    const physicalFace = match[1]!;
-    const logicalIndex = logicalToPhysical.indexOf(physicalFace);
-    return logicalIndex === -1 ? move : `${faceOrder[logicalIndex]}${match[2]}`;
-  };
+  const frame = VirtualCubeFrame.make();
+  const reset = (): void => VirtualCubeFrame.reset(frame);
+  const applyRegrip = (notationToken: string): void => VirtualCubeFrame.applyRegrip(frame, notationToken);
+  const translate = (move: string): string => VirtualCubeFrame.translate(frame, move);
 
   /** Physical directions occupied by the user-facing logical R/U/F axes. */
   const orientation = (): VirtualOrientation => {
-    const faces = {
-      right: logicalToPhysical[1]!, up: logicalToPhysical[0]!, front: logicalToPhysical[2]!,
-    };
+    const orientation = VirtualCubeFrame.orientation(frame);
     return {
-      right: geometry[faces.right]!.normal,
-      up: geometry[faces.up]!.normal,
-      front: geometry[faces.front]!.normal,
-      faces,
+      right: [orientation.right.x, orientation.right.y, orientation.right.z],
+      up: [orientation.up.x, orientation.up.y, orientation.up.z],
+      front: [orientation.front.x, orientation.front.y, orientation.front.z],
+      faces: { right: orientation.rightFace, up: orientation.upFace, front: orientation.frontFace },
     };
   };
 
@@ -76,18 +53,17 @@ export function createVirtualMoveFrame() {
    */
   const reframeFacelets = (facelets: string): string => {
     if (facelets.length !== 54) return facelets;
-    const physicalX = geometry[logicalToPhysical[1]!]!.normal;
-    const physicalY = geometry[logicalToPhysical[0]!]!.normal;
-    const physicalZ = geometry[logicalToPhysical[2]!]!.normal;
+    const frameOrientation = VirtualCubeFrame.orientation(frame);
+    const physicalX = geometry[frameOrientation.rightFace]!.normal;
+    const physicalY = geometry[frameOrientation.upFace]!.normal;
+    const physicalZ = geometry[frameOrientation.frontFace]!.normal;
     const rotate = (vector: Vector): Vector => [
       vector[0] * physicalX[0] + vector[1] * physicalY[0] + vector[2] * physicalZ[0],
       vector[0] * physicalX[1] + vector[1] * physicalY[1] + vector[2] * physicalZ[1],
       vector[0] * physicalX[2] + vector[1] * physicalY[2] + vector[2] * physicalZ[2],
     ];
-    const logicalForPhysicalColour = (colour: string): string => {
-      const index = logicalToPhysical.indexOf(colour);
-      return index === -1 ? colour : faceOrder[index]!;
-    };
+    const logicalForPhysicalColour = (colour: string): string =>
+      VirtualCubeFrame.logicalFaceForPhysical(frame, colour);
 
     return faceOrder.split('').flatMap(logicalFace => {
       const logical = geometry[logicalFace]!;
