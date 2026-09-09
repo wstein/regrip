@@ -65,10 +65,15 @@ function cycles(
     }
     if (cycle.length > 1 || orientation[start] !== 0) result.push(`(${cycle.join(',')})`);
   }
-  return result.join(' ') || '(solved)';
+  return result.join(' ');
 }
 
 /** Copy-ready Singmaster cycle notation for a cubie's current state. */
 export function formatCubieState(state: SmartCubeCubieState): string {
-  return `${cycles(state.CP, state.CO, corners, ['', '+', '-'])} ${cycles(state.EP, state.EO, edges, ['', '+'])}`;
+  return [
+    cycles(state.CP, state.CO, corners, ['', '+', '-']),
+    cycles(state.EP, state.EO, edges, ['', '+']),
+  ]
+    .filter(Boolean)
+    .join(' ');
 }

@@ -32,7 +32,7 @@ describe('cube information formatters', () => {
         EP: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       }),
-    ).toBe('(solved) (solved)');
+    ).toBe('');
   });
 
   it('shows oriented piece cycles and handles incomplete protocol state', () => {

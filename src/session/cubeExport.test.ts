@@ -25,7 +25,7 @@ describe('cube exports', () => {
     expect(formatCubeExport(source, 'spaced-facelets')).toBe(
       'UUUUUUUUU RRRRRRRRR FFFFFFFFF DDDDDDDDD LLLLLLLLL BBBBBBBBB',
     );
-    expect(formatCubeExport(source, 'singmaster')).toBe('(solved) (solved)');
+    expect(formatCubeExport(source, 'singmaster')).toBe('');
   });
 
   it('rejects invalid Orbit64 coordinates and missing state exports', () => {
