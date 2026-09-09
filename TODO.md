@@ -28,8 +28,8 @@
       addition to the editable solver-friendly text field.
 - [ ] Add user-facing feedback for Copy, Reset State confirmation, and custom
       move triggers.
-- [x] Add local-only live-trace selection: range/type selection, inline JSON
-      detail, JSONL download/copy, and local replay of selected `MOVE` events.
+- [x] Add local-only live-trace selection: range/type selection, fixed detail
+      pane, JSONL download/copy, and local replay of selected `MOVE` events.
 - [ ] Decide whether a selected trace's replay should append to the current
       player state as an alternative to replacing its algorithm.
 - [ ] Do not add Gist, Pastebin, or other trace-upload actions without an
@@ -42,7 +42,7 @@
       `smartcube-web-bluetooth/src/test/bluetooth-mock`: connect, initial state,
       moves, facelets, gyro/regrip, custom trigger, and disconnect.
 - [x] Add browser-level coverage for live-trace filtering, selection,
-      JSONL export/copy, inline detail, and local move replay.
+      JSONL export/copy, fixed detail pane, and local move replay.
 - [ ] Add browser-level coverage for live-trace auto-follow and the R/U/F
       gizmo rendering path.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
@@ -57,8 +57,8 @@
       ignore generated ReScript declarations.
 - [x] Add `npm run docs:api` TypeDoc generation for the TypeScript public
       boundary; generated `docs/api/` is intentionally untracked.
-- [ ] Publish the generated TypeDoc site under GitHub Pages at `/api/` as part
-      of the Pages build, after checking the navigation and Vite base path.
+- [x] Serve the generated TypeDoc site at `/docs/api/index.html` locally and
+      under GitHub Pages, with a local fallback guide before docs are generated.
 - [ ] Use `rescript-tools doc` JSON as input for a ReScript-native documentation
       view only if TypeDoc's TypeScript-facing API docs prove insufficient.
 
