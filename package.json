@@ -50,5 +50,8 @@
     "rxjs": "^7.8.2",
     "smartcube-web-bluetooth": "github:wstein/smartcube-web-bluetooth#559399122d7b590f5d4d38e9700e73de13e712ab",
     "three": "^0.165.0"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
   }
 }
