@@ -1,6 +1,6 @@
 import type { Quaternion } from './Quaternion.res.mjs';
 
-export type BodyAxis = 'x' | 'y' | 'z';
+export type BodyAxis = 'X' | 'Y' | 'Z';
 export type BodyComponent = { axis: BodyAxis; sign: number };
 export type SensorToBody = { x: BodyComponent; y: BodyComponent; z: BodyComponent };
 declare const defaultMap: SensorToBody;

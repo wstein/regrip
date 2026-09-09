@@ -1,5 +1,6 @@
 import type { OrientationStabilizerConfig } from './OrientationStabilizer.res.mjs';
 import type { Quaternion } from './Quaternion.res.mjs';
+import type { SensorToBody } from './SensorToBody.res.mjs';
 
 export type GyroVelocity = { x: number; y: number; z: number };
 export type GyroSample = {
@@ -16,6 +17,7 @@ export function setStabilizerConfig(
   pipeline: GyroPipeline,
   config: OrientationStabilizerConfig,
 ): void;
+export function setSensorToBody(pipeline: GyroPipeline, sensorToBody: SensorToBody): void;
 export function update(
   pipeline: GyroPipeline,
   raw: Quaternion,

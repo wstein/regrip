@@ -18,6 +18,8 @@ import {
 } from './features';
 import { bundledProfiles } from './profile/bundled';
 import { resolveProfile } from './profile/resolveProfile';
+import { parseSensorToBodyAxisMap } from './profile/axisMap';
+import * as SensorToBody from '../domain/SensorToBody.res.mjs';
 import type { ProfileOverrides, ResolvedProfile } from './profile/types';
 
 export type VirtualRegripEvent = {
@@ -111,6 +113,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   // The session owns calibration once; both regrip detection and display
   // stabilization consume the resulting calibrated pose.
   const gyroPipeline = GyroPipeline.make(stabilizerConfig(state.features));
+  const applyProfileAxisMap = (profile: ResolvedProfile): void =>
+    GyroPipeline.setSensorToBody(
+      gyroPipeline,
+      parseSensorToBodyAxisMap(profile.value.gyro?.axisMap) ?? SensorToBody.default,
+    );
   let regripDetector = RegripDetector.make({ thresholdDeg: state.features.regrip.thresholdDeg });
   let moveBackTrigger = MoveBackTrigger.make({ windowMs: moveBackWindow(state.features) ?? 300 });
 
@@ -166,6 +173,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       if (!sameProfile(state.profile, profile)) {
         const features = resolveSessionFeatures(profile.value.features);
         GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
+        applyProfileAxisMap(profile);
         resetFeatureDetectors(features);
         setState({ profile, features });
       }
@@ -214,6 +222,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       });
       const features = resolveSessionFeatures(profile.value.features);
       GyroPipeline.setStabilizerConfig(gyroPipeline, stabilizerConfig(features));
+      applyProfileAxisMap(profile);
       resetFeatureDetectors(features);
       setState({
         connection,

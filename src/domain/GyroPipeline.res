@@ -30,6 +30,9 @@ let reset = (pipeline: t): unit => {
 let setStabilizerConfig = (pipeline: t, config: OrientationStabilizer.config): unit =>
   pipeline.stabilizer->OrientationStabilizer.setConfig(config)
 
+let setSensorToBody = (pipeline: t, sensorToBody: SensorToBody.t): unit =>
+  pipeline.gyro->GyroOrientation.setSensorToBody(sensorToBody)
+
 let update = (
   pipeline: t,
   raw: Quaternion.t,
