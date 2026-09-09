@@ -12,6 +12,7 @@
     "./bindings/*.res.mjs": "./src/bindings/*.res.mjs",
     "./bindings/*": "./src/bindings/*.ts",
     "./domain/*.res.mjs": "./src/domain/*.res.mjs",
+    "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": "./src/session/*.ts"
   },
   "peerDependencies": {

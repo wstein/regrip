@@ -1,6 +1,9 @@
 import { signal, type Signal } from '@preact/signals-core';
 
-import type { SmartCubeSessionEvent, SmartCubeSessionState } from '../session/smartCubeSession';
+import type {
+  SmartCubeSessionEvent,
+  SmartCubeSessionState,
+} from '@wstein/regrip-core/session/smartCubeSession';
 
 type SessionStore = {
   getState: () => SmartCubeSessionState;

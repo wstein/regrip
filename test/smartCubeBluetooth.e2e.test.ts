@@ -6,7 +6,7 @@ import { connectSmartCube } from 'smartcube-web-bluetooth';
 import { installMockBluetoothFromFixture } from '../node_modules/smartcube-web-bluetooth/src/test/bluetooth-mock/index.ts';
 import type { FixtureSession } from '../node_modules/smartcube-web-bluetooth/src/test/fixtures/types.ts';
 import { ganProtocol } from '../node_modules/smartcube-web-bluetooth/src/smartcube/protocols/gan.ts';
-import { createSmartCubeSession } from '../src/session/smartCubeSession';
+import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 
 const fixtureUrl = new URL(
   '../node_modules/smartcube-web-bluetooth/captures/fixture_GoCube_gocube_2026-04-14T11-43-52.json',

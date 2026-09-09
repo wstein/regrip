@@ -1,6 +1,6 @@
 import { computed, signal } from '@preact/signals-core';
 
-import type { SmartCubeSessionEvent } from '../session/smartCubeSession';
+import type { SmartCubeSessionEvent } from '@wstein/regrip-core/session/smartCubeSession';
 import { byId } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 

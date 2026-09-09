@@ -14,7 +14,7 @@ import { simplifyMoves } from './moveSimplifier';
 import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../session/cubeEvents';
 import { connectCube } from '../session/connection';
-import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../session/jsonlFormat';
+import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '@wstein/regrip-core/session/jsonlFormat';
 import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
 import {
@@ -23,7 +23,7 @@ import {
   type CubeExportSource,
 } from '../session/cubeExport';
 import { featurePresets } from '@wstein/regrip-core/session/features';
-import { createSmartCubeSession } from '../session/smartCubeSession';
+import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 import { createSolverFrame } from '../adapters/three/solverFrame';
 
 infoPanel.mountCube(twistyPlayer);

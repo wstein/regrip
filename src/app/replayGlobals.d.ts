@@ -1,4 +1,4 @@
-import type { ReplaySessionController } from '../session/replay/replaySession';
+import type { ReplaySessionController } from '@wstein/regrip-core/session/replay/replaySession';
 
 declare global {
   interface Window {

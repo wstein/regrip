@@ -5,7 +5,7 @@ import * as Cube333 from '../domain/Cube333.res.mjs';
 import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import { formatCubieState, formatOfflineStats } from './cubeInfo';
-import type { SessionGyroEvent } from './smartCubeSession';
+import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
 import type { TimerController } from './timerController';
 
 export type ScrambleSolver = (facelets: string) => Promise<string>;

@@ -2,7 +2,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
 
-import { createSmartCubeSession } from '../session/smartCubeSession';
+import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 import { createSessionSignals } from './sessionSignals';
 
 function connection(events$: Subject<SmartCubeEvent>) {

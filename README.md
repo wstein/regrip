@@ -115,17 +115,17 @@ available, the app prompts for one and explains how to enable
 downward from `app` to `adapters`, `session`, and `domain`; ESLint enforces that `domain` stays
 independent and `session` does not depend on presentation layers.
 
-| Module                                | Responsibility                                                            |
-| ------------------------------------- | ------------------------------------------------------------------------- |
-| `src/app/`                            | DOM, trace/JSONL tooling, styles, and composition root                    |
-| `src/app/sessionSignals.ts`           | App-only reactive mirror of headless session state and ordered events     |
-| `src/session/smartCubeSession.ts`     | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
-| `src/session/profile/`                | Profile inheritance, matching, overrides, and per-field provenance        |
-| `src/session/replay/replaySession.ts` | Deterministic virtual-clock JSONL replay at connection or session output  |
-| `src/session/timerController.ts`      | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
-| `src/adapters/cubing/`                | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
-| `src/adapters/three/`                 | Three.js scene, orientation render loop, and R/U/F gizmo                  |
-| `src/domain/`                         | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
+| Module                                              | Responsibility                                                            |
+| --------------------------------------------------- | ------------------------------------------------------------------------- |
+| `src/app/`                                          | DOM, trace/JSONL tooling, styles, and composition root                    |
+| `src/app/sessionSignals.ts`                         | App-only reactive mirror of headless session state and ordered events     |
+| `packages/core/src/session/smartCubeSession.ts`     | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
+| `src/session/profile/`                              | Profile inheritance, matching, overrides, and per-field provenance        |
+| `packages/core/src/session/replay/replaySession.ts` | Deterministic virtual-clock JSONL replay at connection or session output  |
+| `src/session/timerController.ts`                    | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
+| `src/adapters/cubing/`                              | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
+| `src/adapters/three/`                               | Three.js scene, orientation render loop, and R/U/F gizmo                  |
+| `src/domain/`                                       | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 

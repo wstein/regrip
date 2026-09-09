@@ -7,7 +7,10 @@ const typesPath = join(
 );
 const source = readFileSync(typesPath, 'utf8');
 const expected = JSON.parse(
-  readFileSync(new URL('../src/session/handledSmartCubeEventTypes.json', import.meta.url), 'utf8'),
+  readFileSync(
+    new URL('../packages/core/src/session/handledSmartCubeEventTypes.json', import.meta.url),
+    'utf8',
+  ),
 );
 
 const union = source.match(
@@ -28,7 +31,7 @@ const snapshot = [...expected].sort();
 
 if (JSON.stringify(actual) !== JSON.stringify(snapshot)) {
   throw new Error(
-    `Unhandled smartcube event type change.\nExpected: ${snapshot.join(', ')}\nInstalled: ${actual.join(', ')}\nUpdate src/session/handledSmartCubeEventTypes.json and the session event handling deliberately.`,
+    `Unhandled smartcube event type change.\nExpected: ${snapshot.join(', ')}\nInstalled: ${actual.join(', ')}\nUpdate packages/core/src/session/handledSmartCubeEventTypes.json and the session event handling deliberately.`,
   );
 }
 

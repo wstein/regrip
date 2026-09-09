@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import { createCubeEventController } from './cubeEvents';
-import type { SessionGyroEvent } from './smartCubeSession';
+import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
 
 function xRotation(degrees: number): Quaternion.Quaternion {
   return Quaternion.fromEuler({ x: Quaternion.degreesToRadians(degrees), y: 0, z: 0 });

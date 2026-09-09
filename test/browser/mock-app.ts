@@ -1,6 +1,9 @@
-import { createReplaySession, REPLAY_STORAGE_KEY } from '../../src/session/replay/replaySession';
-import gocube from '../../src/session/replay/fixtures/gocube-edge-ui.jsonl?raw';
-import gan from '../../src/session/replay/fixtures/gan-ui12-ui.jsonl?raw';
+import {
+  createReplaySession,
+  REPLAY_STORAGE_KEY,
+} from '@wstein/regrip-core/session/replay/replaySession';
+import gocube from '@wstein/regrip-core/session/replay/fixtures/gocube-edge-ui.jsonl?raw';
+import gan from '@wstein/regrip-core/session/replay/fixtures/gan-ui12-ui.jsonl?raw';
 
 const params = new URLSearchParams(location.search);
 const kind = params.get('fixture');

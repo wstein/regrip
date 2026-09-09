@@ -1,6 +1,12 @@
-import type { ReplayFeed, ReplaySessionController } from '../session/replay/replaySession';
-import { REPLAY_STORAGE_KEY } from '../session/replay/replaySession';
-import { readJsonlMockIdentity, validateJsonlReplay } from '../session/replay/jsonlMock';
+import type {
+  ReplayFeed,
+  ReplaySessionController,
+} from '@wstein/regrip-core/session/replay/replaySession';
+import { REPLAY_STORAGE_KEY } from '@wstein/regrip-core/session/replay/replaySession';
+import {
+  readJsonlMockIdentity,
+  validateJsonlReplay,
+} from '@wstein/regrip-core/session/replay/jsonlMock';
 import { byId } from './dom';
 
 /** Dev-only virtual transport UI for a JSONL replay controller. */
