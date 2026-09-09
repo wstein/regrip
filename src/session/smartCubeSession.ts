@@ -8,10 +8,12 @@ import type {
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
 import * as MoveBackTrigger from '../domain/MoveBackTrigger.res.mjs';
+import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as RegripDetector from '../domain/RegripDetector.res.mjs';
 import { disconnectConnection, requestInitialState } from './connection';
 import {
   resolveSessionFeatures,
+  stabilizerConfig,
   type SessionFeatures,
   type SessionFeaturesPatch,
 } from './features';
@@ -38,6 +40,10 @@ export type CustomTriggerEvent = {
 export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
+  /** Magnet/drift-adjusted relative pose; equals `relative` when disabled. */
+  stabilized: { x: number; y: number; z: number; w: number };
+  velocityMagnitude: number;
+  dtSeconds: number;
 };
 
 export type SmartCubeSessionEvent =
@@ -103,8 +109,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   // The session owns calibration once; both regrip detection and display
   // stabilization consume the resulting calibrated pose.
   const gyro = GyroOrientation.make();
+  const stabilizer = OrientationStabilizer.make(stabilizerConfig(state.features));
   const regripDetector = RegripDetector.make();
   const moveBackTrigger = MoveBackTrigger.make();
+  let previousGyroTimestamp: number | undefined;
 
   const publish = (): void => listeners.forEach((listener) => listener(state));
   const setState = (next: Partial<SmartCubeSessionState>): void => {
@@ -115,10 +123,22 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
 
   const onEvent = (event: SmartCubeEvent): void => {
-    const sessionEvent: SmartCubeSessionEvent =
-      event.type === 'GYRO'
-        ? { ...event, relative: GyroOrientation.relative(gyro, event.quaternion) }
-        : event;
+    const sessionEvent: SmartCubeSessionEvent = (() => {
+      if (event.type !== 'GYRO') return event;
+      const relative = GyroOrientation.relative(gyro, event.quaternion);
+      const velocityMagnitude = event.velocity
+        ? Math.hypot(event.velocity.x, event.velocity.y, event.velocity.z)
+        : 0;
+      const dtSeconds =
+        previousGyroTimestamp === undefined
+          ? 0
+          : Math.max(0, (event.timestamp - previousGyroTimestamp) / 1000);
+      previousGyroTimestamp = event.timestamp;
+      const stabilized = state.features.stabilizer.enabled
+        ? OrientationStabilizer.update(stabilizer, relative, velocityMagnitude, dtSeconds)
+        : relative;
+      return { ...event, relative, stabilized, velocityMagnitude, dtSeconds };
+    })();
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
       calibrated && state.features.regrip.enabled
@@ -138,7 +158,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         goCubeType: event.goCubeType?.name,
       });
       if (!sameProfile(state.profile, profile)) {
-        setState({ profile, features: resolveSessionFeatures(profile.value.features) });
+        const features = resolveSessionFeatures(profile.value.features);
+        OrientationStabilizer.setConfig(stabilizer, stabilizerConfig(features));
+        setState({ profile, features });
       }
     }
     eventListeners.forEach((listener) => listener(sessionEvent));
@@ -166,8 +188,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   const resetGyro = (): void => {
     GyroOrientation.resetBasis(gyro);
+    OrientationStabilizer.reset(stabilizer);
     RegripDetector.reset(regripDetector);
     MoveBackTrigger.reset(moveBackTrigger);
+    previousGyroTimestamp = undefined;
   };
 
   async function connect(): Promise<void> {
@@ -183,10 +207,12 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         deviceName: connection.deviceName,
         deviceMAC: connection.deviceMAC,
       });
+      const features = resolveSessionFeatures(profile.value.features);
+      OrientationStabilizer.setConfig(stabilizer, stabilizerConfig(features));
       setState({
         connection,
         profile,
-        features: resolveSessionFeatures(profile.value.features),
+        features,
       });
       subscription = connection.events$.subscribe(onEvent);
       await requestInitialState(connection);

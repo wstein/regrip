@@ -6,7 +6,6 @@ import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { startSceneRenderLoop } from '../adapters/three/sceneView';
 import type { OrientationIndicatorColors } from '../adapters/three/orientationIndicator';
-import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
@@ -18,7 +17,6 @@ import { createTimerController } from '../session/timerController';
 import { formatCapabilities } from '../session/cubeInfo';
 import { createSmartCubeSession } from '../session/smartCubeSession';
 import { createVirtualMoveFrame } from '../session/virtualMoveFrame';
-import type { SmartCubeProfile } from '../session/profile/types';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
@@ -28,7 +26,6 @@ infoPanel.clearInfo();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
-const stabilizer = OrientationStabilizer.make();
 const session = createSmartCubeSession({ connect: connectCube, virtualRegrips: true });
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
@@ -90,24 +87,11 @@ infoPanel.on('reset-state', 'click', async () => {
 });
 
 infoPanel.on('reset-gyro', 'click', async () => {
-  OrientationStabilizer.reset(stabilizer);
   session.resetGyro();
   virtualMoveFrame.reset();
   syncVirtualFrameOrientation();
   infoPanel.showFeedback('Gyro and virtual move frame reset.');
 });
-
-function applyProfile(profile: SmartCubeProfile): void {
-  const config = profile.stabilizer;
-  if (!config) return;
-  OrientationStabilizer.setConfig(stabilizer, {
-    radiusDeg: config.radiusDeg ?? OrientationStabilizer.defaults.radiusDeg,
-    snapDeg: config.snapDeg ?? OrientationStabilizer.defaults.snapDeg,
-    hysteresisDeg: config.hysteresisDeg ?? OrientationStabilizer.defaults.hysteresisDeg,
-    velocityMax: config.velocityMax ?? OrientationStabilizer.defaults.velocityMax,
-    driftDegPerSec: config.driftDegPerSec ?? OrientationStabilizer.defaults.driftDegPerSec,
-  });
-}
 
 const timerController = createTimerController({
   isConnected: () => session.getState().status === 'connected',
@@ -118,7 +102,6 @@ const timerController = createTimerController({
 });
 
 const cubeEvents = createCubeEventController({
-  stabilizer,
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
   reframeFacelets: (facelets) => virtualMoveFrame.reframeFacelets(facelets),
@@ -140,23 +123,22 @@ const cubeEvents = createCubeEventController({
   onDisconnect: () => {
     // The session owns teardown and publishes the resulting disconnected state.
   },
-  onGyro: ({ event, velocity, dtSeconds, relative, stabilized }) => {
+  onGyro: ({ event }) => {
     eventLog.record('gyro_stabilizer', {
       timestamp: event.timestamp,
       quaternion: event.quaternion,
       velocity: event.velocity ?? null,
-      velocityMagnitude: velocity,
-      dtSeconds,
-      relative,
-      stabilized,
+      velocityMagnitude: event.velocityMagnitude,
+      dtSeconds: event.dtSeconds,
+      relative: event.relative,
+      stabilized: event.stabilized,
     });
   },
 });
 
-applyProfile(session.getState().profile.value);
 session.subscribeEvents((event) => {
   if (event.type === 'GYRO') {
-    cubeEvents.handleCalibratedGyro(event, event.relative);
+    cubeEvents.handleGyro(event);
     return;
   }
   if (event.type === 'REGRIP') {
@@ -182,7 +164,6 @@ let appliedProfile = session.getState().profile;
 session.subscribe((state) => {
   if (state.profile !== appliedProfile) {
     appliedProfile = state.profile;
-    applyProfile(state.profile.value);
     eventLog.record('profile_selected', {
       id: state.profile.id,
       value: state.profile.value as unknown as Record<string, unknown>,

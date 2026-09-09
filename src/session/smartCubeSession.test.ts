@@ -74,6 +74,58 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('publishes a stabilized gyro pose from the session-owned magnet', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({ connect: async () => connection(events$) });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => received.push(event));
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    const deliberateTurn = Quaternion.fromEuler({
+      x: Quaternion.degreesToRadians(67.5),
+      y: 0,
+      z: 0,
+    });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: deliberateTurn,
+      velocity: { x: 2.5, y: 0, z: 0 },
+    });
+
+    const gyro = received.at(-1);
+    expect(gyro).toMatchObject({
+      type: 'GYRO',
+      relative: deliberateTurn,
+      stabilized: deliberateTurn,
+    });
+    await session.disconnect();
+  });
+
+  it('passes through calibrated gyro when the stabilizer feature is disabled', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: { stabilizer: { enabled: false } },
+    });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => received.push(event));
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    const rawTurn = Quaternion.fromEuler({
+      x: Quaternion.degreesToRadians(43),
+      y: 0,
+      z: 0,
+    });
+    events$.next({ type: 'GYRO', timestamp: 2, quaternion: rawTurn });
+
+    const gyro = received.at(-1);
+    expect(gyro).toMatchObject({ type: 'GYRO', relative: rawTurn, stabilized: rawTurn });
+    await session.disconnect();
+  });
+
   it('exposes profile-resolved features and maps the deprecated regrip option once', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const session = createSmartCubeSession({

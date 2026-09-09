@@ -25,6 +25,9 @@ describe('live trace event classification', () => {
         timestamp: 1,
         quaternion: { x: 0.1234, y: -0.5678, z: 0.9, w: 0 },
         relative: { x: 0, y: 0, z: 0, w: 1 },
+        stabilized: { x: 0, y: 0, z: 0, w: 1 },
+        velocityMagnitude: 0,
+        dtSeconds: 0,
       }),
     ).toEqual(['GYRO', 'q 0.12, -0.57, 0.90']);
   });

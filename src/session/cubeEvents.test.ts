@@ -1,20 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import * as GyroOrientation from '../domain/GyroOrientation.res.mjs';
-import * as OrientationStabilizer from '../domain/OrientationStabilizer.res.mjs';
 import * as Quaternion from '../domain/Quaternion.res.mjs';
 import { createCubeEventController } from './cubeEvents';
+import type { SessionGyroEvent } from './smartCubeSession';
 
 function xRotation(degrees: number): Quaternion.Quaternion {
   return Quaternion.fromEuler({ x: Quaternion.degreesToRadians(degrees), y: 0, z: 0 });
 }
 
 function makeController() {
-  const stabilizer = OrientationStabilizer.make();
   const setOrientation = vi.fn();
   const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() };
   const controller = createCubeEventController({
-    stabilizer,
     timer,
     solveScramble: async () => '',
     addMove: vi.fn(),
@@ -29,34 +27,29 @@ function makeController() {
 }
 
 describe('cube event gyro bridge', () => {
-  it('does not magnetize a high-velocity deliberate turn', () => {
+  it('uses the session-provided stabilized orientation', () => {
     const { controller, setOrientation } = makeController();
-    controller.handleCalibratedGyro(
-      { type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity },
-      Quaternion.identity,
-    );
     const rawTurn = xRotation(67.5);
-    controller.handleCalibratedGyro(
-      {
-        type: 'GYRO',
-        timestamp: 2,
-        quaternion: rawTurn,
-        velocity: { x: OrientationStabilizer.defaults.velocityMax, y: 0, z: 0 },
-      },
-      rawTurn,
-    );
+    const stabilized = xRotation(90);
+    controller.handleGyro({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: rawTurn,
+      relative: rawTurn,
+      stabilized,
+      velocityMagnitude: 0,
+      dtSeconds: 0,
+    } satisfies SessionGyroEvent);
 
     const output = setOrientation.mock.calls.at(-1)?.[0] as Quaternion.Quaternion;
-    const expected = Quaternion.multiply(GyroOrientation.home, rawTurn);
+    const expected = Quaternion.multiply(GyroOrientation.home, stabilized);
     expect(Quaternion.angle(output, expected)).toBeCloseTo(0, 7);
   });
 
   it('forwards each detected move to the supplied move sink', () => {
     const { controller } = makeController();
     const moves: string[] = [];
-    const stabilizer = OrientationStabilizer.make();
     const moveController = createCubeEventController({
-      stabilizer,
       timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn() },
       solveScramble: async () => '',
       addMove: (move) => moves.push(move),

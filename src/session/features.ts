@@ -91,3 +91,21 @@ export function mergeSessionFeatures(
 export function resolveSessionFeatures(profileFeatures?: SessionFeaturesPatch): SessionFeatures {
   return mergeSessionFeatures(defaultSessionFeatures, profileFeatures);
 }
+
+/** Adapter for the existing domain stabilizer configuration. */
+export function stabilizerConfig(features: SessionFeatures): {
+  radiusDeg: number;
+  snapDeg: number;
+  hysteresisDeg: number;
+  velocityMax: number;
+  driftDegPerSec: number;
+} {
+  const { stabilizer } = features;
+  return {
+    radiusDeg: stabilizer.radiusDeg,
+    snapDeg: stabilizer.snapDeg,
+    hysteresisDeg: stabilizer.hysteresis.enabled ? stabilizer.hysteresis.marginDeg : 0,
+    velocityMax: stabilizer.velocityMax,
+    driftDegPerSec: stabilizer.drift.enabled ? stabilizer.drift.degPerSec : 0,
+  };
+}
