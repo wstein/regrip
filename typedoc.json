@@ -6,6 +6,7 @@
     "src/domain/Cube333.res.d.mts",
     "src/domain/CubeFacelets.res.d.mts",
     "src/domain/CubeSymmetry.res.d.mts",
+    "src/domain/BodyToWorld.res.d.mts",
     "src/domain/GyroOrientation.res.d.mts",
     "src/domain/MagneticDetent.res.d.mts",
     "src/domain/MoveBackTrigger.res.d.mts",

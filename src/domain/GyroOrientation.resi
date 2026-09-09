@@ -10,6 +10,8 @@ let make: unit => t
 /** Construct an orientation tracker with a caller-provided resting pose. */
 let makeWithHome: Quaternion.t => t
 let resetBasis: t => unit
+/** Replace the fixed profile sensor-to-body map and reset session calibration. */
+let setBodyToWorld: (t, BodyToWorld.t) => unit
 /** `raw` normalized against the initial sample, before applying `home`. */
 let relative: (t, Quaternion.t) => Quaternion.t
 /** Apply this tracker's configured resting pose to a relative orientation. */
