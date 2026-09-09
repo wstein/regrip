@@ -19,14 +19,14 @@
 
 ## Product/UI
 
-- [ ] Add a visible move counter and promote the active solve timer near the
+- [x] Add a visible move counter and promote the active solve timer near the
       move editor.
 - [ ] Decide whether Device Info should be collapsible on compact screens.
 - [ ] Consider a decoded cube-state presentation (2D net or concise summary)
       instead of raw CP/CO/EP/EO text.
 - [ ] Decide whether detected moves need an optional chip/badge view in
       addition to the editable solver-friendly text field.
-- [ ] Add user-facing feedback for Copy, Reset State confirmation, and custom
+- [x] Add user-facing feedback for Copy, Reset State confirmation, and custom
       move triggers.
 - [x] Add local-only live-trace selection: range/type selection, fixed detail
       pane, JSONL download/copy, and local replay of selected `MOVE` events.
@@ -66,12 +66,12 @@
 
 ## Core/package boundary
 
-- [ ] Move the remaining pure facelet-grid reframing adapter from
+- [x] Move the remaining pure facelet-grid reframing adapter from
       `session/virtualMoveFrame.ts` into `domain/VirtualCubeFrame`.
 - [ ] Finish Stage 3 packaging: publishable root/core exports, peer dependency
       boundary for `smartcube-web-bluetooth`, private `examples/web` workspace,
       split TypeScript/Vitest configs, and `npm pack` smoke test.
-- [ ] Add a CI snapshot/check of handled smartcube event types so dependency
+- [x] Add a CI snapshot/check of handled smartcube event types so dependency
       upgrades expose new protocol events deliberately.
 - [x] Refresh README with the four-layer architecture, profiles, virtual
       regrips, magnetic stabilization, JSONL, trace sidebar, commands, and custom triggers.
