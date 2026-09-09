@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { createOrientationIndicator, setOrientationIndicatorColors } from './orientationIndicator';
 
 describe('orientation indicator', () => {
-  it('contains one coloured arrow through each local R/U/F direction', () => {
+  it('contains one solid arrow through each local R/U/F direction', () => {
     const indicator = createOrientationIndicator(false);
 
     expect(indicator.name).toBe('orientation-indicator');
@@ -19,7 +19,7 @@ describe('orientation indicator', () => {
     const indicator = createOrientationIndicator(false);
     setOrientationIndicatorColors(indicator, { r: 0x0000ff, u: 0xffffff, f: 0xff0000 });
 
-    const line = indicator.getObjectByName('orientation-axis-r')!.children[0] as THREE.Line;
-    expect((line.material as THREE.LineBasicMaterial).color.getHex()).toBe(0x0000ff);
+    const shaft = indicator.getObjectByName('orientation-axis-r')!.children[0] as THREE.Mesh;
+    expect((shaft.material as THREE.MeshBasicMaterial).color.getHex()).toBe(0x0000ff);
   });
 });

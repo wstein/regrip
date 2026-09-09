@@ -18,7 +18,7 @@ export function startSceneRenderLoop(
   // This is a stable world-space corner; the R/U/F axes still inherit the
   // scene rotation that renders the physical cube. Virtual regrips transform
   // move notation, but the gyro-driven scene already represents their pose.
-  const indicatorPosition = new THREE.Vector3(-0.75, -0.75, 0);
+  const indicatorPosition = new THREE.Vector3(-1.05, -1.02, 0);
 
   const render = async (): Promise<void> => {
     try {
@@ -30,7 +30,7 @@ export function startSceneRenderLoop(
           orientationIndicator = createOrientationIndicator();
           // cubing.js scene units project much larger than the rendered cube;
           // keep the compass compact and comfortably inside the viewport.
-          orientationIndicator.scale.setScalar(0.32);
+          orientationIndicator.scale.setScalar(0.38);
           scene.add(orientationIndicator);
         }
       }

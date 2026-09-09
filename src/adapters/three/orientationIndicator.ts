@@ -14,15 +14,15 @@ export type OrientationIndicatorColors = Record<(typeof axes)[number]['name'], n
 function label(axis: string, color: number, position: THREE.Vector3): THREE.Sprite | undefined {
   if (typeof document === 'undefined') return undefined;
   const canvas = document.createElement('canvas');
-  canvas.width = 64;
-  canvas.height = 64;
+  canvas.width = 96;
+  canvas.height = 96;
   const context = canvas.getContext('2d');
   if (!context) return undefined;
   context.fillStyle = '#ffffff';
-  context.font = 'bold 42px Arial';
+  context.font = 'bold 54px Arial';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText(axis.toUpperCase(), 32, 34);
+  context.fillText(axis.toUpperCase(), 48, 50);
 
   const sprite = new THREE.Sprite(
     new THREE.SpriteMaterial({
@@ -34,7 +34,7 @@ function label(axis: string, color: number, position: THREE.Vector3): THREE.Spri
   );
   sprite.name = `orientation-label-${axis}`;
   sprite.position.copy(position);
-  sprite.scale.setScalar(0.27);
+  sprite.scale.setScalar(0.34);
   sprite.renderOrder = 1001;
   return sprite;
 }
@@ -45,16 +45,28 @@ export function createOrientationIndicator(includeLabels = true): THREE.Group {
   indicator.name = 'orientation-indicator';
 
   for (const axis of axes) {
-    const arrow = new THREE.ArrowHelper(
-      axis.direction,
-      new THREE.Vector3(),
-      0.72,
-      axis.color,
-      0.2,
-      0.12,
-    );
+    // LineBasicMaterial width is ignored by WebGL on most platforms. Model
+    // each arrow with meshes so all three axes stay legible at any DPI.
+    const arrow = new THREE.Group();
     arrow.name = `orientation-axis-${axis.name}`;
-    arrow.renderOrder = 1000;
+    const material = new THREE.MeshBasicMaterial({
+      color: axis.color,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.62, 10), material);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.2, 10), material);
+    const rotation = new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      axis.direction,
+    );
+    shaft.quaternion.copy(rotation);
+    tip.quaternion.copy(rotation);
+    shaft.position.copy(axis.direction).multiplyScalar(0.31);
+    tip.position.copy(axis.direction).multiplyScalar(0.69);
+    shaft.renderOrder = 1000;
+    tip.renderOrder = 1000;
+    arrow.add(shaft, tip);
     arrow.traverse((object) => {
       const material = (object as THREE.Mesh | THREE.Line).material as
         ColorMaterial | ColorMaterial[];
@@ -68,7 +80,7 @@ export function createOrientationIndicator(includeLabels = true): THREE.Group {
     });
     indicator.add(arrow);
     if (includeLabels) {
-      const axisLabel = label(axis.name, axis.color, axis.direction.clone().multiplyScalar(0.92));
+      const axisLabel = label(axis.name, axis.color, axis.direction.clone().multiplyScalar(0.98));
       if (axisLabel) indicator.add(axisLabel);
     }
   }
