@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <meta name="theme-color" content="#f3f2f2" />
+    <meta
+      name="description"
+      content="Regrip — a browser lab that decodes GoCube and GAN smart-cube moves, events, gyro and regrips in real time."
+    />
+    <title>Regrip</title>
+    <link rel="stylesheet" href="/src/app/modernist.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--color-bg);
+      }
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        border-inline: 2px solid var(--color-text);
+      }
+      .nav-tag {
+        font-family: var(--font-body);
+        font-weight: 400;
+        font-size: 12px;
+        letter-spacing: 0;
+        color: color-mix(in srgb, var(--color-text) 55%, transparent);
+      }
+      .hero {
+        padding: 56px 48px 0;
+      }
+      .hero h1 {
+        max-width: 720px;
+        margin: 0 0 16px;
+      }
+      .hero p {
+        max-width: 560px;
+        font-size: 16px;
+        margin: 0 0 28px;
+      }
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 40px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 2px solid var(--color-divider);
+        border-bottom: 2px solid var(--color-divider);
+        margin-bottom: 48px;
+      }
+      .stats > div {
+        padding: 20px 24px;
+      }
+      .stats > div + div {
+        border-left: 1px solid var(--color-divider);
+      }
+      .stat-num {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 32px;
+        line-height: 1.1;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: color-mix(in srgb, var(--color-text) 55%, transparent);
+      }
+      figure {
+        margin: 0 0 48px;
+      }
+      .photo {
+        background: var(--color-neutral-400);
+        height: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-neutral-800);
+        font-size: 13px;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+        padding-bottom: 48px;
+      }
+      .features p {
+        font-size: 14px;
+        opacity: 0.85;
+      }
+      .closer {
+        background: var(--color-accent);
+        color: var(--color-bg);
+        padding: 56px 48px;
+      }
+      .closer h2 {
+        color: var(--color-bg);
+        max-width: 520px;
+      }
+      @media (max-width: 60rem) {
+        .nav-tag {
+          display: none;
+        }
+        .stats,
+        .features {
+          grid-template-columns: 1fr;
+        }
+        .stats > div + div {
+          border-left: 0;
+          border-top: 1px solid var(--color-divider);
+        }
+        .hero,
+        .closer {
+          padding-inline: 24px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <header class="nav">
+        <span class="nav-brand"
+          >Regrip <span class="nav-tag">· the smart-cube trace lab</span></span
+        >
+        <a href="./docs.html">Docs</a>
+        <a href="https://github.com/wstein/regrip">GitHub</a>
+        <a href="./index.html" class="btn btn-primary" style="margin-left: 12px">Open the lab →</a>
+      </header>
+
+      <div class="hero">
+        <h1>Read every move your cube makes.</h1>
+        <p>
+          A browser-based lab for GoCube and GAN smart cubes — connect over Bluetooth, watch moves
+          and events stream in real time, and copy the raw trace straight into your own tools.
+        </p>
+        <div class="cta">
+          <a href="./index.html" class="btn btn-primary">Open the lab →</a>
+          <a href="./docs.html" class="btn btn-secondary">Read the docs</a>
+        </div>
+
+        <div class="stats">
+          <div>
+            <div class="stat-num">6</div>
+            <div class="stat-label">protocols supported</div>
+          </div>
+          <div>
+            <div class="stat-num">120/s</div>
+            <div class="stat-label">events parsed</div>
+          </div>
+          <div>
+            <div class="stat-num">0</div>
+            <div class="stat-label">install steps</div>
+          </div>
+        </div>
+
+        <figure>
+          <div class="photo grayscale">
+            Photograph placeholder — cube in hand, lab open on screen
+          </div>
+          <figcaption>Live capture of a solve, recorded in the browser.</figcaption>
+        </figure>
+
+        <div class="features">
+          <div>
+            <h4>Live Trace</h4>
+            <p>
+              Every move, event, gyro reading and regrip logged with a timestamp, filterable and
+              exportable as JSONL.
+            </p>
+          </div>
+          <div>
+            <h4>Cube Visualization</h4>
+            <p>A rendered cube mirrors the physical one in real time, sticker for sticker.</p>
+          </div>
+          <div>
+            <h4>Protocol Adapters</h4>
+            <p>
+              GoCube and GAN today, a mock adapter for testing without hardware, more protocols on
+              the way.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="closer">
+        <h2>Start capturing moves.</h2>
+        <a
+          href="./index.html"
+          class="btn btn-secondary"
+          style="
+            background: var(--color-bg);
+            color: var(--color-accent);
+            border-color: var(--color-bg);
+          "
+          >Open the lab →</a
+        >
+      </div>
+    </div>
+  </body>
+</html>

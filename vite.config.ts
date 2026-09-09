@@ -68,6 +68,13 @@ export default defineConfig(async ({ command }) => {
     },
     build: {
       chunkSizeWarningLimit: 2048,
+      rollupOptions: {
+        input: {
+          main: fileURLToPath(new URL('./index.html', import.meta.url)),
+          landing: fileURLToPath(new URL('./landing.html', import.meta.url)),
+          docs: fileURLToPath(new URL('./docs.html', import.meta.url)),
+        },
+      },
     },
     optimizeDeps: {
       exclude: ['cubing'],
