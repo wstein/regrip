@@ -16,14 +16,27 @@
       to activate basic solving timer
     </div>
 
-    <div id="cube"></div>
+    <div class="cube-workspace">
+      <div class="cube-column">
+        <div id="cube"></div>
 
-    <div class="controls">
-      <button id="connect">Connect</button>
-      <button id="reset-state">Reset State</button>
-      <button id="reset-gyro">Reset Gyro</button>
-      <button id="start-log">Start log</button>
-      <button id="stop-log" disabled>Stop log &amp; download</button>
+        <div class="controls">
+          <button id="connect">Connect</button>
+          <button id="reset-state">Reset State</button>
+          <button id="reset-gyro">Reset Gyro</button>
+          <button id="start-log">Start log</button>
+          <button id="stop-log" disabled>Stop log &amp; download</button>
+        </div>
+      </div>
+
+      <section class="detected-moves-panel" aria-label="Detected Moves">
+        <label for="detectedMoves">Detected Moves</label>
+        <textarea id="detectedMoves" rows="10" placeholder="U R F D L B" autocomplete="off" spellcheck="false"></textarea>
+        <div class="detected-moves-actions">
+          <button id="clear-detected-moves" type="button">Clear</button>
+          <button id="copy-detected-moves" type="button">Copy</button>
+        </div>
+      </section>
     </div>
 
     <div class="info">
@@ -90,9 +103,6 @@
 
       <label for="velocity">Angular Velocity</label>
       <input id="velocity" type="text" readonly value="- n/a -">
-
-      <label for="detectedMoves">Detected Moves</label>
-      <input id="detectedMoves" type="text" value="" placeholder="U R F D L B" autocomplete="off" spellcheck="false">
 
     </div>
 

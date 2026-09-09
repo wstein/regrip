@@ -18,6 +18,14 @@ function input(id: string): HTMLInputElement {
   return element;
 }
 
+function textarea(id: string): HTMLTextAreaElement {
+  const element = byId(id);
+  if (!(element instanceof HTMLTextAreaElement)) {
+    throw new Error(`Missing textarea #${id}`);
+  }
+  return element;
+}
+
 function button(id: string): HTMLButtonElement {
   const element = byId(id);
   if (!(element instanceof HTMLButtonElement)) throw new Error(`Missing button #${id}`);
@@ -62,8 +70,22 @@ export function setLogRecording(recording: boolean): void {
 
 /** Append a detected move while leaving the field editable for correction/copying. */
 export function appendDetectedMove(move: string): void {
-  const moves = input('detectedMoves');
+  const moves = textarea('detectedMoves');
   moves.value = moves.value ? `${moves.value} ${move}` : move;
+}
+
+export function clearDetectedMoves(): void {
+  textarea('detectedMoves').value = '';
+}
+
+export async function copyDetectedMoves(): Promise<void> {
+  const moves = textarea('detectedMoves');
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(moves.value);
+    return;
+  }
+  moves.select();
+  document.execCommand('copy');
 }
 
 export function clearInfo(): void {
@@ -76,7 +98,7 @@ export function clearInfo(): void {
     if (!label) throw new Error(`Missing label for #${id}`);
     label.hidden = true;
   });
-  input('detectedMoves').value = '';
+  clearDetectedMoves();
 }
 
 export function mountCube(element: Node): void {

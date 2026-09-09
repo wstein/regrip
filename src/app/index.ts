@@ -200,6 +200,14 @@ infoPanel.on('stop-log', 'click', () => {
   infoPanel.setLogRecording(false);
 });
 
+infoPanel.on('clear-detected-moves', 'click', () => {
+  infoPanel.clearDetectedMoves();
+});
+
+infoPanel.on('copy-detected-moves', 'click', () => {
+  void infoPanel.copyDetectedMoves().catch(error => console.error('unable to copy detected moves', error));
+});
+
 document.addEventListener('keydown', (event) => {
   if (event.key === ' ') {
     event.preventDefault();
