@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
 import { formatCubeExport, formatOrbit64 } from './cubeExport';
 
 const solved = {
@@ -9,6 +10,18 @@ const solved = {
   EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 };
 const facelets = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
+const ponsAsinorum = 'UDUDUDUDURLRLRLRLRFBFBFBFBFDUDUDUDUDLRLRLRLRLBFBFBFBFB';
+
+function cubieState(facelets: string) {
+  const decoded = CubeFacelets.decodeFacelets(facelets);
+  if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
+  return {
+    CP: decoded._0.CORNERS.pieces,
+    CO: decoded._0.CORNERS.orientation,
+    EP: decoded._0.EDGES.pieces,
+    EO: decoded._0.EDGES.orientation,
+  };
+}
 
 describe('cube exports', () => {
   it('matches Orbit64 canonical 3×3 compatibility vectors', () => {
@@ -16,7 +29,18 @@ describe('cube exports', () => {
     expect(formatOrbit64({ ...solved, EO: Array.from({ length: 12 }, () => 1) })).toBe(
       'AAAAAAAAAL_o',
     );
-    expect(formatOrbit64({ ...solved, CO: [1, 2, 0, 0, 0, 0, 0, 0] })).toBe('AAAASvIVgAAA');
+    expect(formatOrbit64({ ...solved, CO: [1, 2, 0, 0, 0, 0, 0, 0] })).toBe('AAACTNvNgAAA');
+    expect(
+      formatOrbit64({
+        ...solved,
+        CP: [1, 2, 3, 0, 4, 5, 6, 7],
+        EP: [1, 2, 3, 0, 4, 5, 6, 7, 8, 9, 10, 11],
+      }),
+    ).toBe('FRot3QyvoAAA');
+  });
+
+  it('matches Orbit64 Pons Asinorum from its canonical URFDLB facelets', () => {
+    expect(formatOrbit64(cubieState(ponsAsinorum))).toBe('AAAABeBQZgAA');
   });
 
   it('formats compact, spaced, and Singmaster exports', () => {
