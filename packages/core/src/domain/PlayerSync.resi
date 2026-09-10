@@ -14,3 +14,4 @@ let move: (state, string) => (state, array<effect>)
 let resolve: (state, int, string) => (state, array<effect>)
 let confirm: (state, int) => (state, array<effect>)
 let reset: state => (state, array<effect>)
+let invalidate: state => state

@@ -61,4 +61,12 @@ describe("PlayerSync", () => {
     let (_, effects) = PlayerSync.reset(withMove)
     t->expect(effects)->Expect.toEqual([PlayerSync.SetAlgorithm({algorithm: ""})])
   })
+
+  test("invalidate drops queued work without emitting a player effect", t => {
+    let (snapshot, generation) = PlayerSync.beginSnapshot(PlayerSync.initial)
+    let (withMove, _) = PlayerSync.move(snapshot, "R")
+    let invalidated = PlayerSync.invalidate(withMove)
+    let (_, effects) = PlayerSync.resolve(invalidated, generation, "U")
+    t->expect(effects)->Expect.toEqual([])
+  })
 })

@@ -21,3 +21,5 @@ export function confirm(
   generation: number,
 ): readonly [PlayerSyncState, PlayerSyncEffect[]];
 export function reset(state: PlayerSyncState): readonly [PlayerSyncState, PlayerSyncEffect[]];
+/** Invalidate a pending solve without changing the rendered player. */
+export function invalidate(state: PlayerSyncState): PlayerSyncState;

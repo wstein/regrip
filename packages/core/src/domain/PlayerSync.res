@@ -67,3 +67,11 @@ let reset = (state: state): (state, array<effect>) => (
   {generation: state.generation + 1, syncing: false, coveredMoves: [], pendingMoves: []},
   [SetAlgorithm({algorithm: ""})],
 )
+
+/** Invalidate a pending solve without changing the currently rendered player. */
+let invalidate = (state: state): state => {
+  generation: state.generation + 1,
+  syncing: false,
+  coveredMoves: [],
+  pendingMoves: [],
+}
