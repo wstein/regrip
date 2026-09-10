@@ -10,6 +10,7 @@ import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
+import { mountFullscreenToggle } from './fullscreen';
 import { simplifyMoves } from './moveSimplifier';
 import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../session/cubeEvents';
@@ -28,6 +29,7 @@ import { createSolverFrame } from '../adapters/three/solverFrame';
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
+mountFullscreenToggle();
 
 // Resting pose shown before any gyro data; the cube settles to
 // GyroOrientation.home once GYRO events start arriving.
