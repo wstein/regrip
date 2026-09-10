@@ -158,12 +158,9 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
-  it('suppresses sub-threshold calibrated gyro microjitter', async () => {
+  it('publishes each display-frame gyro sample, including sub-degree motion', async () => {
     const events$ = new Subject<SmartCubeEvent>();
-    const session = createSmartCubeSession({
-      connect: async () => connection(events$),
-      features: { stabilizer: { microJitterDeg: 0.5 } },
-    });
+    const session = createSmartCubeSession({ connect: async () => connection(events$) });
     const received: SmartCubeSessionEvent[] = [];
     session.subscribeEvents((event) => received.push(event));
 
@@ -182,7 +179,40 @@ describe('smart cube session', () => {
 
     expect(
       received.filter((event) => event.type === 'GYRO').map((event) => event.timestamp),
-    ).toEqual([1, 3]);
+    ).toEqual([1, 2, 3]);
+    await session.disconnect();
+  });
+
+  it('publishes each small drift correction for the virtual cube', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: {
+        stabilizer: {
+          radiusDeg: 0,
+          snapDeg: 0,
+          hysteresis: { enabled: false, marginDeg: 0 },
+          drift: { enabled: true, degPerSec: 2 },
+        },
+      },
+    });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => received.push(event));
+
+    await session.connect();
+    const restingOffset = Quaternion.fromEuler({ x: Quaternion.degreesToRadians(10), y: 0, z: 0 });
+    events$.next({ type: 'GYRO', timestamp: 0, quaternion: Quaternion.identity });
+    events$.next({ type: 'GYRO', timestamp: 1000, quaternion: restingOffset });
+    events$.next({ type: 'GYRO', timestamp: 2000, quaternion: restingOffset });
+
+    const gyro = received.filter(
+      (event): event is Extract<SmartCubeSessionEvent, { type: 'GYRO' }> => event.type === 'GYRO',
+    );
+    expect(gyro.map((event) => event.timestamp)).toEqual([0, 1000, 2000]);
+    expect(Quaternion.angle(gyro[1]!.stabilized, gyro[2]!.stabilized)).toBeCloseTo(
+      Quaternion.degreesToRadians(2),
+      8,
+    );
     await session.disconnect();
   });
 

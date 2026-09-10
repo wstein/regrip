@@ -48,7 +48,6 @@
             "radiusDeg": { "type": "number" },
             "snapDeg": { "type": "number" },
             "velocityMax": { "type": "number" },
-            "microJitterDeg": { "type": "number", "minimum": 0 },
             "hysteresis": {
               "type": "object",
               "properties": {

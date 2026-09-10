@@ -8,7 +8,6 @@ import type {
 
 import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
-import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
 import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
@@ -129,7 +128,6 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let pendingGyro: Extract<SmartCubeEvent, { type: 'GYRO' }> | undefined;
   let pendingGyroFrame: unknown | undefined;
   let hasCalibratedGyro = false;
-  let lastPublishedRelative: Quaternion.Quaternion | undefined;
   if (options.virtualRegrips !== undefined) {
     console.warn(
       'virtualRegrips is deprecated; use features: { regrip: { enabled: ... } } instead.',
@@ -225,7 +223,6 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   function applyFeatures(features: SessionFeatures): void {
     gyroConfig = GyroPipeline.withStabilizerConfig(gyroConfig, stabilizerConfig(features));
     gyroState = GyroPipeline.resetStabilizer(gyroState);
-    lastPublishedRelative = undefined;
     resetFeatureDetectors();
     setState({ features });
   }
@@ -237,13 +234,6 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
   const sameProfile = (left: ResolvedProfile, right: ResolvedProfile): boolean =>
     left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
-
-  function shouldPublishGyro(relative: Quaternion.Quaternion): boolean {
-    const previous = lastPublishedRelative;
-    if (!previous) return true;
-    const thresholdRadians = Quaternion.degreesToRadians(state.features.stabilizer.microJitterDeg);
-    return thresholdRadians <= 0 || Quaternion.angle(previous, relative) >= thresholdRadians;
-  }
 
   const processEvent = (event: SmartCubeEvent): void => {
     const sessionEvent: SmartCubeSessionEvent = (() => {
@@ -259,10 +249,9 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       gyroState = nextGyroState;
       return { ...event, ...sample };
     })();
-    const publishGyro = sessionEvent.type !== 'GYRO' || shouldPublishGyro(sessionEvent.relative);
-    if (sessionEvent.type === 'GYRO' && publishGyro) {
-      lastPublishedRelative = sessionEvent.relative;
-    }
+    // Gyro packets are already coalesced to display cadence by `scheduleGyro`.
+    // Do not filter them again: sub-degree drift corrections are intentional
+    // visual motion, while MagneticDetent handles resting sensor noise.
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
       calibrated && state.features.regrip.enabled ? observeRegrip(calibrated) : undefined;
@@ -276,7 +265,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     const shake =
       shakeCfg && calibrated ? observeShake(calibrated, event.timestamp, shakeCfg) : undefined;
     if (shakeCfg && event.type === 'MOVE') observeShakeMove(event.timestamp, shakeCfg);
-    if (publishGyro) setState({ lastEvent: sessionEvent });
+    setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
       const profile = resolveSessionProfile({
         protocol: state.connection.protocol.id,
@@ -292,7 +281,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         applyFeatures(features);
       }
     }
-    if (publishGyro) eventListeners.forEach((listener) => listener(sessionEvent));
+    eventListeners.forEach((listener) => listener(sessionEvent));
     if (regrip) {
       eventListeners.forEach((listener) =>
         listener({
@@ -368,7 +357,6 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     if (pendingGyroFrame !== undefined) gyroFrameScheduler.cancel(pendingGyroFrame);
     pendingGyroFrame = undefined;
     hasCalibratedGyro = false;
-    lastPublishedRelative = undefined;
     gyroState = GyroPipeline.reset(gyroState);
     regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
