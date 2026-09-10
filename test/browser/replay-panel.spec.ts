@@ -46,6 +46,28 @@ test('serializes a burst of real TwistyPlayer moves from the replay stream', asy
     .toBe('R U F');
 });
 
+test('copies the complete current JSONL trace', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: (value: string) => localStorage.setItem('copied-jsonl', value) },
+    });
+  });
+  await page.locator('#copy-log').click();
+
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('copied-jsonl')))
+    .toContain('"type":"trace_header"');
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('copied-jsonl')))
+    .toContain('"type":"cube_event"');
+  await expect(page.locator('#app-feedback')).toHaveText('Trace JSONL copied.');
+});
+
 test('renders the replayed cubie permutation, not only its algorithm text', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');

@@ -307,9 +307,9 @@ infoPanel.on('connect', 'click', async () => {
   else await session.connect();
 });
 
-infoPanel.on('download-log', 'click', () => {
+function currentJsonlLog(): string {
   const state = session.getState();
-  const contents = eventLog.toJsonl({
+  return eventLog.toJsonl({
     format: JSONL_REPLAY_FORMAT,
     version: JSONL_REPLAY_VERSION,
     session: {
@@ -321,9 +321,23 @@ infoPanel.on('download-log', 'click', () => {
       profileValue: state.profile.value,
     },
   });
+}
+
+infoPanel.on('download-log', 'click', () => {
+  const contents = currentJsonlLog();
   const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
   downloadJsonl(contents, filename);
   infoPanel.showFeedback('Trace downloaded.');
+});
+
+infoPanel.on('copy-log', 'click', () => {
+  void infoPanel
+    .copyText(currentJsonlLog())
+    .then(() => infoPanel.showFeedback('Trace JSONL copied.'))
+    .catch((error) => {
+      console.error('unable to copy trace JSONL', error);
+      infoPanel.showFeedback('Could not copy trace JSONL.');
+    });
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
