@@ -140,7 +140,6 @@ const cubeEvents = createCubeEventController({
   addMove: (move) => {
     playerSync.addMove(move);
     infoPanel.appendDetectedMove(solverFrame.translate(move));
-    sceneRenderer?.requestRender();
   },
   setOrientation: (quaternion) => {
     cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);

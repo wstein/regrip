@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createTwistyPlayerSync } from './twistyPlayerSync';
 
@@ -63,5 +63,34 @@ describe('TwistyPlayer sync', () => {
     expect(calls).toBe(2);
     gates[1]!.resolve();
     await sync.whenIdle();
+  });
+
+  it('reports a failed player write and keeps processing later updates', async () => {
+    const report = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    let reads = 0;
+    let appended = 0;
+    const player = {
+      alg: '',
+      experimentalAddMove: () => {
+        appended += 1;
+      },
+      experimentalModel: {
+        alg: {
+          get: async () => {
+            reads += 1;
+            if (reads === 1) throw new Error('bad player state');
+          },
+        },
+      },
+    };
+    const sync = createTwistyPlayerSync(player);
+
+    sync.setAlgorithm('R');
+    sync.addMove('U');
+    await sync.whenIdle();
+
+    expect(report).toHaveBeenCalledWith('TwistyPlayer state update failed.', expect.any(Error));
+    expect(appended).toBe(1);
+    report.mockRestore();
   });
 });

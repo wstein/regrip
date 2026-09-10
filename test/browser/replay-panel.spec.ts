@@ -1,5 +1,50 @@
 import { expect, test } from '@playwright/test';
 
+const replayHeader =
+  '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1}}';
+
+test('serializes a burst of real TwistyPlayer moves from the replay stream', async ({ page }) => {
+  const events = [
+    {
+      type: 'FACELETS',
+      timestamp: 10,
+      facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+    },
+    { type: 'MOVE', timestamp: 11, move: 'R', face: 1, direction: 0 },
+    { type: 'MOVE', timestamp: 11, move: 'U', face: 0, direction: 0 },
+    { type: 'MOVE', timestamp: 11, move: 'F', face: 2, direction: 0 },
+  ].map((data) =>
+    JSON.stringify({
+      recordedAt: '2026-09-09T10:00:00.011Z',
+      type: 'cube_event',
+      data: { ...data, localTimestamp: data.timestamp, cubeTimestamp: null },
+    }),
+  );
+  await page.goto('/test/browser/mock-app.html?replay');
+  await page.evaluate(
+    (contents) => sessionStorage.setItem('regrip.replay.jsonl', contents),
+    [replayHeader, ...events].join('\n'),
+  );
+  await page.goto('/test/browser/mock-app.html?replay&fixture=local');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+  const player = page.locator('twisty-player');
+  await expect(player).toBeVisible();
+  await expect
+    .poll(() =>
+      player.evaluate(async (element) => {
+        const model = (
+          element as unknown as {
+            experimentalModel: { alg: { get: () => Promise<{ alg: { toString: () => string } }> } };
+          }
+        ).experimentalModel;
+        return (await model.alg.get()).alg.toString();
+      }),
+    )
+    .toBe('R U F');
+});
+
 test('steps, seeks, and resets a JSONL fixture in the real lab', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');

@@ -21,11 +21,13 @@ export function createTwistyPlayerSync(player: TwistyPlayerPort, onUpdate?: () =
 
   function enqueue(write: () => void): void {
     writes = writes
-      .catch(() => undefined)
       .then(async () => {
         write();
         await player.experimentalModel.alg.get();
         onUpdate?.();
+      })
+      .catch((error: unknown) => {
+        console.error('TwistyPlayer state update failed.', error);
       });
   }
 
