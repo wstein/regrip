@@ -137,8 +137,11 @@ const cubeEvents = createCubeEventController({
   shouldReconcilePlayer: (facelets) => playerPatterns.observeSnapshot(facelets),
   trackPlayerMove: (move) => playerPatterns.applyMove(move),
   resetPlayerTracking: () => playerPatterns.reset(),
+  invalidatePlayerTracking: () => playerPatterns.reset(),
   addMove: (move) => {
     playerSync.addMove(move);
+  },
+  recordMove: (move) => {
     infoPanel.appendDetectedMove(solverFrame.translate(move));
   },
   setOrientation: (quaternion) => {
@@ -197,6 +200,14 @@ sessionSignals.event.subscribe((event) => {
   if (event.type === 'SHAKE') {
     eventLog.record('shake_trigger', { ...event });
     infoPanel.showFeedback(`Shake detected: ${event.steps} steps, ${event.reversals} reversals`);
+    return;
+  }
+  if (event.type === 'MOVE_GAP') {
+    eventLog.record('move_gap', event);
+    cubeEvents.invalidatePlayerState();
+    infoPanel.showFeedback(
+      `Missed ${event.missing} move${event.missing === 1 ? '' : 's'}; syncing cube state.`,
+    );
     return;
   }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);

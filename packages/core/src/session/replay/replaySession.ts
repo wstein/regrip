@@ -13,6 +13,7 @@ import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfi
 import {
   createSmartCubeSession,
   type CustomTriggerEvent,
+  type MoveGapEvent,
   type SessionGyroEvent,
   type SmartCubeSession,
   type SmartCubeSessionEvent,
@@ -204,6 +205,22 @@ function customTriggerFromRecord(
     : undefined;
 }
 
+function moveGapFromRecord(
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+): MoveGapEvent | undefined {
+  const timestamp = number(data.timestamp) ?? fallbackTimestamp;
+  const previousSerial = number(data.previousSerial);
+  const serial = number(data.serial);
+  const missing = number(data.missing);
+  return previousSerial === undefined ||
+    serial === undefined ||
+    missing === undefined ||
+    missing < 1
+    ? undefined
+    : { type: 'MOVE_GAP', timestamp, previousSerial, serial, missing };
+}
+
 function statusFromRecord(
   data: Record<string, unknown>,
 ): SmartCubeSessionState['status'] | undefined {
@@ -245,6 +262,10 @@ const sessionBuilders: Record<string, ReplayItemBuilder> = {
   },
   custom_trigger: (data, fallbackTimestamp) => {
     const event = customTriggerFromRecord(data, fallbackTimestamp);
+    return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
+  },
+  move_gap: (data, fallbackTimestamp) => {
+    const event = moveGapFromRecord(data, fallbackTimestamp);
     return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
   },
   session_status: (data) => {

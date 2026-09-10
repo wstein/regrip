@@ -201,4 +201,38 @@ describe('cube event gyro bridge', () => {
     expect(solveScramble).not.toHaveBeenCalled();
     expect(calls).toEqual(['move:R']);
   });
+
+  it('keeps the player unchanged after a packet gap while retaining detected notation', () => {
+    const playerMoves: string[] = [];
+    const detectedMoves: string[] = [];
+    const invalidate = vi.fn();
+    const controller = createCubeEventController({
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
+      solveScramble: async () => '',
+      addMove: (move) => playerMoves.push(move),
+      recordMove: (move) => detectedMoves.push(move),
+      invalidatePlayerTracking: invalidate,
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+    });
+
+    controller.invalidatePlayerState();
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 1,
+      face: 1,
+      direction: 0,
+      move: 'R',
+      localTimestamp: 1,
+      cubeTimestamp: null,
+    });
+
+    expect(invalidate).toHaveBeenCalledOnce();
+    expect(playerMoves).toEqual([]);
+    expect(detectedMoves).toEqual(['R']);
+  });
 });

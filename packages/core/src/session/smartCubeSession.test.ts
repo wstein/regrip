@@ -483,6 +483,79 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('requests facelets and emits MOVE_GAP before the discontinuous move', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const conn = connection(events$, {
+      gyroscope: false,
+      battery: false,
+      facelets: true,
+      hardware: false,
+      reset: false,
+    });
+    const session = createSmartCubeSession({ connect: async () => conn });
+    const received: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => received.push(event));
+
+    await session.connect();
+    vi.mocked(conn.sendCommand).mockClear();
+    events$.next({
+      type: 'FACELETS',
+      timestamp: 1,
+      serial: 10,
+      facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+    });
+    events$.next({
+      type: 'MOVE',
+      timestamp: 2,
+      serial: 11,
+      move: 'R',
+      face: 1,
+      direction: 0,
+      localTimestamp: 2,
+      cubeTimestamp: null,
+    });
+    events$.next({
+      type: 'MOVE',
+      timestamp: 3,
+      serial: 14,
+      move: 'U',
+      face: 0,
+      direction: 0,
+      localTimestamp: 3,
+      cubeTimestamp: null,
+    });
+
+    expect(received.map((event) => event.type)).toEqual(['FACELETS', 'MOVE', 'MOVE_GAP', 'MOVE']);
+    expect(received.at(-2)).toMatchObject({
+      type: 'MOVE_GAP',
+      previousSerial: 11,
+      serial: 14,
+      missing: 2,
+    });
+    await vi.waitFor(() =>
+      expect(conn.sendCommand).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' }),
+    );
+
+    events$.next({
+      type: 'FACELETS',
+      timestamp: 4,
+      serial: 14,
+      facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+    });
+    events$.next({
+      type: 'MOVE',
+      timestamp: 5,
+      serial: 15,
+      move: 'F',
+      face: 2,
+      direction: 0,
+      localTimestamp: 5,
+      cubeTimestamp: null,
+    });
+    expect(received.filter((event) => event.type === 'MOVE_GAP')).toHaveLength(1);
+    await session.disconnect();
+  });
+
   it('owns universal and capability-gated vendor commands', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const conn = connection(events$, {

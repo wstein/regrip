@@ -34,6 +34,9 @@ type CubeEventControllerOptions = {
   shouldReconcilePlayer?: (facelets: string) => Promise<boolean>;
   trackPlayerMove?: (move: string) => void;
   resetPlayerTracking?: () => void;
+  invalidatePlayerTracking?: () => void;
+  /** Always records detected notation, including while the 3D player is untrusted. */
+  recordMove?: (move: string) => void;
   addMove: (move: string) => void;
   setOrientation: (quaternion: { x: number; y: number; z: number; w: number }) => void;
   setPlayerAlgorithm: (algorithm: string) => void;
@@ -53,6 +56,7 @@ type NonGyroSmartCubeEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>;
 
 export function createCubeEventController(options: CubeEventControllerOptions) {
   let playerSyncState = PlayerSync.initial;
+  let playerUntrusted = false;
 
   function applyPlayerEffects(effects: PlayerSync.PlayerSyncEffect[]): void {
     for (const effect of effects) {
@@ -70,6 +74,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   function reset(): void {
     const [nextState, effects] = PlayerSync.reset(playerSyncState);
     playerSyncState = nextState;
+    playerUntrusted = false;
     options.timer.reset();
     options.resetPlayerTracking?.();
     applyPlayerEffects(effects);
@@ -94,10 +99,13 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function handleMove(event: Extract<SmartCubeEvent, { type: 'MOVE' }>): void {
     options.timer.onMove(event);
-    options.trackPlayerMove?.(event.move);
-    const [nextState, effects] = PlayerSync.move(playerSyncState, event.move);
-    playerSyncState = nextState;
-    applyPlayerEffects(effects);
+    options.recordMove?.(event.move);
+    if (!playerUntrusted) {
+      options.trackPlayerMove?.(event.move);
+      const [nextState, effects] = PlayerSync.move(playerSyncState, event.move);
+      playerSyncState = nextState;
+      applyPlayerEffects(effects);
+    }
     if (event.serial !== undefined) {
       options.showInfo('eventSerial');
       options.setInfo('eventSerial', String(event.serial));
@@ -126,6 +134,9 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     options.onFacelets?.({ facelets, state });
     const [nextState, syncGeneration] = PlayerSync.beginSnapshot(playerSyncState);
     playerSyncState = nextState;
+    // This packet is authoritative. Moves following it are safe to buffer for
+    // its async solve, even when a prior packet gap made the player untrusted.
+    playerUntrusted = false;
 
     // TwistyPlayer is a body-frame renderer, so its setup snapshot must use
     // the raw protocol facelets just as its subsequent MOVE events do. The
@@ -169,6 +180,12 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     options.onHardware?.(event);
   }
 
+  function invalidatePlayerState(): void {
+    playerUntrusted = true;
+    playerSyncState = PlayerSync.invalidate(playerSyncState);
+    options.invalidatePlayerTracking?.();
+  }
+
   function handle(event: NonGyroSmartCubeEvent): void {
     switch (event.type) {
       case 'MOVE':
@@ -192,5 +209,5 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     }
   }
 
-  return { handle, handleGyro, reset };
+  return { handle, handleGyro, invalidatePlayerState, reset };
 }

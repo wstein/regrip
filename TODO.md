@@ -83,7 +83,7 @@
       axis pixels without a platform-specific screenshot baseline.
 - [ ] Revisit sparse-sample regrip detection (for example a packet that skips
       a cardinal confirmation pose) after hardware traces establish its impact.
-- [ ] Add a `MoveTracker`-style serial/position-gap detector for dropped BLE
+- [x] Add a `MoveTracker`-style serial/position-gap detector for dropped BLE
       `MOVE` packets. On a gap, mark the body-frame player as untrusted and
       request/reconcile an authoritative `FACELETS` snapshot instead of
       resetting optimistically on `onSolved`.

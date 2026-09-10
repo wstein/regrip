@@ -8,6 +8,7 @@ import type {
 
 import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
+import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker.res.mjs';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
 import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
@@ -53,6 +54,15 @@ export type ShakeTriggerEvent = {
   spanMs: number;
 };
 
+/** A protocol move serial skipped one or more turns; await FACELETS recovery. */
+export type MoveGapEvent = {
+  type: 'MOVE_GAP';
+  timestamp: number;
+  previousSerial: number;
+  serial: number;
+  missing: number;
+};
+
 export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
@@ -67,7 +77,8 @@ export type SmartCubeSessionEvent =
   | SessionGyroEvent
   | VirtualRegripEvent
   | CustomTriggerEvent
-  | ShakeTriggerEvent;
+  | ShakeTriggerEvent
+  | MoveGapEvent;
 
 type SessionEventType = SmartCubeSessionEvent['type'];
 type SessionEventOf<T extends SessionEventType> = Extract<SmartCubeSessionEvent, { type: T }>;
@@ -172,6 +183,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let regripState = RegripDetector.initial;
   let moveBackState = MoveBackTrigger.initial;
   let shakeState = ShakeTrigger.initial;
+  let moveTrackerState = MoveTracker.initial;
 
   function moveBackWindow(features: SessionFeatures): number | undefined {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
@@ -188,6 +200,18 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
+  }
+
+  function resetMoveTracker(): void {
+    moveTrackerState = MoveTracker.initial;
+  }
+
+  function requestFaceletsAfterMoveGap(): void {
+    const connection = state.connection;
+    if (!connection?.capabilities.facelets) return;
+    void connection.sendCommand({ type: 'REQUEST_FACELETS' }).catch((error: unknown) => {
+      console.warn('Could not request facelets after a move serial gap.', error);
+    });
   }
 
   function observeMoveBack(move: string, timestamp: number): string | undefined {
@@ -252,6 +276,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     // Gyro packets are already coalesced to display cadence by `scheduleGyro`.
     // Do not filter them again: sub-degree drift corrections are intentional
     // visual motion, while MagneticDetent handles resting sensor noise.
+    if (event.type === 'FACELETS') {
+      moveTrackerState = MoveTracker.observeSnapshot(moveTrackerState, event.serial);
+    }
+    const [nextMoveTrackerState, moveGap] =
+      event.type === 'MOVE'
+        ? MoveTracker.observeMove(moveTrackerState, event.serial)
+        : [moveTrackerState, undefined];
+    moveTrackerState = nextMoveTrackerState;
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regrip =
       calibrated && state.features.regrip.enabled ? observeRegrip(calibrated) : undefined;
@@ -280,6 +312,18 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         setState({ profile });
         applyFeatures(features);
       }
+    }
+    if (moveGap) {
+      eventListeners.forEach((listener) =>
+        listener({
+          type: 'MOVE_GAP',
+          timestamp: event.timestamp,
+          previousSerial: moveGap.previousSerial,
+          serial: moveGap.serial,
+          missing: moveGap.missing,
+        }),
+      );
+      requestFaceletsAfterMoveGap();
     }
     eventListeners.forEach((listener) => listener(sessionEvent));
     if (regrip) {
@@ -361,6 +405,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
+    resetMoveTracker();
   };
 
   async function connect(): Promise<void> {
