@@ -2,11 +2,10 @@
 
 ## Immediate delivery
 
-- [ ] Push verified local `main` to `wstein/regrip`, then close or
-      rebase the stale Vitest-5 and ESLint-10 Dependabot PRs. They are known
-      incompatible with `rescript-vitest@3` and `eslint-plugin-import@2`.
-- [ ] Confirm the first `main` CI run and GitHub Pages deployment are green
-      after the push; enable Pages' “GitHub Actions” source if required.
+- [x] Push verified local `main` to `wstein/regrip`. No stale Vitest-5 or
+      ESLint-10 Dependabot PR remains open; those updates stay deferred because
+      they are incompatible with `rescript-vitest@3` and `eslint-plugin-import@2`.
+- [x] Confirm main CI and GitHub Pages deployment are green after the push.
 
 ## Core extraction and CubeLab migration
 
