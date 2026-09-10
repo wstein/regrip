@@ -389,6 +389,10 @@ body {
   color: #ffd9f3;
   background: #703d73;
 }
+.trace-shake .trace-badge {
+  color: #ffe0c2;
+  background: #8a4a1f;
+}
 .trace-gyro .trace-badge {
   color: #c9edff;
   background: #235971;

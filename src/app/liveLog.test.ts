@@ -16,6 +16,9 @@ describe('live trace event classification', () => {
       'TRIGGER',
       'R',
     ]);
+    expect(
+      describeSessionEvent({ type: 'SHAKE', timestamp: 240, steps: 4, reversals: 3, spanMs: 180 }),
+    ).toEqual(['SHAKE', '4 steps, 3 reversals']);
   });
 
   it('summarizes high-rate gyro data without flooding the line', () => {
@@ -47,5 +50,12 @@ describe('live trace event classification', () => {
         data: { notationToken: "y'", sensorFrameToken: 'y' },
       }),
     ).toEqual(['REGRIP', "y' (y)"]);
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'shake_trigger',
+        data: { steps: 4, reversals: 3, spanMs: 180 },
+      }),
+    ).toEqual(['SHAKE', '4 steps, 3 reversals']);
   });
 });

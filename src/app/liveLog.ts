@@ -4,7 +4,7 @@ import type { SmartCubeSessionEvent } from '@wstein/regrip-core/session/smartCub
 import { byId } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
-export type TraceCategory = 'MOVE' | 'EVENT' | 'STATE' | 'GYRO' | 'REGRIP' | 'TRIGGER';
+export type TraceCategory = 'MOVE' | 'EVENT' | 'STATE' | 'GYRO' | 'REGRIP' | 'TRIGGER' | 'SHAKE';
 
 export type TraceEntry = {
   id: number;
@@ -36,7 +36,7 @@ export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCatego
     case 'CUSTOM_TRIGGER':
       return ['TRIGGER', event.move];
     case 'SHAKE':
-      return ['TRIGGER', `shake · ${event.steps} steps, ${event.reversals} reversals`];
+      return ['SHAKE', `${event.steps} steps, ${event.reversals} reversals`];
     case 'BATTERY':
       return ['EVENT', `battery ${event.batteryLevel}%`];
     case 'HARDWARE':
@@ -65,7 +65,7 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
   }
   if (entry.type === 'custom_trigger') return ['TRIGGER', String(data.move)];
   if (entry.type === 'shake_trigger')
-    return ['TRIGGER', `shake · ${String(data.steps)} steps, ${String(data.reversals)} reversals`];
+    return ['SHAKE', `${String(data.steps)} steps, ${String(data.reversals)} reversals`];
   if (entry.type === 'gyro_stabilizer') return ['GYRO', 'stabilized gyro'];
   if (entry.type === 'session_status') return ['STATE', String(data.status)];
   if (entry.type === 'log_started') return ['STATE', 'recording started'];
@@ -112,7 +112,7 @@ export function createLiveLog({
   const exportContextEvent = byId('export-trace-event');
 
   const activeFilters = signal<ReadonlySet<TraceCategory>>(
-    new Set(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER']),
+    new Set(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER', 'SHAKE']),
   );
   const entries = signal<TraceEntry[]>([]);
   const visibleEntries = computed(() =>
