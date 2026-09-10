@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { faceletsToPattern, kpuzzleReady } from '../../src/adapters/cubing/utils';
 
 const replayHeader =
   '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1}}';
@@ -43,6 +44,99 @@ test('serializes a burst of real TwistyPlayer moves from the replay stream', asy
       }),
     )
     .toBe('R U F');
+});
+
+test('renders the replayed cubie permutation, not only its algorithm text', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+  const player = page.locator('twisty-player');
+  await expect(player).toBeVisible();
+
+  await expect
+    .poll(() =>
+      player.evaluate(async (element) => {
+        const model = (
+          element as unknown as {
+            experimentalModel: {
+              currentPattern: {
+                get: () => Promise<{ patternData: { EDGES: { pieces: number[] } } }>;
+              };
+            };
+          }
+        ).experimentalModel;
+        return (await model.currentPattern.get()).patternData.EDGES.pieces;
+      }),
+    )
+    .not.toEqual(Array.from({ length: 12 }, (_, index) => index));
+});
+
+test('renders the authoritative facelet snapshot after repeated sync requests', async ({
+  page,
+}) => {
+  const header =
+    '{"recordedAt":"2026-09-10T17:30:11.611Z","type":"trace_header","data":{"format":"regrip","version":1}}';
+  const events = [
+    {
+      type: 'FACELETS',
+      timestamp: 142_229,
+      facelets: 'UUUUUUUUURRRRRRDDRFFFFFFFDLRFBDDLDDDLLLLLLFBDBBBBBBBRL',
+    },
+    {
+      type: 'FACELETS',
+      timestamp: 144_447,
+      facelets: 'UUUUUUUUURRRRRRDDRFFFFFFFDLRFBDDLDDDLLLLLLFBDBBBBBBBRL',
+    },
+    { type: 'MOVE', timestamp: 145_616, move: 'D', face: 3, direction: 0 },
+    { type: 'MOVE', timestamp: 145_766, move: 'D', face: 3, direction: 0 },
+    {
+      type: 'FACELETS',
+      timestamp: 146_971,
+      facelets: 'UUUUUUUUURRRRRRFBDFFFFFFBRLDDDLDDBFRLLLLLLDDRBBBBBBFDL',
+    },
+  ].map((data) =>
+    JSON.stringify({
+      recordedAt: '2026-09-10T17:30:00.000Z',
+      type: 'cube_event',
+      data: { ...data, localTimestamp: data.timestamp, cubeTimestamp: null },
+    }),
+  );
+  await page.goto('/test/browser/mock-app.html?replay');
+  await page.evaluate(
+    (contents) => sessionStorage.setItem('regrip.replay.jsonl', contents),
+    [header, ...events].join('\n'),
+  );
+  await page.goto('/test/browser/mock-app.html?replay&fixture=local');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+  const player = page.locator('twisty-player');
+  const finalFacelets = 'UUUUUUUUURRRRRRFBDFFFFFFBRLDDDLDDBFRLLLLLLDDRBBBBBBFDL';
+  await kpuzzleReady;
+  const pattern = faceletsToPattern(finalFacelets).patternData;
+  const expected = {
+    EDGES: pattern.EDGES,
+    CORNERS: pattern.CORNERS,
+    CENTERS: pattern.CENTERS,
+  };
+  await expect
+    .poll(() =>
+      player.evaluate(async (element) => {
+        const model = (
+          element as unknown as {
+            experimentalModel: { currentPattern: { get: () => Promise<{ patternData: unknown }> } };
+          }
+        ).experimentalModel;
+        const pattern = (await model.currentPattern.get()).patternData as Record<string, unknown>;
+        return {
+          EDGES: pattern.EDGES,
+          CORNERS: pattern.CORNERS,
+          CENTERS: pattern.CENTERS,
+        };
+      }),
+    )
+    .toEqual(expected);
 });
 
 test('steps, seeks, and resets a JSONL fixture in the real lab', async ({ page }) => {
