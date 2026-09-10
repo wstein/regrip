@@ -1,6 +1,7 @@
 import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
+import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync.res.mjs';
 import * as Cube333 from '../domain/Cube333.res.mjs';
 import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
@@ -29,6 +30,10 @@ type CubeEventControllerOptions = {
   solveScramble: ScrambleSolver;
   /** Convert physical hardware facelets into the app's current virtual frame. */
   reframeFacelets?: (facelets: string) => string;
+  /** Adapter-owned body-frame permutation reconciliation for the 3D player. */
+  shouldReconcilePlayer?: (facelets: string) => Promise<boolean>;
+  trackPlayerMove?: (move: string) => void;
+  resetPlayerTracking?: () => void;
   addMove: (move: string) => void;
   setOrientation: (quaternion: { x: number; y: number; z: number; w: number }) => void;
   setPlayerAlgorithm: (algorithm: string) => void;
@@ -47,12 +52,27 @@ type CubeEventControllerOptions = {
 type NonGyroSmartCubeEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>;
 
 export function createCubeEventController(options: CubeEventControllerOptions) {
-  let cubeStateInitialized = false;
+  let playerSyncState = PlayerSync.initial;
+
+  function applyPlayerEffects(effects: PlayerSync.PlayerSyncEffect[]): void {
+    for (const effect of effects) {
+      switch (effect.kind) {
+        case 'setAlgorithm':
+          options.setPlayerAlgorithm(effect.algorithm);
+          break;
+        case 'addMove':
+          options.addMove(effect.move);
+          break;
+      }
+    }
+  }
 
   function reset(): void {
-    cubeStateInitialized = false;
+    const [nextState, effects] = PlayerSync.reset(playerSyncState);
+    playerSyncState = nextState;
     options.timer.reset();
-    options.setPlayerAlgorithm('');
+    options.resetPlayerTracking?.();
+    applyPlayerEffects(effects);
   }
 
   function handleGyro(event: SessionGyroEvent): void {
@@ -74,7 +94,10 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function handleMove(event: Extract<SmartCubeEvent, { type: 'MOVE' }>): void {
     options.timer.onMove(event);
-    options.addMove(event.move);
+    options.trackPlayerMove?.(event.move);
+    const [nextState, effects] = PlayerSync.move(playerSyncState, event.move);
+    playerSyncState = nextState;
+    applyPlayerEffects(effects);
     if (event.serial !== undefined) {
       options.showInfo('eventSerial');
       options.setInfo('eventSerial', String(event.serial));
@@ -101,13 +124,26 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       options.setInfo('cubieState', formatCubieState(state));
     }
     options.onFacelets?.({ facelets, state });
-    const cube = Cube333.fromFacelets(facelets);
+    const [nextState, syncGeneration] = PlayerSync.beginSnapshot(playerSyncState);
+    playerSyncState = nextState;
+
+    // TwistyPlayer is a body-frame renderer, so its setup snapshot must use
+    // the raw protocol facelets just as its subsequent MOVE events do. The
+    // reframed string above remains the canonical solver-facing export state.
+    const cube = Cube333.fromFacelets(event.facelets);
     const solved = (options.solveDetector ?? defaultSolveDetector)(cube);
     if (solved) options.onSolved();
-    if (cubeStateInitialized) return;
-
-    cubeStateInitialized = true;
-    options.setPlayerAlgorithm(solved ? '' : await options.solveScramble(facelets));
+    const needsReconcile = await (options.shouldReconcilePlayer?.(event.facelets) ?? true);
+    if (!needsReconcile) {
+      const [confirmedState, effects] = PlayerSync.confirm(playerSyncState, syncGeneration);
+      playerSyncState = confirmedState;
+      applyPlayerEffects(effects);
+      return;
+    }
+    const algorithm = solved ? '' : await options.solveScramble(event.facelets);
+    const [resolvedState, effects] = PlayerSync.resolve(playerSyncState, syncGeneration, algorithm);
+    playerSyncState = resolvedState;
+    applyPlayerEffects(effects);
   }
 
   function handleHardware(event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>): void {

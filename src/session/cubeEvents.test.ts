@@ -26,6 +26,21 @@ function makeController() {
   return { controller, setOrientation };
 }
 
+const solvedFacelets = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((complete) => {
+    resolve = complete;
+  });
+  return { promise, resolve };
+}
+
+async function flushAsyncWork(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
 describe('cube event gyro bridge', () => {
   it('uses the session-provided stabilized orientation', () => {
     const { controller, setOrientation } = makeController();
@@ -81,5 +96,109 @@ describe('cube event gyro bridge', () => {
     });
 
     expect(moves).toEqual(['U', "R'"]);
+  });
+
+  it('buffers moves while an authoritative facelet snapshot is being solved', async () => {
+    const solving = deferred<string>();
+    const calls: string[] = [];
+    const controller = createCubeEventController({
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
+      solveScramble: () => solving.promise,
+      addMove: (move) => calls.push(`move:${move}`),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: (algorithm) => calls.push(`algorithm:${algorithm}`),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+      solveDetector: () => false,
+    });
+
+    controller.handle({ type: 'FACELETS', timestamp: 1, facelets: solvedFacelets });
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 2,
+      face: 1,
+      direction: 0,
+      move: 'R',
+      localTimestamp: 2,
+      cubeTimestamp: null,
+    });
+    expect(calls).toEqual([]);
+
+    solving.resolve('F U');
+    await flushAsyncWork();
+    expect(calls).toEqual(['algorithm:F U', 'move:R']);
+  });
+
+  it('lets the newest facelet snapshot supersede an older pending solve', async () => {
+    const first = deferred<string>();
+    const second = deferred<string>();
+    const solves = [first, second];
+    const calls: string[] = [];
+    const controller = createCubeEventController({
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
+      solveScramble: () => solves.shift()!.promise,
+      addMove: (move) => calls.push(`move:${move}`),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: (algorithm) => calls.push(`algorithm:${algorithm}`),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+      solveDetector: () => false,
+    });
+
+    controller.handle({ type: 'FACELETS', timestamp: 1, facelets: solvedFacelets });
+    controller.handle({ type: 'FACELETS', timestamp: 2, facelets: solvedFacelets });
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 3,
+      face: 0,
+      direction: 0,
+      move: 'U',
+      localTimestamp: 3,
+      cubeTimestamp: null,
+    });
+
+    first.resolve('ignored');
+    await flushAsyncWork();
+    expect(calls).toEqual([]);
+    second.resolve('R2');
+    await flushAsyncWork();
+    expect(calls).toEqual(['algorithm:R2', 'move:U']);
+  });
+
+  it('releases queued moves without solving when the body-frame snapshot matches', async () => {
+    const calls: string[] = [];
+    const solveScramble = vi.fn(async () => 'unneeded');
+    const controller = createCubeEventController({
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
+      solveScramble,
+      shouldReconcilePlayer: async () => false,
+      addMove: (move) => calls.push(`move:${move}`),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: (algorithm) => calls.push(`algorithm:${algorithm}`),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+      solveDetector: () => false,
+    });
+
+    controller.handle({ type: 'FACELETS', timestamp: 1, facelets: solvedFacelets });
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 2,
+      face: 1,
+      direction: 0,
+      move: 'R',
+      localTimestamp: 2,
+      cubeTimestamp: null,
+    });
+    await flushAsyncWork();
+
+    expect(solveScramble).not.toHaveBeenCalled();
+    expect(calls).toEqual(['move:R']);
   });
 });

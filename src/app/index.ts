@@ -3,7 +3,9 @@ import './style.css';
 import * as THREE from 'three';
 
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
+import { createPatternReconciler } from '../adapters/cubing/patternReconciler';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
+import { createTwistyPlayerSync } from '../adapters/cubing/twistyPlayerSync';
 import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
 import type { OrientationIndicatorColors } from '../adapters/three/orientationIndicator';
 import * as infoPanel from './infoPanel';
@@ -37,6 +39,8 @@ const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
 let sceneRenderer: SceneRenderer | undefined;
+const playerSync = createTwistyPlayerSync(twistyPlayer, () => sceneRenderer?.requestRender());
+const playerPatterns = createPatternReconciler();
 // Replaced with `undefined` by Vite in production, allowing Rollup to exclude
 // the replay transport and panel from the published lab bundle.
 const replay = import.meta.env.DEV ? window.__smartcubeReplay : undefined;
@@ -55,7 +59,7 @@ const liveLog = createLiveLog({
   },
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
-    twistyPlayer.alg = algorithm;
+    playerSync.setAlgorithm(algorithm);
     infoPanel.setDetectedMoves(algorithm);
   },
 });
@@ -99,7 +103,7 @@ infoPanel.on('reset-state', 'click', async () => {
   }
   try {
     await session.sendCommand({ type: 'REQUEST_RESET' });
-    twistyPlayer.alg = '';
+    playerSync.setAlgorithm('');
     infoPanel.showFeedback('Cube state reset requested.');
   } catch (error) {
     infoPanel.showFeedback(
@@ -130,8 +134,11 @@ const cubeEvents = createCubeEventController({
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
   reframeFacelets: (facelets) => solverFrame.reframeFacelets(facelets),
+  shouldReconcilePlayer: (facelets) => playerPatterns.observeSnapshot(facelets),
+  trackPlayerMove: (move) => playerPatterns.applyMove(move),
+  resetPlayerTracking: () => playerPatterns.reset(),
   addMove: (move) => {
-    twistyPlayer.experimentalAddMove(move, { cancel: false });
+    playerSync.addMove(move);
     infoPanel.appendDetectedMove(solverFrame.translate(move));
     sceneRenderer?.requestRender();
   },
@@ -140,15 +147,12 @@ const cubeEvents = createCubeEventController({
     sceneRenderer?.requestRender();
   },
   setPlayerAlgorithm: (algorithm) => {
-    twistyPlayer.alg = algorithm;
-    sceneRenderer?.requestRender();
+    playerSync.setAlgorithm(algorithm);
   },
   setInfo: infoPanel.setInfo,
   showInfo: infoPanel.showInfo,
   onSolved: () => {
     timerController.dispatch('solved');
-    twistyPlayer.alg = '';
-    sceneRenderer?.requestRender();
   },
   onDisconnect: () => {
     // The session owns teardown and publishes the resulting disconnected state.
