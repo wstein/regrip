@@ -1,9 +1,24 @@
 /** Runtime-configurable session features. Nested objects deliberately mirror
  * the profile JSON so the normal profile merge and provenance rules apply. */
-export type CustomTriggerSpec = {
+export type MoveBackTriggerSpec = {
   kind: 'moveBack';
   windowMs: number;
 };
+
+/** A shake gesture over the calibrated gyro stream. Params default to
+ * `ShakeTrigger.defaults`; a profile or host overrides only what it needs. */
+export type ShakeTriggerSpec = {
+  kind: 'shake';
+  minStepAngleDeg?: number;
+  minSteps?: number;
+  minReversals?: number;
+  maxSampleGapMs?: number;
+  burstWindowMs?: number;
+  faceGuardMs?: number;
+  cooldownMs?: number;
+};
+
+export type CustomTriggerSpec = MoveBackTriggerSpec | ShakeTriggerSpec;
 
 export type SessionFeatures = {
   stabilizer: {
@@ -55,6 +70,10 @@ export const featurePresets: Record<'all' | 'minimal' | 'none', SessionFeatures>
   all: {
     ...defaultSessionFeatures,
     regrip: { ...defaultSessionFeatures.regrip, enabled: true },
+    customTrigger: {
+      enabled: true,
+      triggers: [{ kind: 'moveBack', windowMs: 300 }, { kind: 'shake' }],
+    },
   },
   minimal: {
     ...defaultSessionFeatures,

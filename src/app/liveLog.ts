@@ -35,6 +35,8 @@ export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCatego
       return ['REGRIP', `${event.notationToken} (${event.sensorFrameToken})`];
     case 'CUSTOM_TRIGGER':
       return ['TRIGGER', event.move];
+    case 'SHAKE':
+      return ['TRIGGER', `shake · ${event.steps} steps, ${event.reversals} reversals`];
     case 'BATTERY':
       return ['EVENT', `battery ${event.batteryLevel}%`];
     case 'HARDWARE':
@@ -62,6 +64,8 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
     return ['REGRIP', `${String(data.notationToken)} (${String(data.sensorFrameToken)})`];
   }
   if (entry.type === 'custom_trigger') return ['TRIGGER', String(data.move)];
+  if (entry.type === 'shake_trigger')
+    return ['TRIGGER', `shake · ${String(data.steps)} steps, ${String(data.reversals)} reversals`];
   if (entry.type === 'gyro_stabilizer') return ['GYRO', 'stabilized gyro'];
   if (entry.type === 'session_status') return ['STATE', String(data.status)];
   if (entry.type === 'log_started') return ['STATE', 'recording started'];

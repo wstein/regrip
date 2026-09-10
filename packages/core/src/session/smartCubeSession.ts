@@ -10,6 +10,7 @@ import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
+import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
 import {
   disconnectConnection,
@@ -44,6 +45,15 @@ export type CustomTriggerEvent = {
   move: string;
 };
 
+export type ShakeTriggerEvent = {
+  type: 'SHAKE';
+  /** Time of the final reversal-bearing gyro sample; emission lags by the guard. */
+  timestamp: number;
+  steps: number;
+  reversals: number;
+  spanMs: number;
+};
+
 export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
@@ -57,7 +67,8 @@ export type SmartCubeSessionEvent =
   | Exclude<SmartCubeEvent, { type: 'GYRO' }>
   | SessionGyroEvent
   | VirtualRegripEvent
-  | CustomTriggerEvent;
+  | CustomTriggerEvent
+  | ShakeTriggerEvent;
 
 type SessionEventType = SmartCubeSessionEvent['type'];
 type SessionEventOf<T extends SessionEventType> = Extract<SmartCubeSessionEvent, { type: T }>;
@@ -162,14 +173,23 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
   let regripState = RegripDetector.initial;
   let moveBackState = MoveBackTrigger.initial;
+  let shakeState = ShakeTrigger.initial;
 
   function moveBackWindow(features: SessionFeatures): number | undefined {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
   }
 
+  function shakeConfig(features: SessionFeatures): ShakeTrigger.ShakeTriggerConfig | undefined {
+    const spec = features.customTrigger.triggers.find((trigger) => trigger.kind === 'shake');
+    if (!spec) return undefined;
+    const { kind: _kind, ...overrides } = spec;
+    return { ...ShakeTrigger.defaults, ...overrides };
+  }
+
   function resetFeatureDetectors(): void {
     regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
+    shakeState = ShakeTrigger.initial;
   }
 
   function observeMoveBack(move: string, timestamp: number): string | undefined {
@@ -178,6 +198,20 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     });
     moveBackState = nextState;
     return trigger;
+  }
+
+  function observeShake(
+    orientation: { x: number; y: number; z: number; w: number },
+    timestamp: number,
+    config: ShakeTrigger.ShakeTriggerConfig,
+  ): ShakeTrigger.ShakeDetection | undefined {
+    const [nextState, detection] = ShakeTrigger.observe(shakeState, timestamp, orientation, config);
+    shakeState = nextState;
+    return detection;
+  }
+
+  function observeShakeMove(timestamp: number, config: ShakeTrigger.ShakeTriggerConfig): void {
+    shakeState = ShakeTrigger.observeMove(shakeState, timestamp, config);
   }
 
   function observeRegrip(orientation: { x: number; y: number; z: number; w: number }) {
@@ -238,6 +272,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       moveBackWindow(state.features) !== undefined
         ? observeMoveBack(event.move, event.timestamp)
         : undefined;
+    const shakeCfg = state.features.customTrigger.enabled ? shakeConfig(state.features) : undefined;
+    const shake =
+      shakeCfg && calibrated ? observeShake(calibrated, event.timestamp, shakeCfg) : undefined;
+    if (shakeCfg && event.type === 'MOVE') observeShakeMove(event.timestamp, shakeCfg);
     if (publishGyro) setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
       const profile = resolveSessionProfile({
@@ -271,6 +309,17 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
           type: 'CUSTOM_TRIGGER',
           timestamp: event.timestamp,
           move: customTrigger,
+        }),
+      );
+    }
+    if (shake) {
+      eventListeners.forEach((listener) =>
+        listener({
+          type: 'SHAKE',
+          timestamp: shake.at,
+          steps: shake.steps,
+          reversals: shake.reversals,
+          spanMs: shake.spanMs,
         }),
       );
     }
@@ -323,6 +372,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     gyroState = GyroPipeline.reset(gyroState);
     regripState = RegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
+    shakeState = ShakeTrigger.initial;
   };
 
   async function connect(): Promise<void> {

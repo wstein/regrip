@@ -268,6 +268,79 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('emits a SHAKE trigger from an oscillating gyro burst, once the guard elapses', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: {
+        stabilizer: { enabled: false },
+        customTrigger: { enabled: true, triggers: [{ kind: 'shake' }] },
+      },
+    });
+    const shakes: SmartCubeSessionEvent[] = [];
+    session.on('SHAKE', (event) => shakes.push(event));
+    const pose = (degrees: number) =>
+      Quaternion.fromEuler({ x: 0, y: Quaternion.degreesToRadians(degrees), z: 0 });
+
+    await session.connect();
+    // Calibration sample, then forward / back / forward / back.
+    for (const [timestamp, degrees] of [
+      [0, 0],
+      [60, 15],
+      [120, -15],
+      [180, 15],
+      [240, -15],
+    ] as const) {
+      events$.next({ type: 'GYRO', timestamp, quaternion: pose(degrees) });
+    }
+    expect(shakes).toEqual([]);
+
+    // A later sample past the face-turn guard releases the held candidate.
+    events$.next({ type: 'GYRO', timestamp: 700, quaternion: pose(-15) });
+    expect(shakes).toMatchObject([{ type: 'SHAKE', timestamp: 240, steps: 4, reversals: 3 }]);
+
+    await session.disconnect();
+  });
+
+  it('does not emit SHAKE when a face turn lands inside the guard', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: {
+        stabilizer: { enabled: false },
+        customTrigger: { enabled: true, triggers: [{ kind: 'shake' }] },
+      },
+    });
+    const shakes: SmartCubeSessionEvent[] = [];
+    session.on('SHAKE', (event) => shakes.push(event));
+    const pose = (degrees: number) =>
+      Quaternion.fromEuler({ x: 0, y: Quaternion.degreesToRadians(degrees), z: 0 });
+
+    await session.connect();
+    for (const [timestamp, degrees] of [
+      [0, 0],
+      [60, 15],
+      [120, -15],
+      [180, 15],
+      [240, -15],
+    ] as const) {
+      events$.next({ type: 'GYRO', timestamp, quaternion: pose(degrees) });
+    }
+    events$.next({
+      type: 'MOVE',
+      timestamp: 300,
+      move: 'R',
+      face: 1,
+      direction: 0,
+      localTimestamp: 300,
+      cubeTimestamp: null,
+    });
+    events$.next({ type: 'GYRO', timestamp: 700, quaternion: pose(-15) });
+
+    expect(shakes).toEqual([]);
+    await session.disconnect();
+  });
+
   it('reconfigures features at runtime and resets affected detectors', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({ connect: async () => connection(events$) });

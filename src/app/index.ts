@@ -183,6 +183,11 @@ sessionSignals.event.subscribe((event) => {
     infoPanel.showFeedback(`Custom trigger detected: ${solverMove}`);
     return;
   }
+  if (event.type === 'SHAKE') {
+    eventLog.record('shake_trigger', { ...event });
+    infoPanel.showFeedback(`Shake detected: ${event.steps} steps, ${event.reversals} reversals`);
+    return;
+  }
   eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });
