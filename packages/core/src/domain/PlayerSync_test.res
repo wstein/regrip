@@ -31,6 +31,18 @@ describe("PlayerSync", () => {
     ->Expect.toEqual([PlayerSync.SetAlgorithm({algorithm: "F"}), PlayerSync.AddMove({move: "D"})])
   })
 
+  test("retains buffered moves when a newer matching snapshot supersedes a solve", t => {
+    let (first, _) = PlayerSync.beginSnapshot(PlayerSync.initial)
+    let (withR, _) = PlayerSync.move(first, "R")
+    let (second, secondGeneration) = PlayerSync.beginSnapshot(withR)
+    let (withU, _) = PlayerSync.move(second, "U")
+    let (_, effects) = PlayerSync.confirm(withU, secondGeneration)
+
+    t
+    ->expect(effects)
+    ->Expect.toEqual([PlayerSync.AddMove({move: "R"}), PlayerSync.AddMove({move: "U"})])
+  })
+
   test("applies moves immediately outside a snapshot solve", t => {
     let (_, effects) = PlayerSync.move(PlayerSync.initial, "L2")
     t->expect(effects)->Expect.toEqual([PlayerSync.AddMove({move: "L2"})])
