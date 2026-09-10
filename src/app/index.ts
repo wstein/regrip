@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
-import { startSceneRenderLoop } from '../adapters/three/sceneView';
+import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
 import type { OrientationIndicatorColors } from '../adapters/three/orientationIndicator';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
@@ -36,6 +36,7 @@ mountFullscreenToggle();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
+let sceneRenderer: SceneRenderer | undefined;
 // Replaced with `undefined` by Vite in production, allowing Rollup to exclude
 // the replay transport and panel from the published lab bundle.
 const replay = import.meta.env.DEV ? window.__smartcubeReplay : undefined;
@@ -86,9 +87,8 @@ function syncVirtualFrameOrientation(): void {
   virtualFrameColors.x = faceColors[faces.right]!;
   virtualFrameColors.y = faceColors[faces.up]!;
   virtualFrameColors.z = faceColors[faces.front]!;
+  sceneRenderer?.requestRender();
 }
-
-let renderLoopStarted = false;
 
 infoPanel.on('reset-state', 'click', async () => {
   if (!window.confirm("Reset the cube state? This clears the cube's stored state.")) return;
@@ -133,17 +133,22 @@ const cubeEvents = createCubeEventController({
   addMove: (move) => {
     twistyPlayer.experimentalAddMove(move, { cancel: false });
     infoPanel.appendDetectedMove(solverFrame.translate(move));
+    sceneRenderer?.requestRender();
   },
-  setOrientation: (quaternion) =>
-    cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+  setOrientation: (quaternion) => {
+    cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+    sceneRenderer?.requestRender();
+  },
   setPlayerAlgorithm: (algorithm) => {
     twistyPlayer.alg = algorithm;
+    sceneRenderer?.requestRender();
   },
   setInfo: infoPanel.setInfo,
   showInfo: infoPanel.showInfo,
   onSolved: () => {
     timerController.dispatch('solved');
     twistyPlayer.alg = '';
+    sceneRenderer?.requestRender();
   },
   onDisconnect: () => {
     // The session owns teardown and publishes the resulting disconnected state.
@@ -211,6 +216,7 @@ sessionSignals.state.subscribe((state) => {
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
+    sceneRenderer?.setActive(false);
     cubeExportSource = undefined;
     solverFrame.reset();
     syncVirtualFrameOrientation();
@@ -220,15 +226,21 @@ sessionSignals.state.subscribe((state) => {
   }
   if (state.status === 'connected' && state.connection) {
     const connection = state.connection;
-    if (!renderLoopStarted) {
-      renderLoopStarted = true;
-      startSceneRenderLoop(
+    if (!sceneRenderer) {
+      sceneRenderer = startSceneRenderLoop(
         twistyPlayer,
         cubeQuaternion,
         virtualFrameQuaternion,
         virtualFrameColors,
+        {
+          onContextLost: () =>
+            infoPanel.showFeedback(
+              '3D preview paused after a GPU reset. Waiting for WebGL recovery…',
+            ),
+          onContextRestored: () => infoPanel.showFeedback('3D preview restored.'),
+        },
       );
-    }
+    } else sceneRenderer.setActive(true);
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
@@ -249,6 +261,7 @@ sessionSignals.state.subscribe((state) => {
     return;
   }
   if (state.status === 'disconnected') {
+    sceneRenderer?.setActive(false);
     cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
@@ -260,6 +273,7 @@ sessionSignals.state.subscribe((state) => {
     return;
   }
   if (state.status === 'error') {
+    sceneRenderer?.setActive(false);
     cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
