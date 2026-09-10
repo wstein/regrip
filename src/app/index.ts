@@ -173,8 +173,9 @@ sessionSignals.event.subscribe((event) => {
   if (event.type === 'REGRIP') {
     // World gyro only detects this event; Body→Solver integer permutations,
     // never quaternions, translate BLE URFDLB moves and facelets for the user.
-    eventLog.record('virtual_regrip', event);
-    infoPanel.appendDetectedMove(event.notationToken);
+    const solverToken = solverFrame.solverToken(event.notationToken);
+    eventLog.record('virtual_regrip', { ...event, solverToken });
+    infoPanel.appendDetectedMove(solverToken);
     solverFrame.applyRegrip(event.notationToken);
     syncVirtualFrameOrientation();
     return;

@@ -15,5 +15,7 @@ let applyRegrip: (t, CubeNotation.regripToken) => unit
 let translate: (t, string) => string
 let orientation: t => orientation
 let solverFaceForBody: (t, string) => string
+/** Re-express a body-local x/y/z regrip token in the current solver frame. */
+let solverToken: (t, CubeNotation.regripToken) => CubeNotation.regripToken
 /** Re-express a body Kociemba URFDLB facelet string in this logical frame. */
 let reframeFacelets: (t, string) => string

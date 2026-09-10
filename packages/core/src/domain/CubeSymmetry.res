@@ -10,6 +10,11 @@ let generators = [
   Quaternion.fromEuler({x: 0., y: 0., z: quarterTurn}),
 ]
 
+// A virtual regrip advances exactly one of these six generators. Keep this
+// separate from `poses`: the latter also contains half and compound rotations
+// used by orientation stabilization.
+let quarterTurnGenerators = [...generators, ...generators->Array.map(Quaternion.conjugate)]
+
 let samePose = (a: Quaternion.t, b: Quaternion.t): bool => Quaternion.angle(a, b) < 0.00001
 
 let poses = {
@@ -46,3 +51,12 @@ let nearest = (
   | _ => best
   }
 }
+
+let nearestQuarterTurn = (raw: Quaternion.t): Quaternion.t =>
+  quarterTurnGenerators->Array.reduce(generators->Array.getUnsafe(0), (best, candidate) =>
+    if Quaternion.angle(raw, candidate) < Quaternion.angle(raw, best) {
+      candidate
+    } else {
+      best
+    }
+  )

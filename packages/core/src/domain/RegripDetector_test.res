@@ -45,6 +45,21 @@ describe("RegripDetector", () => {
     t->expect(observation.notationToken)->Expect.toBe(CubeNotation.XPrime)
   })
 
+  test("projects equivalent quaternion signs onto the same cardinal regrip", t => {
+    let positive = rotation(~x=66.)
+    // q and -q encode exactly the same physical orientation. The cardinal
+    // projection must therefore choose the same axis and polarity for both.
+    let negative: Quaternion.t = {
+      x: -.positive.x,
+      y: -.positive.y,
+      z: -.positive.z,
+      w: -.positive.w,
+    }
+    let (_, positiveObservation) = RegripDetector.step(RegripDetector.initial, positive)
+    let (_, negativeObservation) = RegripDetector.step(RegripDetector.initial, negative)
+    t->expect(negativeObservation)->Expect.toEqual(positiveObservation)
+  })
+
   test("rebases to cardinal steps during a continuous full turn", t => {
     let detector = make()
     let tokens =

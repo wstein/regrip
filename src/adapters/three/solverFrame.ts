@@ -20,6 +20,8 @@ export function createSolverFrame() {
   const applyRegrip = (notationToken: RegripToken): void =>
     VirtualCubeFrame.applyRegrip(frame, notationToken);
   const translate = (move: string): string => VirtualCubeFrame.translate(frame, move);
+  const solverToken = (bodyToken: RegripToken): RegripToken =>
+    VirtualCubeFrame.solverToken(frame, bodyToken);
 
   /** Body directions occupied by the user-facing logical R/U/F axes. */
   const orientation = (): SolverOrientation => {
@@ -39,5 +41,5 @@ export function createSolverFrame() {
   const reframeFacelets = (facelets: string): string =>
     VirtualCubeFrame.reframeFacelets(frame, facelets);
 
-  return { applyRegrip, orientation, reframeFacelets, reset, translate };
+  return { applyRegrip, orientation, reframeFacelets, reset, solverToken, translate };
 }

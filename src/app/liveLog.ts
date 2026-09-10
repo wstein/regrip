@@ -61,7 +61,9 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
     return ['EVENT', typeof eventType === 'string' ? eventType.toLowerCase() : 'cube event'];
   }
   if (entry.type === 'virtual_regrip') {
-    return ['REGRIP', `${String(data.notationToken)} (${String(data.sensorFrameToken)})`];
+    const solverToken =
+      typeof data.solverToken === 'string' ? data.solverToken : data.notationToken;
+    return ['REGRIP', `${String(solverToken)} (${String(data.sensorFrameToken)})`];
   }
   if (entry.type === 'custom_trigger') return ['TRIGGER', String(data.move)];
   if (entry.type === 'shake_trigger')

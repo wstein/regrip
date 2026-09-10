@@ -6,3 +6,6 @@ let poses: array<Quaternion.t>
  * pose is closer by more than `marginRad`, preventing boundary chatter.
  */
 let nearest: (Quaternion.t, option<Quaternion.t>, float) => Quaternion.t
+
+/** Select the closest signed x/y/z quarter-turn generator for a regrip step. */
+let nearestQuarterTurn: Quaternion.t => Quaternion.t

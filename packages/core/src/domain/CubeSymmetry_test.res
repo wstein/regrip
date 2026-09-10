@@ -30,4 +30,13 @@ describe("CubeSymmetry", () => {
     expectSamePose(t, nearBoundary, identity)
     expectSamePose(t, pastBoundary, x90)
   })
+
+  test("projects regrip deltas onto signed quarter-turn generators", t => {
+    let x90 = xRotation(90.)
+    let x180 = xRotation(180.)
+    expectSamePose(t, CubeSymmetry.nearestQuarterTurn(x90), x90)
+    // A full cube symmetry may be a half turn; a regrip ratchet advances one
+    // exact quarter at a time, so it must still choose a quarter generator.
+    expectSamePose(t, CubeSymmetry.nearestQuarterTurn(x180), x90)
+  })
 })

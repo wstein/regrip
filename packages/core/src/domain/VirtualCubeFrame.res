@@ -115,6 +115,41 @@ let solverFaceForBody = (frame: t, bodyFace: string): string => {
   }
 }
 
+/**
+ * Re-express a body-local whole-cube rotation in solver notation. Read this
+ * before `applyRegrip`: the incoming token describes the previous body frame.
+ */
+let solverToken = (frame: t, bodyToken: CubeNotation.regripToken): CubeNotation.regripToken => {
+  let (bodyFace, halfTurn) = switch bodyToken {
+  | CubeNotation.XTurn => ("R", false)
+  | CubeNotation.XPrime => ("L", false)
+  | CubeNotation.XDouble => ("R", true)
+  | CubeNotation.YTurn => ("U", false)
+  | CubeNotation.YPrime => ("D", false)
+  | CubeNotation.YDouble => ("U", true)
+  | CubeNotation.ZTurn => ("F", false)
+  | CubeNotation.ZPrime => ("B", false)
+  | CubeNotation.ZDouble => ("F", true)
+  }
+  let solverFace = solverFaceForBody(frame, bodyFace)
+  let (axis, turn) = switch solverFace {
+  | "R" => (CubeNotation.X, CubeNotation.Clockwise)
+  | "L" => (CubeNotation.X, CubeNotation.CounterClockwise)
+  | "U" => (CubeNotation.Y, CubeNotation.Clockwise)
+  | "D" => (CubeNotation.Y, CubeNotation.CounterClockwise)
+  | "F" => (CubeNotation.Z, CubeNotation.Clockwise)
+  | _ => (CubeNotation.Z, CubeNotation.CounterClockwise)
+  }
+  CubeNotation.token(
+    axis,
+    if halfTurn {
+      CubeNotation.Half
+    } else {
+      turn
+    },
+  )
+}
+
 /** Re-express body Kociemba facelets in this solver regrip frame. */
 let reframeFacelets = (frame: t, facelets: string): string =>
   if String.length(facelets) != 54 {

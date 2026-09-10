@@ -47,9 +47,9 @@ describe('live trace event classification', () => {
       describeLogEntry({
         recordedAt: '2026-09-09T10:00:00.000Z',
         type: 'virtual_regrip',
-        data: { notationToken: "y'", sensorFrameToken: 'y' },
+        data: { notationToken: "y'", sensorFrameToken: 'y', solverToken: 'z' },
       }),
-    ).toEqual(['REGRIP', "y' (y)"]);
+    ).toEqual(['REGRIP', 'z (y)']);
     expect(
       describeLogEntry({
         recordedAt: '2026-09-09T10:00:00.000Z',

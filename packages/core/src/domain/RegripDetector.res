@@ -112,22 +112,20 @@ let step = (state: state, current: Quaternion.t, ~config=defaults): (
   ) {
     (state, None)
   } else {
-    let cardinal = CubeSymmetry.nearest(delta, None, 0.)
-    if Quaternion.angle(Quaternion.identity, cardinal) < 0.00001 {
-      (state, None)
-    } else {
-      let (axis, positive) = axisAndPolarity(delta)
+    // `cardinal` is an exact signed quarter generator. Both the emitted
+    // label and ratchet must use it: q and -q represent the same pose.
+    let cardinal = CubeSymmetry.nearestQuarterTurn(delta)
+    let (axis, positive) = axisAndPolarity(cardinal)
 
-      // Project to an exact cardinal quarter turn rather than using the
-      // threshold packet, so a continuous rotation yields four steps.
-      let nextState = Quaternion.multiply(state, quarter(axis, positive))
-      (
-        nextState,
-        Some({
-          sensorFrameToken: sensorToken(axis, positive),
-          notationToken: notationToken(axis, positive),
-        }),
-      )
-    }
+    // Project to one exact cardinal quarter rather than using the threshold
+    // packet, so a continuous rotation yields four steps.
+    let nextState = Quaternion.multiply(state, quarter(axis, positive))
+    (
+      nextState,
+      Some({
+        sensorFrameToken: sensorToken(axis, positive),
+        notationToken: notationToken(axis, positive),
+      }),
+    )
   }
 }
