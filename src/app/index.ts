@@ -170,7 +170,6 @@ replay?.subscribeCursor(() => timerController.refresh());
 const cubeEvents = createCubeEventController({
   timer: timerController,
   solveScramble: createCubingScrambleSolver(),
-  reframeFacelets: (facelets) => solverFrame.reframeFacelets(facelets),
   shouldReconcilePlayer: (facelets) => playerPatterns.observeSnapshot(facelets),
   trackPlayerMove: (move) => playerPatterns.applyMove(move),
   resetPlayerTracking: () => playerPatterns.reset(),

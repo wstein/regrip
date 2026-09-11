@@ -27,8 +27,6 @@ type CubeEventControllerOptions = {
   homeOrientation?: Quaternion.Quaternion;
   timer: TimerController;
   solveScramble: ScrambleSolver;
-  /** Convert physical hardware facelets into the app's current virtual frame. */
-  reframeFacelets?: (facelets: string) => string;
   /** Adapter-owned body-frame permutation reconciliation for the 3D player. */
   shouldReconcilePlayer?: (facelets: string) => Promise<boolean>;
   trackPlayerMove?: (move: string) => void;
@@ -58,7 +56,9 @@ type NonGyroSmartCubeEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>;
 export function createCubeEventController(options: CubeEventControllerOptions) {
   let playerSyncState = PlayerSync.initial;
   let playerUntrusted = false;
-  let displayedPattern: CubeFacelets.PatternData | undefined;
+  // Copy/export state is always normalized to the protocol's canonical URFDLB
+  // frame, matching the body-frame 3D player and incoming FACELETS snapshots.
+  let normalizedPattern: CubeFacelets.PatternData | undefined;
 
   function applyPlayerEffects(effects: PlayerSync.PlayerSyncEffect[]): void {
     for (const effect of effects) {
@@ -77,7 +77,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     const [nextState, effects] = PlayerSync.reset(playerSyncState);
     playerSyncState = nextState;
     playerUntrusted = false;
-    displayedPattern = undefined;
+    normalizedPattern = undefined;
     options.timer.reset();
     options.resetPlayerTracking?.();
     applyPlayerEffects(effects);
@@ -104,9 +104,9 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     options.timer.onMove(event);
     const displayedMove = options.projectMove?.(event.move) ?? event.move;
     options.recordMove?.(displayedMove);
-    const nextPattern = displayedPattern && CubeFacelets.applyMove(displayedPattern, displayedMove);
+    const nextPattern = normalizedPattern && CubeFacelets.applyMove(normalizedPattern, event.move);
     if (nextPattern) {
-      displayedPattern = nextPattern;
+      normalizedPattern = nextPattern;
       const state = cubieStateFromPattern(nextPattern);
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatSingmasterCycles(state));
@@ -138,25 +138,19 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       options.showInfo('eventSerial');
       options.setInfo('eventSerial', String(event.serial));
     }
-    const facelets = options.reframeFacelets?.(event.facelets) ?? event.facelets;
-    // Reframe all exports together: body-local CP/CO/EP/EO cannot describe a
-    // solver-frame facelet string after a virtual x/y/z regrip.
-    displayedPattern = patternFromFacelets(facelets);
-    const state = displayedPattern ? cubieStateFromPattern(displayedPattern) : event.state;
+    normalizedPattern = patternFromFacelets(event.facelets);
+    const state = normalizedPattern ? cubieStateFromPattern(normalizedPattern) : event.state;
     if (state) {
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatSingmasterCycles(state));
     }
-    options.onFacelets?.({ facelets, state });
+    options.onFacelets?.({ facelets: event.facelets, state });
     const [nextState, syncGeneration] = PlayerSync.beginSnapshot(playerSyncState);
     playerSyncState = nextState;
     // This packet is authoritative. Moves following it are safe to buffer for
     // its async solve, even when a prior packet gap made the player untrusted.
     playerUntrusted = false;
 
-    // TwistyPlayer is a body-frame renderer, so its setup snapshot must use
-    // the raw protocol facelets just as its subsequent MOVE events do. The
-    // reframed string above remains the canonical solver-facing export state.
     const solved = (options.solveDetector ?? defaultSolveDetector)(event.facelets);
     if (solved) options.onSolved();
     const needsReconcile = await (options.shouldReconcilePlayer?.(event.facelets) ?? true);
@@ -197,7 +191,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function invalidatePlayerState(): void {
     playerUntrusted = true;
-    displayedPattern = undefined;
+    normalizedPattern = undefined;
     playerSyncState = PlayerSync.invalidate(playerSyncState);
     options.invalidatePlayerTracking?.();
   }

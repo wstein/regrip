@@ -307,7 +307,7 @@ describe('cube event gyro bridge', () => {
     expect(detectedMoves).toEqual(['R']);
   });
 
-  it('advances displayed cubie state and export state for each solver-frame move', () => {
+  it('advances normalized cubie state and export state independently of solver-frame notation', () => {
     const cubieStates: string[] = [];
     const exports: string[] = [];
     const controller = createCubeEventController({
@@ -338,7 +338,7 @@ describe('cube event gyro bridge', () => {
       cubeTimestamp: null,
     });
 
-    expect(cubieStates).toEqual(['', '(DFR-,DRB+,UBR-,URF+) (FR,DR,BR,UR)']);
+    expect(cubieStates).toEqual(['', '(UBR,ULB,UFL,URF) (UB,UL,UF,UR)']);
     expect(exports).toHaveLength(2);
     expect(exports[1]).not.toBe(solvedFacelets);
   });
