@@ -46,24 +46,64 @@ function formatMove({ face, turns }: ParsedMove): string {
   }
 }
 
+function suffixForTurns(turns: number): string {
+  return turns === 1 ? '' : turns === 2 ? '2' : "'";
+}
+
+function isOuterFaceMove(move: ParsedMove): move is ParsedMove & { face: Face } {
+  return /^[URFDLB]$/.test(move.face);
+}
+
+const opposingFaces: Readonly<Record<Face, Face>> = {
+  U: 'D',
+  R: 'L',
+  F: 'B',
+  D: 'U',
+  L: 'R',
+  B: 'F',
+};
+
+function sseOpposingSlice(
+  first: ParsedMove | undefined,
+  second: ParsedMove | undefined,
+): string | undefined {
+  if (!first || !second || !isOuterFaceMove(first) || !isOuterFaceMove(second)) return undefined;
+  if (opposingFaces[first.face] !== second.face || inverseTurns(first.turns) !== second.turns) {
+    return undefined;
+  }
+  return `S${first.face}${suffixForTurns(first.turns)}`;
+}
+
 /** Format Regrip's detected Singmaster moves as Superset ENG (SSE) moves. */
 export function formatSseMoves(value: string): string {
-  return value
+  const tokens = value
     .trim()
     .split(/\s+/)
     .filter(Boolean)
-    .map((token) => {
-      const move = parseMove(token);
-      if (!move) return token;
-      const suffix = move.turns === 1 ? '' : move.turns === 2 ? '2' : "'";
-      if (move.face === 'x') return `CR${suffix}`;
-      if (move.face === 'y') return `CU${suffix}`;
-      if (move.face === 'z') return `CF${suffix}`;
-      if (move.face.endsWith('w')) return `T${move.face[0]}${suffix}`;
-      if (isSliceMove(move)) return `${sseMiddleLayer[move.face]}${suffix}`;
-      return `${move.face}${suffix}`;
-    })
-    .join(' ');
+    .map((token) => ({ token, move: parseMove(token) }));
+  const result: string[] = [];
+  for (let index = 0; index < tokens.length; index += 1) {
+    const current = tokens[index]!;
+    const paired = sseOpposingSlice(current.move, tokens[index + 1]?.move);
+    if (current.move && paired) {
+      result.push(paired);
+      index += 1;
+      continue;
+    }
+    if (!current.move) {
+      result.push(current.token);
+      continue;
+    }
+    const suffix = suffixForTurns(current.move.turns);
+    if (current.move.face === 'x') result.push(`CR${suffix}`);
+    else if (current.move.face === 'y') result.push(`CU${suffix}`);
+    else if (current.move.face === 'z') result.push(`CF${suffix}`);
+    else if (current.move.face.endsWith('w')) result.push(`T${current.move.face[0]}${suffix}`);
+    else if (isSliceMove(current.move))
+      result.push(`${sseMiddleLayer[current.move.face]}${suffix}`);
+    else result.push(`${current.move.face}${suffix}`);
+  }
+  return result.join(' ');
 }
 
 function inverseTurns(turns: number): number {

@@ -71,6 +71,26 @@ describe('formatSseMoves', () => {
     expect(formatSseMoves("R Rw U2 Lw' M E' S2 x y' z2")).toBe("R TR U2 TL' ML MD' MF2 CR CU' CF2");
   });
 
+  it('combines opposing outer turns into Superset ENG slice twists', () => {
+    expect(formatSseMoves("U' D B F' D U' L' R F' B")).toBe("SU' SB SD SL' SF'");
+  });
+
+  it('preserves the cube transformation when combining SSE slice twists', async () => {
+    const input = "U' D B F' D U' L' R F' B";
+    const expanded = formatSseMoves(input)
+      .replaceAll("SU'", "U' D")
+      .replaceAll('SB', "B F'")
+      .replaceAll('SD', "D U'")
+      .replaceAll("SL'", "L' R")
+      .replaceAll("SF'", "F' B");
+    const kpuzzle = await cube3x3x3.kpuzzle();
+    expect(
+      kpuzzle
+        .algToTransformation(new Alg(expanded))
+        .isIdentical(kpuzzle.algToTransformation(new Alg(input))),
+    ).toBe(true);
+  });
+
   it('leaves already-compatible and unrecognized tokens intact', () => {
     expect(formatSseMoves("R' unknown F2")).toBe("R' unknown F2");
   });
