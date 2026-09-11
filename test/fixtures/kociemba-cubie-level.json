@@ -7,7 +7,7 @@
       "EP": [8, 1, 2, 3, 11, 5, 6, 7, 4, 9, 10, 0],
       "EO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
-    "display": "(DFR-,DRB+,UBR-,URF+) (FR,DR,BR,UR)"
+    "display": "(DFR+,DRB-,UBR+,URF-) (FR,DR,BR,UR)"
   },
   {
     "name": "F quarter turn",
@@ -17,6 +17,16 @@
       "EP": [0, 9, 2, 3, 4, 8, 6, 7, 1, 5, 10, 11],
       "EO": [0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0]
     },
-    "display": "(UFL+,DLF-,DFR+,URF-) (FL+,DF+,FR+,UF+)"
+    "display": "(UFL-,DLF+,DFR-,URF+) (FL+,DF+,FR+,UF+)"
+  },
+  {
+    "name": "twisted URF/UBR corner swap",
+    "state": {
+      "CP": [3, 5, 2, 0, 4, 1, 6, 7],
+      "CO": [1, 0, 0, 2, 0, 0, 0, 0],
+      "EP": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      "EO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "display": "(UBR-,URF+) (DLF,UFL)"
   }
 ]

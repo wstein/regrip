@@ -44,7 +44,7 @@ describe('cube information formatters', () => {
         EP: [0, 1],
         EO: [0, 0],
       }),
-    ).toBe('(UFL+,URF-) (unavailable)');
+    ).toBe('(UFL-,URF+) (unavailable)');
   });
 
   it.each(kociembaFixtures)('matches Kociemba cubie-level fixture: $name', ({ state, display }) => {

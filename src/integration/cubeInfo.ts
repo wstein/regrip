@@ -70,12 +70,13 @@ function cycles(
 
 /**
  * Singmaster cubie cycle notation projected from Kociemba cubie-level
- * coordinates. `+` denotes o:1 (clockwise) and `-` o:2 (anti-clockwise);
- * unmarked pieces have o:0.
+ * coordinates. A corner cycle follows piece arrows, the inverse direction of
+ * Kociemba's target-slot orientation: o:1 renders `-`, and o:2 renders `+`.
+ * Edge flips are self-inverse and render `+`; unmarked pieces have o:0.
  */
 export function formatSingmasterCycles(state: SmartCubeCubieState): string {
   return [
-    cycles(state.CP, state.CO, corners, ['', '+', '-']),
+    cycles(state.CP, state.CO, corners, ['', '-', '+']),
     cycles(state.EP, state.EO, edges, ['', '+']),
   ]
     .filter(Boolean)

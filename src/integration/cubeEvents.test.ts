@@ -266,7 +266,7 @@ describe('cube event gyro bridge', () => {
       },
     });
 
-    expect(cubieStates).toEqual(['(DFR,URF) (UBR-,ULB+)']);
+    expect(cubieStates).toEqual(['(DFR,URF) (UBR+,ULB-)']);
     expect(exports.at(-1)?.state).toMatchObject({
       CP: [4, 1, 3, 2, 0, 5, 6, 7],
       CO: [0, 0, 2, 1, 0, 0, 0, 0],
