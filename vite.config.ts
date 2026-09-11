@@ -79,6 +79,17 @@ export default defineConfig(async ({ command }) => {
     optimizeDeps: {
       exclude: ['cubing'],
     },
+    // This Git dependency is deliberately aliased to its TypeScript source so
+    // Regrip can type-check its transport boundary. Vite normally ignores all
+    // of node_modules while watching, which leaves a running dev server on a
+    // stale protocol revision after an npm/Bun Git-SHA update.
+    server: {
+      watch: {
+        ignored: (path) =>
+          path.includes('/node_modules/') &&
+          !path.includes('/node_modules/smartcube-web-bluetooth/'),
+      },
+    },
     worker: {
       format: 'es',
       plugins: () => [
