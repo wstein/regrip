@@ -30,19 +30,28 @@ npm run build
 Use `npm run format` to apply ReScript and Prettier formatting, and `npm run docs:api` to preview
 the generated TypeScript API reference.
 
+For an external architecture or visual-product review, generate the curated source bundle with:
+
+```sh
+npx repomix --config repomix.config.json
+```
+
+The ignored `repomix-regrip.xml.txt` output deliberately includes the reusable core under
+`packages/core/src/` as well as the app integrations, while omitting captures and generated files.
+
 ## Project boundaries
 
 Keep dependencies flowing downward:
 
 ```text
-app → adapters → session → domain
+app → integration/adapters → core session → core domain
 ```
 
-- `src/domain/` is pure ReScript and must not depend on browser, Bluetooth, rendering, or session
-  code.
-- `src/session/` owns smart-cube lifecycle and event orchestration.
+- `packages/core/src/domain/` is pure ReScript and must not depend on browser, Bluetooth, rendering,
+  or session code.
+- `packages/core/src/session/` owns portable smart-cube lifecycle and event orchestration.
 - `src/adapters/` integrates optional libraries such as Three.js and cubing.js.
-- `src/app/` owns the demo UI and browser-specific behavior.
+- `src/integration/` applies core events/effects to browser APIs; `src/app/` owns the demo UI.
 
 ESLint enforces the layer boundaries for TypeScript. Add deterministic unit coverage for domain
 and session behavior; include a browser or hardware smoke-test note when changing rendering or
@@ -52,7 +61,7 @@ Bluetooth behavior.
 
 - Use focused conventional commits, for example `fix: correct GoCube battery display`.
 - Explain the user-visible behavior, protocol impact, and verification in the PR description.
-- Do not commit generated `*.res.mjs`, `*.res.d.mts`, `docs/api/`, build output, or device logs.
+- Do not commit generated `*.res.mjs`, `*.gen.ts`, `docs/api/`, build output, or device logs.
 - Update the README or TODO when behavior, architecture, or remaining work changes.
 
 By contributing, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).

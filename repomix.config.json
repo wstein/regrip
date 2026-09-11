@@ -8,7 +8,7 @@
     "style": "xml",
     "filePathStyle": "target-relative",
     "parsableStyle": false,
-    "headerText": "# Smartcube Example — curated handover\n\nThis bundle is intended for architecture analysis in NotebookLM and visual/product review by web-design AI. The app shell is in `index.html` and `src/app/`; reusable behavior is separated into `src/domain/`, `src/session/`, and `src/adapters/`. Device captures, credentials, generated output, and lockfiles are intentionally excluded.\n",
+    "headerText": "# Regrip — curated architecture handover\n\nThis bundle is intended for architecture analysis in NotebookLM and visual/product review by web-design AI. The app shell is in `index.html` and `src/app/`; browser integrations are in `src/integration/` and `src/adapters/`; reusable behavior is in `packages/core/src/domain/`, `packages/core/src/session/`, and `packages/core/src/bindings/`. Device captures, credentials, generated output, and lockfiles are intentionally excluded.\n",
     "fileSummary": true,
     "directoryStructure": true,
     "files": true,
@@ -42,8 +42,10 @@
     "index.html",
     "src/app/**",
     "src/adapters/**",
-    "src/session/**",
-    "src/domain/**"
+    "src/integration/**",
+    "packages/core/src/domain/**",
+    "packages/core/src/session/**",
+    "packages/core/src/bindings/**"
   ],
   "ignore": {
     "useGitignore": true,

@@ -26,6 +26,7 @@ blob-report/
 *.gen.ts
 lib/
 .rescript/
+repomix-regrip.xml.txt
 
 # Editor directories and files
 .vscode/*

@@ -1,0 +1,8 @@
+*.res.mjs
+*.d.mts
+*.gen.ts
+dist/
+dist-ssr/
+docs/api/
+lib/
+repomix-regrip.xml.txt

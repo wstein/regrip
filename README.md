@@ -177,6 +177,19 @@ npm run lint     # Enforce layer import boundaries
 npm run docs:api # Generate TypeDoc to docs/api/
 ```
 
+### Curated architecture bundle
+
+`repomix.config.json` defines the small, review-safe architecture bundle used for NotebookLM and
+visual/product analysis. It includes the app, browser integrations, and reusable core sources while
+excluding device captures, generated output, and lockfiles.
+
+```sh
+npx repomix --config repomix.config.json
+```
+
+This creates the ignored `repomix-regrip.xml.txt` handover file. It is an analysis aid, not a build
+input or a replacement for the generated API reference.
+
 The JSONL replay fixture is deliberately synthetic and redacted. Do not commit unreviewed hardware
 captures: exported logs can contain device and session data.
 
