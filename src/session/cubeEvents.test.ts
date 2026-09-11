@@ -235,4 +235,40 @@ describe('cube event gyro bridge', () => {
     expect(playerMoves).toEqual([]);
     expect(detectedMoves).toEqual(['R']);
   });
+
+  it('advances displayed cubie state and export state for each solver-frame move', () => {
+    const cubieStates: string[] = [];
+    const exports: string[] = [];
+    const controller = createCubeEventController({
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
+      solveScramble: async () => '',
+      shouldReconcilePlayer: async () => false,
+      projectMove: () => 'R',
+      addMove: vi.fn(),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo: (id, value) => {
+        if (id === 'cubieState') cubieStates.push(value);
+      },
+      showInfo: vi.fn(),
+      onFacelets: (source) => exports.push(source.facelets),
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+    });
+
+    controller.handle({ type: 'FACELETS', timestamp: 1, facelets: solvedFacelets });
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 2,
+      face: 0,
+      direction: 0,
+      move: 'U',
+      localTimestamp: 2,
+      cubeTimestamp: null,
+    });
+
+    expect(cubieStates).toEqual(['', '(DFR-,DRB+,UFL-,URF+) (FR,DF,BL,UF)']);
+    expect(exports).toHaveLength(2);
+    expect(exports[1]).not.toBe(solvedFacelets);
+  });
 });

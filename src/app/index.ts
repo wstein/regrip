@@ -138,11 +138,12 @@ const cubeEvents = createCubeEventController({
   trackPlayerMove: (move) => playerPatterns.applyMove(move),
   resetPlayerTracking: () => playerPatterns.reset(),
   invalidatePlayerTracking: () => playerPatterns.reset(),
+  projectMove: (move) => solverFrame.translate(move),
   addMove: (move) => {
     playerSync.addMove(move);
   },
   recordMove: (move) => {
-    infoPanel.appendDetectedMove(solverFrame.translate(move));
+    infoPanel.appendDetectedMove(move);
   },
   setOrientation: (quaternion) => {
     cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -392,6 +393,9 @@ infoPanel.on('copy-spaced-facelets', 'click', () =>
   copyCubeExport('spaced-facelets', 'Spaced facelets'),
 );
 infoPanel.on('copy-singmaster', 'click', () => copyCubeExport('singmaster', 'Singmaster state'));
+infoPanel.on('copy-cubie-coordinates', 'click', () =>
+  copyCubeExport('cubie-coordinates', 'CP / CO / EP / EO'),
+);
 infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 token'));
 
 infoPanel.on('detectedMoves', 'input', () => infoPanel.syncDetectedMoveCount());

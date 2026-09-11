@@ -13,15 +13,18 @@ export type ScrambleSolver = (facelets: string) => Promise<string>;
 export type SolveDetector = (cube: Cube333.Cube333) => boolean;
 export const defaultSolveDetector: SolveDetector = Cube333.isSolved;
 
-function cubieStateFromFacelets(facelets: string): SmartCubeCubieState | undefined {
-  const decoded = CubeFacelets.decodeFacelets(facelets);
-  if (decoded.TAG !== 'Ok') return undefined;
+function cubieStateFromPattern(pattern: CubeFacelets.PatternData): SmartCubeCubieState {
   return {
-    CP: decoded._0.CORNERS.pieces,
-    CO: decoded._0.CORNERS.orientation,
-    EP: decoded._0.EDGES.pieces,
-    EO: decoded._0.EDGES.orientation,
+    CP: pattern.CORNERS.pieces,
+    CO: pattern.CORNERS.orientation,
+    EP: pattern.EDGES.pieces,
+    EO: pattern.EDGES.orientation,
   };
+}
+
+function patternFromFacelets(facelets: string): CubeFacelets.PatternData | undefined {
+  const decoded = CubeFacelets.decodeFacelets(facelets);
+  return decoded.TAG === 'Ok' ? decoded._0 : undefined;
 }
 
 type CubeEventControllerOptions = {
@@ -35,6 +38,8 @@ type CubeEventControllerOptions = {
   trackPlayerMove?: (move: string) => void;
   resetPlayerTracking?: () => void;
   invalidatePlayerTracking?: () => void;
+  /** Translate a protocol-body move into the displayed solver frame. */
+  projectMove?: (move: string) => string;
   /** Always records detected notation, including while the 3D player is untrusted. */
   recordMove?: (move: string) => void;
   addMove: (move: string) => void;
@@ -57,6 +62,7 @@ type NonGyroSmartCubeEvent = Exclude<SmartCubeEvent, { type: 'GYRO' }>;
 export function createCubeEventController(options: CubeEventControllerOptions) {
   let playerSyncState = PlayerSync.initial;
   let playerUntrusted = false;
+  let displayedPattern: CubeFacelets.PatternData | undefined;
 
   function applyPlayerEffects(effects: PlayerSync.PlayerSyncEffect[]): void {
     for (const effect of effects) {
@@ -75,6 +81,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     const [nextState, effects] = PlayerSync.reset(playerSyncState);
     playerSyncState = nextState;
     playerUntrusted = false;
+    displayedPattern = undefined;
     options.timer.reset();
     options.resetPlayerTracking?.();
     applyPlayerEffects(effects);
@@ -99,7 +106,19 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function handleMove(event: Extract<SmartCubeEvent, { type: 'MOVE' }>): void {
     options.timer.onMove(event);
-    options.recordMove?.(event.move);
+    const displayedMove = options.projectMove?.(event.move) ?? event.move;
+    options.recordMove?.(displayedMove);
+    const nextPattern = displayedPattern && CubeFacelets.applyMove(displayedPattern, displayedMove);
+    if (nextPattern) {
+      displayedPattern = nextPattern;
+      const state = cubieStateFromPattern(nextPattern);
+      options.showInfo('cubieState');
+      options.setInfo('cubieState', formatCubieState(state));
+      options.onFacelets?.({
+        facelets: CubeFacelets.patternDataToFacelets(nextPattern),
+        state,
+      });
+    }
     if (!playerUntrusted) {
       options.trackPlayerMove?.(event.move);
       const [nextState, effects] = PlayerSync.move(playerSyncState, event.move);
@@ -126,7 +145,8 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     const facelets = options.reframeFacelets?.(event.facelets) ?? event.facelets;
     // Reframe all exports together: body-local CP/CO/EP/EO cannot describe a
     // solver-frame facelet string after a virtual x/y/z regrip.
-    const state = cubieStateFromFacelets(facelets) ?? event.state;
+    displayedPattern = patternFromFacelets(facelets);
+    const state = displayedPattern ? cubieStateFromPattern(displayedPattern) : event.state;
     if (state) {
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatCubieState(state));
@@ -182,6 +202,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
 
   function invalidatePlayerState(): void {
     playerUntrusted = true;
+    displayedPattern = undefined;
     playerSyncState = PlayerSync.invalidate(playerSyncState);
     options.invalidatePlayerTracking?.();
   }
