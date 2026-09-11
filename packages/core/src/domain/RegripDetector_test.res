@@ -45,6 +45,58 @@ describe("RegripDetector", () => {
     t->expect(observation.notationToken)->Expect.toBe(CubeNotation.XPrime)
   })
 
+  test("does not hunt between axes for a held pose outside every quarter snap band", t => {
+    let detector = make()
+    // 45° around both Y and Z is 62.8° from identity and from every signed
+    // quarter generator. It previously caused a static y/y' regrip loop.
+    let held = rotation(~y=45., ~z=45.)
+    let results = [0, 1, 2, 3, 4, 5]->Array.map(
+      _ => {
+        let (nextState, result) = RegripDetector.step(detector.state, held)
+        detector.state = nextState
+        result
+      },
+    )
+    t->expect(results)->Expect.toEqual([None, None, None, None, None, None])
+    let (_, next) = RegripDetector.step(detector.state, rotation(~x=66.))
+    t
+    ->expect(next)
+    ->Expect.toEqual(
+      Some({sensorFrameToken: CubeNotation.XTurn, notationToken: CubeNotation.XPrime}),
+    )
+  })
+
+  test("commits one settled quarter during a slow continuous turn", t => {
+    let detector = make()
+    let results = [0., 30., 66., 75., 90.]->Array.map(
+      degrees => {
+        let (nextState, result) = RegripDetector.step(detector.state, rotation(~x=degrees))
+        detector.state = nextState
+        result
+      },
+    )
+    t
+    ->expect(results)
+    ->Expect.toEqual([
+      None,
+      None,
+      Some({sensorFrameToken: CubeNotation.XTurn, notationToken: CubeNotation.XPrime}),
+      None,
+      None,
+    ])
+  })
+
+  test("does not guess a single quarter for an ambiguous half turn", t => {
+    let (nextState, result) = RegripDetector.step(RegripDetector.initial, rotation(~x=180.))
+    t->expect(result)->Expect.toBe(None)
+    let (_, next) = RegripDetector.step(nextState, rotation(~x=66.))
+    t
+    ->expect(next)
+    ->Expect.toEqual(
+      Some({sensorFrameToken: CubeNotation.XTurn, notationToken: CubeNotation.XPrime}),
+    )
+  })
+
   test("projects equivalent quaternion signs onto the same cardinal regrip", t => {
     let positive = rotation(~x=66.)
     // q and -q encode exactly the same physical orientation. The cardinal

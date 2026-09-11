@@ -107,9 +107,9 @@ let step = (state: state, current: Quaternion.t, ~config=defaults): (
   // Precondition: `current` is GyroOrientation.relative output, whose
   // calibration zero is identity. The ratchet records only detected quarters.
   let delta = Quaternion.multiply(Quaternion.conjugate(state), current)
-  if (
-    Quaternion.angle(Quaternion.identity, delta) < Quaternion.degreesToRadians(config.thresholdDeg)
-  ) {
+  let threshold = Quaternion.degreesToRadians(config.thresholdDeg)
+  let deltaAngle = Quaternion.angle(Quaternion.identity, delta)
+  if deltaAngle < threshold {
     (state, None)
   } else {
     // `cardinal` is an exact signed quarter generator. Both the emitted
@@ -117,15 +117,25 @@ let step = (state: state, current: Quaternion.t, ~config=defaults): (
     let cardinal = CubeSymmetry.nearestQuarterTurn(delta)
     let (axis, positive) = axisAndPolarity(cardinal)
 
-    // Project to one exact cardinal quarter rather than using the threshold
-    // packet, so a continuous rotation yields four steps.
-    let nextState = Quaternion.multiply(state, quarter(axis, positive))
-    (
-      nextState,
-      Some({
-        sensorFrameToken: sensorToken(axis, positive),
-        notationToken: notationToken(axis, positive),
-      }),
-    )
+    // A threshold crossing alone is not enough: the 24 cube orientations
+    // have dead zones farther than the threshold from every cardinal pose.
+    // Commit only when this exact quarter both improves the residual and puts
+    // it back inside the same threshold band. This prevents a held, diagonal
+    // pose from alternately ratcheting between two unrelated axes.
+    let residualAngle = Quaternion.angle(cardinal, delta)
+    if residualAngle >= deltaAngle || residualAngle >= threshold {
+      (state, None)
+    } else {
+      // Project to one exact cardinal quarter rather than using the threshold
+      // packet, so a continuous rotation yields four steps.
+      let nextState = Quaternion.multiply(state, quarter(axis, positive))
+      (
+        nextState,
+        Some({
+          sensorFrameToken: sensorToken(axis, positive),
+          notationToken: notationToken(axis, positive),
+        }),
+      )
+    }
   }
 }
