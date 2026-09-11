@@ -202,12 +202,20 @@ export function createLiveLog({
   let newestFirst = true;
   let autoFollow = true;
   let paused = false;
+  /** Rows that existed at Pause time. Incoming entries keep capturing, but cannot alter this view. */
+  let pausedEntries: readonly TraceEntry[] | undefined;
   let nextId = 1;
   let lastSelectedId: number | undefined;
   let focusedId: number | undefined;
   let contextId: number | undefined;
   const rows = new Map<number, HTMLElement>();
   let renderPending = false;
+  let lastRenderedEntries: readonly TraceEntry[] = [];
+
+  const displayedEntries = (): readonly TraceEntry[] =>
+    pausedEntries === undefined
+      ? visibleEntries.value
+      : pausedEntries.filter((entry) => activeFilters.value.has(entry.category));
 
   const selectedEntries = (): TraceEntry[] =>
     allEntries.value.filter((entry) => selected.has(entry.id));
@@ -241,7 +249,7 @@ export function createLiveLog({
 
   const updateStats = (): void => {
     const captured = allEntries.value.length;
-    const shown = visibleEntries.value.length;
+    const shown = displayedEntries().length;
     stats.textContent = `${captured} captured event${captured === 1 ? '' : 's'}${
       shown === captured ? '' : ` · ${shown} shown`
     }${paused ? ' · paused' : ''}`;
@@ -278,11 +286,13 @@ export function createLiveLog({
 
   const selectEntry = (id: number, range: boolean): void => {
     if (range && lastSelectedId !== undefined) {
-      const start = visibleEntries.value.findIndex((entry) => entry.id === lastSelectedId);
-      const end = visibleEntries.value.findIndex((entry) => entry.id === id);
+      const start = displayedEntries().findIndex((entry) => entry.id === lastSelectedId);
+      const end = displayedEntries().findIndex((entry) => entry.id === id);
       if (start !== -1 && end !== -1) {
         const [from, to] = start < end ? [start, end] : [end, start];
-        visibleEntries.value.slice(from, to + 1).forEach((entry) => selected.add(entry.id));
+        displayedEntries()
+          .slice(from, to + 1)
+          .forEach((entry) => selected.add(entry.id));
       }
     } else if (selected.has(id)) selected.delete(id);
     else selected.add(id);
@@ -299,7 +309,7 @@ export function createLiveLog({
     badge.addEventListener('click', (event) => {
       if (!(event as MouseEvent).shiftKey) return;
       event.stopPropagation();
-      visibleEntries.value
+      displayedEntries()
         .filter((candidate) => candidate.category === entry.category)
         .forEach((candidate) => selected.add(candidate.id));
       lastSelectedId = entry.id;
@@ -352,7 +362,9 @@ export function createLiveLog({
 
   const render = (): void => {
     const previousScrollTop = root.scrollTop;
-    const ordered = newestFirst ? [...visibleEntries.value].reverse() : visibleEntries.value;
+    const displayed = displayedEntries();
+    lastRenderedEntries = displayed;
+    const ordered = newestFirst ? [...displayed].reverse() : displayed;
     const visibleIds = new Set(ordered.map((entry) => entry.id));
     rows.forEach((row, id) => {
       if (!visibleIds.has(id)) {
@@ -477,6 +489,7 @@ export function createLiveLog({
   clear.addEventListener('click', () => {
     entries.value = [];
     diagnostics.value = [];
+    if (paused) pausedEntries = [];
     selected.clear();
     lastSelectedId = undefined;
     focusedId = undefined;
@@ -500,7 +513,13 @@ export function createLiveLog({
     updateFollowButton();
   });
   pause.addEventListener('click', () => {
-    paused = !paused;
+    if (paused) {
+      paused = false;
+      pausedEntries = undefined;
+    } else {
+      pausedEntries = [...lastRenderedEntries];
+      paused = true;
+    }
     updatePauseButton();
     updateStats();
     if (!paused) render();
@@ -512,7 +531,7 @@ export function createLiveLog({
     updateFollowButton();
   });
   selectAll.addEventListener('click', () => {
-    visibleEntries.value.forEach((entry) => selected.add(entry.id));
+    displayedEntries().forEach((entry) => selected.add(entry.id));
     render();
   });
   clearSelection.addEventListener('click', () => {
@@ -567,7 +586,7 @@ export function createLiveLog({
       appendEntry(category, message, entry);
     },
     getEntries: (): readonly TraceEntry[] => allEntries.value,
-    getVisibleEntries: (): readonly TraceEntry[] => visibleEntries.value,
+    getVisibleEntries: (): readonly TraceEntry[] => displayedEntries(),
     getSelectedEntries: (): TraceEntry[] => selectedEntries(),
   };
 }

@@ -92,7 +92,7 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector('#event-log-rows')?.textContent).toContain('battery');
   });
 
-  it('pauses rendered rows while continuing to capture incoming events', () => {
+  it('freezes the rendered rows while continuing to capture incoming events', () => {
     mountTrace();
     const pending: Array<() => void> = [];
     const trace = createLiveLog({ scheduleRender: (render) => pending.push(render) });
@@ -104,13 +104,23 @@ describe('live trace browser interactions', () => {
     trace.append('EVENT', 'while paused');
 
     expect(trace.getEntries()).toHaveLength(3);
+    expect(trace.getVisibleEntries().map((entry) => entry.message)).toEqual(['before pause']);
     expect(document.querySelector('#event-log-rows')?.textContent).toContain('before pause');
     expect(document.querySelector('#event-log-rows')?.textContent).not.toContain(
       'queued before pause',
     );
     expect(document.querySelector('#event-log-rows')?.textContent).not.toContain('while paused');
-    expect(document.querySelector('#trace-stats')?.textContent).toBe('3 captured events · paused');
+    expect(document.querySelector('#trace-stats')?.textContent).toBe(
+      '3 captured events · 1 shown · paused',
+    );
     expect(document.querySelector<HTMLButtonElement>('#pause-trace')?.textContent).toBe('Resume');
+
+    // Row interaction is allowed while paused, but must not materialize the captured entries.
+    click('[data-trace-id="1"]');
+    expect(document.querySelector('#event-log-rows')?.textContent).not.toContain(
+      'queued before pause',
+    );
+    expect(document.querySelector('#event-log-rows')?.textContent).not.toContain('while paused');
 
     click('#pause-trace');
     expect(document.querySelector('#event-log-rows')?.textContent).toContain('queued before pause');
