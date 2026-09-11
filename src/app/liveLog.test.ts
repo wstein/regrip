@@ -58,4 +58,26 @@ describe('live trace event classification', () => {
       }),
     ).toEqual(['SHAKE', '4 steps, 3 reversals']);
   });
+
+  it('summarizes hardware and authoritative facelet events', () => {
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'cube_event',
+        data: {
+          type: 'HARDWARE',
+          hardwareName: 'GANicAgy',
+          hardwareVersion: '0.1',
+          softwareVersion: '3.22',
+        },
+      }),
+    ).toEqual(['EVENT', 'GANicAgy · HW 0.1 · SW 3.22']);
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'cube_event',
+        data: { type: 'FACELETS', serial: 189, facelets: 'U'.repeat(54) },
+      }),
+    ).toEqual(['EVENT', 'facelets #189 · 54 stickers']);
+  });
 });

@@ -22,6 +22,21 @@ type LiveLogOptions = {
 
 const maxRows = 300;
 
+function hardwareSummary(data: Record<string, unknown>): string {
+  const name = typeof data.hardwareName === 'string' ? data.hardwareName : 'hardware';
+  const details = [
+    typeof data.hardwareVersion === 'string' ? `HW ${data.hardwareVersion}` : undefined,
+    typeof data.softwareVersion === 'string' ? `SW ${data.softwareVersion}` : undefined,
+  ].filter((value): value is string => value !== undefined);
+  return details.length > 0 ? `${name} · ${details.join(' · ')}` : name;
+}
+
+function faceletsSummary(data: Record<string, unknown>): string {
+  const serial = typeof data.serial === 'number' ? ` #${data.serial}` : '';
+  const stickers = typeof data.facelets === 'string' ? ` · ${data.facelets.length} stickers` : '';
+  return `facelets${serial}${stickers}`;
+}
+
 export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCategory, string] {
   switch (event.type) {
     case 'MOVE':
@@ -42,9 +57,9 @@ export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCatego
     case 'BATTERY':
       return ['EVENT', `battery ${event.batteryLevel}%`];
     case 'HARDWARE':
-      return ['EVENT', event.hardwareName ?? 'hardware'];
+      return ['EVENT', hardwareSummary(event)];
     case 'FACELETS':
-      return ['EVENT', 'facelets'];
+      return ['EVENT', faceletsSummary(event)];
     case 'DISCONNECT':
       return ['STATE', 'cube disconnected'];
   }
@@ -58,8 +73,8 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
     if (eventType === 'DISCONNECT') return ['STATE', 'cube disconnected'];
     if (eventType === 'BATTERY' && typeof data.batteryLevel === 'number')
       return ['EVENT', `battery ${data.batteryLevel}%`];
-    if (eventType === 'HARDWARE')
-      return ['EVENT', typeof data.hardwareName === 'string' ? data.hardwareName : 'hardware'];
+    if (eventType === 'HARDWARE') return ['EVENT', hardwareSummary(data)];
+    if (eventType === 'FACELETS') return ['EVENT', faceletsSummary(data)];
     return ['EVENT', typeof eventType === 'string' ? eventType.toLowerCase() : 'cube event'];
   }
   if (entry.type === 'virtual_regrip') {
