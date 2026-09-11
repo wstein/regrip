@@ -17,6 +17,12 @@ export type DecodeFaceletsResult =
   | { TAG: 'Ok'; _0: PatternData }
   | { TAG: 'Error'; _0: string };
 
+/** Canonical solved 3×3 facelets in Kociemba `URFDLB` order. */
+export const solvedFacelets: string;
+
+/** Whether facelets are exactly the canonical solved 3×3 state. */
+export function isSolvedFacelets(facelets: string): boolean;
+
 /** Throws if the pattern has non-oriented centers. */
 export function patternDataToFacelets(pd: Record<string, Orbit>): string;
 

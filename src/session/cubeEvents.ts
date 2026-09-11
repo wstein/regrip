@@ -2,7 +2,6 @@ import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetoot
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
 import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync.res.mjs';
-import * as Cube333 from '../domain/Cube333.res.mjs';
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import { formatCubieState, formatOfflineStats } from './cubeInfo';
@@ -10,8 +9,8 @@ import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSess
 import type { TimerController } from './timerController';
 
 export type ScrambleSolver = (facelets: string) => Promise<string>;
-export type SolveDetector = (cube: Cube333.Cube333) => boolean;
-export const defaultSolveDetector: SolveDetector = Cube333.isSolved;
+export type SolveDetector = (facelets: string) => boolean;
+export const defaultSolveDetector: SolveDetector = CubeFacelets.isSolvedFacelets;
 
 function cubieStateFromPattern(pattern: CubeFacelets.PatternData): SmartCubeCubieState {
   return {
@@ -161,8 +160,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     // TwistyPlayer is a body-frame renderer, so its setup snapshot must use
     // the raw protocol facelets just as its subsequent MOVE events do. The
     // reframed string above remains the canonical solver-facing export state.
-    const cube = Cube333.fromFacelets(event.facelets);
-    const solved = (options.solveDetector ?? defaultSolveDetector)(cube);
+    const solved = (options.solveDetector ?? defaultSolveDetector)(event.facelets);
     if (solved) options.onSolved();
     const needsReconcile = await (options.shouldReconcilePlayer?.(event.facelets) ?? true);
     if (!needsReconcile) {

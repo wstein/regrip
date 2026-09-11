@@ -105,6 +105,12 @@ let edgeMapping = [
 
 let faceOrder = "URFDLB"
 
+/** Canonical solved 3×3 facelets in Kociemba `URFDLB` order. */
+let solvedFacelets = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+
+/** Whether facelets are exactly the canonical solved 3×3 state. */
+let isSolvedFacelets = (facelets: string): bool => facelets == solvedFacelets
+
 let rotateLeft = (s, i) => String.slice(s, ~start=i) ++ String.slice(s, ~start=0, ~end=i)
 
 // Piece name (in any rotation) -> (piece index, orientation).

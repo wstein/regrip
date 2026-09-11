@@ -13,6 +13,12 @@ type patternData = {
   @as("CENTERS") centers: orbit,
 }
 
+/** Canonical solved 3×3 facelets in Kociemba `URFDLB` order. */
+let solvedFacelets: string
+
+/** Whether facelets are exactly the canonical solved 3×3 state. */
+let isSolvedFacelets: string => bool
+
 /** Throws if the pattern has non-oriented centers. */
 let patternDataToFacelets: patternData => string
 

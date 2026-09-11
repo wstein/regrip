@@ -33,6 +33,16 @@ let solvedPatternData: CubeFacelets.patternData = {
   centers: {pieces: [0, 1, 2, 3, 4, 5], orientation: Array.make(~length=6, 0)},
 }
 
+describe("isSolvedFacelets", () => {
+  test("accepts only the canonical solved facelet string", t => {
+    t->expect(CubeFacelets.solvedFacelets)->Expect.toBe(solved)
+    t->expect(solved->CubeFacelets.isSolvedFacelets)->Expect.toBe(true)
+    t
+    ->expect("RUUUUUUUUURRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"->CubeFacelets.isSolvedFacelets)
+    ->Expect.toBe(false)
+  })
+})
+
 // Decode helper: project the corner/edge orbits so array equality is easy to assert.
 let orbits = f =>
   switch CubeFacelets.decodeFacelets(f) {
