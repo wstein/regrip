@@ -1,6 +1,7 @@
 import type { Subscription } from 'rxjs';
 import type {
   SmartCubeCommand,
+  SmartCubeDiagnosticEvent,
   SmartCubeEvent,
   SmartCubeTransportConnection,
   SmartCubeVendorCommand,
@@ -119,6 +120,12 @@ export type GyroFrameScheduler = {
 
 export type SmartCubeSession = ReturnType<typeof createSmartCubeSession>;
 
+/**
+ * Raw protocol evidence kept outside `SmartCubeSessionEvent`: it must never
+ * affect cube state, gyro processing, or feature detectors.
+ */
+export type SmartCubeSessionDiagnostic = SmartCubeDiagnosticEvent;
+
 const browserGyroFrameScheduler: GyroFrameScheduler =
   typeof requestAnimationFrame === 'function'
     ? {
@@ -137,6 +144,7 @@ const browserGyroFrameScheduler: GyroFrameScheduler =
 
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
+  let diagnosticSubscription: Subscription | null = null;
   let connectionGeneration = 0;
   const gyroFrameScheduler = options.gyroFrameScheduler ?? browserGyroFrameScheduler;
   let pendingGyro: Extract<SmartCubeEvent, { type: 'GYRO' }> | undefined;
@@ -172,6 +180,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
+  const diagnosticListeners = new Set<(event: SmartCubeSessionDiagnostic) => void>();
   const pendingFaceletSyncs = new Set<(error: Error) => void>();
   // The session owns calibration once; both regrip detection and display
   // stabilization consume the resulting calibrated pose.
@@ -448,6 +457,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         features,
       });
       subscription = connection.events$.subscribe(onEvent);
+      diagnosticSubscription =
+        connection.diagnostics$?.subscribe((diagnostic) => {
+          // Diagnostics have a deliberately separate channel. Keeping this
+          // guard here also prevents late emissions from a replaced transport
+          // from reaching a newly connected session.
+          if (generation !== connectionGeneration || state.connection !== connection) return;
+          diagnosticListeners.forEach((listener) => listener(diagnostic));
+        }) ?? null;
       await requestInitialState(connection);
       // A device can send DISCONNECT while initial commands are in flight.
       // Never let that earlier attempt restore a dead connection afterwards.
@@ -457,6 +474,8 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       if (generation !== connectionGeneration) return;
       subscription?.unsubscribe();
       subscription = null;
+      diagnosticSubscription?.unsubscribe();
+      diagnosticSubscription = null;
       await disconnectConnection(connection);
       setState({
         status: 'error',
@@ -474,6 +493,8 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     pendingFaceletSyncs.clear();
     subscription?.unsubscribe();
     subscription = null;
+    diagnosticSubscription?.unsubscribe();
+    diagnosticSubscription = null;
     const connection = state.connection;
     resetGyro();
     setState({ status: 'disconnected', connection: null });
@@ -540,6 +561,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     subscribeEvents(listener: (event: SmartCubeSessionEvent) => void): () => void {
       eventListeners.add(listener);
       return () => eventListeners.delete(listener);
+    },
+    /**
+     * Observe raw transport diagnostics without admitting them to the typed
+     * cube-state stream. A transport may omit this capability entirely.
+     */
+    subscribeDiagnostics(listener: (event: SmartCubeSessionDiagnostic) => void): () => void {
+      diagnosticListeners.add(listener);
+      return () => diagnosticListeners.delete(listener);
     },
     /** Observe one event type without creating a parallel event channel. */
     on<T extends SessionEventType>(

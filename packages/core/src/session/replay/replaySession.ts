@@ -16,6 +16,7 @@ import {
   type MoveGapEvent,
   type SessionGyroEvent,
   type SmartCubeSession,
+  type SmartCubeSessionDiagnostic,
   type SmartCubeSessionEvent,
   type SmartCubeSessionState,
   type VirtualRegripEvent,
@@ -331,6 +332,7 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
   };
   const states = createFanout<SmartCubeSessionState>();
   const events = createFanout<SmartCubeSessionEvent>();
+  const diagnostics = createFanout<SmartCubeSessionDiagnostic>();
   const setState = (patch: Partial<SmartCubeSessionState>): void => {
     state = { ...state, ...patch };
     states.emit(state);
@@ -349,6 +351,9 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
       return states.subscribe(listener);
     },
     subscribeEvents,
+    subscribeDiagnostics(listener) {
+      return diagnostics.subscribe(listener);
+    },
     on(type, listener) {
       return subscribeEvents((event) => {
         if (event.type === type) listener(event as never);
@@ -399,10 +404,12 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   let output: ReplayOutputSession | undefined;
   let unsubscribeState: (() => void) | undefined;
   let unsubscribeEvents: (() => void) | undefined;
+  let unsubscribeDiagnostics: (() => void) | undefined;
   let transportGeneration = 0;
   let transport = Promise.resolve();
   const states = createFanout<SmartCubeSessionState>();
   const events = createFanout<SmartCubeSessionEvent>();
+  const diagnostics = createFanout<SmartCubeSessionDiagnostic>();
   const cursors = createFanout<void>();
   const rebuilds = createFanout<void>();
 
@@ -424,8 +431,10 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
   const bind = (): void => {
     unsubscribeState?.();
     unsubscribeEvents?.();
+    unsubscribeDiagnostics?.();
     unsubscribeState = current.subscribe(states.emit);
     unsubscribeEvents = current.subscribeEvents(events.emit);
+    unsubscribeDiagnostics = current.subscribeDiagnostics(diagnostics.emit);
   };
   const rebuild = (notify = false): void => {
     if (notify) notifyRebuild();
@@ -471,6 +480,9 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
     },
     subscribeEvents(listener: (event: SmartCubeSessionEvent) => void) {
       return events.subscribe(listener);
+    },
+    subscribeDiagnostics(listener: (event: SmartCubeSessionDiagnostic) => void) {
+      return diagnostics.subscribe(listener);
     },
     on(type, listener) {
       return this.subscribeEvents((event) => {

@@ -2,6 +2,7 @@ import type {
   SmartCubeCapabilities,
   SmartCubeCommand,
   SmartCubeConnection,
+  SmartCubeDiagnosticEvent,
   SmartCubeEvent,
   SmartCubeProtocolInfo,
   SmartCubeVendorCommand,
@@ -22,6 +23,11 @@ export type SmartCubeTransportConnection = {
   protocol: SmartCubeProtocolInfo;
   capabilities: SmartCubeCapabilities;
   events$: Observable<SmartCubeEvent>;
+  /**
+   * Optional raw transport diagnostics. These never enter `events$` and are
+   * therefore intentionally separate from cube-state session events.
+   */
+  diagnostics$?: Observable<SmartCubeDiagnosticEvent>;
   sendCommand: (command: SmartCubeCommand) => Promise<void>;
   sendVendorCommand?: (command: SmartCubeVendorCommand) => Promise<void>;
   disconnect: () => Promise<void>;
@@ -39,6 +45,7 @@ void connectionSatisfiesTransport;
 export type {
   SmartCubeCapabilities,
   SmartCubeCommand,
+  SmartCubeDiagnosticEvent,
   SmartCubeEvent,
   SmartCubeProtocolInfo,
   SmartCubeVendorCommand,

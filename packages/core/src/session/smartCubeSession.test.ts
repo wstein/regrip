@@ -1,6 +1,10 @@
 import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
-import type { SmartCubeConnection, SmartCubeEvent } from 'smartcube-web-bluetooth';
+import type {
+  SmartCubeConnection,
+  SmartCubeDiagnosticEvent,
+  SmartCubeEvent,
+} from 'smartcube-web-bluetooth';
 
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import {
@@ -79,6 +83,35 @@ describe('smart cube session', () => {
     await expect(response).resolves.toMatchObject({ type: 'FACELETS', timestamp: 3 });
     expect(snapshots).toHaveLength(2);
     await session.disconnect();
+  });
+
+  it('keeps optional transport diagnostics out of cube-state events and unsubscribes on disconnect', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const diagnostics$ = new Subject<SmartCubeDiagnosticEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => ({ ...connection(events$), diagnostics$ }),
+    });
+    const diagnostics: SmartCubeDiagnosticEvent[] = [];
+    const sessionEvents: SmartCubeSessionEvent[] = [];
+    session.subscribeDiagnostics((event) => diagnostics.push(event));
+    session.subscribeEvents((event) => sessionEvents.push(event));
+
+    await session.connect();
+    const diagnostic: SmartCubeDiagnosticEvent = {
+      type: 'UNKNOWN_PACKET',
+      protocol: 'qiyi',
+      timestamp: 1,
+      opcode: 0xff,
+      bytes: [0x55, 0xff],
+    };
+    diagnostics$.next(diagnostic);
+
+    expect(diagnostics).toEqual([diagnostic]);
+    expect(sessionEvents).toEqual([]);
+
+    await session.disconnect();
+    diagnostics$.next({ ...diagnostic, timestamp: 2 });
+    expect(diagnostics).toEqual([diagnostic]);
   });
 
   it('owns the event subscription and reprofiles before notifying event observers', async () => {
