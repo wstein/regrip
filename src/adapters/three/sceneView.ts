@@ -19,6 +19,8 @@ export type SceneRenderer = {
   requestRender(): void;
   /** Stop or resume rendering while the smart-cube session is inactive. */
   setActive(active: boolean): void;
+  /** Let mouse/touch drag rotate the scene when a cube has no gyro. */
+  setManualOrientationEnabled(enabled: boolean): void;
   /** Remove browser listeners and discard the attached orientation gizmo. */
   dispose(): void;
 };
@@ -53,11 +55,75 @@ export function startSceneRenderLoop(
   let rendering = false;
   let dirty = true;
   let animationFrame: number | undefined;
+  let manualOrientationEnabled = false;
+  let manualPointer: { id: number; x: number; y: number } | undefined;
+  let manualListenersAttached = false;
   // This is a stable world-space corner; the R/U/F axes still inherit the
   // scene rotation that renders the physical cube. Virtual regrips transform
   // move notation, but the gyro-driven scene already represents their pose.
   const indicatorPosition = new THREE.Vector3(-0.82, -0.8, 0);
   const inverseSceneQuaternion = new THREE.Quaternion();
+  const yawAxis = new THREE.Vector3(0, 1, 0);
+  const pitchAxis = new THREE.Vector3(1, 0, 0);
+  const manualYaw = new THREE.Quaternion();
+  const manualPitch = new THREE.Quaternion();
+
+  const updateCanvasCursor = (): void => {
+    if (!canvas?.style) return;
+    canvas.style.cursor = manualOrientationEnabled ? 'grab' : '';
+    canvas.style.touchAction = manualOrientationEnabled ? 'none' : '';
+  };
+
+  const handlePointerDown = (event: PointerEvent): void => {
+    if (!manualOrientationEnabled || !canvas) return;
+    manualPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    canvas.setPointerCapture?.(event.pointerId);
+    if (canvas.style) canvas.style.cursor = 'grabbing';
+    event.preventDefault();
+  };
+
+  const handlePointerMove = (event: PointerEvent): void => {
+    if (!manualOrientationEnabled || !manualPointer || event.pointerId !== manualPointer.id) return;
+    const dx = event.clientX - manualPointer.x;
+    const dy = event.clientY - manualPointer.y;
+    manualPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    manualYaw.setFromAxisAngle(yawAxis, dx * 0.008);
+    manualPitch.setFromAxisAngle(pitchAxis, -dy * 0.008);
+    cubeQuaternion.premultiply(manualYaw).premultiply(manualPitch);
+    event.preventDefault();
+    dirty = true;
+    schedule();
+  };
+
+  const handlePointerUp = (event: PointerEvent): void => {
+    if (event.pointerId !== manualPointer?.id) return;
+    manualPointer = undefined;
+    if (canvas?.style) canvas.style.cursor = 'grab';
+  };
+
+  const detachManualOrientation = (): void => {
+    if (!canvas || !manualListenersAttached) return;
+    canvas.removeEventListener('pointerdown', handlePointerDown);
+    canvas.removeEventListener('pointermove', handlePointerMove);
+    canvas.removeEventListener('pointerup', handlePointerUp);
+    canvas.removeEventListener('pointercancel', handlePointerUp);
+    manualListenersAttached = false;
+    manualPointer = undefined;
+  };
+
+  const syncManualOrientation = (): void => {
+    if (!canvas) return;
+    if (manualOrientationEnabled && !manualListenersAttached) {
+      canvas.addEventListener('pointerdown', handlePointerDown);
+      canvas.addEventListener('pointermove', handlePointerMove);
+      canvas.addEventListener('pointerup', handlePointerUp);
+      canvas.addEventListener('pointercancel', handlePointerUp);
+      manualListenersAttached = true;
+    } else if (!manualOrientationEnabled) {
+      detachManualOrientation();
+    }
+    updateCanvasCursor();
+  };
 
   const canRender = (): boolean =>
     active && !contextLost && !disposed && (typeof document === 'undefined' || !document.hidden);
@@ -93,11 +159,13 @@ export function startSceneRenderLoop(
   const attachCanvas = async (nextVantage: Vantage): Promise<void> => {
     const nextCanvas = (await nextVantage.canvasInfo()).canvas;
     if (canvas === nextCanvas) return;
+    detachManualOrientation();
     canvas?.removeEventListener('webglcontextlost', handleContextLost);
     canvas?.removeEventListener('webglcontextrestored', handleContextRestored);
     canvas = nextCanvas;
     canvas.addEventListener('webglcontextlost', handleContextLost);
     canvas.addEventListener('webglcontextrestored', handleContextRestored);
+    syncManualOrientation();
   };
 
   const ensureScene = async (): Promise<void> => {
@@ -177,6 +245,11 @@ export function startSceneRenderLoop(
         schedule();
       }
     },
+    setManualOrientationEnabled: (enabled) => {
+      manualOrientationEnabled = enabled;
+      if (!enabled) manualPointer = undefined;
+      syncManualOrientation();
+    },
     dispose: () => {
       disposed = true;
       cancelFrame();
@@ -184,6 +257,7 @@ export function startSceneRenderLoop(
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       canvas?.removeEventListener('webglcontextlost', handleContextLost);
       canvas?.removeEventListener('webglcontextrestored', handleContextRestored);
+      detachManualOrientation();
       detachScene();
     },
   };

@@ -25,6 +25,10 @@ function installAnimationFrames(): { flush(): Promise<void> } {
 
 afterEach(() => vi.unstubAllGlobals());
 
+function pointer(type: string, pointerId: number, clientX: number, clientY: number): Event {
+  return Object.assign(new Event(type, { cancelable: true }), { pointerId, clientX, clientY });
+}
+
 describe('scene renderer lifecycle', () => {
   it('renders on demand, pauses while inactive, and rebuilds after WebGL restoration', async () => {
     const animation = installAnimationFrames();
@@ -81,6 +85,41 @@ describe('scene renderer lifecycle', () => {
     await animation.flush();
     expect(onContextRestored).toHaveBeenCalledOnce();
     expect(render).toHaveBeenCalledTimes(4);
+    renderer.dispose();
+  });
+});
+
+describe('manual scene orientation', () => {
+  it('rotates from pointer drag only while enabled', async () => {
+    const animation = installAnimationFrames();
+    const canvas = new EventTarget() as HTMLCanvasElement;
+    const scene = new THREE.Scene();
+    const cubeQuaternion = new THREE.Quaternion();
+    const player = {
+      experimentalCurrentVantages: async () => [
+        {
+          scene: { scene: async () => scene },
+          canvasInfo: async () => ({ canvas }),
+          render: vi.fn(),
+        },
+      ],
+    };
+    const renderer = startSceneRenderLoop(player as never, cubeQuaternion, new THREE.Quaternion(), {
+      x: 0xff0000,
+      y: 0xffffff,
+      z: 0x00ff00,
+    });
+    await animation.flush();
+
+    renderer.setManualOrientationEnabled(true);
+    canvas.dispatchEvent(pointer('pointerdown', 1, 20, 20));
+    canvas.dispatchEvent(pointer('pointermove', 1, 60, 10));
+    expect(cubeQuaternion.equals(new THREE.Quaternion())).toBe(false);
+
+    renderer.setManualOrientationEnabled(false);
+    const orientation = cubeQuaternion.clone();
+    canvas.dispatchEvent(pointer('pointermove', 1, 100, 20));
+    expect(cubeQuaternion.equals(orientation)).toBe(true);
     renderer.dispose();
   });
 });
