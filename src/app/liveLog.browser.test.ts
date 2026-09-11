@@ -11,7 +11,7 @@ function mountTrace(): void {
     return 0;
   });
   document.body.innerHTML = `
-    <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button>
+    <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button><button id="pause-trace"></button>
     <span id="trace-stats"></span>
     <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
     <div id="trace-selection" hidden><span id="trace-selection-count"></span>
@@ -79,6 +79,31 @@ describe('live trace browser interactions', () => {
 
     expect(document.querySelector('[data-trace-id="1"]')).toBe(row);
     expect(document.querySelector('#event-log-rows')?.textContent).toContain('battery');
+  });
+
+  it('pauses rendered rows while continuing to capture incoming events', () => {
+    mountTrace();
+    const pending: Array<() => void> = [];
+    const trace = createLiveLog({ scheduleRender: (render) => pending.push(render) });
+    trace.append('EVENT', 'before pause');
+    pending.shift()?.();
+    trace.append('EVENT', 'queued before pause');
+    click('#pause-trace');
+    pending.shift()?.();
+    trace.append('EVENT', 'while paused');
+
+    expect(trace.getEntries()).toHaveLength(3);
+    expect(document.querySelector('#event-log-rows')?.textContent).toContain('before pause');
+    expect(document.querySelector('#event-log-rows')?.textContent).not.toContain(
+      'queued before pause',
+    );
+    expect(document.querySelector('#event-log-rows')?.textContent).not.toContain('while paused');
+    expect(document.querySelector('#trace-stats')?.textContent).toBe('3 captured events · paused');
+    expect(document.querySelector<HTMLButtonElement>('#pause-trace')?.textContent).toBe('Resume');
+
+    click('#pause-trace');
+    expect(document.querySelector('#event-log-rows')?.textContent).toContain('queued before pause');
+    expect(document.querySelector('#event-log-rows')?.textContent).toContain('while paused');
   });
 
   it('ranges over visible rows without selecting filtered history', () => {

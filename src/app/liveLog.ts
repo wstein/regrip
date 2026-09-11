@@ -121,6 +121,7 @@ export function createLiveLog({
   const clear = byId('clear-trace');
   const sort = byId('sort-trace');
   const follow = byId<HTMLButtonElement>('follow-trace');
+  const pause = byId<HTMLButtonElement>('pause-trace');
   const selection = byId('trace-selection');
   const selectionCount = byId('trace-selection-count');
   const selectAll = byId('select-all-trace');
@@ -147,6 +148,7 @@ export function createLiveLog({
   const selected = new Set<number>();
   let newestFirst = true;
   let autoFollow = true;
+  let paused = false;
   let nextId = 1;
   let lastSelectedId: number | undefined;
   let focusedId: number | undefined;
@@ -172,6 +174,10 @@ export function createLiveLog({
     follow.toggleAttribute('disabled', autoFollow);
     follow.textContent = autoFollow ? 'Following newest' : 'Newest';
   };
+  const updatePauseButton = (): void => {
+    pause.setAttribute('aria-pressed', String(paused));
+    pause.textContent = paused ? 'Resume' : 'Pause';
+  };
 
   const updateSelection = (): void => {
     const count = selected.size;
@@ -185,7 +191,7 @@ export function createLiveLog({
     const shown = visibleEntries.value.length;
     stats.textContent = `${captured} captured event${captured === 1 ? '' : 's'}${
       shown === captured ? '' : ` · ${shown} shown`
-    }`;
+    }${paused ? ' · paused' : ''}`;
   };
 
   const entryById = (id: number | undefined): TraceEntry | undefined =>
@@ -318,7 +324,7 @@ export function createLiveLog({
     renderPending = true;
     const flush = (): void => {
       renderPending = false;
-      render();
+      if (!paused) render();
     };
     if (scheduleRender) scheduleRender(flush);
     else if (typeof requestAnimationFrame === 'function') requestAnimationFrame(flush);
@@ -344,7 +350,7 @@ export function createLiveLog({
     }
     entries.value = nextEntries;
     updateStats();
-    if (changedVisibleRows) requestRender();
+    if (changedVisibleRows && !paused) requestRender();
     else {
       updateSelection();
       updateDetail();
@@ -401,6 +407,12 @@ export function createLiveLog({
     root.scrollTop = followEdge();
     updateFollowButton();
   });
+  pause.addEventListener('click', () => {
+    paused = !paused;
+    updatePauseButton();
+    updateStats();
+    if (!paused) render();
+  });
   root.addEventListener('scroll', () => {
     const nextAutoFollow = isAtFollowEdge();
     if (nextAutoFollow === autoFollow) return;
@@ -448,6 +460,7 @@ export function createLiveLog({
     if (!contextMenu.hidden && !contextMenu.contains(event.target as Node)) hideContextMenu();
   });
   updateFollowButton();
+  updatePauseButton();
   updateStats();
 
   return {
