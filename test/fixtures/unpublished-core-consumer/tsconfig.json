@@ -4,10 +4,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "baseUrl": ".",
-    "paths": {
-      "smartcube-web-bluetooth": ["node_modules/smartcube-web-bluetooth/src/index.ts"]
-    },
     "strict": true,
     "skipLibCheck": true,
     "types": ["node", "web-bluetooth"],

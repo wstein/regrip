@@ -1,5 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +20,34 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 // cache. Keep this ephemeral pack check isolated unless a caller opts in.
 const npmCache = process.env.REGRIP_NPM_CACHE ?? join(tmpdir(), 'regrip-npm-cache');
 
+const writeTransportPeerStub = (directory) => {
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(
+    join(directory, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'smartcube-web-bluetooth',
+        version: '4.0.0',
+        type: 'module',
+        exports: { types: './index.d.ts', default: './index.js' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(join(directory, 'index.js'), 'export {};\n');
+  writeFileSync(
+    join(directory, 'index.d.ts'),
+    `export type SmartCubeCapabilities = unknown;
+export type SmartCubeCommand = unknown;
+export type SmartCubeDiagnosticEvent = unknown;
+export type SmartCubeEvent = unknown;
+export type SmartCubeProtocolInfo = unknown;
+export type SmartCubeVendorCommand = unknown;
+`,
+  );
+};
+
 const run = (args, cwd = root) =>
   execFileSync(npm, args, {
     cwd,
@@ -22,19 +58,6 @@ const run = (args, cwd = root) =>
 try {
   run(['pack', '--silent', '--workspace', '@wstein/regrip-core', '--pack-destination', temp]);
 
-  // A directory-based peer dependency is treated as a source install by npm,
-  // which can run its `prepare` script even with `--ignore-scripts`. Pack it
-  // first so the fixture consumes the same immutable artifact a real consumer
-  // would, without attempting to build the peer from its published contents.
-  run([
-    'pack',
-    '--silent',
-    '--ignore-scripts',
-    '--pack-destination',
-    temp,
-    join(root, 'node_modules/smartcube-web-bluetooth'),
-  ]);
-
   const tarball = join(
     temp,
     readdirSync(temp).find(
@@ -44,15 +67,8 @@ try {
   if (!tarball.endsWith('.tgz')) {
     throw new Error('npm pack did not produce a core tarball.');
   }
-  const transportTarball = join(
-    temp,
-    readdirSync(temp).find(
-      (name) => name.startsWith('smartcube-web-bluetooth-') && name.endsWith('.tgz'),
-    ) ?? '',
-  );
-  if (!transportTarball.endsWith('.tgz')) {
-    throw new Error('npm pack did not produce a smartcube transport tarball.');
-  }
+  const transportPeerStub = join(temp, 'smartcube-web-bluetooth');
+  writeTransportPeerStub(transportPeerStub);
 
   const packedFiles = execFileSync('tar', ['-tzf', tarball], { encoding: 'utf8' }).split('\n');
   const required = [
@@ -77,10 +93,9 @@ try {
     '@wstein/regrip-core': `file:${tarball}`,
     '@rescript/runtime': `file:${join(root, 'node_modules/@rescript/runtime')}`,
     rxjs: `file:${join(root, 'node_modules/rxjs')}`,
-    'smartcube-web-bluetooth': `file:${transportTarball}`,
+    'smartcube-web-bluetooth': `file:${transportPeerStub}`,
   };
   consumerPackage.devDependencies = {
-    '@types/aes-js': `file:${join(root, 'node_modules/@types/aes-js')}`,
     '@types/node': `file:${join(root, 'node_modules/@types/node')}`,
     '@types/web-bluetooth': `file:${join(root, 'node_modules/@types/web-bluetooth')}`,
     rescript: `file:${join(root, 'node_modules/rescript')}`,
