@@ -130,7 +130,8 @@ body {
 .trace-action-group,
 .trace-filter-group {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
+  flex-wrap: nowrap;
   gap: 0.3rem;
   align-items: center;
 }
@@ -798,6 +799,9 @@ button:disabled {
   }
 }
 @media (max-width: 42rem) {
+  .trace-filter-group {
+    flex-wrap: wrap;
+  }
   #app {
     padding: 0.9rem;
   }
