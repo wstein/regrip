@@ -51,6 +51,36 @@ function queuedGyroFrames(): { scheduler: GyroFrameScheduler; flush: () => void 
 }
 
 describe('smart cube session', () => {
+  it('deduplicates ordinary snapshots but preserves a requested unchanged response', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () =>
+        connection(events$, {
+          gyroscope: false,
+          battery: false,
+          facelets: true,
+          hardware: false,
+          reset: false,
+        }),
+    });
+    const snapshots: SmartCubeSessionEvent[] = [];
+    session.subscribeEvents((event) => {
+      if (event.type === 'FACELETS') snapshots.push(event);
+    });
+    const facelets = 'U'.repeat(54);
+
+    await session.connect();
+    events$.next({ type: 'FACELETS', timestamp: 1, serial: 7, facelets });
+    events$.next({ type: 'FACELETS', timestamp: 2, serial: 7, facelets });
+    expect(snapshots).toHaveLength(1);
+
+    const response = session.syncFacelets();
+    events$.next({ type: 'FACELETS', timestamp: 3, serial: 7, facelets });
+    await expect(response).resolves.toMatchObject({ type: 'FACELETS', timestamp: 3 });
+    expect(snapshots).toHaveLength(2);
+    await session.disconnect();
+  });
+
   it('owns the event subscription and reprofiles before notifying event observers', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({ connect: async () => connection(events$) });

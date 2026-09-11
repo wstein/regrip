@@ -9,6 +9,7 @@ import type {
 import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
 import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker.res.mjs';
+import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper.res.mjs';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
 import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
@@ -187,6 +188,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let moveBackState = MoveBackTrigger.initial;
   let shakeState = ShakeTrigger.initial;
   let moveTrackerState = MoveTracker.initial;
+  let snapshotDeduperState = SnapshotDeduper.initial;
 
   function moveBackWindow(features: SessionFeatures): number | undefined {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
@@ -209,10 +211,16 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     moveTrackerState = MoveTracker.initial;
   }
 
+  function resetSnapshotDeduper(): void {
+    snapshotDeduperState = SnapshotDeduper.initial;
+  }
+
   function requestFaceletsAfterMoveGap(): void {
     const connection = state.connection;
     if (!connection?.capabilities.facelets) return;
+    snapshotDeduperState = SnapshotDeduper.request(snapshotDeduperState);
     void connection.sendCommand({ type: 'REQUEST_FACELETS' }).catch((error: unknown) => {
+      snapshotDeduperState = SnapshotDeduper.cancel(snapshotDeduperState);
       console.warn('Could not request facelets after a move serial gap.', error);
     });
   }
@@ -281,6 +289,12 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     // visual motion, while MagneticDetent handles resting sensor noise.
     if (event.type === 'FACELETS') {
       moveTrackerState = MoveTracker.observeSnapshot(moveTrackerState, event.serial);
+      const [nextSnapshotDeduperState, shouldPublish] = SnapshotDeduper.observe(
+        snapshotDeduperState,
+        { serial: event.serial, facelets: event.facelets },
+      );
+      snapshotDeduperState = nextSnapshotDeduperState;
+      if (!shouldPublish) return;
     }
     const [nextMoveTrackerState, moveGap] =
       event.type === 'MOVE'
@@ -409,6 +423,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
     resetMoveTracker();
+    resetSnapshotDeduper();
   };
 
   async function connect(): Promise<void> {
@@ -478,6 +493,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     if (!connection.capabilities.facelets)
       return Promise.reject(new Error('Cube does not support facelet snapshots'));
 
+    snapshotDeduperState = SnapshotDeduper.request(snapshotDeduperState);
     return new Promise<FaceletsEvent>((resolve, reject) => {
       let unsubscribe = (): void => {};
       const finish = (result: FaceletsEvent | Error): void => {
@@ -496,6 +512,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       eventListeners.add(listener);
       unsubscribe = () => eventListeners.delete(listener);
       void connection.sendCommand({ type: 'REQUEST_FACELETS' }).catch((error: unknown) => {
+        snapshotDeduperState = SnapshotDeduper.cancel(snapshotDeduperState);
         finish(error instanceof Error ? error : new Error(String(error)));
       });
     });

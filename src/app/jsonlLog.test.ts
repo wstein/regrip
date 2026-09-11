@@ -49,33 +49,19 @@ describe('JSONL log', () => {
     );
   });
 
-  it('coalesces repeated snapshots but keeps an explicitly requested unchanged response', () => {
+  it('keeps every event supplied by the domain session', () => {
     const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
     const seen: string[] = [];
     const facelets = 'U'.repeat(54);
     log.subscribe((entry) => seen.push(entry.type));
 
-    const options = { dedupeKey: `facelets:73:${facelets}` };
-    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, options)).toBe(
-      true,
-    );
+    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
     expect(log.record('cube_command', { name: 'Sync state' })).toBe(true);
-    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, options)).toBe(
-      false,
-    );
-    expect(
-      log.record(
-        'cube_event',
-        { type: 'FACELETS', serial: 73, facelets },
-        { ...options, force: true },
-      ),
-    ).toBe(true);
+    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
     expect(seen).toEqual(['cube_event', 'cube_command', 'cube_event']);
 
     log.clear();
-    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, options)).toBe(
-      true,
-    );
+    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
   });
 
   it('attaches the download link and releases its blob URL after the click task', () => {
