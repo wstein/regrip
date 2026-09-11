@@ -38,6 +38,11 @@ export function formatOfflineStats(stats: GoCubeOfflineStats): {
 const corners = ['URF', 'UFL', 'ULB', 'UBR', 'DFR', 'DLF', 'DBL', 'DRB'];
 const edges = ['UR', 'UF', 'UL', 'UB', 'DR', 'DF', 'DL', 'DB', 'FR', 'FL', 'BL', 'BR'];
 
+// CubeTwister's Superset ENG location order. This is presentation priority
+// only: CP/CO/EP/EO remain in their protocol-defined Kociemba order.
+const supersetCornerOrder = [0, 4, 3, 7, 2, 6, 1, 5]; // URF DFR UBR DRB ULB DBL UFL DLF
+const supersetEdgeOrder = [0, 8, 4, 3, 11, 7, 2, 10, 6, 1, 9, 5]; // UR RF DR BU RB BD UL LB DL FU LF FD
+
 function cycles(
   permutation: number[],
   orientation: number[],
@@ -94,12 +99,16 @@ function supersetEngCycles(
   permutation: number[],
   orientation: number[],
   names: string[],
+  order: number[],
   orientationModulus: number,
   signs: string[],
 ): string | undefined {
   if (
     permutation.length !== names.length ||
     orientation.length !== names.length ||
+    order.length !== names.length ||
+    new Set(order).size !== names.length ||
+    order.some((value) => !Number.isInteger(value) || value < 0 || value >= names.length) ||
     orientation.some(
       (value) => !Number.isInteger(value) || value < 0 || value >= orientationModulus,
     )
@@ -111,7 +120,7 @@ function supersetEngCycles(
 
   const visited = new Array(names.length).fill(false);
   const result: string[] = [];
-  for (let start = 0; start < names.length; start += 1) {
+  for (const start of order) {
     if (visited[start]) continue;
     const cycle: string[] = [];
     let piece = start;
@@ -151,8 +160,12 @@ export function formatSingmasterCycles(state: SmartCubeCubieState): string {
  * groups corner cycles above edge cycles, matching CubeTwister's presentation.
  */
 export function formatSupersetEngPermutation(state: SmartCubeCubieState): string {
-  const cornerCycles = supersetEngCycles(state.CP, state.CO, corners, 3, ['', '-', '+']);
-  const edgeCycles = supersetEngCycles(state.EP, state.EO, edges, 2, ['', '+']);
+  const cornerCycles = supersetEngCycles(state.CP, state.CO, corners, supersetCornerOrder, 3, [
+    '',
+    '-',
+    '+',
+  ]);
+  const edgeCycles = supersetEngCycles(state.EP, state.EO, edges, supersetEdgeOrder, 2, ['', '+']);
   if (cornerCycles === undefined || edgeCycles === undefined) return '(unavailable)';
   return [cornerCycles, edgeCycles].filter(Boolean).join('\n');
 }

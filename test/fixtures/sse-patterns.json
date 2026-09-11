@@ -9,7 +9,7 @@
       "F' U D' R U L' F B' U R' U D'"
     ],
     "facelets": "FFFUUFFFFUUUURRUUURRRRFRRFRBDBBDBBBBDLDDLDDDDLLLBBLLLL",
-    "ssePermutation": "(-urf) (ufl,rub,frd) (ulb,rbd,fdl) (+dbl)\n(ur,rf,fu) (ub,rd,fl) (dl,lb,bd)",
+    "ssePermutation": "(-urf) (dfr,luf,bru) (drb,lfd,bul) (+dbl)\n(ur,rf,fu) (dr,lf,bu) (db,ld,bl)",
     "publishedPermutation": "(+urf) (ufl,rub,frd) (dlf,lbu,bdr) (-dbl)\n(ur,rf,fu) (dr,lf,bu) (bd,dl,lb)\n(+r) (+u) (++f)"
   },
   {
@@ -17,7 +17,7 @@
     "source": "https://www.randelshofer.ch/rubik/patterns/A410.09.html",
     "algorithms": ["L F B' D' B' U R L' B' D F B'"],
     "facelets": "FUFFUFFFFUUUURUURURRRFFRRRRBBBBDDBBBDDDDLLDDDLBLLBLLLL",
-    "ssePermutation": "(-urf) (ufl,rub,frd) (ulb,rbd,fdl) (+dbl)\n(ur,rf,fu) (ul,rb,fd) (dl,lb,bd)",
+    "ssePermutation": "(-urf) (dfr,luf,bru) (drb,lfd,bul) (+dbl)\n(ur,rf,fu) (br,df,lu) (db,ld,bl)",
     "publishedPermutation": "(+urf) (ufl,rub,frd) (dlf,lbu,bdr) (-dbl)\n(ur,rf,fu) (rb,fd,ul) (bd,dl,lb)\n(+r) (+u) (++f)"
   }
 ]
