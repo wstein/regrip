@@ -119,3 +119,5 @@ and replay fixtures small, isolated tests.
   an Extended Singmaster notation grammar and compiler reference.
 - [CubeTwister Superset ENG 3×3 notation](https://www.randelshofer.ch/cubetwister/doc/notations/superset_eng_3x3.html) —
   the reference for Copy as SSE permutation cycles.
+- [Superset ENG 3×3 move notation](https://www.randelshofer.ch/rubik/patterns/doc/supersetENG_3x3.html) —
+  the reference for Copy SSE detected moves.

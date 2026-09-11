@@ -140,6 +140,11 @@ export async function copyDetectedMoves(): Promise<void> {
   await copyText(textarea('detectedMoves').value);
 }
 
+/** Copy detected moves through an explicitly selected notation formatter. */
+export async function copyDetectedMovesAs(format: (moves: string) => string): Promise<void> {
+  await copyText(format(textarea('detectedMoves').value));
+}
+
 /** Copy plain text with a legacy fallback for browsers without Clipboard API support. */
 export async function copyText(value: string): Promise<void> {
   if (navigator.clipboard?.writeText) {

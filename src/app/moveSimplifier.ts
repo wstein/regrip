@@ -45,6 +45,25 @@ function formatMove({ face, turns }: ParsedMove): string {
   }
 }
 
+/** Format Regrip's detected Singmaster moves as Superset ENG (SSE) moves. */
+export function formatSseMoves(value: string): string {
+  return value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => {
+      const move = parseMove(token);
+      if (!move) return token;
+      const suffix = move.turns === 1 ? '' : move.turns === 2 ? '2' : "'";
+      if (move.face === 'x') return `CR${suffix}`;
+      if (move.face === 'y') return `CU${suffix}`;
+      if (move.face === 'z') return `CF${suffix}`;
+      if (move.face.endsWith('w')) return `T${move.face[0]}${suffix}`;
+      return `${move.face}${suffix}`;
+    })
+    .join(' ');
+}
+
 function inverseTurns(turns: number): number {
   return (4 - turns) % 4;
 }

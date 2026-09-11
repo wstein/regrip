@@ -13,7 +13,7 @@ import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { mountFullscreenToggle } from './fullscreen';
-import { simplifyMoves } from './moveSimplifier';
+import { formatSseMoves, simplifyMoves } from './moveSimplifier';
 import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../integration/cubeEvents';
 import { connectCube } from '../integration/connection';
@@ -440,6 +440,16 @@ infoPanel.on('copy-detected-moves', 'click', () => {
     .catch((error) => {
       console.error('unable to copy detected moves', error);
       infoPanel.showFeedback('Could not copy detected moves.');
+    });
+});
+
+infoPanel.on('copy-detected-moves-sse', 'click', () => {
+  void infoPanel
+    .copyDetectedMovesAs(formatSseMoves)
+    .then(() => infoPanel.showFeedback('Detected moves copied as SSE.'))
+    .catch((error) => {
+      console.error('unable to copy detected moves as SSE', error);
+      infoPanel.showFeedback('Could not copy detected moves as SSE.');
     });
 });
 

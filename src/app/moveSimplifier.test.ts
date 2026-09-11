@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Alg } from 'cubing/alg';
 import { cube3x3x3 } from 'cubing/puzzles';
 
-import { simplifyMoves } from './moveSimplifier';
+import { formatSseMoves, simplifyMoves } from './moveSimplifier';
 
 describe('simplifyMoves', () => {
   it.each([
@@ -45,5 +45,15 @@ describe('simplifyMoves', () => {
     ).toBe(true);
     expect(simplified).toMatch(/(?:^| )x2 z'(?:$| )/);
     expect(simplified).not.toContain('x z2 x2');
+  });
+});
+
+describe('formatSseMoves', () => {
+  it('converts regrips and wide turns to Superset ENG forms', () => {
+    expect(formatSseMoves("R Rw U2 Lw' x y' z2")).toBe("R TR U2 TL' CR CU' CF2");
+  });
+
+  it('leaves already-compatible and unrecognized tokens intact', () => {
+    expect(formatSseMoves("R' unknown F2")).toBe("R' unknown F2");
   });
 });
