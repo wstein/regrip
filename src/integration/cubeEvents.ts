@@ -4,7 +4,7 @@ import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res
 import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync.res.mjs';
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
-import { formatCubieState, formatOfflineStats } from './cubeInfo';
+import { formatCubieLevelState, formatOfflineStats } from './cubeInfo';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
 import type { TimerController } from './timerController';
 
@@ -109,7 +109,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
       displayedPattern = nextPattern;
       const state = cubieStateFromPattern(nextPattern);
       options.showInfo('cubieState');
-      options.setInfo('cubieState', formatCubieState(state));
+      options.setInfo('cubieState', formatCubieLevelState(state));
       options.onFacelets?.({
         facelets: CubeFacelets.patternDataToFacelets(nextPattern),
         state,
@@ -145,7 +145,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     const state = displayedPattern ? cubieStateFromPattern(displayedPattern) : event.state;
     if (state) {
       options.showInfo('cubieState');
-      options.setInfo('cubieState', formatCubieState(state));
+      options.setInfo('cubieState', formatCubieLevelState(state));
     }
     options.onFacelets?.({ facelets, state });
     const [nextState, syncGeneration] = PlayerSync.beginSnapshot(playerSyncState);

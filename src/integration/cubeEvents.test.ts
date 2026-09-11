@@ -266,7 +266,7 @@ describe('cube event gyro bridge', () => {
       },
     });
 
-    expect(cubieStates).toEqual(['(DFR,URF) (UBR-,ULB+)']);
+    expect(cubieStates).toEqual(['(DFR,URF) (UBR;o:2,ULB;o:1)']);
     expect(exports.at(-1)?.state).toMatchObject({
       CP: [4, 1, 3, 2, 0, 5, 6, 7],
       CO: [0, 0, 2, 1, 0, 0, 0, 0],
@@ -338,7 +338,7 @@ describe('cube event gyro bridge', () => {
       cubeTimestamp: null,
     });
 
-    expect(cubieStates).toEqual(['', '(DFR-,DRB+,UBR-,URF+) (FR,DR,BR,UR)']);
+    expect(cubieStates).toEqual(['', '(DFR;o:2,DRB;o:1,UBR;o:2,URF;o:1) (FR,DR,BR,UR)']);
     expect(exports).toHaveLength(2);
     expect(exports[1]).not.toBe(solvedFacelets);
   });

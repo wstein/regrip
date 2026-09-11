@@ -476,7 +476,7 @@ infoPanel.on('copy-compact-facelets', 'click', () =>
 infoPanel.on('copy-spaced-facelets', 'click', () =>
   copyCubeExport('spaced-facelets', 'Spaced facelets'),
 );
-infoPanel.on('copy-singmaster', 'click', () => copyCubeExport('singmaster', 'Singmaster state'));
+infoPanel.on('copy-cubie-level', 'click', () => copyCubeExport('cubie-level', 'Cubie-level state'));
 infoPanel.on('copy-cubie-coordinates', 'click', () =>
   copyCubeExport('cubie-coordinates', 'CP / CO / EP / EO'),
 );

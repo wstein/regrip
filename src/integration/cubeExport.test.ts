@@ -43,13 +43,13 @@ describe('cube exports', () => {
     expect(formatOrbit64(cubieState(ponsAsinorum))).toBe('AAAABeBQZgAA');
   });
 
-  it('formats compact, spaced, and Singmaster exports', () => {
+  it('formats compact, spaced, and cubie-level exports', () => {
     const source = { facelets, state: solved };
     expect(formatCubeExport(source, 'compact-facelets')).toBe(facelets);
     expect(formatCubeExport(source, 'spaced-facelets')).toBe(
       'UUUUUUUUU RRRRRRRRR FFFFFFFFF DDDDDDDDD LLLLLLLLL BBBBBBBBB',
     );
-    expect(formatCubeExport(source, 'singmaster')).toBe('');
+    expect(formatCubeExport(source, 'cubie-level')).toBe('');
     expect(formatCubeExport(source, 'cubie-coordinates')).toBe(
       'CP: 0,1,2,3,4,5,6,7\nCO: 0,0,0,0,0,0,0,0\nEP: 0,1,2,3,4,5,6,7,8,9,10,11\nEO: 0,0,0,0,0,0,0,0,0,0,0,0',
     );

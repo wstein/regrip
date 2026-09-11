@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import kociembaFixtures from '../../test/fixtures/kociemba-cubie-level.json';
 
-import { formatCapabilities, formatCubieState, formatOfflineStats } from './cubeInfo';
+import { formatCapabilities, formatCubieLevelState, formatOfflineStats } from './cubeInfo';
 
 describe('cube information formatters', () => {
   it('summarizes available capabilities and vendor controls', () => {
@@ -24,9 +25,9 @@ describe('cube information formatters', () => {
     });
   });
 
-  it('formats cubie state in Singmaster cycle notation', () => {
+  it('formats a solved cubie-level state as empty cycles', () => {
     expect(
-      formatCubieState({
+      formatCubieLevelState({
         CP: [0, 1, 2, 3, 4, 5, 6, 7],
         CO: [0, 0, 0, 0, 0, 0, 0, 0],
         EP: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
@@ -35,14 +36,18 @@ describe('cube information formatters', () => {
     ).toBe('');
   });
 
-  it('shows oriented piece cycles and handles incomplete protocol state', () => {
+  it('shows Kociemba orientation values and handles incomplete protocol state', () => {
     expect(
-      formatCubieState({
+      formatCubieLevelState({
         CP: [1, 0, 2, 3, 4, 5, 6, 7],
         CO: [1, 2, 0, 0, 0, 0, 0, 0],
         EP: [0, 1],
         EO: [0, 0],
       }),
-    ).toBe('(UFL+,URF-) (unavailable)');
+    ).toBe('(UFL;o:1,URF;o:2) (unavailable)');
+  });
+
+  it.each(kociembaFixtures)('matches Kociemba cubie-level fixture: $name', ({ state, display }) => {
+    expect(formatCubieLevelState(state)).toBe(display);
   });
 });

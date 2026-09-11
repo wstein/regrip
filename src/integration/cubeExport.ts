@@ -1,9 +1,9 @@
 import type { SmartCubeCubieState } from 'smartcube-web-bluetooth';
 
-import { formatCubieState } from './cubeInfo';
+import { formatCubieLevelState } from './cubeInfo';
 
 export type CubeExportFormat =
-  'compact-facelets' | 'spaced-facelets' | 'singmaster' | 'cubie-coordinates' | 'orbit64';
+  'compact-facelets' | 'spaced-facelets' | 'cubie-level' | 'cubie-coordinates' | 'orbit64';
 export type CubeExportSource = { facelets: string; state?: SmartCubeCubieState };
 
 const base64url = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
@@ -112,7 +112,7 @@ export function formatOrbit64(state: SmartCubeCubieState): string | undefined {
   return toBase64url((cornerRank * midgeRadix + edgeRank) * 24n, 12);
 }
 
-/** Copy-ready raw cubie coordinates in smartcube / KPattern order. */
+/** Copy-ready raw cubie coordinates in Kociemba / smart-cube order. */
 export function formatCubieCoordinates(state: SmartCubeCubieState): string {
   return `CP: ${state.CP.join(',')}\nCO: ${state.CO.join(',')}\nEP: ${state.EP.join(',')}\nEO: ${state.EO.join(',')}`;
 }
@@ -127,8 +127,8 @@ export function formatCubeExport(
       return source.facelets;
     case 'spaced-facelets':
       return source.facelets.match(/.{1,9}/g)?.join(' ');
-    case 'singmaster':
-      return source.state ? formatCubieState(source.state) : undefined;
+    case 'cubie-level':
+      return source.state ? formatCubieLevelState(source.state) : undefined;
     case 'cubie-coordinates':
       return source.state ? formatCubieCoordinates(source.state) : undefined;
     case 'orbit64':
