@@ -274,19 +274,19 @@ body {
 }
 .trace-filters button[data-trace-filter='UNKNOWN'] {
   --trace-filter-color: #ffedc7;
-  --trace-filter-background: #8b5b22;
+  --trace-filter-background: #87591f;
 }
 .trace-filters button[data-trace-filter='DIAGNOSTIC'] {
-  --trace-filter-color: #ffe5f8;
-  --trace-filter-background: #7b3974;
+  --trace-filter-color: #ffe5ee;
+  --trace-filter-background: #87355e;
 }
 .trace-filters button[data-trace-filter='REGRIP'] {
-  --trace-filter-color: #ffedc8;
-  --trace-filter-background: #8a6027;
+  --trace-filter-color: #f4ffd4;
+  --trace-filter-background: #6c6d29;
 }
 .trace-filters button[data-trace-filter='TRIGGER'] {
-  --trace-filter-color: #ffe5fa;
-  --trace-filter-background: #86438d;
+  --trace-filter-color: #f0e7ff;
+  --trace-filter-background: #65418e;
 }
 .trace-filters button[data-trace-filter='SHAKE'] {
   --trace-filter-color: #ffead4;
@@ -477,19 +477,19 @@ body {
 }
 .trace-unknown .trace-badge {
   color: #ffedc7;
-  background: #8b5b22;
+  background: #87591f;
 }
 .trace-diagnostic .trace-badge {
-  color: #ffe5f8;
-  background: #7b3974;
+  color: #ffe5ee;
+  background: #87355e;
 }
 .trace-regrip .trace-badge {
-  color: #ffedc8;
-  background: #8a6027;
+  color: #f4ffd4;
+  background: #6c6d29;
 }
 .trace-trigger .trace-badge {
-  color: #ffe5fa;
-  background: #86438d;
+  color: #f0e7ff;
+  background: #65418e;
 }
 .trace-shake .trace-badge {
   color: #ffead4;
