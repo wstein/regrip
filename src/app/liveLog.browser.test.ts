@@ -81,6 +81,21 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector('#event-log-rows')?.textContent).toContain('battery');
   });
 
+  it('ranges over visible rows without selecting filtered history', () => {
+    mountTrace();
+    const trace = createLiveLog();
+    trace.append('MOVE', 'R');
+    trace.append('GYRO', 'hidden one');
+    trace.append('GYRO', 'hidden two');
+    trace.append('EVENT', 'battery');
+
+    click('[data-trace-id="1"]', { shiftKey: true });
+    click('[data-trace-id="4"]', { shiftKey: true });
+
+    expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual(['R', 'battery']);
+    expect(document.querySelector('#trace-selection-count')?.textContent).toBe('2 selected');
+  });
+
   it('supports shift-click ranges, type bulk selection, copy, export, and local move reproduction', async () => {
     mountTrace();
     const reproduce = vi.fn();

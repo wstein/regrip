@@ -219,11 +219,11 @@ export function createLiveLog({
 
   const selectEntry = (id: number, range: boolean): void => {
     if (range && lastSelectedId !== undefined) {
-      const start = entries.value.findIndex((entry) => entry.id === lastSelectedId);
-      const end = entries.value.findIndex((entry) => entry.id === id);
+      const start = visibleEntries.value.findIndex((entry) => entry.id === lastSelectedId);
+      const end = visibleEntries.value.findIndex((entry) => entry.id === id);
       if (start !== -1 && end !== -1) {
         const [from, to] = start < end ? [start, end] : [end, start];
-        entries.value.slice(from, to + 1).forEach((entry) => selected.add(entry.id));
+        visibleEntries.value.slice(from, to + 1).forEach((entry) => selected.add(entry.id));
       }
     } else if (selected.has(id)) selected.delete(id);
     else selected.add(id);
@@ -240,7 +240,7 @@ export function createLiveLog({
     badge.addEventListener('click', (event) => {
       if (!(event as MouseEvent).shiftKey) return;
       event.stopPropagation();
-      entries.value
+      visibleEntries.value
         .filter((candidate) => candidate.category === entry.category)
         .forEach((candidate) => selected.add(candidate.id));
       lastSelectedId = entry.id;
