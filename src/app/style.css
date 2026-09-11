@@ -80,6 +80,22 @@ body {
 .api-docs-link a:hover {
   color: #c3daff;
 }
+.source-revision {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.3rem 0 0;
+  color: #7686a8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.7rem;
+}
+.source-revision a {
+  color: #8bb7ff;
+  text-underline-offset: 0.16em;
+}
+.source-revision a:hover {
+  color: #c3daff;
+}
 
 .app-layout {
   flex: 1;
