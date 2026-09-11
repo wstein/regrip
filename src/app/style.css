@@ -454,11 +454,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
   margin: 0;
   padding: 0.5rem;
   border: 1px solid #2b3859;
   border-radius: 0.85rem;
   background: radial-gradient(circle at 50% 35%, #16223d 0, #0a1121 70%);
+  box-sizing: border-box;
 }
 #cube twisty-player {
   width: clamp(13rem, 21vw, 18rem);
@@ -466,7 +468,7 @@ body {
 }
 .cube-workspace {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 1.25rem;
 }
 .cube-column {
@@ -528,7 +530,8 @@ body {
 }
 #detectedMoves {
   box-sizing: border-box;
-  min-height: 15em;
+  flex: 1;
+  min-height: 9em;
   resize: vertical;
   padding: 0.8rem;
   color: #eaf0ff;
@@ -756,6 +759,7 @@ button:disabled {
   }
   .cube-workspace {
     flex-direction: column;
+    align-items: flex-start;
   }
   .detected-moves-panel {
     width: 100%;
