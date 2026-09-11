@@ -80,6 +80,8 @@ export type SmartCubeSessionEvent =
   | ShakeTriggerEvent
   | MoveGapEvent;
 
+type FaceletsEvent = Extract<SmartCubeEvent, { type: 'FACELETS' }>;
+
 type SessionEventType = SmartCubeSessionEvent['type'];
 type SessionEventOf<T extends SessionEventType> = Extract<SmartCubeSessionEvent, { type: T }>;
 
@@ -169,6 +171,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   };
   const listeners = new Set<(next: SmartCubeSessionState) => void>();
   const eventListeners = new Set<(event: SmartCubeSessionEvent) => void>();
+  const pendingFaceletSyncs = new Set<(error: Error) => void>();
   // The session owns calibration once; both regrip detection and display
   // stabilization consume the resulting calibrated pose.
   let gyroConfig = GyroPipeline.makeConfig(stabilizerConfig(state.features));
@@ -450,6 +453,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   async function disconnect(): Promise<void> {
     connectionGeneration += 1;
+    pendingFaceletSyncs.forEach((reject) =>
+      reject(new Error('Cube disconnected before state sync')),
+    );
+    pendingFaceletSyncs.clear();
     subscription?.unsubscribe();
     subscription = null;
     const connection = state.connection;
@@ -462,6 +469,36 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     const connection = state.connection;
     if (!connection) throw new Error('Cube is not connected');
     await connection.sendCommand(command);
+  }
+
+  /** Request an authoritative snapshot and resolve only when it arrives. */
+  function syncFacelets(): Promise<FaceletsEvent> {
+    const connection = state.connection;
+    if (!connection) return Promise.reject(new Error('Cube is not connected'));
+    if (!connection.capabilities.facelets)
+      return Promise.reject(new Error('Cube does not support facelet snapshots'));
+
+    return new Promise<FaceletsEvent>((resolve, reject) => {
+      let unsubscribe = (): void => {};
+      const finish = (result: FaceletsEvent | Error): void => {
+        unsubscribe();
+        pendingFaceletSyncs.delete(rejectSync);
+        if (result instanceof Error) reject(result);
+        else resolve(result);
+      };
+      const rejectSync = (error: Error): void => finish(error);
+      pendingFaceletSyncs.add(rejectSync);
+      const listener = (event: SmartCubeSessionEvent): void => {
+        if (event.type === 'FACELETS') finish(event);
+        else if (event.type === 'DISCONNECT')
+          finish(new Error('Cube disconnected before state sync'));
+      };
+      eventListeners.add(listener);
+      unsubscribe = () => eventListeners.delete(listener);
+      void connection.sendCommand({ type: 'REQUEST_FACELETS' }).catch((error: unknown) => {
+        finish(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
   }
 
   async function sendVendorCommand(command: SmartCubeVendorCommand): Promise<void> {
@@ -505,6 +542,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       applyFeatures(runtimeFeatures);
     },
     sendCommand,
+    syncFacelets,
     sendVendorCommand,
   };
 }

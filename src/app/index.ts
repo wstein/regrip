@@ -274,6 +274,7 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.setConnectLabel('Disconnect');
     commandPanel.render(connection.capabilities, {
       sendCommand: session.sendCommand,
+      syncState: session.syncFacelets,
       sendVendorCommand: session.sendVendorCommand,
       onBeforeSend: (command) => {
         if ('type' in command && command.type === 'REQUEST_FACELETS') {

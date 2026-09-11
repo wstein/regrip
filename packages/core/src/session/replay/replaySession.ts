@@ -366,6 +366,9 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
     async sendCommand(command: SmartCubeCommand) {
       await connection.sendCommand(command);
     },
+    async syncFacelets() {
+      throw new Error('State sync is unavailable for session-feed replay');
+    },
     async sendVendorCommand(command: SmartCubeVendorCommand) {
       if (!connection.sendVendorCommand)
         throw new Error(`Unsupported cube command: ${command.type}`);
@@ -480,6 +483,7 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
     configureFeatures: (patch: Parameters<SmartCubeSession['configureFeatures']>[0]) =>
       current.configureFeatures(patch),
     sendCommand: (command: SmartCubeCommand) => current.sendCommand(command),
+    syncFacelets: () => current.syncFacelets(),
     sendVendorCommand: (command: SmartCubeVendorCommand) => current.sendVendorCommand(command),
   };
 

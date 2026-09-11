@@ -44,4 +44,27 @@ describe('command panel', () => {
     expect(confirm).toHaveBeenCalledOnce();
     expect(sendVendorCommand).not.toHaveBeenCalled();
   });
+
+  it('uses the snapshot-confirming sync operation for Sync state', async () => {
+    document.body.innerHTML = '<section id="command-panel" hidden></section>';
+    const sendCommand = vi.fn(async () => {});
+    const syncState = vi.fn(async () => {});
+    const panel = createCommandPanel();
+
+    panel.render(
+      {
+        gyroscope: false,
+        battery: false,
+        facelets: true,
+        hardware: false,
+        reset: false,
+      },
+      { sendCommand, sendVendorCommand: vi.fn(async () => {}), syncState, onResult: vi.fn() },
+    );
+
+    document.querySelector<HTMLButtonElement>('#command-panel button')!.click();
+    await Promise.resolve();
+    expect(syncState).toHaveBeenCalledOnce();
+    expect(sendCommand).not.toHaveBeenCalled();
+  });
 });

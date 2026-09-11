@@ -6,6 +6,8 @@ import type {
 
 type CommandPanelOptions = {
   sendCommand: (command: SmartCubeCommand) => Promise<void>;
+  /** Request state and wait until the cube provides the authoritative snapshot. */
+  syncState?: () => Promise<unknown>;
   sendVendorCommand: (command: SmartCubeVendorCommand) => Promise<void>;
   /** Runs before a supported command is sent, while its button is disabled. */
   onBeforeSend?: (command: SmartCubeCommand | SmartCubeVendorCommand) => void;
@@ -85,7 +87,13 @@ export function createCommandPanel() {
         button.disabled = true;
         try {
           options.onBeforeSend?.(action.command);
-          if ('vendor' in action.command) await options.sendVendorCommand(action.command);
+          if (
+            'type' in action.command &&
+            action.command.type === 'REQUEST_FACELETS' &&
+            options.syncState
+          )
+            await options.syncState();
+          else if ('vendor' in action.command) await options.sendVendorCommand(action.command);
           else await options.sendCommand(action.command);
           options.onResult(action.name);
         } catch (error) {

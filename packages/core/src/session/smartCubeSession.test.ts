@@ -585,4 +585,37 @@ describe('smart cube session', () => {
       type: 'TOGGLE_BACKLIGHT',
     });
   });
+
+  it('waits for the next FACELETS event when synchronizing state', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const conn = connection(events$, {
+      gyroscope: false,
+      battery: false,
+      facelets: true,
+      hardware: false,
+      reset: false,
+    });
+    const session = createSmartCubeSession({ connect: async () => conn });
+    await session.connect();
+    vi.mocked(conn.sendCommand).mockClear();
+
+    let completed = false;
+    const syncing = session.syncFacelets().then(() => {
+      completed = true;
+    });
+    await vi.waitFor(() =>
+      expect(conn.sendCommand).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' }),
+    );
+    expect(completed).toBe(false);
+
+    events$.next({
+      type: 'FACELETS',
+      timestamp: 1,
+      serial: 1,
+      facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+    });
+    await syncing;
+    expect(completed).toBe(true);
+    await session.disconnect();
+  });
 });
