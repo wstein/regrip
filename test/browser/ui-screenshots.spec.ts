@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 // Tall enough that the whole `#app` fits in one frame — Playwright's
 // screenshot stitching skews the top strip when the element exceeds the
 // viewport height.
-test.use({ viewport: { width: 1920, height: 1600 } });
+// Keep this aligned with the committed baselines. The app is responsive, but
+// screenshot assertions require one explicit capture size on every platform.
+test.use({ viewport: { width: 1408, height: 1600 } });
 
 for (const fixture of ['disconnected', 'gocube-edge', 'gan-ui12'] as const) {
   test(`captures ${fixture} UI`, async ({ page }) => {
