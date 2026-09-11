@@ -252,9 +252,49 @@ body {
   font-size: 0.64rem;
 }
 .trace-filters button.is-active {
-  color: #d9e6ff;
-  background: #1d365c;
-  border-color: #4d78b8;
+  color: var(--trace-filter-color);
+  background: var(--trace-filter-background);
+  border-color: var(--trace-filter-background);
+}
+.trace-filters button[data-trace-filter='MOVE'] {
+  --trace-filter-color: #e5fff0;
+  --trace-filter-background: #176b49;
+}
+.trace-filters button[data-trace-filter='EVENT'] {
+  --trace-filter-color: #e5edff;
+  --trace-filter-background: #344f7e;
+}
+.trace-filters button[data-trace-filter='STATE'] {
+  --trace-filter-color: #ecebff;
+  --trace-filter-background: #4b4b87;
+}
+.trace-filters button[data-trace-filter='COMMAND'] {
+  --trace-filter-color: #ffe7ec;
+  --trace-filter-background: #743542;
+}
+.trace-filters button[data-trace-filter='UNKNOWN'] {
+  --trace-filter-color: #ffedc7;
+  --trace-filter-background: #8b5b22;
+}
+.trace-filters button[data-trace-filter='DIAGNOSTIC'] {
+  --trace-filter-color: #ffe5f8;
+  --trace-filter-background: #7b3974;
+}
+.trace-filters button[data-trace-filter='REGRIP'] {
+  --trace-filter-color: #ffedc8;
+  --trace-filter-background: #8a6027;
+}
+.trace-filters button[data-trace-filter='TRIGGER'] {
+  --trace-filter-color: #ffe5fa;
+  --trace-filter-background: #86438d;
+}
+.trace-filters button[data-trace-filter='SHAKE'] {
+  --trace-filter-color: #ffead4;
+  --trace-filter-background: #a75320;
+}
+.trace-filters button[data-trace-filter='GYRO'] {
+  --trace-filter-color: #d9f4ff;
+  --trace-filter-background: #246f8b;
 }
 #trace-selection {
   display: flex;
