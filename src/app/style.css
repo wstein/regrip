@@ -51,10 +51,18 @@ body {
   max-width: none;
   margin: 1rem 0 0;
 }
+.quick-game {
+  margin-top: 1rem;
+}
+.quick-game h3 {
+  margin: 0 0 0.65rem;
+  color: #dce6ff;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
 .start-timer-cta {
   display: block;
   width: 100%;
-  margin-top: 1rem;
   box-sizing: border-box;
   text-align: left;
 }
