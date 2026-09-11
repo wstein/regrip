@@ -20,6 +20,12 @@ describe('simplifyMoves', () => {
     ['B z', 'Fw'],
     ["F z'", 'Bw'],
     ['Rw Rw', 'Rw2'],
+    ['M M', 'M2'],
+    ["E E'", ''],
+    ['S S S', "S'"],
+    ["y M y'", 'S'],
+    ["y S y'", "M'"],
+    ["x E x'", "S'"],
     ["y y' z z z", "z'"],
     ['R U U R', 'R U2 R'],
     ['R unknown R R', 'R unknown R2'],
@@ -46,11 +52,23 @@ describe('simplifyMoves', () => {
     expect(simplified).toMatch(/(?:^| )x2 z'(?:$| )/);
     expect(simplified).not.toContain('x z2 x2');
   });
+
+  it('preserves cube state while reframing middle slices', async () => {
+    const kpuzzle = await cube3x3x3.kpuzzle();
+    for (const input of ["y M y'", "y S y'", "x E x'"]) {
+      const simplified = simplifyMoves(input);
+      expect(
+        kpuzzle
+          .algToTransformation(new Alg(simplified))
+          .isIdentical(kpuzzle.algToTransformation(new Alg(input))),
+      ).toBe(true);
+    }
+  });
 });
 
 describe('formatSseMoves', () => {
   it('converts regrips and wide turns to Superset ENG forms', () => {
-    expect(formatSseMoves("R Rw U2 Lw' x y' z2")).toBe("R TR U2 TL' CR CU' CF2");
+    expect(formatSseMoves("R Rw U2 Lw' M E' S2 x y' z2")).toBe("R TR U2 TL' ML MD' MF2 CR CU' CF2");
   });
 
   it('leaves already-compatible and unrecognized tokens intact', () => {

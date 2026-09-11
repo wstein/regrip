@@ -1,5 +1,6 @@
 type ParsedMove = { face: string; turns: number };
 type Face = 'U' | 'R' | 'F' | 'D' | 'L' | 'B';
+type Slice = 'M' | 'E' | 'S';
 type Orientation = Readonly<Record<Face, Face>>;
 
 const faces: readonly Face[] = ['U', 'R', 'F', 'D', 'L', 'B'];
@@ -29,7 +30,7 @@ const wideMoveRules: readonly {
 ];
 
 function parseMove(token: string): ParsedMove | undefined {
-  const match = /^([URFDLB]w?|[xyz])([2']?)$/.exec(token);
+  const match = /^([URFDLB]w?|[MES]|[xyz])([2']?)$/.exec(token);
   if (!match) return undefined;
   return { face: match[1], turns: match[2] === "'" ? 3 : match[2] === '2' ? 2 : 1 };
 }
@@ -59,6 +60,7 @@ export function formatSseMoves(value: string): string {
       if (move.face === 'y') return `CU${suffix}`;
       if (move.face === 'z') return `CF${suffix}`;
       if (move.face.endsWith('w')) return `T${move.face[0]}${suffix}`;
+      if (isSliceMove(move)) return `${sseMiddleLayer[move.face]}${suffix}`;
       return `${move.face}${suffix}`;
     })
     .join(' ');
@@ -121,7 +123,36 @@ function isFaceMove(move: ParsedMove): move is ParsedMove & { face: Face | `${Fa
   return /^[URFDLB]w?$/.test(move.face);
 }
 
+function isSliceMove(move: ParsedMove): move is ParsedMove & { face: Slice } {
+  return /^[MES]$/.test(move.face);
+}
+
+const sliceReferenceFace: Readonly<Record<Slice, Face>> = { M: 'L', E: 'D', S: 'F' };
+const sseMiddleLayer: Readonly<Record<Slice, string>> = { M: 'ML', E: 'MD', S: 'MF' };
+
+function sliceForReferenceFace(face: Face): { slice: Slice; inverse: boolean } {
+  switch (face) {
+    case 'L':
+      return { slice: 'M', inverse: false };
+    case 'R':
+      return { slice: 'M', inverse: true };
+    case 'D':
+      return { slice: 'E', inverse: false };
+    case 'U':
+      return { slice: 'E', inverse: true };
+    case 'F':
+      return { slice: 'S', inverse: false };
+    case 'B':
+      return { slice: 'S', inverse: true };
+  }
+}
+
 function reframe(move: ParsedMove, orientation: Orientation): ParsedMove {
+  if (isSliceMove(move)) {
+    const referenceFace = orientation[sliceReferenceFace[move.face]];
+    const mapped = sliceForReferenceFace(referenceFace);
+    return { face: mapped.slice, turns: mapped.inverse ? inverseTurns(move.turns) : move.turns };
+  }
   const face = move.face[0] as Face;
   const transformedFace = orientation[face];
   return { ...move, face: move.face.endsWith('w') ? `${transformedFace}w` : transformedFace };
@@ -178,7 +209,7 @@ export function simplifyMoves(value: string): string {
       append(token);
     } else if (move.face === 'x' || move.face === 'y' || move.face === 'z') {
       orientation = compose(orientation, rotationOrientation(move.face, move.turns));
-    } else if (isFaceMove(move)) {
+    } else if (isFaceMove(move) || isSliceMove(move)) {
       append(reframe(move, orientation));
     }
   }
