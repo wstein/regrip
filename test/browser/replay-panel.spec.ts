@@ -92,6 +92,9 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
       }),
     )
     .not.toEqual(Array.from({ length: 12 }, (_, index) => index));
+  await expect(page.locator('#cubieState')).not.toHaveValue('');
+  await page.locator('#copy-cube-state').click();
+  await expect(page.locator('#copy-cubie-coordinates')).toHaveText('CP / CO / EP / EO');
 });
 
 test('renders the authoritative facelet snapshot after repeated sync requests', async ({

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import * as CubeFacelets from '../domain/CubeFacelets.res.mjs';
-import { formatCubeExport, formatOrbit64 } from './cubeExport';
+import { formatCubeExport, formatCubieCoordinates, formatOrbit64 } from './cubeExport';
 
 const solved = {
   CP: [0, 1, 2, 3, 4, 5, 6, 7],
@@ -50,6 +50,15 @@ describe('cube exports', () => {
       'UUUUUUUUU RRRRRRRRR FFFFFFFFF DDDDDDDDD LLLLLLLLL BBBBBBBBB',
     );
     expect(formatCubeExport(source, 'singmaster')).toBe('');
+    expect(formatCubeExport(source, 'cubie-coordinates')).toBe(
+      'CP: 0,1,2,3,4,5,6,7\nCO: 0,0,0,0,0,0,0,0\nEP: 0,1,2,3,4,5,6,7,8,9,10,11\nEO: 0,0,0,0,0,0,0,0,0,0,0,0',
+    );
+  });
+
+  it('formats each cubie coordinate array on its own copy-ready line', () => {
+    expect(formatCubieCoordinates({ ...solved, CP: [1, 0, 2, 3, 4, 5, 6, 7] })).toBe(
+      'CP: 1,0,2,3,4,5,6,7\nCO: 0,0,0,0,0,0,0,0\nEP: 0,1,2,3,4,5,6,7,8,9,10,11\nEO: 0,0,0,0,0,0,0,0,0,0,0,0',
+    );
   });
 
   it('rejects invalid Orbit64 coordinates and missing state exports', () => {
