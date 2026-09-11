@@ -1,7 +1,7 @@
 import { experimentalSolve3x3x3IgnoringCenters } from 'cubing/search';
 
 import { faceletsToPattern, kpuzzleReady } from './utils';
-import type { ScrambleSolver } from '../../session/cubeEvents';
+import type { ScrambleSolver } from '../../integration/cubeEvents';
 
 export const createCubingScrambleSolver = (): ScrambleSolver => async (facelets) => {
   await kpuzzleReady;

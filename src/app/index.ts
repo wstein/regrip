@@ -15,16 +15,16 @@ import { createLiveLog } from './liveLog';
 import { mountFullscreenToggle } from './fullscreen';
 import { simplifyMoves } from './moveSimplifier';
 import { createSessionSignals } from './sessionSignals';
-import { createCubeEventController } from '../session/cubeEvents';
-import { connectCube } from '../session/connection';
+import { createCubeEventController } from '../integration/cubeEvents';
+import { connectCube } from '../integration/connection';
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '@wstein/regrip-core/session/jsonlFormat';
-import { createTimerController } from '../session/timerController';
-import { formatCapabilities } from '../session/cubeInfo';
+import { createTimerController } from '../integration/timerController';
+import { formatCapabilities } from '../integration/cubeInfo';
 import {
   formatCubeExport,
   type CubeExportFormat,
   type CubeExportSource,
-} from '../session/cubeExport';
+} from '../integration/cubeExport';
 import { featurePresets } from '@wstein/regrip-core/session/features';
 import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 import { createSolverFrame } from '../adapters/three/solverFrame';
