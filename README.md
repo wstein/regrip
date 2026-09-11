@@ -45,14 +45,22 @@ flowchart LR
   BLE -->|"typed SmartCubeEvent"| SC
   BLE -. "optional decoder diagnostics\n(app trace only)" .-> LL
   JSONL -->|"same typed events\n(timestamps injected)"| SC
-  SC --> TC --> CE
-  CE -->|"(state, action) → state"| MB & OS & RD & MBT & VCF & TM
-  MB & OS & RD & MBT & VCF & TM -->|"new immutable state"| CE
+  SC -->|"(state, action) → state"| Domain
+  Domain -->|"new immutable state"| SC
+  SC --> TC & CE
+  TC -->|"(state, action) → state"| Domain
+  Domain -->|"new immutable state"| TC
   CE --> IP & LL & SV
 ```
 
-> **JSONL replay** feeds the exact same event types with recorded timestamps into `smartCubeSession.ts`,
-> so the pure reducers produce byte-identical output to the original live session.
+`smartCubeSession.ts` owns most of that reducer pipeline directly (regrip, custom-trigger, and
+stabilization state all live inside the session); `cubeEvents.ts` applies the session's ordered
+output to the player, cube-state export, and trace — it does not call the reducers itself.
+
+> **JSONL replay** feeds the exact same event types with recorded timestamps through the session and
+> integration pipeline, so the pure reducers reach the same decisions, state, regrips, and timer values
+> as the original live session — deterministic, not merely similar. UI/log rendering built from that
+> state is not held to the same guarantee.
 > See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design rationale.
 
 A single-page [Vite](https://vite.dev) example for the
@@ -140,6 +148,18 @@ typed session event stream; an unrecognized one remains diagnostic-only.
 headless session and pure domain live in `packages/core`; the browser-lab glue is `src/integration`.
 ESLint checks both workspace roots so core code cannot depend on presentation layers.
 
+`@wstein/regrip-core` exists as its own layer, not just an organizational split, because that buys:
+
+- **Hardware-independent behavior.** Domain reducers run from recorded inputs, so a failure seen only
+  on a real cube is reproducible from a JSONL capture, without the cube.
+- **Shared behavior.** Regrip and CubeLab consume the same calibration, stabilization, regrip,
+  trigger, recovery, and frame-mapping rules instead of forking them per app.
+- **Enforced separation.** TypeScript in `packages/core` cannot reach DOM, Signals, Three.js, or lab
+  integration — checked by `eslint.config.js`, not just documented. The ReScript domain remains pure
+  deterministic math with paired reducer tests.
+- **Race and integrity safety.** Packet gaps, duplicate snapshots, async player-solve races, and
+  replay timing are handled as testable state machines instead of ad hoc event-handler ordering.
+
 | Module                                              | Responsibility                                                            |
 | --------------------------------------------------- | ------------------------------------------------------------------------- |
 | `src/app/`                                          | DOM, trace/JSONL tooling, styles, and composition root                    |
@@ -154,14 +174,16 @@ ESLint checks both workspace roots so core code cannot depend on presentation la
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 
-| Module                                                                                     | Responsibility                                                                    |
-| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| `CubeFacelets.res`                                                                         | Pure solved-state detection and cubing.js-compatible facelet conversion           |
-| `Timer.res` / `Time.res` / `MoveBuffer.res`                                                | Solve-timer state machine, formatting, and recent-move buffers                    |
-| `Quaternion.res` / `CubeSymmetry.res`                                                      | Quaternion math and the 24 cube orientations                                      |
-| `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res`                 | Detents, hysteresis, velocity gating, drift, and calibrated poses                 |
-| `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face triggers |
-| `packages/core/src/bindings/Bindings_SmartCube.res`                                        | Typed timestamp-helper boundary to the Bluetooth library                          |
+| Module                                                                                                          | Responsibility                                                                                           |
+| --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `CubeFacelets.res` / `CubeNotation.res`                                                                         | Pure solved-state detection, facelet conversion, and shared move/orientation types                       |
+| `Timer.res` / `Time.res` / `MoveBuffer.res`                                                                     | Solve-timer state machine, formatting, and recent-move buffers                                           |
+| `Quaternion.res` / `CubeSymmetry.res`                                                                           | Quaternion math and the 24 cube orientations                                                             |
+| `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res` / `GyroPipeline.res`                 | Detents, hysteresis, velocity gating, drift, calibrated poses, and the composed per-packet gyro pipeline |
+| `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` / `ShakeTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face/shake triggers                  |
+| `MoveTracker.res` / `SnapshotDeduper.res`                                                                       | Dropped-packet serial-gap detection and duplicate/unsolicited-snapshot policy                            |
+| `PlayerSync.res` / `ReplayCursor.res`                                                                           | Race-safe async-snapshot reconciliation for the 3D player, and the deterministic JSONL replay cursor     |
+| `packages/core/src/bindings/Bindings_SmartCube.res`                                                             | Typed timestamp-helper boundary to the Bluetooth library                                                 |
 
 Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
 
