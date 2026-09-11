@@ -51,6 +51,26 @@ body {
   max-width: none;
   margin: 1rem 0 0;
 }
+.start-timer-cta {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+.api-docs-link {
+  margin: 0.5rem 0 0;
+  color: #7686a8;
+  font-size: 0.8rem;
+}
+.api-docs-link a {
+  color: #8bb7ff;
+  font-weight: 700;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+.api-docs-link a:hover {
+  color: #c3daff;
+}
 
 .app-layout {
   flex: 1;

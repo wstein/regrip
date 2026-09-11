@@ -179,16 +179,18 @@
                   Track orientation
                 </button>
                 <button id="reset-gyro" disabled>Reset View</button>
-                <button id="start-timer" type="button" disabled>Start Timer</button>
                 <button id="fullscreen" type="button" aria-pressed="false">⛶ Fullscreen</button>
               </div>
               <div class="log-actions"></div>
             </div>
             <section id="command-panel" class="command-panel" hidden></section>
-            <div class="help">
-              Scramble cube to arbitrary state, then press Start Timer or touch Cube to activate the
-              solving timer. <a href="./docs/api/index.html">API docs</a>
-            </div>
+            <button id="start-timer" type="button" class="help start-timer-cta" disabled>
+              Scramble cube to arbitrary state, then press here or touch Cube to start the solving
+              timer.
+            </button>
+            <p class="api-docs-link">
+              <a href="./docs/api/index.html">API docs</a>
+            </p>
           </main>
 
           <aside class="device-card">
