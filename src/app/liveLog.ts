@@ -5,7 +5,7 @@ import { byId } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
 export type TraceCategory =
-  'MOVE' | 'EVENT' | 'STATE' | 'COMMAND' | 'GYRO' | 'REGRIP' | 'TRIGGER' | 'SHAKE';
+  'MOVE' | 'EVENT' | 'STATE' | 'COMMAND' | 'UNKNOWN' | 'GYRO' | 'REGRIP' | 'TRIGGER' | 'SHAKE';
 
 export type TraceEntry = {
   id: number;
@@ -79,7 +79,10 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
       return ['EVENT', `battery ${data.batteryLevel}%`];
     if (eventType === 'HARDWARE') return ['EVENT', hardwareSummary(data)];
     if (eventType === 'FACELETS') return ['EVENT', faceletsSummary(data)];
-    return ['EVENT', typeof eventType === 'string' ? eventType.toLowerCase() : 'cube event'];
+    return [
+      'UNKNOWN',
+      typeof eventType === 'string' ? `unknown event · ${eventType}` : 'unknown cube event',
+    ];
   }
   if (entry.type === 'virtual_regrip') {
     const solverToken =
@@ -146,7 +149,7 @@ export function createLiveLog({
   const exportContextEvent = byId('export-trace-event');
 
   const activeFilters = signal<ReadonlySet<TraceCategory>>(
-    new Set(['MOVE', 'EVENT', 'STATE', 'COMMAND', 'REGRIP', 'TRIGGER', 'SHAKE']),
+    new Set(['MOVE', 'EVENT', 'STATE', 'COMMAND', 'UNKNOWN', 'REGRIP', 'TRIGGER', 'SHAKE']),
   );
   const entries = signal<TraceEntry[]>([]);
   const visibleEntries = computed(() =>

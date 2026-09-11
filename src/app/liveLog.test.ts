@@ -81,6 +81,16 @@ describe('live trace event classification', () => {
     ).toEqual(['EVENT', 'facelets #189 · 54 stickers']);
   });
 
+  it('makes unknown normalized device events visible without discarding their JSON detail', () => {
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'cube_event',
+        data: { type: 'FUTURE_EVENT', timestamp: 1, payload: { mode: 7 } },
+      }),
+    ).toEqual(['UNKNOWN', 'unknown event · FUTURE_EVENT']);
+  });
+
   it('summarizes a cube command with its dispatch status', () => {
     expect(
       describeLogEntry({

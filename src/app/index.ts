@@ -179,6 +179,13 @@ const cubeEvents = createCubeEventController({
   onFacelets: (source) => {
     cubeExportSource = source;
   },
+  onUnknownEvent: (event) => {
+    const type =
+      event && typeof event === 'object' && 'type' in event && typeof event.type === 'string'
+        ? event.type
+        : 'unknown';
+    infoPanel.showFeedback(`Unsupported cube event received: ${type}`);
+  },
 });
 
 sessionSignals.event.subscribe((event) => {

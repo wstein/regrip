@@ -42,6 +42,39 @@ async function flushAsyncWork(): Promise<void> {
 }
 
 describe('cube event gyro bridge', () => {
+  it('reports an unknown normalized event without mutating cube state', () => {
+    const onUnknownEvent = vi.fn();
+    const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() };
+    const addMove = vi.fn();
+    const setOrientation = vi.fn();
+    const setPlayerAlgorithm = vi.fn();
+    const setInfo = vi.fn();
+    const showInfo = vi.fn();
+    const controller = createCubeEventController({
+      timer,
+      solveScramble: async () => '',
+      addMove,
+      setOrientation,
+      setPlayerAlgorithm,
+      setInfo,
+      showInfo,
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+      onUnknownEvent,
+    });
+    const event = { type: 'FUTURE_EVENT', timestamp: 1, payload: { mode: 7 } };
+
+    controller.handle(event as unknown as Parameters<typeof controller.handle>[0]);
+
+    expect(onUnknownEvent).toHaveBeenCalledWith(event);
+    expect(timer.onMove).not.toHaveBeenCalled();
+    expect(addMove).not.toHaveBeenCalled();
+    expect(setOrientation).not.toHaveBeenCalled();
+    expect(setPlayerAlgorithm).not.toHaveBeenCalled();
+    expect(setInfo).not.toHaveBeenCalled();
+    expect(showInfo).not.toHaveBeenCalled();
+  });
+
   it('uses the session-provided stabilized orientation', () => {
     const { controller, setOrientation } = makeController();
     const rawTurn = xRotation(67.5);
