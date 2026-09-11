@@ -40,11 +40,7 @@ let detectedMoveNotation: DetectedMoveNotation = 'wca';
 
 const sourceRevisionLink = document.getElementById('source-revision');
 if (sourceRevisionLink instanceof HTMLAnchorElement) {
-  const revision = sourceRevision(
-    typeof import.meta.env.VITE_REGRIP_GIT_SHA === 'string'
-      ? import.meta.env.VITE_REGRIP_GIT_SHA
-      : undefined,
-  );
+  const revision = sourceRevision(__REGRIP_BUILD_SHA__);
   sourceRevisionLink.href = revision.href;
   sourceRevisionLink.textContent = revision.label;
 }

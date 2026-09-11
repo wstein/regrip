@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath, URL } from 'node:url';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, resolve, sep } from 'node:path';
@@ -16,6 +17,17 @@ const contentTypes: Record<string, string> = {
   '.json': 'application/json',
   '.svg': 'image/svg+xml',
 };
+
+function sourceCommitSha(): string {
+  const configuredSha = process.env.VITE_REGRIP_GIT_SHA?.trim();
+  if (configuredSha && /^[0-9a-f]{7,40}$/i.test(configuredSha)) return configuredSha;
+
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
 
 /** Serves generated TypeDoc locally, with a useful guide before it exists. */
 function localApiDocs(): Plugin {
@@ -53,6 +65,9 @@ export default defineConfig(async ({ command }) => {
       : [];
 
   return {
+    define: {
+      __REGRIP_BUILD_SHA__: JSON.stringify(sourceCommitSha()),
+    },
     // GitHub Pages serves the built site below the repository name; Vite's
     // development server should remain available at localhost:5173/.
     base: command === 'serve' ? '/' : '/regrip/',

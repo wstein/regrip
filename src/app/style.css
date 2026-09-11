@@ -90,7 +90,8 @@ body {
   font-size: 0.7rem;
 }
 .source-revision a {
-  color: #8bb7ff;
+  color: #a8c7ff;
+  font-weight: 650;
   text-underline-offset: 0.16em;
 }
 .source-revision a:hover {

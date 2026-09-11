@@ -6,15 +6,14 @@ describe('sourceRevision', () => {
   it('links an injected build SHA to its exact GitHub tree', () => {
     expect(sourceRevision('1de35d3a5d9d2e4c6f7289a0b1c2d3e4f5a6b7c8')).toEqual({
       href: `${SOURCE_REPOSITORY_URL}/tree/1de35d3a5d9d2e4c6f7289a0b1c2d3e4f5a6b7c8`,
-      label: 'commit 1de35d3',
+      label: 'wstein/regrip@1de35d3',
     });
   });
 
-  it('links local and malformed builds to main', () => {
-    expect(sourceRevision(undefined)).toEqual({
-      href: `${SOURCE_REPOSITORY_URL}/tree/main`,
-      label: 'main branch',
+  it('marks an invalid build revision without implying a branch', () => {
+    expect(sourceRevision('not-a-commit')).toEqual({
+      href: SOURCE_REPOSITORY_URL,
+      label: 'wstein/regrip@unknown',
     });
-    expect(sourceRevision('not-a-commit')).toEqual(sourceRevision(undefined));
   });
 });
