@@ -102,6 +102,11 @@ export function setResetOrientationEnabled(enabled: boolean): void {
   button('reset-gyro').disabled = !enabled;
 }
 
+/** Starting the timer requires a connected cube to detect the first move against. */
+export function setTimerActivateEnabled(enabled: boolean): void {
+  button('start-timer').disabled = !enabled;
+}
+
 export function setConnectionStatus(status: string): void {
   const connectionStatus = input('connectionStatus');
   connectionStatus.value = status;

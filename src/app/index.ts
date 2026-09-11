@@ -294,6 +294,7 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.clearInfo();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
+    infoPanel.setTimerActivateEnabled(false);
     infoPanel.setConnectionStatus('Connecting…');
     return;
   }
@@ -321,6 +322,7 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
     infoPanel.setInfo('capabilities', formatCapabilities(connection.capabilities));
     infoPanel.setResetOrientationEnabled(true);
+    infoPanel.setTimerActivateEnabled(true);
     infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
     commandPanel.render(connection.capabilities, {
@@ -360,6 +362,7 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.clearInfo();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
+    infoPanel.setTimerActivateEnabled(false);
     infoPanel.setConnectionStatus('Disconnected');
     infoPanel.setConnectLabel('Connect');
     return;
@@ -375,6 +378,7 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.clearInfo();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
+    infoPanel.setTimerActivateEnabled(false);
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
     infoPanel.setConnectLabel('Connect');
     alert(`Unable to connect to smart cube: ${state.error}`);
@@ -480,11 +484,8 @@ infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 t
 
 infoPanel.on('detectedMoves', 'input', () => infoPanel.syncDetectedMoveCount());
 
-document.addEventListener('keydown', (event) => {
-  if (event.key === ' ') {
-    event.preventDefault();
-    timerController.dispatch('activate');
-  }
+infoPanel.on('start-timer', 'click', () => {
+  timerController.dispatch('activate');
 });
 
 infoPanel.on('cube', 'touchstart', () => {
