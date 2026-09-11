@@ -86,13 +86,17 @@ describe('live trace browser interactions', () => {
     ]);
 
     click('#clear-trace-selection');
-    click('[data-trace-id="1"] .trace-badge');
+    click('[data-trace-id="1"] .trace-badge', { shiftKey: true });
     expect(trace.getSelectedEntries().map((entry) => entry.message)).toEqual(['R', "U'"]);
     expect(document.querySelector('#trace-selection-count')?.textContent).toBe('2 selected');
     expect(document.querySelector('[data-trace-id="1"]')?.classList.contains('is-selected')).toBe(
       true,
     );
     expect(document.querySelector('[data-trace-id="1"] .trace-badge')?.textContent).toBe('✓ MOVE');
+
+    click('[data-trace-id="1"] .trace-badge');
+    expect(document.querySelector<HTMLElement>('#trace-detail')?.hidden).toBe(false);
+    expect(document.querySelector('#trace-detail-json')?.textContent).toContain('"move": "R"');
 
     click('#copy-trace');
     await Promise.resolve();

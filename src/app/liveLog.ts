@@ -234,8 +234,9 @@ export function createLiveLog({
         badge.type = 'button';
         badge.className = 'trace-badge';
         badge.textContent = `${isSelected ? '✓ ' : ''}${entry.category}`;
-        badge.title = `Select all ${entry.category} events`;
+        badge.title = `Open event details; Shift-click to select all ${entry.category} events`;
         badge.addEventListener('click', (event) => {
+          if (!(event as MouseEvent).shiftKey) return;
           event.stopPropagation();
           entries.value
             .filter((candidate) => candidate.category === entry.category)
