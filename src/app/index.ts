@@ -113,6 +113,10 @@ infoPanel.on('reset-state', 'click', async () => {
 });
 
 infoPanel.on('reset-gyro', 'click', async () => {
+  if (!session.getState().connection?.capabilities.gyroscope) {
+    infoPanel.showFeedback('This cube does not support a gyroscope.');
+    return;
+  }
   session.resetGyro();
   solverFrame.reset();
   syncVirtualFrameOrientation();
@@ -232,10 +236,12 @@ sessionSignals.state.subscribe((state) => {
 
   if (state.status === 'connecting') {
     sceneRenderer?.setActive(false);
+    sceneRenderer?.setManualOrientationEnabled(false);
     cubeExportSource = undefined;
     solverFrame.reset();
     syncVirtualFrameOrientation();
     infoPanel.clearInfo();
+    infoPanel.setResetGyroEnabled(false);
     infoPanel.setConnectionStatus('Connecting…');
     return;
   }
@@ -256,10 +262,12 @@ sessionSignals.state.subscribe((state) => {
         },
       );
     } else sceneRenderer.setActive(true);
+    sceneRenderer.setManualOrientationEnabled(!connection.capabilities.gyroscope);
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
     infoPanel.setInfo('capabilities', formatCapabilities(connection.capabilities));
+    infoPanel.setResetGyroEnabled(connection.capabilities.gyroscope);
     infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
     commandPanel.render(connection.capabilities, {
@@ -277,24 +285,28 @@ sessionSignals.state.subscribe((state) => {
   }
   if (state.status === 'disconnected') {
     sceneRenderer?.setActive(false);
+    sceneRenderer?.setManualOrientationEnabled(false);
     cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
+    infoPanel.setResetGyroEnabled(false);
     infoPanel.setConnectionStatus('Disconnected');
     infoPanel.setConnectLabel('Connect');
     return;
   }
   if (state.status === 'error') {
     sceneRenderer?.setActive(false);
+    sceneRenderer?.setManualOrientationEnabled(false);
     cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
+    infoPanel.setResetGyroEnabled(false);
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
     infoPanel.setConnectLabel('Connect');
     alert(`Unable to connect to smart cube: ${state.error}`);

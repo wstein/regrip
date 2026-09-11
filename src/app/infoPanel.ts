@@ -85,6 +85,11 @@ export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
   connect.dataset.state = label.toLowerCase();
 }
 
+/** Reset Gyro only applies to cubes that report a gyroscope capability. */
+export function setResetGyroEnabled(enabled: boolean): void {
+  button('reset-gyro').disabled = !enabled;
+}
+
 export function setConnectionStatus(status: string): void {
   const connectionStatus = input('connectionStatus');
   connectionStatus.value = status;
