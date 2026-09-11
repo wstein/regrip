@@ -1,13 +1,28 @@
-# Regrip core
+# @wstein/regrip-core
 
-Private MIT ReScript source package shared by the Regrip lab and CubeLab.
+Portable MIT smart-cube core shared by the Regrip browser lab and CubeLab. It is a workspace
+source package today (`file:packages/core`), not a published npm package.
 
-It owns the smart-cube transport contract, session lifecycle, calibrated
-gyro/regrip reducers, profiles, commands, and deterministic JSONL replay. It
-deliberately excludes browser chooser UI, the Three adapter, trace UI, and
-cube-state presentation.
+## Consumer surface
 
-The package is intentionally unpublished while the CubeLab GAN and GoCube
-migrations establish its API. Consumers compile its ReScript sources through
-the normal `rescript.json` dependency mechanism and can use its generated
-JavaScript surface from TypeScript adapters.
+| Import family                                  | Purpose                                                       |
+| ---------------------------------------------- | ------------------------------------------------------------- |
+| `@wstein/regrip-core/domain/*.res.mjs`         | Pure ReScript cube, gyro, regrip, timing, and replay reducers |
+| `@wstein/regrip-core/session/smartCubeSession` | Headless connection lifecycle and ordered typed event stream  |
+| `@wstein/regrip-core/session/features`         | Feature defaults, presets, and runtime patches                |
+| `@wstein/regrip-core/session/profile/*`        | Profile resolution and profile types                          |
+| `@wstein/regrip-core/session/replay/*`         | Deterministic JSONL replay transport and fixtures             |
+| `@wstein/regrip-core/bindings/*`               | Typed BLE-library boundary; internal unless a host needs it   |
+
+The package uses in-source ReScript compilation. Every public ReScript module has a hand-maintained
+`.res.d.mts` declaration boundary; `npm run check:declarations` verifies its exports and arities.
+
+## Rules for consumers
+
+- Supply `smartcube-web-bluetooth` and `rxjs` as peer dependencies when using the session layer.
+- Keep browser DOM, renderer, and application state outside this package.
+- Feed the session typed smart-cube connections and subscribe to its ordered event stream; do not
+  recreate protocol decoders in a host.
+- Treat profile and feature configuration as runtime data, not compile-time event type narrowing.
+
+See the repository [architecture guide](../../ARCHITECTURE.md) for layer and frame semantics.

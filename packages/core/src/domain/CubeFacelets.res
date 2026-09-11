@@ -1,6 +1,8 @@
 // Conversion between the Kociemba facelet string ("URFDLB" order, 9 stickers per
-// face) and cubing.js KPatternData for a 3x3x3. Ported from the original
-// src/utils.ts; the async KPuzzle handling stays in the TypeScript shim.
+// face) and a cubing.js-compatible KPatternData shape for a 3x3x3. This stays
+// structural so the domain has no cubing.js dependency. The local turn tables
+// are cross-checked against cubing.js for all 18 standard face turns; replace
+// them with cube-rosetta's shared state engine when that integration is ready.
 
 type orbit = {
   pieces: array<int>,

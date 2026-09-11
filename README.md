@@ -18,13 +18,13 @@ flowchart LR
     JSONL["📄 JSONL replay\n(jsonlMock.e2e.test.ts)"]
   end
 
-  subgraph Session ["src/session/ — adapter + effects"]
+  subgraph Session ["packages/core/src/session/ — headless lifecycle"]
     SC["smartCubeSession.ts\nlifecycle · calibration · gyro flush"]
     TC["timerController.ts\ntimer effects · skew"]
     CE["cubeEvents.ts\nrouter · formatters"]
   end
 
-  subgraph Domain ["src/domain/ — pure ReScript reducers"]
+  subgraph Domain ["packages/core/src/domain/ — pure ReScript reducers"]
     MB["MoveBuffer"]
     OS["OrientationStabilizer"]
     RD["RegripDetector"]
@@ -111,32 +111,32 @@ available, the app prompts for one and explains how to enable
 
 ## Architecture
 
-`src/app/index.ts` is the composition root: it mounts the player and DOM controls. Imports flow
-downward from `app` to `adapters`, `session`, and `domain`; ESLint enforces that `domain` stays
-independent and `session` does not depend on presentation layers.
+`src/app/index.ts` is the composition root: it mounts the player and DOM controls. The reusable
+headless session and pure domain live in `packages/core`; the browser-lab glue is `src/integration`.
+ESLint checks both workspace roots so core code cannot depend on presentation layers.
 
 | Module                                              | Responsibility                                                            |
 | --------------------------------------------------- | ------------------------------------------------------------------------- |
 | `src/app/`                                          | DOM, trace/JSONL tooling, styles, and composition root                    |
 | `src/app/sessionSignals.ts`                         | App-only reactive mirror of headless session state and ordered events     |
 | `packages/core/src/session/smartCubeSession.ts`     | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
-| `src/session/profile/`                              | Profile inheritance, matching, overrides, and per-field provenance        |
+| `packages/core/src/session/profile/`                | Profile inheritance, matching, overrides, and per-field provenance        |
 | `packages/core/src/session/replay/replaySession.ts` | Deterministic virtual-clock JSONL replay at connection or session output  |
-| `src/session/timerController.ts`                    | Timer effects; `cubeInfo.ts` formats clock/skew and protocol metadata     |
+| `src/integration/`                                  | Browser-lab connection, event routing, timer, export, and metadata glue   |
 | `src/adapters/cubing/`                              | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
 | `src/adapters/three/`                               | Three.js scene, orientation render loop, and R/U/F gizmo                  |
-| `src/domain/`                                       | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
+| `packages/core/src/domain/`                         | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
 
 The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
 
 | Module                                                                                     | Responsibility                                                                    |
 | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| `Cube333.res` / `CubeFacelets.res`                                                         | Pure solved-state detection and facelet conversion                                |
+| `CubeFacelets.res`                                                                         | Pure solved-state detection and cubing.js-compatible facelet conversion           |
 | `Timer.res` / `Time.res` / `MoveBuffer.res`                                                | Solve-timer state machine, formatting, and recent-move buffers                    |
 | `Quaternion.res` / `CubeSymmetry.res`                                                      | Quaternion math and the 24 cube orientations                                      |
 | `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res`                 | Detents, hysteresis, velocity gating, drift, and calibrated poses                 |
 | `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face triggers |
-| `src/bindings/Bindings_SmartCube.res`                                                      | Typed timestamp-helper boundary to the Bluetooth library                          |
+| `packages/core/src/bindings/Bindings_SmartCube.res`                                        | Typed timestamp-helper boundary to the Bluetooth library                          |
 
 Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
 
@@ -152,7 +152,6 @@ npm run test:screenshots # Verify disconnected, GoCube Edge, and GAN UI12 UI bas
 npm run test:screenshots:update # Intentionally refresh those PNG baselines
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
-npm run format    # Format ReScript and all supported text sources
 npm run docs:api # Generate TypeDoc to docs/api/
 ```
 
@@ -180,7 +179,7 @@ GitHub Pages generates and serves the same reference at
 For source-native ReScript documentation JSON, use:
 
 ```sh
-npx rescript-tools doc src/domain/Quaternion.resi
+npx rescript-tools doc packages/core/src/domain/Quaternion.resi
 ```
 
 ## Community

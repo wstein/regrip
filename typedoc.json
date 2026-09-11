@@ -3,7 +3,7 @@
   "name": "Regrip API",
   "sourceLinkTemplate": "https://github.com/wstein/regrip/blob/{gitRevision}/{path}#L{line}",
   "entryPointStrategy": "expand",
-  "entryPoints": ["src/**/*.res.d.mts", "packages/core/src/**/*.res.d.mts"],
+  "entryPoints": ["packages/core/src/**/*.res.d.mts"],
   "out": "docs/api",
   "readme": "none",
   "excludeInternal": true,

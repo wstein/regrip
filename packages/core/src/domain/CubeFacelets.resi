@@ -7,6 +7,7 @@ type orbit = {
   orientationMod?: array<int>,
 }
 
+/** cubing.js-compatible KPatternData shape, kept structural for pure-domain use. */
 type patternData = {
   @as("CORNERS") corners: orbit,
   @as("EDGES") edges: orbit,
