@@ -42,3 +42,15 @@ jobs:
           path: dist
       - id: deployment
         uses: actions/deploy-pages@v5
+      - name: Publish deployment links
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          {
+            echo '## Regrip deployment'
+            echo
+            echo "[Open live demo](${PAGE_URL})"
+            echo
+            echo "[Browse deployed source](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/tree/${SOURCE_SHA})"
+          } >> "$GITHUB_STEP_SUMMARY"
