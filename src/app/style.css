@@ -55,7 +55,7 @@ body {
 .app-layout {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
+  grid-template-columns: minmax(20rem, 1fr) auto;
   gap: 1.25rem;
   align-items: start;
 }
@@ -412,7 +412,7 @@ body {
 
 .dashboard {
   display: grid;
-  grid-template-columns: minmax(34rem, 1.55fr) minmax(19rem, 0.8fr);
+  grid-template-columns: clamp(34rem, 43vw, 46rem) clamp(19rem, 20vw, 24rem);
   gap: 1.25rem;
   align-items: start;
 }
@@ -707,7 +707,7 @@ button:disabled {
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 35%);
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 78rem) {
   .app-layout {
     grid-template-columns: 1fr;
   }
