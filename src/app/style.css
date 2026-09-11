@@ -596,6 +596,18 @@ body {
   font-size: 0.8rem;
   letter-spacing: 0.02em;
 }
+.command-group + .command-group {
+  margin-top: 0.75rem;
+}
+.command-group-label {
+  display: block;
+  margin: 0 0 0.4rem;
+  color: #7686a8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 .command-panel-actions {
   display: flex;
   flex-wrap: wrap;
