@@ -60,6 +60,7 @@
     "@types/aes-js": "^3.1.4",
     "@types/node": "^26.4.1",
     "@types/three": "^0.165.0",
+    "@types/web-bluetooth": "^0.0.21",
     "@vitejs/devtools": "0.5.2",
     "ajv": "^8.20.0",
     "eslint": "~9.39.5",
@@ -81,7 +82,6 @@
   "dependencies": {
     "@wstein/regrip-core": "file:packages/core",
     "@preact/signals-core": "^1.14.4",
-    "@types/web-bluetooth": "^0.0.21",
     "cubing": "^0.63.4",
     "rxjs": "^7.8.2",
     "smartcube-web-bluetooth": "github:wstein/smartcube-web-bluetooth#fd5da70fdf7e0cac09fac6b76a02ded7851b7fed",
