@@ -13,6 +13,7 @@ dist
 docs/api
 dist-ssr
 *.local
+bun.lock
 
 # Playwright
 test-results/
