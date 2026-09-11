@@ -7,6 +7,7 @@ import {
   formatSseMoves,
   parseDetectedMoves,
   simplifyMoves,
+  simplifySseMoves,
 } from './moveSimplifier';
 
 describe('simplifyMoves', () => {
@@ -76,14 +77,18 @@ describe('formatSseMoves', () => {
     expect(formatSseMoves("R Rw U2 Lw' M E' S2 x y' z2")).toBe("R TR U2 TL' ML MD' MF2 CR CU' CF2");
   });
 
-  it('combines opposing outer turns into Superset ENG slice twists', () => {
-    expect(formatSseMoves("U' D B F' D U' L' R F' B")).toBe("SU' SB SD SL' SF'");
-    expect(formatSseMoves("R L' R L' B F' B F' D U' D U'")).toBe('SR2 SB2 SD2');
+  it('renders live QTM turns without automatic SSE reductions', () => {
+    expect(formatSseMoves("U' D B F' D U' L' R F' B")).toBe("U' D B F' D U' L' R F' B");
+  });
+
+  it('combines opposing outer turns only when explicitly simplified', () => {
+    expect(simplifySseMoves("U' D B F' D U' L' R F' B")).toBe("SU' SB SD SL' SF'");
+    expect(simplifySseMoves("R L' R L' B F' B F' D U' D U'")).toBe('SR2 SB2 SD2');
   });
 
   it('preserves the cube transformation when combining SSE slice twists', async () => {
     const input = "U' D B F' D U' L' R F' B";
-    const expanded = formatSseMoves(input)
+    const expanded = simplifySseMoves(input)
       .replaceAll("SU'", "U' D")
       .replaceAll('SB', "B F'")
       .replaceAll('SD', "D U'")
@@ -111,7 +116,7 @@ describe('detected-move notation views', () => {
   it('round-trips SSE regrips, tiers, middle layers, and opposing slices', () => {
     const canonical = "U' D B F' M E' S2 x y' z2 Rw";
     const sse = formatDetectedMoves(canonical, 'sse');
-    expect(sse).toBe("SU' SB ML MD' MF2 CR CU' CF2 TR");
+    expect(sse).toBe("U' D B F' ML MD' MF2 CR CU' CF2 TR");
     expect(parseDetectedMoves(sse, 'sse')).toBe(canonical);
   });
 });

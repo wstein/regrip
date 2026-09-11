@@ -111,6 +111,10 @@ test('switches the editable detected-move notation without changing its canonica
   await expect(page.locator('#moveCount')).toHaveText('4');
 
   await page.locator('#detected-notation-sse').click();
+  await expect(moves).toHaveValue("U' D TR CR");
+  await expect(page.locator('#moveCount')).toHaveText('4');
+
+  await page.locator('#simplify-detected-moves').click();
   await expect(moves).toHaveValue("SU' TR CR");
   await expect(page.locator('#moveCount')).toHaveText('4');
 

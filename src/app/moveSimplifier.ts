@@ -89,8 +89,31 @@ function appendSseMove(result: string[], token: string): void {
   if (turns !== 0) result.push(`${parsed[1]}${suffixForTurns(turns)}`);
 }
 
-/** Format Regrip's detected Singmaster moves as Superset ENG (SSE) moves. */
+function formatSseMove(move: ParsedMove): string {
+  const suffix = suffixForTurns(move.turns);
+  if (move.face === 'x') return `CR${suffix}`;
+  if (move.face === 'y') return `CU${suffix}`;
+  if (move.face === 'z') return `CF${suffix}`;
+  if (move.face.endsWith('w')) return `T${move.face[0]}${suffix}`;
+  if (isSliceMove(move)) return `${sseMiddleLayer[move.face]}${suffix}`;
+  return `${move.face}${suffix}`;
+}
+
+/** Render the live detected stream in SSE without changing its QTM sequence. */
 export function formatSseMoves(value: string): string {
+  return value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => {
+      const move = parseMove(token);
+      return move ? formatSseMove(move) : token;
+    })
+    .join(' ');
+}
+
+/** Apply optional SSE-only pair and power reductions after an explicit simplify request. */
+export function simplifySseMoves(value: string): string {
   const tokens = value
     .trim()
     .split(/\s+/)
@@ -100,24 +123,14 @@ export function formatSseMoves(value: string): string {
   for (let index = 0; index < tokens.length; index += 1) {
     const current = tokens[index]!;
     const paired = sseOpposingSlice(current.move, tokens[index + 1]?.move);
-    if (current.move && paired) {
+    if (paired) {
       appendSseMove(result, paired);
       index += 1;
-      continue;
-    }
-    if (!current.move) {
+    } else if (current.move) {
+      appendSseMove(result, formatSseMove(current.move));
+    } else {
       result.push(current.token);
-      continue;
     }
-    const suffix = suffixForTurns(current.move.turns);
-    if (current.move.face === 'x') appendSseMove(result, `CR${suffix}`);
-    else if (current.move.face === 'y') appendSseMove(result, `CU${suffix}`);
-    else if (current.move.face === 'z') appendSseMove(result, `CF${suffix}`);
-    else if (current.move.face.endsWith('w'))
-      appendSseMove(result, `T${current.move.face[0]}${suffix}`);
-    else if (isSliceMove(current.move))
-      appendSseMove(result, `${sseMiddleLayer[current.move.face]}${suffix}`);
-    else appendSseMove(result, `${current.move.face}${suffix}`);
   }
   return result.join(' ');
 }

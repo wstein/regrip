@@ -17,6 +17,7 @@ import {
   formatDetectedMoves,
   parseDetectedMoves,
   simplifyMoves,
+  simplifySseMoves,
   type DetectedMoveNotation,
 } from './moveSimplifier';
 import { createSessionSignals } from './sessionSignals';
@@ -461,13 +462,19 @@ infoPanel.on('clear-detected-moves', 'click', () => {
 });
 
 infoPanel.on('simplify-detected-moves', 'click', () => {
-  renderDetectedMoves(simplifyMoves(canonicalDetectedMoves()));
+  const simplified = simplifyMoves(canonicalDetectedMoves());
+  if (detectedMoveNotation === 'sse') {
+    infoPanel.setDetectedMoves(simplifySseMoves(simplified));
+    infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(simplified));
+  } else {
+    renderDetectedMoves(simplified);
+  }
   infoPanel.showFeedback('Detected moves simplified.');
 });
 
 infoPanel.on('copy-detected-moves', 'click', () => {
   void infoPanel
-    .copyText(formatDetectedMoves(canonicalDetectedMoves(), detectedMoveNotation))
+    .copyText(infoPanel.getDetectedMoves())
     .then(() => infoPanel.showFeedback('Detected moves copied.'))
     .catch((error) => {
       console.error('unable to copy detected moves', error);
