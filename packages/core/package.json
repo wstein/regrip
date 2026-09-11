@@ -1,30 +1,50 @@
 {
   "name": "@wstein/regrip-core",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
   "description": "MIT smart-cube session core for Regrip and CubeLab",
   "license": "MIT",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rescript"
+    "build": "rescript && tsc --project tsconfig.build.json",
+    "prepack": "npm run build"
   },
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./bindings/*.res.mjs": "./src/bindings/*.res.mjs",
-    "./bindings/*": "./src/bindings/*.ts",
+    "./bindings/*": {
+      "types": "./dist/bindings/*.d.ts",
+      "default": "./dist/bindings/*.js"
+    },
     "./domain/*.res.mjs": "./src/domain/*.res.mjs",
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
-    "./session/*": "./src/session/*.ts"
+    "./session/*": {
+      "types": "./dist/session/*.d.ts",
+      "default": "./dist/session/*.js"
+    }
   },
+  "files": [
+    "dist",
+    "src/bindings/*.res.mjs",
+    "src/bindings/*.res.d.mts",
+    "src/domain/*.res.mjs",
+    "src/domain/*.res.d.mts",
+    "src/session/replay/fixtures/*.jsonl",
+    "!src/**/*_test.res.mjs"
+  ],
   "peerDependencies": {
     "rxjs": "^7.8.2",
-    "smartcube-web-bluetooth": "*"
+    "smartcube-web-bluetooth": "^4.0.0"
   },
-  "peerDependenciesMeta": {
-    "rxjs": {
-      "optional": true
-    },
-    "smartcube-web-bluetooth": {
-      "optional": true
-    }
+  "dependencies": {
+    "@rescript/runtime": "^12.3.1"
+  },
+  "devDependencies": {
+    "rescript": "^12.3.1",
+    "typescript": "^5.9.3"
   }
 }

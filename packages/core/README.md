@@ -1,7 +1,16 @@
 # @wstein/regrip-core
 
-Portable MIT smart-cube core shared by the Regrip browser lab and CubeLab. It is a workspace
-source package today (`file:packages/core`), not a published npm package.
+Portable MIT smart-cube core shared by the Regrip browser lab and CubeLab. The root repository is
+private application tooling; this package is its publishable artifact.
+
+## Install
+
+```sh
+npm install @wstein/regrip-core rxjs smartcube-web-bluetooth
+```
+
+`rxjs` and `smartcube-web-bluetooth` are peer dependencies. Installing them explicitly lets the
+host control the transport version and keeps one observable implementation in the application.
 
 ## Consumer surface
 
@@ -25,4 +34,6 @@ The package uses in-source ReScript compilation. Every public ReScript module ha
   recreate protocol decoders in a host.
 - Treat profile and feature configuration as runtime data, not compile-time event type narrowing.
 
-See the repository [architecture guide](../../ARCHITECTURE.md) for layer and frame semantics.
+See the repository [architecture guide](../../ARCHITECTURE.md) for layer and frame semantics. The
+release check builds the package, inspects `npm pack`, and compiles both TypeScript and ReScript
+imports from an unpacked tarball consumer fixture.

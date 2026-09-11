@@ -174,6 +174,7 @@ npm run test:screenshots # Verify disconnected, GoCube Edge, and GAN UI12 UI bas
 npm run test:screenshots:update # Intentionally refresh those PNG baselines
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
+npm run core:pack:check # Pack only @wstein/regrip-core and verify an isolated consumer
 npm run docs:api # Generate TypeDoc to docs/api/
 ```
 

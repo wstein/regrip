@@ -126,9 +126,10 @@
       `OrientationStabilizer`, and `MoveBuffer`) to pure reducers. The session
       now owns explicit gyro-pipeline state/config and preserves calibration
       across stabilizer-only feature changes.
-- [ ] Finish Stage 3 packaging: publishable root/core exports, peer dependency
-      boundary for `smartcube-web-bluetooth`, private `examples/web` workspace,
-      split TypeScript/Vitest configs, and `npm pack` smoke test.
+- [x] Finish Stage 3 core packaging: the root remains the private browser lab;
+      only `@wstein/regrip-core` has package exports. Its transport peers are
+      explicit, TypeScript and Vitest have separate core projects, and CI packs
+      the artifact before compiling an isolated TypeScript/ReScript consumer.
 - [x] Add a CI snapshot/check of handled smartcube event types so dependency
       upgrades expose new protocol events deliberately.
 - [x] Refresh README with the four-layer architecture, profiles, virtual

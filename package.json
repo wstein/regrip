@@ -13,6 +13,7 @@
   "type": "module",
   "scripts": {
     "core:build": "npm --workspace @wstein/regrip-core run build",
+    "core:pack:check": "node scripts/pack-core-smoke.mjs",
     "core:watch": "npm --workspace @wstein/regrip-core exec -- rescript watch",
     "core:format": "npm --workspace @wstein/regrip-core exec -- rescript format",
     "core:format:check": "npm --workspace @wstein/regrip-core exec -- rescript format --check",
@@ -37,11 +38,13 @@
     "build": "npm run res:build && tsc && vite build",
     "lint": "eslint src packages/core/src",
     "preview": "vite preview",
-    "test": "npm run res:build && vitest run",
+    "test": "npm run res:build && run-s test:core test:app",
+    "test:app": "vitest run --config vitest.config.ts",
+    "test:core": "vitest run --config packages/core/vitest.config.ts",
     "test:browser": "playwright test",
     "test:screenshots": "playwright test test/browser/ui-screenshots.spec.ts",
     "test:screenshots:update": "playwright test test/browser/ui-screenshots.spec.ts --update-snapshots",
-    "test:snapshot": "npm run res:build && vitest run packages/core/src/session/jsonlMock.e2e.test.ts --update",
+    "test:snapshot": "npm run res:build && vitest run --config packages/core/vitest.config.ts packages/core/src/session/jsonlMock.e2e.test.ts --update",
     "test:watch": "run-p res:watch test:vitest",
     "test:vitest": "vitest"
   },
