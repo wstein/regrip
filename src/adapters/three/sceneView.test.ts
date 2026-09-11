@@ -113,8 +113,9 @@ describe('manual scene orientation', () => {
 
     renderer.setManualOrientationEnabled(true);
     canvas.dispatchEvent(pointer('pointerdown', 1, 20, 20));
-    canvas.dispatchEvent(pointer('pointermove', 1, 60, 10));
+    canvas.dispatchEvent(pointer('pointermove', 1, 20, 60));
     expect(cubeQuaternion.equals(new THREE.Quaternion())).toBe(false);
+    expect(cubeQuaternion.x).toBeGreaterThan(0);
 
     renderer.setManualOrientationEnabled(false);
     const orientation = cubeQuaternion.clone();

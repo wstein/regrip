@@ -88,7 +88,7 @@ export function startSceneRenderLoop(
     const dy = event.clientY - manualPointer.y;
     manualPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
     manualYaw.setFromAxisAngle(yawAxis, dx * 0.008);
-    manualPitch.setFromAxisAngle(pitchAxis, -dy * 0.008);
+    manualPitch.setFromAxisAngle(pitchAxis, dy * 0.008);
     cubeQuaternion.premultiply(manualYaw).premultiply(manualPitch);
     event.preventDefault();
     dirty = true;
