@@ -62,7 +62,7 @@
     "@playwright/test": "^1.63.0",
     "@types/aes-js": "^3.1.4",
     "@types/node": "^26.4.1",
-    "@types/three": "^0.165.0",
+    "@types/three": "^0.185.4",
     "@types/web-bluetooth": "^0.0.21",
     "@vitejs/devtools": "0.5.2",
     "ajv": "^8.20.0",
