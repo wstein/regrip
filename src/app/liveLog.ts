@@ -18,6 +18,8 @@ type LiveLogOptions = {
   onClear?: () => void;
   onFocusEntry?: (entry: TraceEntry) => void;
   now?: () => Date;
+  /** Coalesces incoming trace updates; defaults to one render per animation frame. */
+  scheduleRender?: (render: () => void) => void;
 };
 
 const maxBufferedEntries = 10_000;
@@ -112,6 +114,7 @@ export function createLiveLog({
   onClear,
   onFocusEntry,
   now = () => new Date(),
+  scheduleRender,
 }: LiveLogOptions = {}) {
   const root = byId('event-log-rows');
   const stats = byId('trace-stats');
@@ -148,6 +151,8 @@ export function createLiveLog({
   let lastSelectedId: number | undefined;
   let focusedId: number | undefined;
   let contextId: number | undefined;
+  const rows = new Map<number, HTMLElement>();
+  let renderPending = false;
 
   const selectedEntries = (): TraceEntry[] =>
     entries.value.filter((entry) => selected.has(entry.id));
@@ -226,72 +231,98 @@ export function createLiveLog({
     render();
   };
 
+  const createRow = (entry: TraceEntry): HTMLElement => {
+    const row = document.createElement('article');
+    row.tabIndex = 0;
+    const badge = document.createElement('button');
+    badge.type = 'button';
+    badge.className = 'trace-badge';
+    badge.addEventListener('click', (event) => {
+      if (!(event as MouseEvent).shiftKey) return;
+      event.stopPropagation();
+      entries.value
+        .filter((candidate) => candidate.category === entry.category)
+        .forEach((candidate) => selected.add(candidate.id));
+      lastSelectedId = entry.id;
+      render();
+    });
+    const timestamp = document.createElement('time');
+    const message = document.createElement('span');
+    message.className = 'trace-message';
+    row.append(badge, timestamp, message);
+    const focusDetails = (): void => {
+      focusedId = entry.id;
+      onFocusEntry?.(entry);
+      updateDetail();
+      render();
+    };
+    row.addEventListener('click', (event) => {
+      if ((event as MouseEvent).shiftKey) selectEntry(entry.id, true);
+      else focusDetails();
+    });
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (event.shiftKey) selectEntry(entry.id, true);
+        else focusDetails();
+      }
+    });
+    row.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      contextId = entry.id;
+      contextMenu.hidden = false;
+      contextMenu.style.left = `${event.clientX}px`;
+      contextMenu.style.top = `${event.clientY}px`;
+    });
+    return row;
+  };
+
+  const patchRow = (row: HTMLElement, entry: TraceEntry): void => {
+    const isSelected = selected.has(entry.id);
+    row.className = `trace-row trace-${entry.category.toLowerCase()}`;
+    row.dataset.traceId = String(entry.id);
+    row.classList.toggle('is-selected', isSelected);
+    row.classList.toggle('is-focused', focusedId === entry.id);
+    row.setAttribute('aria-selected', String(isSelected));
+    const badge = row.querySelector<HTMLButtonElement>('.trace-badge')!;
+    badge.textContent = `${isSelected ? '✓ ' : ''}${entry.category}`;
+    badge.title = `Open event details; Shift-click to select all ${entry.category} events`;
+    row.querySelector('time')!.textContent = displayTime(Date.parse(entry.log.recordedAt));
+    row.querySelector<HTMLElement>('.trace-message')!.textContent = entry.message;
+  };
+
   const render = (): void => {
     const previousScrollTop = root.scrollTop;
     const ordered = newestFirst ? [...visibleEntries.value].reverse() : visibleEntries.value;
-    root.replaceChildren(
-      ...ordered.map((entry) => {
-        const row = document.createElement('article');
-        const isSelected = selected.has(entry.id);
-        row.className = `trace-row trace-${entry.category.toLowerCase()}`;
-        row.dataset.traceId = String(entry.id);
-        row.tabIndex = 0;
-        row.classList.toggle('is-selected', isSelected);
-        row.classList.toggle('is-focused', focusedId === entry.id);
-        row.setAttribute('aria-selected', String(isSelected));
-
-        const badge = document.createElement('button');
-        badge.type = 'button';
-        badge.className = 'trace-badge';
-        badge.textContent = `${isSelected ? '✓ ' : ''}${entry.category}`;
-        badge.title = `Open event details; Shift-click to select all ${entry.category} events`;
-        badge.addEventListener('click', (event) => {
-          if (!(event as MouseEvent).shiftKey) return;
-          event.stopPropagation();
-          entries.value
-            .filter((candidate) => candidate.category === entry.category)
-            .forEach((candidate) => selected.add(candidate.id));
-          lastSelectedId = entry.id;
-          render();
-        });
-
-        const timestamp = document.createElement('time');
-        timestamp.textContent = displayTime(Date.parse(entry.log.recordedAt));
-        const message = document.createElement('span');
-        message.className = 'trace-message';
-        message.textContent = entry.message;
-        row.append(badge, timestamp, message);
-        const focusDetails = (): void => {
-          focusedId = entry.id;
-          onFocusEntry?.(entry);
-          updateDetail();
-          render();
-        };
-        row.addEventListener('click', (event) => {
-          if ((event as MouseEvent).shiftKey) selectEntry(entry.id, true);
-          else focusDetails();
-        });
-        row.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            if (event.shiftKey) selectEntry(entry.id, true);
-            else focusDetails();
-          }
-        });
-        row.addEventListener('contextmenu', (event) => {
-          event.preventDefault();
-          contextId = entry.id;
-          contextMenu.hidden = false;
-          contextMenu.style.left = `${event.clientX}px`;
-          contextMenu.style.top = `${event.clientY}px`;
-        });
-        return row;
-      }),
-    );
+    const visibleIds = new Set(ordered.map((entry) => entry.id));
+    rows.forEach((row, id) => {
+      if (!visibleIds.has(id)) {
+        row.remove();
+        rows.delete(id);
+      }
+    });
+    ordered.forEach((entry) => {
+      const row = rows.get(entry.id) ?? createRow(entry);
+      rows.set(entry.id, row);
+      patchRow(row, entry);
+      root.append(row);
+    });
     updateSelection();
     updateStats();
     updateDetail();
     root.scrollTop = autoFollow ? followEdge() : previousScrollTop;
+  };
+
+  const requestRender = (): void => {
+    if (renderPending) return;
+    renderPending = true;
+    const flush = (): void => {
+      renderPending = false;
+      render();
+    };
+    if (scheduleRender) scheduleRender(flush);
+    else if (typeof requestAnimationFrame === 'function') requestAnimationFrame(flush);
+    else flush();
   };
 
   const appendEntry = (category: TraceCategory, message: string, log: LogEntry): void => {
@@ -304,13 +335,20 @@ export function createLiveLog({
         log,
       },
     ];
+    let changedVisibleRows = activeFilters.value.has(category);
     while (nextEntries.length > maxBufferedEntries) {
       const removed = nextEntries.shift()!;
+      changedVisibleRows ||= activeFilters.value.has(removed.category);
       selected.delete(removed.id);
       if (focusedId === removed.id) focusedId = undefined;
     }
     entries.value = nextEntries;
-    render();
+    updateStats();
+    if (changedVisibleRows) requestRender();
+    else {
+      updateSelection();
+      updateDetail();
+    }
   };
 
   const append = (

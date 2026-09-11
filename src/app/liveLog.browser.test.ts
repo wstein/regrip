@@ -6,6 +6,10 @@ import { createLiveLog } from './liveLog';
 const filters = ['MOVE', 'EVENT', 'STATE', 'GYRO', 'REGRIP', 'TRIGGER', 'SHAKE'];
 
 function mountTrace(): void {
+  vi.stubGlobal('requestAnimationFrame', (render: FrameRequestCallback) => {
+    render(0);
+    return 0;
+  });
   document.body.innerHTML = `
     <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button>
     <span id="trace-stats"></span>
@@ -56,6 +60,25 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector('#trace-detail-json')?.textContent).toContain('"x": 0.1');
     expect(document.querySelector('[data-trace-id="3"] .trace-details')).toBeNull();
     expect(document.querySelector('#export-trace-detail')).toBeNull();
+  });
+
+  it('batches incoming renders and preserves existing row nodes', () => {
+    mountTrace();
+    const pending: Array<() => void> = [];
+    const trace = createLiveLog({ scheduleRender: (render) => pending.push(render) });
+
+    trace.append('MOVE', 'R');
+    expect(pending).toHaveLength(1);
+    pending.shift()?.();
+    const row = document.querySelector<HTMLElement>('[data-trace-id="1"]')!;
+
+    trace.append('GYRO', 'hidden');
+    trace.append('EVENT', 'battery');
+    expect(pending).toHaveLength(1);
+    pending.shift()?.();
+
+    expect(document.querySelector('[data-trace-id="1"]')).toBe(row);
+    expect(document.querySelector('#event-log-rows')?.textContent).toContain('battery');
   });
 
   it('supports shift-click ranges, type bulk selection, copy, export, and local move reproduction', async () => {
