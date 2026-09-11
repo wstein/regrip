@@ -69,10 +69,11 @@ function cycles(
 }
 
 /**
- * Compact Kociemba cubie-level representation. `+` denotes o:1 (clockwise)
- * and `-` o:2 (anti-clockwise); unmarked pieces have o:0.
+ * Singmaster cubie cycle notation projected from Kociemba cubie-level
+ * coordinates. `+` denotes o:1 (clockwise) and `-` o:2 (anti-clockwise);
+ * unmarked pieces have o:0.
  */
-export function formatCubieLevelState(state: SmartCubeCubieState): string {
+export function formatSingmasterCycles(state: SmartCubeCubieState): string {
   return [
     cycles(state.CP, state.CO, corners, ['', '+', '-']),
     cycles(state.EP, state.EO, edges, ['', '+']),

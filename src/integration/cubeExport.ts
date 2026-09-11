@@ -1,9 +1,9 @@
 import type { SmartCubeCubieState } from 'smartcube-web-bluetooth';
 
-import { formatCubieLevelState } from './cubeInfo';
+import { formatSingmasterCycles } from './cubeInfo';
 
 export type CubeExportFormat =
-  'compact-facelets' | 'spaced-facelets' | 'cubie-level' | 'cubie-coordinates' | 'orbit64';
+  'compact-facelets' | 'spaced-facelets' | 'singmaster-cycles' | 'cubie-coordinates' | 'orbit64';
 export type CubeExportSource = { facelets: string; state?: SmartCubeCubieState };
 
 const base64url = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
@@ -127,8 +127,8 @@ export function formatCubeExport(
       return source.facelets;
     case 'spaced-facelets':
       return source.facelets.match(/.{1,9}/g)?.join(' ');
-    case 'cubie-level':
-      return source.state ? formatCubieLevelState(source.state) : undefined;
+    case 'singmaster-cycles':
+      return source.state ? formatSingmasterCycles(source.state) : undefined;
     case 'cubie-coordinates':
       return source.state ? formatCubieCoordinates(source.state) : undefined;
     case 'orbit64':
