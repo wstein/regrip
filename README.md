@@ -219,6 +219,6 @@ npx rescript-tools doc packages/core/src/domain/Quaternion.resi
 
 ## Community
 
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change.
-- Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
-- Report security issues according to [SECURITY.md](SECURITY.md), not in a public issue.
+- Read [CONTRIBUTING.md](.github/CONTRIBUTING.md) before proposing a change.
+- Follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
+- Report security issues according to [SECURITY.md](.github/SECURITY.md), not in a public issue.

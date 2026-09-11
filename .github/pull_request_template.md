@@ -15,4 +15,4 @@
 - [ ] Change is focused and uses a conventional commit message.
 - [ ] Tests and documentation were updated where appropriate.
 - [ ] No device identifiers, credentials, or unredacted captures are included.
-- [ ] I have read the [Code of Conduct](../CODE_OF_CONDUCT.md).
+- [ ] I have read the [Code of Conduct](CODE_OF_CONDUCT.md).
