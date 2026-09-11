@@ -7,27 +7,11 @@
     <meta name="theme-color" content="#0d1325" />
     <meta
       name="description"
-      content="Regrip — a browser lab that decodes GoCube and GAN smart-cube moves, events, gyro and regrips in real time."
+      content="Regrip — a browser lab that decodes supported smart-cube moves, events, gyro and regrips in real time."
     />
     <title>Regrip</title>
     <link rel="stylesheet" href="/src/app/static-page.css" />
     <style>
-      body {
-        margin: 0;
-        background: var(--color-bg);
-      }
-      .page {
-        max-width: 1100px;
-        margin: 0 auto;
-        border-inline: 2px solid var(--color-text);
-      }
-      .nav-tag {
-        font-family: var(--font-body);
-        font-weight: 400;
-        font-size: 12px;
-        letter-spacing: 0;
-        color: color-mix(in srgb, var(--color-text) 55%, transparent);
-      }
       .hero {
         padding: 56px 48px 0;
       }
@@ -68,18 +52,6 @@
       .stat-label {
         font-size: 13px;
         color: color-mix(in srgb, var(--color-text) 55%, transparent);
-      }
-      figure {
-        margin: 0 0 48px;
-      }
-      .photo {
-        background: var(--color-neutral-400);
-        height: 280px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-neutral-800);
-        font-size: 13px;
       }
       .features {
         display: grid;
@@ -134,8 +106,9 @@
       <div class="hero">
         <h1>Read every move your cube makes.</h1>
         <p>
-          A browser-based lab for GoCube and GAN smart cubes — connect over Bluetooth, watch moves
-          and events stream in real time, and copy the raw trace straight into your own tools.
+          A browser-based lab for GAN, GoCube, Giiker, MoYu, and QiYi smart cubes — connect over
+          Bluetooth, watch moves and events stream in real time, and copy the raw trace straight
+          into your own tools.
         </p>
         <div class="cta">
           <a href="./index.html" class="btn btn-primary">Open the lab →</a>
@@ -145,7 +118,7 @@
         <div class="stats">
           <div>
             <div class="stat-num">6</div>
-            <div class="stat-label">protocols supported</div>
+            <div class="stat-label">protocol adapters supported</div>
           </div>
           <div>
             <div class="stat-num">120/s</div>
@@ -156,13 +129,6 @@
             <div class="stat-label">install steps</div>
           </div>
         </div>
-
-        <figure>
-          <div class="photo grayscale">
-            Photograph placeholder — cube in hand, lab open on screen
-          </div>
-          <figcaption>Live capture of a solve, recorded in the browser.</figcaption>
-        </figure>
 
         <div class="features">
           <div>
@@ -179,8 +145,8 @@
           <div>
             <h4>Protocol Adapters</h4>
             <p>
-              GoCube and GAN today, a mock adapter for testing without hardware, more protocols on
-              the way.
+              Six adapters cover GAN, GoCube, Giiker, MoYu MHC, MoYu32, and QiYi. A mock adapter
+              supports testing without hardware.
             </p>
           </div>
         </div>

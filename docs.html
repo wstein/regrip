@@ -12,22 +12,6 @@
     <title>Regrip — Docs</title>
     <link rel="stylesheet" href="/src/app/static-page.css" />
     <style>
-      body {
-        margin: 0;
-        background: var(--color-bg);
-      }
-      .page {
-        max-width: 1100px;
-        margin: 0 auto;
-        border-inline: 2px solid var(--color-text);
-      }
-      .nav-tag {
-        font-family: var(--font-body);
-        font-weight: 400;
-        font-size: 12px;
-        letter-spacing: 0;
-        color: color-mix(in srgb, var(--color-text) 55%, transparent);
-      }
       .doc-body {
         display: grid;
         grid-template-columns: 220px 1fr;
@@ -132,12 +116,11 @@
 
           <h6 id="doc-connect">Connecting a cube</h6>
           <p>
-            The adapter negotiates the device's protocol automatically. Once connected, the panel on
-            the right reports capabilities, firmware and battery.
+            The lab negotiates the device's protocol automatically. Once connected, the panel on the
+            right reports the selected adapter, capabilities, firmware, and battery. Regrip is an
+            application rather than a browser SDK: use the lab's <strong>Connect</strong> control or
+            the generated TypeScript API reference for its internal integration boundaries.
           </p>
-          <pre class="input">
-const cube = await Regrip.connect();
-console.log(cube.protocol); // "gocube"</pre>
           <hr class="hr" />
 
           <h6 id="doc-events">Events</h6>
@@ -228,8 +211,8 @@ console.log(cube.protocol); // "gocube"</pre>
 
           <h6 id="doc-protocols">Protocols</h6>
           <p>
-            The transport adapter auto-detects supported GAN, GoCube, Giiker, MoYu, and QiYi cubes.
-            A JSONL mock protocol lets you replay a recorded trace without hardware.
+            Six adapters cover GAN, GoCube, Giiker, MoYu MHC, MoYu32, and QiYi cubes. A JSONL mock
+            adapter lets you replay a recorded trace without hardware.
           </p>
         </div>
       </div>
