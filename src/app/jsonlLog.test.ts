@@ -55,13 +55,13 @@ describe('JSONL log', () => {
     const facelets = 'U'.repeat(54);
     log.subscribe((entry) => seen.push(entry.type));
 
-    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
-    expect(log.record('cube_command', { name: 'Sync state' })).toBe(true);
-    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
+    log.record('cube_event', { type: 'FACELETS', serial: 73, facelets });
+    log.record('cube_command', { name: 'Sync state' });
+    log.record('cube_event', { type: 'FACELETS', serial: 73, facelets });
     expect(seen).toEqual(['cube_event', 'cube_command', 'cube_event']);
 
     log.clear();
-    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
+    log.record('cube_event', { type: 'FACELETS', serial: 73, facelets });
   });
 
   it('attaches the download link and releases its blob URL after the click task', () => {

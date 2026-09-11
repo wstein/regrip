@@ -24,14 +24,13 @@ export function createJsonlLog(now: () => string = () => new Date().toISOString(
   const listeners = new Set<LogListener>();
 
   /** Append device and application events in capture order. */
-  const record = (type: string, data: JsonValue): boolean => {
+  const record = (type: string, data: JsonValue): void => {
     const entry = { recordedAt: now(), type, data };
     entries.push(entry);
     while (entries.length > maxEntries) {
       entries.shift();
     }
     listeners.forEach((listener) => listener(entry));
-    return true;
   };
 
   return {
