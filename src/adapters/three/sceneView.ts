@@ -56,7 +56,8 @@ export function startSceneRenderLoop(
   let dirty = true;
   let animationFrame: number | undefined;
   let manualOrientationEnabled = false;
-  let manualPointer: { id: number; x: number; y: number } | undefined;
+  let manualPointer:
+    { id: number; x: number; y: number; orientation: THREE.Quaternion } | undefined;
   let manualListenersAttached = false;
   // This is a stable world-space corner; the R/U/F axes still inherit the
   // scene rotation that renders the physical cube. Virtual regrips transform
@@ -76,7 +77,14 @@ export function startSceneRenderLoop(
 
   const handlePointerDown = (event: PointerEvent): void => {
     if (!manualOrientationEnabled || !canvas) return;
-    manualPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    // Snapshot the current pose. Each drag is measured from this familiar
+    // starting angle instead of compounding a new rotation for every pixel.
+    manualPointer = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      orientation: cubeQuaternion.clone(),
+    };
     canvas.setPointerCapture?.(event.pointerId);
     if (canvas.style) canvas.style.cursor = 'grabbing';
     event.preventDefault();
@@ -86,10 +94,9 @@ export function startSceneRenderLoop(
     if (!manualOrientationEnabled || !manualPointer || event.pointerId !== manualPointer.id) return;
     const dx = event.clientX - manualPointer.x;
     const dy = event.clientY - manualPointer.y;
-    manualPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
     manualYaw.setFromAxisAngle(yawAxis, dx * 0.008);
     manualPitch.setFromAxisAngle(pitchAxis, dy * 0.008);
-    cubeQuaternion.premultiply(manualYaw).premultiply(manualPitch);
+    cubeQuaternion.copy(manualPointer.orientation).premultiply(manualYaw).premultiply(manualPitch);
     event.preventDefault();
     dirty = true;
     schedule();

@@ -94,7 +94,8 @@ describe('manual scene orientation', () => {
     const animation = installAnimationFrames();
     const canvas = new EventTarget() as HTMLCanvasElement;
     const scene = new THREE.Scene();
-    const cubeQuaternion = new THREE.Quaternion();
+    const initialOrientation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, -0.3, 0));
+    const cubeQuaternion = initialOrientation.clone();
     const player = {
       experimentalCurrentVantages: async () => [
         {
@@ -112,9 +113,14 @@ describe('manual scene orientation', () => {
     await animation.flush();
 
     renderer.setManualOrientationEnabled(true);
-    canvas.dispatchEvent(pointer('pointerdown', 1, 20, 20));
-    canvas.dispatchEvent(pointer('pointermove', 1, 20, 60));
-    expect(cubeQuaternion.equals(new THREE.Quaternion())).toBe(false);
+    canvas.dispatchEvent(pointer('pointerdown', 1, 0, 0));
+    canvas.dispatchEvent(pointer('pointermove', 1, 20, 10));
+    canvas.dispatchEvent(pointer('pointermove', 1, 40, 20));
+    const expected = initialOrientation
+      .clone()
+      .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 40 * 0.008))
+      .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 20 * 0.008));
+    expect(cubeQuaternion.angleTo(expected)).toBeLessThan(1e-12);
     expect(cubeQuaternion.x).toBeGreaterThan(0);
 
     renderer.setManualOrientationEnabled(false);
