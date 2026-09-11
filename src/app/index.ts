@@ -49,6 +49,7 @@ const session =
 if (replay) void import('./replayPanel').then(({ mountReplayPanel }) => mountReplayPanel(replay));
 const sessionSignals = createSessionSignals(session);
 const eventLog = createJsonlLog();
+let forceNextFaceletsLog = false;
 const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
   onClear: () => eventLog.clear(),
@@ -215,7 +216,13 @@ sessionSignals.event.subscribe((event) => {
     );
     return;
   }
-  eventLog.record('cube_event', event as unknown as Record<string, unknown>);
+  if (event.type === 'FACELETS') {
+    eventLog.record('cube_event', event as unknown as Record<string, unknown>, {
+      dedupeKey: `facelets:${event.serial ?? 'none'}:${event.facelets}`,
+      force: forceNextFaceletsLog,
+    });
+    forceNextFaceletsLog = false;
+  } else eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });
 
@@ -280,12 +287,14 @@ sessionSignals.state.subscribe((state) => {
           // Do not let a stale local tracker suppress its authoritative player update.
           cubeEvents.invalidatePlayerState();
           playerPatterns.reset();
+          forceNextFaceletsLog = true;
         }
       },
       onResult: (name, error) => {
         let status = 'sent';
         if (error) status = 'failed';
         else if (name === 'Sync state') status = 'confirmed';
+        if (name === 'Sync state' && error) forceNextFaceletsLog = false;
         eventLog.record('cube_command', {
           name,
           status,

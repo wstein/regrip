@@ -13,6 +13,12 @@ export function serializeJsonl(entries: readonly LogEntry[]): string {
 }
 
 type LogListener = (entry: LogEntry) => void;
+type RecordOptions = {
+  /** Suppress a repeated authoritative snapshot without suppressing other log kinds. */
+  dedupeKey?: string;
+  /** Keep a requested snapshot even when it is unchanged. */
+  force?: boolean;
+};
 
 const maxEntries = 10_000;
 
@@ -22,12 +28,20 @@ const maxEntries = 10_000;
  */
 export function createJsonlLog(now: () => string = () => new Date().toISOString()) {
   let entries: LogEntry[] = [];
+  let lastDedupeKey: string | undefined;
   const listeners = new Set<LogListener>();
 
-  /** Append every decoded device and application event in capture order. */
-  const record = (type: string, data: JsonValue): boolean => {
+  /** Append device and application events in capture order, coalescing opted-in snapshots. */
+  const record = (
+    type: string,
+    data: JsonValue,
+    { dedupeKey, force = false }: RecordOptions = {},
+  ): boolean => {
+    const key = dedupeKey === undefined ? undefined : `${type}:${dedupeKey}`;
+    if (key !== undefined && key === lastDedupeKey && !force) return false;
     const entry = { recordedAt: now(), type, data };
     entries.push(entry);
+    if (key !== undefined) lastDedupeKey = key;
     while (entries.length > maxEntries) {
       entries.shift();
     }
@@ -39,6 +53,7 @@ export function createJsonlLog(now: () => string = () => new Date().toISOString(
     record,
     clear(): void {
       entries = [];
+      lastDedupeKey = undefined;
     },
     toJsonl(header: JsonValue): string {
       return serializeJsonl([
