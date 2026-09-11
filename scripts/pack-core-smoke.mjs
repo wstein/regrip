@@ -22,9 +22,36 @@ const run = (args, cwd = root) =>
 try {
   run(['pack', '--silent', '--workspace', '@wstein/regrip-core', '--pack-destination', temp]);
 
-  const tarball = join(temp, readdirSync(temp).find((name) => name.endsWith('.tgz')) ?? '');
+  // A directory-based peer dependency is treated as a source install by npm,
+  // which can run its `prepare` script even with `--ignore-scripts`. Pack it
+  // first so the fixture consumes the same immutable artifact a real consumer
+  // would, without attempting to build the peer from its published contents.
+  run([
+    'pack',
+    '--silent',
+    '--ignore-scripts',
+    '--pack-destination',
+    temp,
+    join(root, 'node_modules/smartcube-web-bluetooth'),
+  ]);
+
+  const tarball = join(
+    temp,
+    readdirSync(temp).find(
+      (name) => name.startsWith('wstein-regrip-core-') && name.endsWith('.tgz'),
+    ) ?? '',
+  );
   if (!tarball.endsWith('.tgz')) {
     throw new Error('npm pack did not produce a core tarball.');
+  }
+  const transportTarball = join(
+    temp,
+    readdirSync(temp).find(
+      (name) => name.startsWith('smartcube-web-bluetooth-') && name.endsWith('.tgz'),
+    ) ?? '',
+  );
+  if (!transportTarball.endsWith('.tgz')) {
+    throw new Error('npm pack did not produce a smartcube transport tarball.');
   }
 
   const packedFiles = execFileSync('tar', ['-tzf', tarball], { encoding: 'utf8' }).split('\n');
@@ -50,9 +77,10 @@ try {
     '@wstein/regrip-core': `file:${tarball}`,
     '@rescript/runtime': `file:${join(root, 'node_modules/@rescript/runtime')}`,
     rxjs: `file:${join(root, 'node_modules/rxjs')}`,
-    'smartcube-web-bluetooth': `file:${join(root, 'node_modules/smartcube-web-bluetooth')}`,
+    'smartcube-web-bluetooth': `file:${transportTarball}`,
   };
   consumerPackage.devDependencies = {
+    '@types/aes-js': `file:${join(root, 'node_modules/@types/aes-js')}`,
     '@types/node': `file:${join(root, 'node_modules/@types/node')}`,
     '@types/web-bluetooth': `file:${join(root, 'node_modules/@types/web-bluetooth')}`,
     rescript: `file:${join(root, 'node_modules/rescript')}`,
