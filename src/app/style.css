@@ -125,7 +125,19 @@ body {
 .trace-heading-actions {
   display: flex;
   flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.trace-action-group,
+.trace-filter-group {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
+  align-items: center;
+}
+.trace-action-group + .trace-action-group,
+.trace-filter-group + .trace-filter-group {
+  padding-left: 0.5rem;
+  border-left: 1px solid #2b3859;
 }
 .trace-heading button {
   padding: 0.25rem 0.45rem;
@@ -226,7 +238,7 @@ body {
 .trace-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.5rem;
   padding: 0.65rem 0.8rem;
   border-bottom: 1px solid #283653;
 }

@@ -17,23 +17,31 @@
               <h2>Live Trace</h2>
               <span id="trace-stats" aria-live="polite">0 captured events</span>
             </div>
-            <!-- prettier-ignore -->
             <div class="trace-heading-actions">
-            <button id="download-log" type="button" class="trace-download-button">
-              Download
-            </button>
-            <button id="copy-log" type="button" class="trace-download-button">
-              Copy
-            </button>
-            <button id="sort-trace" type="button" aria-label="Sort newest first" title="Sort newest first">
-              ↓ Newest
-            </button>
-            <button id="follow-trace" type="button" aria-label="Follow newest trace events">
-              Newest
-            </button>
-            <button id="pause-trace" type="button" aria-pressed="false">Pause</button>
-            <button id="clear-trace" type="button">Clear</button>
-          </div>
+              <div class="trace-action-group" role="group" aria-label="Export trace">
+                <button id="download-log" type="button" class="trace-download-button">
+                  Download
+                </button>
+                <button id="copy-log" type="button" class="trace-download-button">Copy</button>
+              </div>
+              <div class="trace-action-group" role="group" aria-label="Navigate trace">
+                <button
+                  id="sort-trace"
+                  type="button"
+                  aria-label="Sort newest first"
+                  title="Sort newest first"
+                >
+                  ↓ Newest
+                </button>
+                <button id="follow-trace" type="button" aria-label="Follow newest trace events">
+                  Newest
+                </button>
+              </div>
+              <div class="trace-action-group" role="group" aria-label="Trace controls">
+                <button id="pause-trace" type="button" aria-pressed="false">Pause</button>
+                <button id="clear-trace" type="button">Clear</button>
+              </div>
+            </div>
           </div>
           <section id="replay-panel" hidden aria-label="JSONL replay transport">
             <strong>Replay</strong>
@@ -77,16 +85,22 @@
             </section>
           </section>
           <div class="trace-filters" aria-label="Trace filters">
-            <button data-trace-filter="MOVE" aria-pressed="true">Move</button>
-            <button data-trace-filter="EVENT" aria-pressed="true">Event</button>
-            <button data-trace-filter="STATE" aria-pressed="true">State</button>
-            <button data-trace-filter="COMMAND" aria-pressed="true">Command</button>
-            <button data-trace-filter="UNKNOWN" aria-pressed="true">Unknown</button>
-            <button data-trace-filter="DIAGNOSTIC" aria-pressed="false">Diagnostic</button>
-            <button data-trace-filter="GYRO" aria-pressed="false">Gyro</button>
-            <button data-trace-filter="REGRIP" aria-pressed="true">Regrip</button>
-            <button data-trace-filter="TRIGGER" aria-pressed="true">Trigger</button>
-            <button data-trace-filter="SHAKE" aria-pressed="true">Shake</button>
+            <div class="trace-filter-group" role="group" aria-label="Cube event filters">
+              <button data-trace-filter="MOVE" aria-pressed="true">Move</button>
+              <button data-trace-filter="EVENT" aria-pressed="true">Event</button>
+              <button data-trace-filter="STATE" aria-pressed="true">State</button>
+              <button data-trace-filter="COMMAND" aria-pressed="true">Command</button>
+              <button data-trace-filter="UNKNOWN" aria-pressed="true">Unknown</button>
+            </div>
+            <div class="trace-filter-group" role="group" aria-label="Transport filters">
+              <button data-trace-filter="DIAGNOSTIC" aria-pressed="false">Diagnostic</button>
+              <button data-trace-filter="GYRO" aria-pressed="false">Gyro</button>
+            </div>
+            <div class="trace-filter-group" role="group" aria-label="Derived event filters">
+              <button data-trace-filter="REGRIP" aria-pressed="true">Regrip</button>
+              <button data-trace-filter="TRIGGER" aria-pressed="true">Trigger</button>
+              <button data-trace-filter="SHAKE" aria-pressed="true">Shake</button>
+            </div>
           </div>
           <div id="trace-selection" class="trace-selection" hidden aria-live="polite">
             <span id="trace-selection-count">0 selected</span>
