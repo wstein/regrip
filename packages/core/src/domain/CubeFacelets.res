@@ -16,6 +16,13 @@ type patternData = {
   @as("CENTERS") centers: orbit,
 }
 
+type kociembaState = {
+  @as("CP") cp: array<int>,
+  @as("CO") co: array<int>,
+  @as("EP") ep: array<int>,
+  @as("EO") eo: array<int>,
+}
+
 let reidEdgeOrder = ["UF", "UR", "UB", "UL", "DF", "DR", "DB", "DL", "FR", "FL", "BR", "BL"]
 let reidCornerOrder = ["UFR", "URB", "UBL", "ULF", "DRF", "DFL", "DLB", "DBR"]
 let reidCenterOrder = ["U", "L", "F", "R", "B", "D"]
@@ -106,6 +113,37 @@ let edgeMapping = [
 ]
 
 let faceOrder = "URFDLB"
+
+let kociembaCornerOrder = ["URF", "UFL", "ULB", "UBR", "DFR", "DLF", "DBL", "DRB"]
+let kociembaEdgeOrder = ["UR", "UF", "UL", "UB", "DR", "DF", "DL", "DB", "FR", "FL", "BL", "BR"]
+
+// Absolute facelet indices in Kociemba's `URFDLB` layout. These match the
+// smart-cube protocol coordinates, unlike cubing.js's internal Reid ordering.
+let kociembaCornerMapping = [
+  [8, 9, 20],
+  [6, 18, 38],
+  [0, 36, 47],
+  [2, 45, 11],
+  [29, 26, 15],
+  [27, 44, 24],
+  [33, 53, 42],
+  [35, 17, 51],
+]
+
+let kociembaEdgeMapping = [
+  [5, 10],
+  [7, 19],
+  [3, 37],
+  [1, 46],
+  [32, 16],
+  [28, 25],
+  [30, 43],
+  [34, 52],
+  [23, 12],
+  [21, 41],
+  [50, 39],
+  [48, 14],
+]
 
 /** Canonical solved 3×3 facelets in Kociemba `URFDLB` order. */
 let solvedFacelets = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
@@ -239,6 +277,52 @@ let decodeFacelets = (facelets: string): result<patternData, string> => {
     }
   }
 }
+
+let kociembaPieceMap = (names, orientations) => {
+  let m = Dict.make()
+  names->Array.forEachWithIndex((name, idx) =>
+    for orientation in 0 to orientations - 1 {
+      m->Dict.set(rotateLeft(name, orientation), (idx, orientation))
+    }
+  )
+  m
+}
+
+let decodeKociembaOrbit = (mapping, names, orientations, facelets) => {
+  let map = kociembaPieceMap(names, orientations)
+  let pieces = []
+  let orientation = []
+  let error = ref(None)
+  mapping->Array.forEach(indices => {
+    let key = indices->Array.map(i => String.getUnsafe(facelets, i))->Array.join("")
+    switch map->Dict.get(key) {
+    | Some((piece, rotation)) => {
+        pieces->Array.push(piece)
+        // Encoding writes piece sticker p at slot p + orientation, so decoding
+        // sees the inverse (right) rotation.
+        orientation->Array.push((orientations - rotation) % orientations)
+      }
+    | None => error := Some(`unknown cubie "${key}"`)
+    }
+  })
+  switch error.contents {
+  | Some(msg) => Error(msg)
+  | None => Ok((pieces, orientation))
+  }
+}
+
+let faceletsToKociembaState = (facelets: string): result<kociembaState, string> =>
+  switch decodeFacelets(facelets) {
+  | Error(msg) => Error(msg)
+  | Ok(_) =>
+    switch (
+      decodeKociembaOrbit(kociembaCornerMapping, kociembaCornerOrder, 3, facelets),
+      decodeKociembaOrbit(kociembaEdgeMapping, kociembaEdgeOrder, 2, facelets),
+    ) {
+    | (Ok((cp, co)), Ok((ep, eo))) => Ok({cp, co, ep, eo})
+    | (Error(msg), _) | (_, Error(msg)) => Error(msg)
+    }
+  }
 
 let faceletsToPatternData = (facelets: string): patternData =>
   switch decodeFacelets(facelets) {

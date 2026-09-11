@@ -14,6 +14,14 @@ type patternData = {
   @as("CENTERS") centers: orbit,
 }
 
+/** Cubie coordinates in the Kociemba / smart-cube `URFDLB` convention. */
+type kociembaState = {
+  @as("CP") cp: array<int>,
+  @as("CO") co: array<int>,
+  @as("EP") ep: array<int>,
+  @as("EO") eo: array<int>,
+}
+
 /** Canonical solved 3×3 facelets in Kociemba `URFDLB` order. */
 let solvedFacelets: string
 
@@ -28,6 +36,9 @@ let decodeFacelets: string => result<patternData, string>
 
 /** `decodeFacelets` that throws on invalid input (JS boundary). */
 let faceletsToPatternData: string => patternData
+
+/** Decode canonical `URFDLB` facelets into Kociemba / smart-cube coordinates. */
+let faceletsToKociembaState: string => result<kociembaState, string>
 
 /** Advance a validated 3×3 state by one standard Singmaster face turn. */
 let applyMove: (patternData, string) => option<patternData>

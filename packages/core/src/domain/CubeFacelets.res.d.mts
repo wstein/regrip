@@ -13,6 +13,14 @@ export type PatternData = {
   CENTERS: Orbit;
 };
 
+/** Cubie coordinates in the Kociemba / smart-cube `URFDLB` convention. */
+export type KociembaState = {
+  CP: number[];
+  CO: number[];
+  EP: number[];
+  EO: number[];
+};
+
 export type DecodeFaceletsResult =
   | { TAG: 'Ok'; _0: PatternData }
   | { TAG: 'Error'; _0: string };
@@ -31,6 +39,11 @@ export function decodeFacelets(facelets: string): DecodeFaceletsResult;
 
 /** Throws if `facelets` is not a valid 3x3x3 Kociemba state. */
 export function faceletsToPatternData(facelets: string): PatternData;
+
+/** Decode canonical facelets into Kociemba / smart-cube cubie coordinates. */
+export function faceletsToKociembaState(
+  facelets: string,
+): { TAG: 'Ok'; _0: KociembaState } | { TAG: 'Error'; _0: string };
 
 /** Advance a validated 3×3 state by one standard Singmaster face turn. */
 export function applyMove(pattern: PatternData, move: string): PatternData | undefined;

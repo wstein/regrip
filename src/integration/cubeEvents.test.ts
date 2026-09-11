@@ -235,6 +235,44 @@ describe('cube event gyro bridge', () => {
     expect(calls).toEqual(['move:R']);
   });
 
+  it('formats GAN snapshots in Kociemba coordinates rather than cubing.js orbit order', () => {
+    const cubieStates: string[] = [];
+    const exports: Array<{ facelets: string; state?: { CP: number[]; CO: number[] } }> = [];
+    const controller = createCubeEventController({
+      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
+      solveScramble: async () => '',
+      shouldReconcilePlayer: async () => false,
+      addMove: vi.fn(),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo: (id, value) => {
+        if (id === 'cubieState') cubieStates.push(value);
+      },
+      showInfo: vi.fn(),
+      onFacelets: (source) => exports.push(source),
+      onDisconnect: vi.fn(),
+      onSolved: vi.fn(),
+    });
+    const facelets = 'BUBUUUUUDFRLRRRFRRFFRFFFFFRDDUDDDDDDRLLLLLLLLUBUBBBBBB';
+    controller.handle({
+      type: 'FACELETS',
+      timestamp: 1,
+      facelets,
+      state: {
+        CP: [4, 1, 3, 2, 0, 5, 6, 7],
+        CO: [0, 0, 2, 1, 0, 0, 0, 0],
+        EP: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+    });
+
+    expect(cubieStates).toEqual(['(DFR,URF) (UBR-,ULB+)']);
+    expect(exports.at(-1)?.state).toMatchObject({
+      CP: [4, 1, 3, 2, 0, 5, 6, 7],
+      CO: [0, 0, 2, 1, 0, 0, 0, 0],
+    });
+  });
+
   it('keeps the player unchanged after a packet gap while retaining detected notation', () => {
     const playerMoves: string[] = [];
     const detectedMoves: string[] = [];
@@ -300,7 +338,7 @@ describe('cube event gyro bridge', () => {
       cubeTimestamp: null,
     });
 
-    expect(cubieStates).toEqual(['', '(DFR-,DRB+,UFL-,URF+) (FR,DF,BL,UF)']);
+    expect(cubieStates).toEqual(['', '(DFR-,DRB+,UBR-,URF+) (FR,DR,BR,UR)']);
     expect(exports).toHaveLength(2);
     expect(exports[1]).not.toBe(solvedFacelets);
   });

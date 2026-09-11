@@ -13,12 +13,9 @@ export type SolveDetector = (facelets: string) => boolean;
 export const defaultSolveDetector: SolveDetector = CubeFacelets.isSolvedFacelets;
 
 function cubieStateFromPattern(pattern: CubeFacelets.PatternData): SmartCubeCubieState {
-  return {
-    CP: pattern.CORNERS.pieces,
-    CO: pattern.CORNERS.orientation,
-    EP: pattern.EDGES.pieces,
-    EO: pattern.EDGES.orientation,
-  };
+  const decoded = CubeFacelets.faceletsToKociembaState(CubeFacelets.patternDataToFacelets(pattern));
+  if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
+  return decoded._0;
 }
 
 function patternFromFacelets(facelets: string): CubeFacelets.PatternData | undefined {

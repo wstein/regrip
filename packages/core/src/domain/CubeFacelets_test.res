@@ -142,6 +142,19 @@ describe("decodeFacelets", () => {
     )
   })
 
+  test("decodes Kociemba coordinates independently from cubing.js orbit order", t => {
+    let ganFacelets = "BUBUUUUUDFRLRRRFRRFFRFFFFFRDDUDDDDDDRLLLLLLLLUBUBBBBBB"
+    switch CubeFacelets.faceletsToKociembaState(ganFacelets) {
+    | Ok(state) => {
+        t->expect(state.cp)->Expect.toEqual([4, 1, 3, 2, 0, 5, 6, 7])
+        t->expect(state.co)->Expect.toEqual([0, 0, 2, 1, 0, 0, 0, 0])
+        t->expect(state.ep)->Expect.toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+        t->expect(state.eo)->Expect.toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+      }
+    | Error(msg) => t->expect("ok")->Expect.toBe("Error: " ++ msg)
+    }
+  })
+
   test("rejects a well-formed but geometrically impossible state", t => {
     // solved with the stickers at index 1 and 10 swapped: 9 of each letter,
     // but an edge now reads "UU".
