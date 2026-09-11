@@ -69,13 +69,13 @@ function cycles(
 }
 
 /**
- * Compact Kociemba cubie-level representation. `;o:1` denotes a clockwise
- * corner twist and `;o:2` an anti-clockwise twist; unmarked pieces have o:0.
+ * Compact Kociemba cubie-level representation. `+` denotes o:1 (clockwise)
+ * and `-` o:2 (anti-clockwise); unmarked pieces have o:0.
  */
 export function formatCubieLevelState(state: SmartCubeCubieState): string {
   return [
-    cycles(state.CP, state.CO, corners, ['', ';o:1', ';o:2']),
-    cycles(state.EP, state.EO, edges, ['', ';o:1']),
+    cycles(state.CP, state.CO, corners, ['', '+', '-']),
+    cycles(state.EP, state.EO, edges, ['', '+']),
   ]
     .filter(Boolean)
     .join(' ');

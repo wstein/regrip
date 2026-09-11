@@ -36,7 +36,7 @@ describe('cube information formatters', () => {
     ).toBe('');
   });
 
-  it('shows Kociemba orientation values and handles incomplete protocol state', () => {
+  it('shows compact Kociemba orientations and handles incomplete protocol state', () => {
     expect(
       formatCubieLevelState({
         CP: [1, 0, 2, 3, 4, 5, 6, 7],
@@ -44,7 +44,7 @@ describe('cube information formatters', () => {
         EP: [0, 1],
         EO: [0, 0],
       }),
-    ).toBe('(UFL;o:1,URF;o:2) (unavailable)');
+    ).toBe('(UFL+,URF-) (unavailable)');
   });
 
   it.each(kociembaFixtures)('matches Kociemba cubie-level fixture: $name', ({ state, display }) => {

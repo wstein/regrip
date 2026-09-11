@@ -7,7 +7,7 @@
       "EP": [8, 1, 2, 3, 11, 5, 6, 7, 4, 9, 10, 0],
       "EO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
-    "display": "(DFR;o:2,DRB;o:1,UBR;o:2,URF;o:1) (FR,DR,BR,UR)"
+    "display": "(DFR-,DRB+,UBR-,URF+) (FR,DR,BR,UR)"
   },
   {
     "name": "F quarter turn",
@@ -17,6 +17,6 @@
       "EP": [0, 9, 2, 3, 4, 8, 6, 7, 1, 5, 10, 11],
       "EO": [0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0]
     },
-    "display": "(UFL;o:1,DLF;o:2,DFR;o:1,URF;o:2) (FL;o:1,DF;o:1,FR;o:1,UF;o:1)"
+    "display": "(UFL+,DLF-,DFR+,URF-) (FL+,DF+,FR+,UF+)"
   }
 ]
