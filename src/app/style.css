@@ -407,40 +407,44 @@ body {
   background: #213b67;
 }
 .trace-move .trace-badge {
-  color: #d9ffe9;
-  background: #245840;
+  color: #e5fff0;
+  background: #176b49;
+}
+.trace-event .trace-badge {
+  color: #e5edff;
+  background: #344f7e;
 }
 .trace-state .trace-badge {
-  color: #dce6ff;
-  background: #38476a;
+  color: #ecebff;
+  background: #4b4b87;
 }
 .trace-command .trace-badge {
-  color: #d9e7ff;
-  background: #315486;
+  color: #e8f1ff;
+  background: #3468ad;
 }
 .trace-unknown .trace-badge {
-  color: #ffe3b2;
-  background: #72542b;
+  color: #ffedc7;
+  background: #8b5b22;
 }
 .trace-diagnostic .trace-badge {
-  color: #ffd8f2;
-  background: #6a3567;
+  color: #ffe5f8;
+  background: #7b3974;
 }
 .trace-regrip .trace-badge {
-  color: #ffe4b5;
-  background: #70502a;
+  color: #ffedc8;
+  background: #8a6027;
 }
 .trace-trigger .trace-badge {
-  color: #ffd9f3;
-  background: #703d73;
+  color: #ffe5fa;
+  background: #86438d;
 }
 .trace-shake .trace-badge {
-  color: #ffe0c2;
-  background: #8a4a1f;
+  color: #ffead4;
+  background: #a75320;
 }
 .trace-gyro .trace-badge {
-  color: #c9edff;
-  background: #235971;
+  color: #d9f4ff;
+  background: #246f8b;
 }
 
 .dashboard {
