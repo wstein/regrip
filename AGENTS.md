@@ -31,6 +31,8 @@ Use TypeScript with strict types and ReScript for domain reducers. Let Prettier 
 
 Add a colocated test for behavior changes. Use deterministic timestamps and fixtures for session/replay work; test hardware-specific behavior through mock transports before real-cube validation. Update Playwright screenshots intentionally with `npm run test:screenshots:update` only after reviewing the visual difference.
 
+**TDD method — prove the test before trusting the fix.** For a bug fix: write (or extend) the test to express the correct behavior, confirm it actually fails against the current code, then implement the fix and confirm it now passes. A test that was only ever run against passing code hasn't verified anything. Concretely: apply the fix, run the test, then temporarily revert just the fix (not the test) and rerun it — it must fail before you restore the fix and commit both together. For a new ReScript module, write `*_test.res` against the not-yet-implemented API first and watch it fail to compile/run before implementing. Ship the test and the change in the same commit; don't split "add test" and "make it pass" across separate commits unless the change is a large, multi-commit module port.
+
 ## Commit & Pull Request Guidelines
 
 Use Conventional Commits, e.g. `fix(trace): preserve requested snapshots`; headers must be at most 100 characters. Keep commits focused. PRs need a user-facing summary, verification commands, linked context where applicable, and screenshots for UI/rendering changes. Never include MAC addresses, credentials, or unredacted captures.
