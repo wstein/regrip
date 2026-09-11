@@ -113,3 +113,5 @@ and replay fixtures small, isolated tests.
 - `packages/core/src/domain/Timer.res` — canonical reducer style
 - `packages/core/src/session/jsonlMock.e2e.test.ts` — JSONL replay at the connection boundary
 - `eslint.config.js` — checked TypeScript import boundaries
+- [David Singmaster's cycle-notation discussion (PDF)](https://maths-people.anu.edu.au/~burkej/cube/singmaster.pdf) —
+  the reference for the compact cubie-cycle display.
