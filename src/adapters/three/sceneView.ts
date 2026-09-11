@@ -231,8 +231,15 @@ export function startSceneRenderLoop(
   };
 
   const handleVisibilityChange = (): void => {
-    if (typeof document === 'undefined' || document.hidden) cancelFrame();
-    else schedule();
+    if (typeof document === 'undefined' || document.hidden) {
+      cancelFrame();
+      return;
+    }
+    // A long-backgrounded tab can have its GPU context reclaimed without any
+    // pending cube event to mark the scene dirty again. Always repaint on
+    // return rather than relying on dirty already being true.
+    dirty = true;
+    schedule();
   };
 
   if (typeof document !== 'undefined')

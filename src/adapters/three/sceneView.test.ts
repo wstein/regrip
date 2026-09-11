@@ -29,6 +29,27 @@ function pointer(type: string, pointerId: number, clientX: number, clientY: numb
   return Object.assign(new Event(type, { cancelable: true }), { pointerId, clientX, clientY });
 }
 
+class FakeDocument extends EventTarget {
+  hidden = false;
+  // orientationIndicator's label() falls back gracefully when getContext()
+  // returns null; keep this stub narrowly about document.hidden mechanics.
+  createElement(): { width: number; height: number; getContext: () => null } {
+    return { width: 0, height: 0, getContext: () => null };
+  }
+}
+
+/** Must be stubbed before `startSceneRenderLoop` runs: it attaches the listener at creation. */
+function installDocument(): FakeDocument {
+  const fakeDocument = new FakeDocument();
+  vi.stubGlobal('document', fakeDocument);
+  return fakeDocument;
+}
+
+function setHidden(fakeDocument: FakeDocument, hidden: boolean): void {
+  fakeDocument.hidden = hidden;
+  fakeDocument.dispatchEvent(new Event('visibilitychange'));
+}
+
 describe('scene renderer lifecycle', () => {
   it('renders on demand, pauses while inactive, and rebuilds after WebGL restoration', async () => {
     const animation = installAnimationFrames();
@@ -85,6 +106,39 @@ describe('scene renderer lifecycle', () => {
     await animation.flush();
     expect(onContextRestored).toHaveBeenCalledOnce();
     expect(render).toHaveBeenCalledTimes(4);
+    renderer.dispose();
+  });
+});
+
+describe('tab visibility', () => {
+  it('repaints on return even with no cube event pending while hidden', async () => {
+    const animation = installAnimationFrames();
+    const fakeDocument = installDocument();
+    const canvas = new EventTarget() as HTMLCanvasElement;
+    const scene = new THREE.Scene();
+    const render = vi.fn();
+    const player = {
+      experimentalCurrentVantages: async () => [
+        { scene: { scene: async () => scene }, canvasInfo: async () => ({ canvas }), render },
+      ],
+    };
+
+    const renderer = startSceneRenderLoop(
+      player as never,
+      new THREE.Quaternion(),
+      new THREE.Quaternion(),
+      { x: 0xff0000, y: 0xffffff, z: 0x00ff00 },
+    );
+    await animation.flush();
+    expect(render).toHaveBeenCalledTimes(1);
+
+    // Backgrounding a tab for a while can lose the GPU context with no cube
+    // event to mark the scene dirty again — returning must still repaint.
+    setHidden(fakeDocument, true);
+    setHidden(fakeDocument, false);
+    await animation.flush();
+    expect(render).toHaveBeenCalledTimes(2);
+
     renderer.dispose();
   });
 });
