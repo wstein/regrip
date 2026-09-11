@@ -25,8 +25,8 @@ function toOrbit64Coordinates(
   pieceMap: number[],
 ): { pieces: number[]; orientation: number[] } {
   return {
-    pieces: slots.map((slot) => pieceMap[pieces[slot]!]!),
-    orientation: slots.map((slot) => orientation[slot]!),
+    pieces: slots.map((slot) => pieceMap[pieces[slot]]),
+    orientation: slots.map((slot) => orientation[slot]),
   };
 }
 
@@ -56,7 +56,7 @@ function permutationRank(permutation: number[], count = permutation.length): big
   for (let index = 0; index < count; index += 1) {
     let smaller = 0;
     for (let later = index + 1; later < permutation.length; later += 1) {
-      if (permutation[later]! < permutation[index]!) smaller += 1;
+      if (permutation[later] < permutation[index]) smaller += 1;
     }
     rank = rank * BigInt(permutation.length - index) + BigInt(smaller);
   }
@@ -67,7 +67,7 @@ function parity(permutation: number[]): number {
   let inversions = 0;
   for (let index = 0; index < permutation.length; index += 1) {
     for (let later = index + 1; later < permutation.length; later += 1) {
-      if (permutation[index]! > permutation[later]!) inversions += 1;
+      if (permutation[index] > permutation[later]) inversions += 1;
     }
   }
   return inversions % 2;
@@ -88,7 +88,7 @@ function toBase64url(value: bigint, width: number): string {
   let result = '';
   let remaining = value;
   for (let index = 0; index < width; index += 1) {
-    result = `${base64url[Number(remaining % 64n)]!}${result}`;
+    result = `${base64url[Number(remaining % 64n)]}${result}`;
     remaining /= 64n;
   }
   return result;

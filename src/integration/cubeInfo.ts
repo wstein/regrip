@@ -60,7 +60,7 @@ function cycles(
     let position = start;
     while (!visited[position]) {
       visited[position] = true;
-      cycle.push(`${names[permutation[position]]!}${signs[orientation[position]]!}`);
+      cycle.push(`${names[permutation[position]]}${signs[orientation[position]]}`);
       position = permutation[position]!;
     }
     if (cycle.length > 1 || orientation[start] !== 0) result.push(`(${cycle.join(',')})`);

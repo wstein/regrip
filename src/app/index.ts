@@ -235,7 +235,7 @@ sessionSignals.event.subscribe((event) => {
     );
     return;
   }
-  eventLog.record('cube_event', event as unknown as Record<string, unknown>);
+  eventLog.record('cube_event', event);
   cubeEvents.handle(event);
 });
 
@@ -246,7 +246,7 @@ sessionSignals.state.subscribe((state) => {
     appliedProfile = state.profile;
     eventLog.record('profile_selected', {
       id: state.profile.id,
-      value: state.profile.value as unknown as Record<string, unknown>,
+      value: state.profile.value,
       sources: state.profile.sources,
     });
   }
@@ -310,7 +310,7 @@ sessionSignals.state.subscribe((state) => {
         eventLog.record('cube_command', {
           name,
           status: 'failed',
-          error: error instanceof Error ? error.message : String(error),
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       },
     });

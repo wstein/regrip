@@ -579,7 +579,7 @@ export function createLiveLog({
     appendDiagnostic,
     appendSessionEvent(event: SmartCubeSessionEvent): void {
       const [category, message] = describeSessionEvent(event);
-      append(category, message, eventTimestamp(event), event as unknown as JsonValue);
+      append(category, message, eventTimestamp(event), event);
     },
     appendLogEntry(entry: LogEntry): void {
       const [category, message] = describeLogEntry(entry);

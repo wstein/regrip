@@ -68,7 +68,7 @@ export function createCommandPanel() {
         return [
           {
             name: vendorLabels[type],
-            command: { vendor: 'gocube', type } as SmartCubeVendorCommand,
+            command: { vendor: 'gocube', type },
             ...(type === 'REBOOT' ? { confirm: 'Reboot the cube now?' } : {}),
           },
         ];

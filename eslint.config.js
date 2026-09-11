@@ -2,12 +2,34 @@ import importPlugin from 'eslint-plugin-import';
 import prettierConfig from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 
+const typedFiles = ['src/**/*.ts', 'packages/core/src/**/*.ts', 'packages/core/src/**/*.mts'];
+const testFiles = ['**/*.test.ts', '**/*.e2e.test.ts'];
+
 export default [
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
+    files: typedFiles,
+    ignores: testFiles,
+  })),
   {
-    files: ['src/**/*.ts', 'packages/core/src/**/*.ts'],
-    languageOptions: { parser: tseslint.parser },
-    plugins: { import: importPlugin },
+    files: typedFiles,
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: { projectService: true },
+    },
+    plugins: { import: importPlugin, '@typescript-eslint': tseslint.plugin },
     rules: {
+      // Interface-conforming async methods and callback-style event APIs are
+      // common in the transport/replay seams; no-floating-promises still
+      // catches discarded work without making those signatures noisy.
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       'import/no-restricted-paths': [
         'error',
         {

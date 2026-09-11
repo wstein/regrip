@@ -3,7 +3,7 @@ import { cube3x3x3 } from 'cubing/puzzles';
 
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 
-var KPUZZLE_333: KPuzzle;
+let KPUZZLE_333: KPuzzle;
 
 /**
  * Resolves once the 3x3x3 KPuzzle required by `faceletsToPattern` has loaded.

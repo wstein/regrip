@@ -32,7 +32,7 @@ function recordLeafSources(
   sources: Record<string, string>,
   prefix = '',
 ): void {
-  for (const [key, child] of Object.entries(value)) {
+  for (const [key, child] of Object.entries(value) as Array<[string, unknown]>) {
     const path = prefix ? `${prefix}.${key}` : key;
     if (child && typeof child === 'object' && !Array.isArray(child)) {
       recordLeafSources(child, source, sources, path);

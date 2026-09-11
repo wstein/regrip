@@ -148,7 +148,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let connectionGeneration = 0;
   const gyroFrameScheduler = options.gyroFrameScheduler ?? browserGyroFrameScheduler;
   let pendingGyro: Extract<SmartCubeEvent, { type: 'GYRO' }> | undefined;
-  let pendingGyroFrame: unknown | undefined;
+  let pendingGyroFrame: unknown;
   let hasCalibratedGyro = false;
   if (options.virtualRegrips !== undefined) {
     console.warn(

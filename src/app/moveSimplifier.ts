@@ -31,7 +31,7 @@ const wideMoveRules: readonly {
 function parseMove(token: string): ParsedMove | undefined {
   const match = /^([URFDLB]w?|[xyz])([2']?)$/.exec(token);
   if (!match) return undefined;
-  return { face: match[1]!, turns: match[2] === "'" ? 3 : match[2] === '2' ? 2 : 1 };
+  return { face: match[1], turns: match[2] === "'" ? 3 : match[2] === '2' ? 2 : 1 };
 }
 
 function formatMove({ face, turns }: ParsedMove): string {
