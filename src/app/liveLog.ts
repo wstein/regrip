@@ -20,7 +20,8 @@ type LiveLogOptions = {
   now?: () => Date;
 };
 
-const maxRows = 300;
+const maxBufferedEntries = 10_000;
+const maxVisibleRows = 300;
 
 function hardwareSummary(data: Record<string, unknown>): string {
   const name = typeof data.hardwareName === 'string' ? data.hardwareName : 'hardware';
@@ -138,7 +139,7 @@ export function createLiveLog({
   );
   const entries = signal<TraceEntry[]>([]);
   const visibleEntries = computed(() =>
-    entries.value.filter((entry) => activeFilters.value.has(entry.category)),
+    entries.value.filter((entry) => activeFilters.value.has(entry.category)).slice(-maxVisibleRows),
   );
   const selected = new Set<number>();
   let newestFirst = true;
@@ -175,8 +176,11 @@ export function createLiveLog({
   };
 
   const updateStats = (): void => {
-    const count = entries.value.length;
-    stats.textContent = `${count} captured event${count === 1 ? '' : 's'}`;
+    const captured = entries.value.length;
+    const shown = visibleEntries.value.length;
+    stats.textContent = `${captured} captured event${captured === 1 ? '' : 's'}${
+      shown === captured ? '' : ` · ${shown} shown`
+    }`;
   };
 
   const entryById = (id: number | undefined): TraceEntry | undefined =>
@@ -300,7 +304,7 @@ export function createLiveLog({
         log,
       },
     ];
-    while (nextEntries.length > maxRows) {
+    while (nextEntries.length > maxBufferedEntries) {
       const removed = nextEntries.shift()!;
       selected.delete(removed.id);
       if (focusedId === removed.id) focusedId = undefined;

@@ -159,6 +159,20 @@ describe('live trace browser interactions', () => {
     expect(onClear).toHaveBeenCalledOnce();
   });
 
+  it('retains hidden categories without displacing the filtered trace', () => {
+    mountTrace();
+    const trace = createLiveLog();
+    trace.append('MOVE', 'R');
+    for (let index = 0; index < 301; index += 1) trace.append('GYRO', `q ${index}`);
+
+    expect(trace.getEntries()).toHaveLength(302);
+    expect(trace.getVisibleEntries().map((entry) => entry.message)).toEqual(['R']);
+    expect(document.querySelector('#event-log-rows')?.textContent).toContain('R');
+    expect(document.querySelector('#trace-stats')?.textContent).toBe(
+      '302 captured events · 1 shown',
+    );
+  });
+
   it('pauses auto-follow after manual scrolling and resumes from Newest', () => {
     mountTrace();
     const root = document.querySelector<HTMLElement>('#event-log-rows')!;
