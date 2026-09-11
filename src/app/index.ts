@@ -273,6 +273,14 @@ sessionSignals.state.subscribe((state) => {
     commandPanel.render(connection.capabilities, {
       sendCommand: session.sendCommand,
       sendVendorCommand: session.sendVendorCommand,
+      onBeforeSend: (command) => {
+        if ('type' in command && command.type === 'REQUEST_FACELETS') {
+          // A user-requested Sync State is an explicit reconciliation point.
+          // Do not let a stale local tracker suppress its authoritative player update.
+          cubeEvents.invalidatePlayerState();
+          playerPatterns.reset();
+        }
+      },
       onResult: (name, error) => {
         eventLog.record('cube_command', {
           name,

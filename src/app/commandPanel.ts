@@ -7,6 +7,8 @@ import type {
 type CommandPanelOptions = {
   sendCommand: (command: SmartCubeCommand) => Promise<void>;
   sendVendorCommand: (command: SmartCubeVendorCommand) => Promise<void>;
+  /** Runs before a supported command is sent, while its button is disabled. */
+  onBeforeSend?: (command: SmartCubeCommand | SmartCubeVendorCommand) => void;
   onResult: (name: string, error?: unknown) => void;
   confirm?: (message: string) => boolean;
 };
@@ -82,6 +84,7 @@ export function createCommandPanel() {
         if (action.confirm && !(options.confirm ?? window.confirm)(action.confirm)) return;
         button.disabled = true;
         try {
+          options.onBeforeSend?.(action.command);
           if ('vendor' in action.command) await options.sendVendorCommand(action.command);
           else await options.sendCommand(action.command);
           options.onResult(action.name);

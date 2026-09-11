@@ -10,6 +10,7 @@ describe('command panel', () => {
     document.body.innerHTML = '<section id="command-panel" hidden></section>';
     const sendCommand = vi.fn(async () => {});
     const sendVendorCommand = vi.fn(async () => {});
+    const onBeforeSend = vi.fn();
     const onResult = vi.fn();
     const confirm = vi.fn(() => false);
     const panel = createCommandPanel();
@@ -23,7 +24,7 @@ describe('command panel', () => {
         reset: true,
         vendorCommands: ['REBOOT', 'TOGGLE_BACKLIGHT'],
       },
-      { sendCommand, sendVendorCommand, onResult, confirm },
+      { sendCommand, sendVendorCommand, onBeforeSend, onResult, confirm },
     );
 
     expect(document.querySelector<HTMLElement>('#command-panel')?.hidden).toBe(false);
@@ -34,6 +35,7 @@ describe('command panel', () => {
     document.querySelector<HTMLButtonElement>('#command-panel button')!.click();
     await Promise.resolve();
     expect(sendCommand).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' });
+    expect(onBeforeSend).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' });
     expect(onResult).toHaveBeenCalledWith('Sync state');
 
     [...document.querySelectorAll<HTMLButtonElement>('#command-panel button')]

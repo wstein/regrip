@@ -54,4 +54,13 @@ describe('Cubing pattern reconciler', () => {
     reconciler.applyMove('R');
     expect(await reconciler.observeSnapshot(solvedFacelets)).toBe(true);
   });
+
+  it('treats the next snapshot as authoritative after an explicit reset', async () => {
+    const reconciler = createPatternReconciler();
+    await reconciler.observeSnapshot(solvedFacelets);
+    expect(await reconciler.observeSnapshot(solvedFacelets)).toBe(false);
+
+    reconciler.reset();
+    expect(await reconciler.observeSnapshot(solvedFacelets)).toBe(true);
+  });
 });
