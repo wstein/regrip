@@ -49,6 +49,28 @@ describe('JSONL log', () => {
     );
   });
 
+  it('coalesces an explicitly keyed duplicate while preserving commands and reset behavior', () => {
+    const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
+    const seen: string[] = [];
+    const facelets = 'U'.repeat(54);
+    const dedupeKey = `facelets:73:${facelets}`;
+    log.subscribe((entry) => seen.push(entry.type));
+
+    expect(
+      log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, { dedupeKey }),
+    ).toBe(true);
+    expect(log.record('cube_command', { name: 'Sync state' })).toBe(true);
+    expect(
+      log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, { dedupeKey }),
+    ).toBe(false);
+    expect(seen).toEqual(['cube_event', 'cube_command']);
+
+    log.clear();
+    expect(
+      log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, { dedupeKey }),
+    ).toBe(true);
+  });
+
   it('attaches the download link and releases its blob URL after the click task', () => {
     vi.useFakeTimers();
     const click = vi.fn();

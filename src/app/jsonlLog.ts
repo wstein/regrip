@@ -13,6 +13,7 @@ export function serializeJsonl(entries: readonly LogEntry[]): string {
 }
 
 type LogListener = (entry: LogEntry) => void;
+type RecordOptions = { dedupeKey?: string };
 
 const maxEntries = 10_000;
 
@@ -22,21 +23,27 @@ const maxEntries = 10_000;
  */
 export function createJsonlLog(now: () => string = () => new Date().toISOString()) {
   let entries: LogEntry[] = [];
+  let lastDedupeKey: string | undefined;
   const listeners = new Set<LogListener>();
 
-  const record = (type: string, data: JsonValue): void => {
+  const record = (type: string, data: JsonValue, { dedupeKey }: RecordOptions = {}): boolean => {
+    const key = dedupeKey === undefined ? undefined : `${type}:${dedupeKey}`;
+    if (key !== undefined && key === lastDedupeKey) return false;
     const entry = { recordedAt: now(), type, data };
     entries.push(entry);
+    if (key !== undefined) lastDedupeKey = key;
     while (entries.length > maxEntries) {
       entries.shift();
     }
     listeners.forEach((listener) => listener(entry));
+    return true;
   };
 
   return {
     record,
     clear(): void {
       entries = [];
+      lastDedupeKey = undefined;
     },
     toJsonl(header: JsonValue): string {
       return serializeJsonl([

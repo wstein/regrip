@@ -215,7 +215,9 @@ sessionSignals.event.subscribe((event) => {
     );
     return;
   }
-  eventLog.record('cube_event', event as unknown as Record<string, unknown>);
+  const dedupeKey =
+    event.type === 'FACELETS' ? `facelets:${event.serial ?? 'none'}:${event.facelets}` : undefined;
+  eventLog.record('cube_event', event as unknown as Record<string, unknown>, { dedupeKey });
   cubeEvents.handle(event);
 });
 
