@@ -38,7 +38,9 @@ mountFullscreenToggle();
 const cubeQuaternion = new THREE.Quaternion().setFromEuler(
   new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
 );
+const restingViewQuaternion = cubeQuaternion.clone();
 let sceneRenderer: SceneRenderer | undefined;
+let orientationTracking = false;
 const playerSync = createTwistyPlayerSync(twistyPlayer, () => sceneRenderer?.requestRender());
 const playerPatterns = createPatternReconciler();
 // Replaced with `undefined` by Vite in production, allowing Rollup to exclude
@@ -97,6 +99,17 @@ function syncVirtualFrameOrientation(): void {
   sceneRenderer?.requestRender();
 }
 
+function setOrientationTracking(tracking: boolean): void {
+  orientationTracking = tracking;
+  sceneRenderer?.setManualOrientationEnabled(!tracking);
+  infoPanel.setOrientationTracking(tracking);
+}
+
+function resetViewOrientation(): void {
+  cubeQuaternion.copy(restingViewQuaternion);
+  sceneRenderer?.requestRender();
+}
+
 infoPanel.on('reset-state', 'click', async () => {
   if (!window.confirm("Reset the cube state? This clears the cube's stored state.")) return;
   const conn = session.getState().connection;
@@ -116,6 +129,11 @@ infoPanel.on('reset-state', 'click', async () => {
 });
 
 infoPanel.on('reset-gyro', 'click', async () => {
+  if (!orientationTracking) {
+    resetViewOrientation();
+    infoPanel.showFeedback('View orientation reset.');
+    return;
+  }
   if (!session.getState().connection?.capabilities.gyroscope) {
     infoPanel.showFeedback('This cube does not support a gyroscope.');
     return;
@@ -124,6 +142,18 @@ infoPanel.on('reset-gyro', 'click', async () => {
   solverFrame.reset();
   syncVirtualFrameOrientation();
   infoPanel.showFeedback('Gyro and virtual move frame reset.');
+});
+
+infoPanel.on('track-orientation', 'click', () => {
+  if (!session.getState().connection?.capabilities.gyroscope) return;
+  const nextTracking = !orientationTracking;
+  setOrientationTracking(nextTracking);
+  if (nextTracking) {
+    session.resetGyro();
+    infoPanel.showFeedback('Gyro orientation tracking enabled.');
+  } else {
+    infoPanel.showFeedback('Gyro orientation tracking paused; drag the cube to set the view.');
+  }
 });
 
 const timerController = createTimerController({
@@ -153,6 +183,7 @@ const cubeEvents = createCubeEventController({
     infoPanel.appendDetectedMove(move);
   },
   setOrientation: (quaternion) => {
+    if (!orientationTracking) return;
     cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
     sceneRenderer?.requestRender();
   },
@@ -256,12 +287,13 @@ sessionSignals.state.subscribe((state) => {
 
   if (state.status === 'connecting') {
     sceneRenderer?.setActive(false);
-    sceneRenderer?.setManualOrientationEnabled(false);
+    setOrientationTracking(false);
     cubeExportSource = undefined;
     solverFrame.reset();
     syncVirtualFrameOrientation();
     infoPanel.clearInfo();
-    infoPanel.setResetGyroEnabled(false);
+    infoPanel.setOrientationTrackingAvailable(false);
+    infoPanel.setResetOrientationEnabled(false);
     infoPanel.setConnectionStatus('Connecting…');
     return;
   }
@@ -282,12 +314,13 @@ sessionSignals.state.subscribe((state) => {
         },
       );
     } else sceneRenderer.setActive(true);
-    sceneRenderer.setManualOrientationEnabled(!connection.capabilities.gyroscope);
+    infoPanel.setOrientationTrackingAvailable(connection.capabilities.gyroscope);
+    setOrientationTracking(connection.capabilities.gyroscope);
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
     infoPanel.setInfo('capabilities', formatCapabilities(connection.capabilities));
-    infoPanel.setResetGyroEnabled(connection.capabilities.gyroscope);
+    infoPanel.setResetOrientationEnabled(true);
     infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
     commandPanel.render(connection.capabilities, {
@@ -318,28 +351,30 @@ sessionSignals.state.subscribe((state) => {
   }
   if (state.status === 'disconnected') {
     sceneRenderer?.setActive(false);
-    sceneRenderer?.setManualOrientationEnabled(false);
+    setOrientationTracking(false);
     cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
-    infoPanel.setResetGyroEnabled(false);
+    infoPanel.setOrientationTrackingAvailable(false);
+    infoPanel.setResetOrientationEnabled(false);
     infoPanel.setConnectionStatus('Disconnected');
     infoPanel.setConnectLabel('Connect');
     return;
   }
   if (state.status === 'error') {
     sceneRenderer?.setActive(false);
-    sceneRenderer?.setManualOrientationEnabled(false);
+    setOrientationTracking(false);
     cubeExportSource = undefined;
     commandPanel.clear();
     solverFrame.reset();
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
-    infoPanel.setResetGyroEnabled(false);
+    infoPanel.setOrientationTrackingAvailable(false);
+    infoPanel.setResetOrientationEnabled(false);
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
     infoPanel.setConnectLabel('Connect');
     alert(`Unable to connect to smart cube: ${state.error}`);

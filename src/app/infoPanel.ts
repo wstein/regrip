@@ -85,8 +85,20 @@ export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
   connect.dataset.state = label.toLowerCase();
 }
 
-/** Reset Gyro only applies to cubes that report a gyroscope capability. */
-export function setResetGyroEnabled(enabled: boolean): void {
+/** The tracker is meaningful only when the connected cube publishes gyro poses. */
+export function setOrientationTrackingAvailable(available: boolean): void {
+  const tracker = button('track-orientation');
+  tracker.disabled = !available;
+  if (!available) tracker.setAttribute('aria-pressed', 'false');
+}
+
+export function setOrientationTracking(tracking: boolean): void {
+  button('track-orientation').setAttribute('aria-pressed', String(tracking));
+  button('reset-gyro').textContent = tracking ? 'Reset Gyro' : 'Reset View';
+}
+
+/** Reset is disabled only while no active scene can be controlled. */
+export function setResetOrientationEnabled(enabled: boolean): void {
   button('reset-gyro').disabled = !enabled;
 }
 

@@ -550,6 +550,11 @@ body {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+#track-orientation[aria-pressed='true'] {
+  border-color: #6b9bf5;
+  color: #e7efff;
+  background: #263f70;
+}
 .detected-moves-actions {
   margin-top: 0.65rem;
 }
