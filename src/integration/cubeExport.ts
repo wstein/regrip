@@ -8,28 +8,6 @@ export type CubeExportSource = { facelets: string; state?: SmartCubeCubieState }
 
 const base64url = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
-// `CubeFacelets` follows cubing.js's Reid order. Orbit64's canonical 3×3
-// coordinates use `UR, UF, UL, UB, DR, DF, DL, DB, FR, FL, BL, BR` for edges
-// and `URF, UFL, ULB, UBR, DFR, DLF, DBL, DRB` for corners. Keep this
-// conversion at the protocol boundary: the ranker itself only sees Orbit64
-// coordinates.
-const orbit64CornerSlots = [0, 3, 2, 1, 4, 5, 6, 7];
-const orbit64CornerPieces = [0, 3, 2, 1, 4, 5, 6, 7];
-const orbit64EdgeSlots = [1, 0, 3, 2, 5, 4, 7, 6, 8, 9, 11, 10];
-const orbit64EdgePieces = [1, 0, 3, 2, 5, 4, 7, 6, 8, 9, 11, 10];
-
-function toOrbit64Coordinates(
-  pieces: number[],
-  orientation: number[],
-  slots: number[],
-  pieceMap: number[],
-): { pieces: number[]; orientation: number[] } {
-  return {
-    pieces: slots.map((slot) => pieceMap[pieces[slot]]),
-    orientation: slots.map((slot) => orientation[slot]),
-  };
-}
-
 function validPermutation(values: number[], length: number): boolean {
   return (
     values.length === length &&
@@ -97,18 +75,16 @@ function toBase64url(value: bigint, width: number): string {
 /** Canonical-frame Orbit64 3×3×3 token from smartcube CP/CO/EP/EO data. */
 export function formatOrbit64(state: SmartCubeCubieState): string | undefined {
   if (!validPermutation(state.CP, 8) || !validPermutation(state.EP, 12)) return undefined;
-  const corners = toOrbit64Coordinates(state.CP, state.CO, orbit64CornerSlots, orbit64CornerPieces);
-  const edges = toOrbit64Coordinates(state.EP, state.EO, orbit64EdgeSlots, orbit64EdgePieces);
-  const cornerOrientation = orientationRank(corners.orientation, 7, 3);
-  const edgeOrientation = orientationRank(edges.orientation, 11, 2);
+  const cornerOrientation = orientationRank(state.CO, 7, 3);
+  const edgeOrientation = orientationRank(state.EO, 11, 2);
   if (cornerOrientation === undefined || edgeOrientation === undefined) return undefined;
-  if (parity(corners.pieces) !== parity(edges.pieces)) return undefined;
+  if (parity(state.CP) !== parity(state.EP)) return undefined;
 
-  const cornerRank = permutationRank(corners.pieces) * 2187n + cornerOrientation;
-  const edgeRank = permutationRankWithParity(edges.pieces) * 2048n + edgeOrientation;
+  const cornerRank = permutationRank(state.CP) * 2187n + cornerOrientation;
+  const edgeRank = permutationRankWithParity(state.EP) * 2048n + edgeOrientation;
   const midgeRadix = (factorial(12) / 2n) * 2048n;
-  // Orbit64 stores a 24-way whole-cube frame after the coordinate rank. The
-  // solver-reframed facelets and smartcube cubie state use canonical URFDLB.
+  // Orbit64 stores a 24-way whole-cube frame after the coordinate rank. Copy
+  // exports use the normalized Kociemba URFDLB body frame.
   return toBase64url((cornerRank * midgeRadix + edgeRank) * 24n, 12);
 }
 

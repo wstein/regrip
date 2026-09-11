@@ -13,30 +13,25 @@ const facelets = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
 const ponsAsinorum = 'UDUDUDUDURLRLRLRLRFBFBFBFBFDUDUDUDUDLRLRLRLRLBFBFBFBFB';
 
 function cubieState(facelets: string) {
-  const decoded = CubeFacelets.decodeFacelets(facelets);
+  const decoded = CubeFacelets.faceletsToKociembaState(facelets);
   if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
-  return {
-    CP: decoded._0.CORNERS.pieces,
-    CO: decoded._0.CORNERS.orientation,
-    EP: decoded._0.EDGES.pieces,
-    EO: decoded._0.EDGES.orientation,
-  };
+  return decoded._0;
 }
 
 describe('cube exports', () => {
-  it('matches Orbit64 canonical 3×3 compatibility vectors', () => {
+  it('matches Orbit64 normalized Kociemba compatibility vectors', () => {
     expect(formatOrbit64(solved)).toBe('AAAAAAAAAAAA');
     expect(formatOrbit64({ ...solved, EO: Array.from({ length: 12 }, () => 1) })).toBe(
       'AAAAAAAAAL_o',
     );
-    expect(formatOrbit64({ ...solved, CO: [1, 2, 0, 0, 0, 0, 0, 0] })).toBe('AAACTNvNgAAA');
+    expect(formatOrbit64({ ...solved, CO: [1, 2, 0, 0, 0, 0, 0, 0] })).toBe('AAAASvIVgAAA');
     expect(
       formatOrbit64({
         ...solved,
         CP: [1, 2, 3, 0, 4, 5, 6, 7],
         EP: [1, 2, 3, 0, 4, 5, 6, 7, 8, 9, 10, 11],
       }),
-    ).toBe('FRot3QyvoAAA');
+    ).toBe('CDTY8llDEAAA');
   });
 
   it('matches Orbit64 Pons Asinorum from its canonical URFDLB facelets', () => {
