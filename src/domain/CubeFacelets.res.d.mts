@@ -25,3 +25,6 @@ export function decodeFacelets(facelets: string): DecodeFaceletsResult;
 
 /** Throws if `facelets` is not a valid 3x3x3 Kociemba state. */
 export function faceletsToPatternData(facelets: string): PatternData;
+
+/** Advance a validated 3×3 state by one standard Singmaster face turn. */
+export function applyMove(pattern: PatternData, move: string): PatternData | undefined;

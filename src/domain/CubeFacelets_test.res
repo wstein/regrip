@@ -165,3 +165,26 @@ describe("faceletsToPatternData", () => {
     t->expect(() => CubeFacelets.faceletsToPatternData("nonsense"))->Expect.toThrow
   })
 })
+
+describe("applyMove", () => {
+  test("advances a decoded state and composes inverse turns", t => {
+    let initial = CubeFacelets.faceletsToPatternData(scrambled)
+    let afterL = initial->CubeFacelets.applyMove("L")->Option.getUnsafe
+    let restored = afterL->CubeFacelets.applyMove("L'")->Option.getUnsafe
+    t->expect(restored->CubeFacelets.patternDataToFacelets)->Expect.toBe(scrambled)
+  })
+
+  test("supports quarter, half, and inverse turns", t => {
+    let initial = CubeFacelets.faceletsToPatternData(solved)
+    let d2 = initial->CubeFacelets.applyMove("D2")->Option.getUnsafe
+    t
+    ->expect(d2->CubeFacelets.patternDataToFacelets)
+    ->Expect.toBe("UUUUUUUUURRRRRRLLLFFFFFFBBBDDDDDDDDDLLLLLLRRRBBBBBBFFF")
+  })
+
+  test("does not claim to apply unsupported notation", t =>
+    t
+    ->expect(solved->CubeFacelets.faceletsToPatternData->CubeFacelets.applyMove("Rw"))
+    ->Expect.toBe(None)
+  )
+})

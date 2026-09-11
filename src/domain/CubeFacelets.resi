@@ -21,3 +21,6 @@ let decodeFacelets: string => result<patternData, string>
 
 /** `decodeFacelets` that throws on invalid input (JS boundary). */
 let faceletsToPatternData: string => patternData
+
+/** Advance a validated 3×3 state by one standard Singmaster face turn. */
+let applyMove: (patternData, string) => option<patternData>

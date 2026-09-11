@@ -237,3 +237,90 @@ let faceletsToPatternData = (facelets: string): patternData =>
   | Ok(pd) => pd
   | Error(msg) => JsError.throwWithMessage(msg)
   }
+
+type turnOrbit = {pieces: array<int>, orientation: array<int>}
+type turn = {corners: turnOrbit, edges: turnOrbit}
+
+let u: turn = {
+  corners: {pieces: [1, 2, 3, 0, 4, 5, 6, 7], orientation: [0, 0, 0, 0, 0, 0, 0, 0]},
+  edges: {pieces: [1, 2, 3, 0, 4, 5, 6, 7, 8, 9, 10, 11], orientation: Array.make(~length=12, 0)},
+}
+let r: turn = {
+  corners: {pieces: [4, 0, 2, 3, 7, 5, 6, 1], orientation: [2, 1, 0, 0, 1, 0, 0, 2]},
+  edges: {pieces: [0, 8, 2, 3, 4, 10, 6, 7, 5, 9, 1, 11], orientation: Array.make(~length=12, 0)},
+}
+let f: turn = {
+  corners: {pieces: [3, 1, 2, 5, 0, 4, 6, 7], orientation: [1, 0, 0, 2, 2, 1, 0, 0]},
+  edges: {
+    pieces: [9, 1, 2, 3, 8, 5, 6, 7, 0, 4, 10, 11],
+    orientation: [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0],
+  },
+}
+let d: turn = {
+  corners: {pieces: [0, 1, 2, 3, 5, 6, 7, 4], orientation: Array.make(~length=8, 0)},
+  edges: {pieces: [0, 1, 2, 3, 7, 4, 5, 6, 8, 9, 10, 11], orientation: Array.make(~length=12, 0)},
+}
+let l: turn = {
+  corners: {pieces: [0, 1, 6, 2, 4, 3, 5, 7], orientation: [0, 0, 2, 1, 0, 2, 1, 0]},
+  edges: {pieces: [0, 1, 2, 11, 4, 5, 6, 9, 8, 3, 10, 7], orientation: Array.make(~length=12, 0)},
+}
+let b: turn = {
+  corners: {pieces: [0, 7, 1, 3, 4, 5, 2, 6], orientation: [0, 2, 1, 0, 0, 0, 2, 1]},
+  edges: {
+    pieces: [0, 1, 10, 3, 4, 5, 11, 7, 8, 9, 6, 2],
+    orientation: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1],
+  },
+}
+
+let parseMove = (move: string): option<(turn, int)> =>
+  switch move {
+  | "U" => Some((u, 1))
+  | "U2" => Some((u, 2))
+  | "U'" => Some((u, 3))
+  | "R" => Some((r, 1))
+  | "R2" => Some((r, 2))
+  | "R'" => Some((r, 3))
+  | "F" => Some((f, 1))
+  | "F2" => Some((f, 2))
+  | "F'" => Some((f, 3))
+  | "D" => Some((d, 1))
+  | "D2" => Some((d, 2))
+  | "D'" => Some((d, 3))
+  | "L" => Some((l, 1))
+  | "L2" => Some((l, 2))
+  | "L'" => Some((l, 3))
+  | "B" => Some((b, 1))
+  | "B2" => Some((b, 2))
+  | "B'" => Some((b, 3))
+  | _ => None
+  }
+
+let applyOrbit = (orbit: orbit, turn: turnOrbit, modulo: int): orbit => {
+  pieces: Array.fromInitializer(~length=orbit.pieces->Array.length, index =>
+    orbit.pieces->Array.getUnsafe(turn.pieces->Array.getUnsafe(index))
+  ),
+  orientation: Array.fromInitializer(~length=orbit.orientation->Array.length, index => {
+    let source = turn.pieces->Array.getUnsafe(index)
+    (orbit.orientation->Array.getUnsafe(source) + turn.orientation->Array.getUnsafe(index)) % modulo
+  }),
+  orientationMod: ?orbit.orientationMod,
+}
+
+let applyTurn = (pattern: patternData, turn: turn): patternData => {
+  corners: applyOrbit(pattern.corners, turn.corners, 3),
+  edges: applyOrbit(pattern.edges, turn.edges, 2),
+  centers: pattern.centers,
+}
+
+/** Advance a validated 3×3 state by one standard Singmaster face turn. */
+let applyMove = (pattern: patternData, move: string): option<patternData> =>
+  switch parseMove(move) {
+  | None => None
+  | Some((turn, turns)) => {
+      let next = ref(pattern)
+      for _ in 1 to turns {
+        next := applyTurn(next.contents, turn)
+      }
+      Some(next.contents)
+    }
+  }
