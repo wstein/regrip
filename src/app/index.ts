@@ -290,15 +290,16 @@ sessionSignals.state.subscribe((state) => {
           forceNextFaceletsLog = true;
         }
       },
+      onSend: (name) => {
+        eventLog.record('cube_command', { name, status: 'sent', error: null });
+      },
       onResult: (name, error) => {
-        let status = 'sent';
-        if (error) status = 'failed';
-        else if (name === 'Sync state') status = 'confirmed';
-        if (name === 'Sync state' && error) forceNextFaceletsLog = false;
+        if (!error) return;
+        if (name === 'Sync state') forceNextFaceletsLog = false;
         eventLog.record('cube_command', {
           name,
-          status,
-          error: error instanceof Error ? error.message : error ? String(error) : null,
+          status: 'failed',
+          error: error instanceof Error ? error.message : String(error),
         });
       },
     });

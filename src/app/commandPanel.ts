@@ -11,6 +11,8 @@ type CommandPanelOptions = {
   sendVendorCommand: (command: SmartCubeVendorCommand) => Promise<void>;
   /** Runs before a supported command is sent, while its button is disabled. */
   onBeforeSend?: (command: SmartCubeCommand | SmartCubeVendorCommand) => void;
+  /** Runs immediately before dispatch, after local pre-send state has been prepared. */
+  onSend?: (name: string, command: SmartCubeCommand | SmartCubeVendorCommand) => void;
   onResult: (name: string, error?: unknown) => void;
   confirm?: (message: string) => boolean;
 };
@@ -87,6 +89,7 @@ export function createCommandPanel() {
         button.disabled = true;
         try {
           options.onBeforeSend?.(action.command);
+          options.onSend?.(action.name, action.command);
           if (
             'type' in action.command &&
             action.command.type === 'REQUEST_FACELETS' &&

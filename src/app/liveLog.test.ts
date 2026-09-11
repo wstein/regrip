@@ -80,4 +80,14 @@ describe('live trace event classification', () => {
       }),
     ).toEqual(['EVENT', 'facelets #189 · 54 stickers']);
   });
+
+  it('summarizes a cube command with its dispatch status', () => {
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'cube_command',
+        data: { name: 'Sync state', status: 'sent', error: null },
+      }),
+    ).toEqual(['EVENT', 'Sync state · sent']);
+  });
 });

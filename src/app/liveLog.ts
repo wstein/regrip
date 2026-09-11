@@ -96,6 +96,11 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
   if (entry.type === 'log_stopped')
     return ['STATE', `recording stopped · ${String(data.entries)} events`];
   if (entry.type === 'profile_selected') return ['EVENT', `profile ${String(data.id)}`];
+  if (entry.type === 'cube_command') {
+    const name = typeof data.name === 'string' ? data.name : 'cube command';
+    const status = typeof data.status === 'string' ? ` · ${data.status}` : '';
+    return ['EVENT', `${name}${status}`];
+  }
   return ['EVENT', entry.type.replace(/_/g, ' ')];
 }
 

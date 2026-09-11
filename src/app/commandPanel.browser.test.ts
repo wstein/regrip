@@ -8,9 +8,13 @@ afterEach(() => document.body.replaceChildren());
 describe('command panel', () => {
   it('renders only supported controls and confirms reboot before sending it', async () => {
     document.body.innerHTML = '<section id="command-panel" hidden></section>';
-    const sendCommand = vi.fn(async () => {});
+    const calls: string[] = [];
+    const sendCommand = vi.fn(async () => {
+      calls.push('dispatch');
+    });
     const sendVendorCommand = vi.fn(async () => {});
-    const onBeforeSend = vi.fn();
+    const onBeforeSend = vi.fn(() => calls.push('before'));
+    const onSend = vi.fn(() => calls.push('sent'));
     const onResult = vi.fn();
     const confirm = vi.fn(() => false);
     const panel = createCommandPanel();
@@ -24,7 +28,7 @@ describe('command panel', () => {
         reset: true,
         vendorCommands: ['REBOOT', 'TOGGLE_BACKLIGHT'],
       },
-      { sendCommand, sendVendorCommand, onBeforeSend, onResult, confirm },
+      { sendCommand, sendVendorCommand, onBeforeSend, onSend, onResult, confirm },
     );
 
     expect(document.querySelector<HTMLElement>('#command-panel')?.hidden).toBe(false);
@@ -36,6 +40,8 @@ describe('command panel', () => {
     await Promise.resolve();
     expect(sendCommand).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' });
     expect(onBeforeSend).toHaveBeenCalledWith({ type: 'REQUEST_FACELETS' });
+    expect(onSend).toHaveBeenCalledWith('Sync state', { type: 'REQUEST_FACELETS' });
+    expect(calls).toEqual(['before', 'sent', 'dispatch']);
     expect(onResult).toHaveBeenCalledWith('Sync state');
 
     [...document.querySelectorAll<HTMLButtonElement>('#command-panel button')]
