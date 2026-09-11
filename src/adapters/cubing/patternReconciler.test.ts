@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import * as CubeFacelets from '../../domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 import { createPatternReconciler } from './patternReconciler';
 import { faceletsToPattern, kpuzzleReady, patternToFacelets } from './utils';
 

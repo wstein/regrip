@@ -1,7 +1,7 @@
 import { KPattern, KPuzzle } from 'cubing/kpuzzle';
 import { cube3x3x3 } from 'cubing/puzzles';
 
-import * as CubeFacelets from '../../domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 
 var KPUZZLE_333: KPuzzle;
 
