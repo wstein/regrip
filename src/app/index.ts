@@ -13,7 +13,12 @@ import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { mountFullscreenToggle } from './fullscreen';
-import { formatSseMoves, simplifyMoves } from './moveSimplifier';
+import {
+  formatDetectedMoves,
+  parseDetectedMoves,
+  simplifyMoves,
+  type DetectedMoveNotation,
+} from './moveSimplifier';
 import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../integration/cubeEvents';
 import { connectCube } from '../integration/connection';
@@ -28,6 +33,33 @@ import {
 import { featurePresets } from '@wstein/regrip-core/session/features';
 import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 import { createSolverFrame } from '../adapters/three/solverFrame';
+
+let detectedMoveNotation: DetectedMoveNotation = 'wca';
+
+function canonicalDetectedMoves(): string {
+  return parseDetectedMoves(infoPanel.getDetectedMoves(), detectedMoveNotation);
+}
+
+function renderDetectedMoves(canonicalMoves: string): void {
+  infoPanel.setDetectedMoves(formatDetectedMoves(canonicalMoves, detectedMoveNotation));
+  infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(canonicalMoves));
+}
+
+function setDetectedMoveNotation(notation: DetectedMoveNotation): void {
+  const canonicalMoves = canonicalDetectedMoves();
+  detectedMoveNotation = notation;
+  (['wca', 'twizzle', 'sse'] as const).forEach((candidate) => {
+    document
+      .getElementById(`detected-notation-${candidate}`)
+      ?.setAttribute('aria-pressed', String(candidate === notation));
+  });
+  renderDetectedMoves(canonicalMoves);
+}
+
+function appendDetectedMove(move: string): void {
+  const canonicalMoves = canonicalDetectedMoves();
+  renderDetectedMoves(canonicalMoves ? `${canonicalMoves} ${move}` : move);
+}
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
@@ -62,7 +94,7 @@ const liveLog = createLiveLog({
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
     playerSync.setAlgorithm(algorithm);
-    infoPanel.setDetectedMoves(algorithm);
+    renderDetectedMoves(algorithm);
   },
 });
 eventLog.subscribe((entry) => {
@@ -179,7 +211,7 @@ const cubeEvents = createCubeEventController({
     playerSync.addMove(move);
   },
   recordMove: (move) => {
-    infoPanel.appendDetectedMove(move);
+    appendDetectedMove(move);
   },
   setOrientation: (quaternion) => {
     if (!orientationTracking) return;
@@ -231,7 +263,7 @@ sessionSignals.event.subscribe((event) => {
     // never quaternions, translate BLE URFDLB moves and facelets for the user.
     const solverToken = solverFrame.solverToken(event.notationToken);
     eventLog.record('virtual_regrip', { ...event, solverToken });
-    infoPanel.appendDetectedMove(solverToken);
+    appendDetectedMove(solverToken);
     solverFrame.applyRegrip(event.notationToken);
     syncVirtualFrameOrientation();
     return;
@@ -425,17 +457,17 @@ infoPanel.on('copy-log', 'click', () => {
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
-  infoPanel.clearDetectedMoves();
+  renderDetectedMoves('');
 });
 
 infoPanel.on('simplify-detected-moves', 'click', () => {
-  infoPanel.simplifyDetectedMoves(simplifyMoves);
+  renderDetectedMoves(simplifyMoves(canonicalDetectedMoves()));
   infoPanel.showFeedback('Detected moves simplified.');
 });
 
 infoPanel.on('copy-detected-moves', 'click', () => {
   void infoPanel
-    .copyDetectedMoves()
+    .copyText(formatDetectedMoves(canonicalDetectedMoves(), detectedMoveNotation))
     .then(() => infoPanel.showFeedback('Detected moves copied.'))
     .catch((error) => {
       console.error('unable to copy detected moves', error);
@@ -443,15 +475,9 @@ infoPanel.on('copy-detected-moves', 'click', () => {
     });
 });
 
-infoPanel.on('copy-detected-moves-sse', 'click', () => {
-  void infoPanel
-    .copyDetectedMovesAs(formatSseMoves)
-    .then(() => infoPanel.showFeedback('Detected moves copied as SSE.'))
-    .catch((error) => {
-      console.error('unable to copy detected moves as SSE', error);
-      infoPanel.showFeedback('Could not copy detected moves as SSE.');
-    });
-});
+infoPanel.on('detected-notation-wca', 'click', () => setDetectedMoveNotation('wca'));
+infoPanel.on('detected-notation-twizzle', 'click', () => setDetectedMoveNotation('twizzle'));
+infoPanel.on('detected-notation-sse', 'click', () => setDetectedMoveNotation('sse'));
 
 const cubeExportButton = document.getElementById('copy-cube-state') as HTMLButtonElement;
 const cubeExportMenu = document.getElementById('cube-export-menu') as HTMLElement;
@@ -496,7 +522,9 @@ infoPanel.on('copy-cubie-coordinates', 'click', () =>
 );
 infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 token'));
 
-infoPanel.on('detectedMoves', 'input', () => infoPanel.syncDetectedMoveCount());
+infoPanel.on('detectedMoves', 'input', () =>
+  infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(canonicalDetectedMoves())),
+);
 
 infoPanel.on('start-timer', 'click', () => {
   timerController.dispatch('activate');

@@ -96,7 +96,29 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
   await page.locator('#copy-cube-state').click();
   await expect(page.locator('#copy-cubie-coordinates')).toHaveText('CP / CO / EP / EO');
   await expect(page.locator('#copy-sse-permutation')).toHaveText('SSE permutation');
-  await expect(page.locator('#copy-detected-moves-sse')).toHaveText('Copy SSE');
+  await expect(page.locator('#detected-notation-wca')).toHaveText('WCA');
+  await expect(page.locator('#detected-notation-twizzle')).toHaveText('Twizzle');
+  await expect(page.locator('#detected-notation-sse')).toHaveText('SSE');
+});
+
+test('switches the editable detected-move notation without changing its canonical stream', async ({
+  page,
+}) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const moves = page.locator('#detectedMoves');
+  await moves.fill("U' D Rw x");
+  await expect(page.locator('#moveCount')).toHaveText('4');
+
+  await page.locator('#detected-notation-sse').click();
+  await expect(moves).toHaveValue("SU' TR CR");
+  await expect(page.locator('#moveCount')).toHaveText('4');
+
+  await page.locator('#detected-notation-twizzle').click();
+  await expect(moves).toHaveValue("U' D r Rv");
+
+  await page.locator('#detected-notation-wca').click();
+  await expect(moves).toHaveValue("U' D Rw x");
 });
 
 test('renders the authoritative facelet snapshot after repeated sync requests', async ({

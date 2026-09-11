@@ -121,3 +121,7 @@ and replay fixtures small, isolated tests.
   the reference for Copy as SSE permutation cycles.
 - [Superset ENG 3×3 move notation](https://www.randelshofer.ch/rubik/patterns/doc/supersetENG_3x3.html) —
   the reference for Copy SSE detected moves.
+- [WCA Regulations, Article 12: Notation](https://www.worldcubeassociation.org/regulations/#article-12-notation) —
+  the reference for the WCA detected-move editor view.
+- [CubeTwister / TWIZZLE description](https://www.randelshofer.ch/cube/twister/doc/description.php) —
+  the reference for the Twizzle detected-move editor view.

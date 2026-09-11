@@ -652,6 +652,24 @@ body {
 .detected-moves-actions {
   margin-top: 0.65rem;
 }
+.detected-moves-notation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.55rem;
+}
+.detected-moves-notation button {
+  padding: 0.24rem 0.5rem;
+  color: #aab9d9;
+  border-color: #3b4b70;
+  background: #111c35;
+  font-size: 0.72rem;
+}
+.detected-moves-notation button[aria-pressed='true'] {
+  color: #e7efff;
+  border-color: #6b9bf5;
+  background: #263f70;
+}
 .controls {
   justify-content: space-between;
   margin-top: 1rem;

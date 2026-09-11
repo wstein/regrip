@@ -3,6 +3,8 @@ type Face = 'U' | 'R' | 'F' | 'D' | 'L' | 'B';
 type Slice = 'M' | 'E' | 'S';
 type Orientation = Readonly<Record<Face, Face>>;
 
+export type DetectedMoveNotation = 'wca' | 'twizzle' | 'sse';
+
 const faces: readonly Face[] = ['U', 'R', 'F', 'D', 'L', 'B'];
 const identity: Orientation = { U: 'U', R: 'R', F: 'F', D: 'D', L: 'L', B: 'B' };
 
@@ -102,6 +104,146 @@ export function formatSseMoves(value: string): string {
     else if (isSliceMove(current.move))
       result.push(`${sseMiddleLayer[current.move.face]}${suffix}`);
     else result.push(`${current.move.face}${suffix}`);
+  }
+  return result.join(' ');
+}
+
+function formatTwizzleMoves(value: string): string {
+  return value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => {
+      const move = parseMove(token);
+      if (!move) return token;
+      const suffix = suffixForTurns(move.turns);
+      if (move.face === 'x') return `Rv${suffix}`;
+      if (move.face === 'y') return `Uv${suffix}`;
+      if (move.face === 'z') return `Fv${suffix}`;
+      if (move.face.endsWith('w')) return `${move.face[0]!.toLowerCase()}${suffix}`;
+      if (isSliceMove(move)) return `${twizzleMiddleLayer[move.face]}${suffix}`;
+      return token;
+    })
+    .join(' ');
+}
+
+const twizzleMiddleLayer: Readonly<Record<Slice, string>> = { M: '2L', E: '2D', S: '2F' };
+
+function turnsFromSuffix(suffix: string): number {
+  return suffix === "'" ? 3 : suffix === '2' ? 2 : 1;
+}
+
+function composeTwizzleMove(base: ParsedMove, suffix: string): string {
+  return formatMove({ ...base, turns: (base.turns * turnsFromSuffix(suffix)) % 4 });
+}
+
+function parseSseMove(token: string): string[] | undefined {
+  const match = /^([CTMS])([URFDLB])([2']?)$/.exec(token);
+  if (!match) return undefined;
+  const [, family, face, modifier] = match;
+  const suffix = modifier ?? '';
+  switch (family) {
+    case 'C': {
+      const rotation = {
+        R: { face: 'x', turns: 1 },
+        L: { face: 'x', turns: 3 },
+        U: { face: 'y', turns: 1 },
+        D: { face: 'y', turns: 3 },
+        F: { face: 'z', turns: 1 },
+        B: { face: 'z', turns: 3 },
+      }[face!];
+      if (!rotation) return undefined;
+      return [composeTwizzleMove(rotation, suffix)];
+    }
+    case 'T':
+      return [`${face}w${suffix}`];
+    case 'M': {
+      const slice = {
+        L: { face: 'M', turns: 1 },
+        R: { face: 'M', turns: 3 },
+        D: { face: 'E', turns: 1 },
+        U: { face: 'E', turns: 3 },
+        F: { face: 'S', turns: 1 },
+        B: { face: 'S', turns: 3 },
+      }[face!];
+      if (!slice) return undefined;
+      return [composeTwizzleMove(slice, suffix)];
+    }
+    case 'S': {
+      const opposite = opposingFaces[face as Face];
+      if (!opposite) return undefined;
+      const turns = turnsFromSuffix(suffix);
+      return [
+        `${face}${suffixForTurns(turns)}`,
+        `${opposite}${suffixForTurns(inverseTurns(turns))}`,
+      ];
+    }
+    default:
+      return undefined;
+  }
+}
+
+function parseTwizzleMove(token: string): string | undefined {
+  const rotation = /^([URFDLB])v([2']?)$/.exec(token);
+  if (rotation) {
+    const base = {
+      R: { face: 'x', turns: 1 },
+      L: { face: 'x', turns: 3 },
+      U: { face: 'y', turns: 1 },
+      D: { face: 'y', turns: 3 },
+      F: { face: 'z', turns: 1 },
+      B: { face: 'z', turns: 3 },
+    }[rotation[1]!];
+    return base ? composeTwizzleMove(base, rotation[2] ?? '') : undefined;
+  }
+  const middle = /^2([URFDLB])([2']?)$/.exec(token);
+  if (middle) {
+    const base = {
+      L: { face: 'M', turns: 1 },
+      R: { face: 'M', turns: 3 },
+      D: { face: 'E', turns: 1 },
+      U: { face: 'E', turns: 3 },
+      F: { face: 'S', turns: 1 },
+      B: { face: 'S', turns: 3 },
+    }[middle[1]!];
+    return base ? composeTwizzleMove(base, middle[2] ?? '') : undefined;
+  }
+  const wide = /^([urfdlb])([2']?)$/.exec(token);
+  return wide ? `${wide[1]!.toUpperCase()}w${wide[2] ?? ''}` : undefined;
+}
+
+/** Render Regrip's canonical detected-move stream in a selected editor notation. */
+export function formatDetectedMoves(value: string, notation: DetectedMoveNotation): string {
+  switch (notation) {
+    case 'wca':
+      return value.trim();
+    case 'twizzle':
+      return formatTwizzleMoves(value);
+    case 'sse':
+      return formatSseMoves(value);
+  }
+}
+
+/** Convert an editable WCA, Twizzle, or SSE sequence back to Regrip's WCA stream. */
+export function parseDetectedMoves(value: string, notation: DetectedMoveNotation): string {
+  const result: string[] = [];
+  for (const token of value.trim().split(/\s+/)) {
+    if (token === '') continue;
+    if (notation === 'sse') {
+      const expanded = parseSseMove(token);
+      if (expanded) {
+        result.push(...expanded);
+        continue;
+      }
+    }
+    if (notation === 'twizzle') {
+      const canonical = parseTwizzleMove(token);
+      if (canonical) {
+        result.push(canonical);
+        continue;
+      }
+    }
+    result.push(token);
   }
   return result.join(' ');
 }

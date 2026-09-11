@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { Alg } from 'cubing/alg';
 import { cube3x3x3 } from 'cubing/puzzles';
 
-import { formatSseMoves, simplifyMoves } from './moveSimplifier';
+import {
+  formatDetectedMoves,
+  formatSseMoves,
+  parseDetectedMoves,
+  simplifyMoves,
+} from './moveSimplifier';
 
 describe('simplifyMoves', () => {
   it.each([
@@ -93,5 +98,19 @@ describe('formatSseMoves', () => {
 
   it('leaves already-compatible and unrecognized tokens intact', () => {
     expect(formatSseMoves("R' unknown F2")).toBe("R' unknown F2");
+  });
+});
+
+describe('detected-move notation views', () => {
+  it('uses native SiGN spellings for the Twizzle view', () => {
+    expect(formatDetectedMoves("Rw U Lw' M E' S2 x", 'twizzle')).toBe("r U l' 2L 2D' 2F2 Rv");
+    expect(parseDetectedMoves("r U l' 2L 2D' 2F2 Rv", 'twizzle')).toBe("Rw U Lw' M E' S2 x");
+  });
+
+  it('round-trips SSE regrips, tiers, middle layers, and opposing slices', () => {
+    const canonical = "U' D B F' M E' S2 x y' z2 Rw";
+    const sse = formatDetectedMoves(canonical, 'sse');
+    expect(sse).toBe("SU' SB ML MD' MF2 CR CU' CF2 TR");
+    expect(parseDetectedMoves(sse, 'sse')).toBe(canonical);
   });
 });

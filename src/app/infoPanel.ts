@@ -44,6 +44,10 @@ export function syncDetectedMoveCount(): void {
   byId('moveCount').textContent = String(countDetectedMoves(textarea('detectedMoves').value));
 }
 
+export function setDetectedMoveCount(count: number): void {
+  byId('moveCount').textContent = String(count);
+}
+
 let feedbackTimeout: number | undefined;
 
 export function showFeedback(message: string): void {
@@ -134,6 +138,10 @@ export function simplifyDetectedMoves(simplify: (moves: string) => string): void
 export function setDetectedMoves(moves: string): void {
   textarea('detectedMoves').value = moves;
   syncDetectedMoveCount();
+}
+
+export function getDetectedMoves(): string {
+  return textarea('detectedMoves').value;
 }
 
 export async function copyDetectedMoves(): Promise<void> {
