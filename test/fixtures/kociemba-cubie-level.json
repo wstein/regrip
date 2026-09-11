@@ -20,7 +20,8 @@
     "display": "(UFL-,DLF+,DFR-,URF+) (FL+,DF+,FR+,UF+)"
   },
   {
-    "name": "twisted URF/UBR corner swap",
+    "name": "UUR facelet regression: two twisted corner swaps",
+    "facelets": "UURUUUDURURURRRRRRLFBFFFLFFUDDDDDDDDLLFLLLLLFFBBBBBBBB",
     "state": {
       "CP": [3, 5, 2, 0, 4, 1, 6, 7],
       "CO": [1, 0, 0, 2, 0, 0, 0, 0],

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 import kociembaFixtures from '../../test/fixtures/kociemba-cubie-level.json';
 
 import { formatCapabilities, formatOfflineStats, formatSingmasterCycles } from './cubeInfo';
@@ -47,7 +49,15 @@ describe('cube information formatters', () => {
     ).toBe('(UFL-,URF+) (unavailable)');
   });
 
-  it.each(kociembaFixtures)('matches Kociemba cubie-level fixture: $name', ({ state, display }) => {
-    expect(formatSingmasterCycles(state)).toBe(display);
-  });
+  it.each(kociembaFixtures)(
+    'matches Kociemba cubie-level fixture: $name',
+    ({ state, display, facelets }) => {
+      expect(formatSingmasterCycles(state)).toBe(display);
+      if (facelets) {
+        const decoded = CubeFacelets.faceletsToKociembaState(facelets);
+        expect(decoded.TAG).toBe('Ok');
+        if (decoded.TAG === 'Ok') expect(decoded._0).toEqual(state);
+      }
+    },
+  );
 });
