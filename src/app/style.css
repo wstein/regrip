@@ -393,6 +393,10 @@ body {
   color: #dce6ff;
   background: #38476a;
 }
+.trace-command .trace-badge {
+  color: #d9e7ff;
+  background: #315486;
+}
 .trace-regrip .trace-badge {
   color: #ffe4b5;
   background: #70502a;

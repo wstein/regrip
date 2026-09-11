@@ -4,7 +4,8 @@ import type { SmartCubeSessionEvent } from '@wstein/regrip-core/session/smartCub
 import { byId } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
-export type TraceCategory = 'MOVE' | 'EVENT' | 'STATE' | 'GYRO' | 'REGRIP' | 'TRIGGER' | 'SHAKE';
+export type TraceCategory =
+  'MOVE' | 'EVENT' | 'STATE' | 'COMMAND' | 'GYRO' | 'REGRIP' | 'TRIGGER' | 'SHAKE';
 
 export type TraceEntry = {
   id: number;
@@ -100,7 +101,7 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
     const name = typeof data.name === 'string' ? data.name : 'cube command';
     const status = typeof data.status === 'string' ? ` · ${data.status}` : '';
     const reason = typeof data.reason === 'string' ? ` · ${data.reason.replace(/_/g, ' ')}` : '';
-    return ['EVENT', `${name}${status}${reason}`];
+    return ['COMMAND', `${name}${status}${reason}`];
   }
   return ['EVENT', entry.type.replace(/_/g, ' ')];
 }
@@ -145,7 +146,7 @@ export function createLiveLog({
   const exportContextEvent = byId('export-trace-event');
 
   const activeFilters = signal<ReadonlySet<TraceCategory>>(
-    new Set(['MOVE', 'EVENT', 'STATE', 'REGRIP', 'TRIGGER', 'SHAKE']),
+    new Set(['MOVE', 'EVENT', 'STATE', 'COMMAND', 'REGRIP', 'TRIGGER', 'SHAKE']),
   );
   const entries = signal<TraceEntry[]>([]);
   const visibleEntries = computed(() =>

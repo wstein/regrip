@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createLiveLog } from './liveLog';
 
-const filters = ['MOVE', 'EVENT', 'STATE', 'GYRO', 'REGRIP', 'TRIGGER', 'SHAKE'];
+const filters = ['MOVE', 'EVENT', 'STATE', 'COMMAND', 'GYRO', 'REGRIP', 'TRIGGER', 'SHAKE'];
 
 function mountTrace(): void {
   vi.stubGlobal('requestAnimationFrame', (render: FrameRequestCallback) => {
