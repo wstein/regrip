@@ -184,6 +184,30 @@ export function createLiveLog({
   const selectContextEvent = byId('select-trace-event');
   const copyContextEvent = byId('copy-trace-event');
   const exportContextEvent = byId('export-trace-event');
+  const groupContainers = document.querySelectorAll<HTMLElement>(
+    '.trace-heading-actions, .trace-filters',
+  );
+
+  const updateWrappedGroupSeparators = (container: HTMLElement): void => {
+    const groups = Array.from(
+      container.querySelectorAll<HTMLElement>('.trace-action-group, .trace-filter-group'),
+    );
+    groups.forEach((group, index) => {
+      const previous = groups[index - 1];
+      group.classList.toggle(
+        'is-wrapped',
+        previous !== undefined && group.offsetTop > previous.offsetTop,
+      );
+    });
+  };
+  const updateAllWrappedGroupSeparators = (): void => {
+    groupContainers.forEach(updateWrappedGroupSeparators);
+  };
+  updateAllWrappedGroupSeparators();
+  if (typeof ResizeObserver !== 'undefined') {
+    const groupResizeObserver = new ResizeObserver(updateAllWrappedGroupSeparators);
+    groupContainers.forEach((container) => groupResizeObserver.observe(container));
+  }
 
   const activeFilters = signal<ReadonlySet<TraceCategory>>(
     new Set(['MOVE', 'EVENT', 'STATE', 'COMMAND', 'UNKNOWN', 'REGRIP', 'TRIGGER', 'SHAKE']),
