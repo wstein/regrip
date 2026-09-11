@@ -78,6 +78,7 @@ describe('formatSseMoves', () => {
 
   it('combines opposing outer turns into Superset ENG slice twists', () => {
     expect(formatSseMoves("U' D B F' D U' L' R F' B")).toBe("SU' SB SD SL' SF'");
+    expect(formatSseMoves("R L' R L' B F' B F' D U' D U'")).toBe('SR2 SB2 SD2');
   });
 
   it('preserves the cube transformation when combining SSE slice twists', async () => {

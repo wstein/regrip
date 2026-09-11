@@ -76,6 +76,19 @@ function sseOpposingSlice(
   return `S${first.face}${suffixForTurns(first.turns)}`;
 }
 
+function appendSseMove(result: string[], token: string): void {
+  const parsed = /^([A-Z]+)([2']?)$/.exec(token);
+  const previous = result.at(-1);
+  const prior = previous && /^([A-Z]+)([2']?)$/.exec(previous);
+  if (!parsed || !prior || parsed[1] !== prior[1]) {
+    result.push(token);
+    return;
+  }
+  const turns = (turnsFromSuffix(prior[2] ?? '') + turnsFromSuffix(parsed[2] ?? '')) % 4;
+  result.pop();
+  if (turns !== 0) result.push(`${parsed[1]}${suffixForTurns(turns)}`);
+}
+
 /** Format Regrip's detected Singmaster moves as Superset ENG (SSE) moves. */
 export function formatSseMoves(value: string): string {
   const tokens = value
@@ -88,7 +101,7 @@ export function formatSseMoves(value: string): string {
     const current = tokens[index]!;
     const paired = sseOpposingSlice(current.move, tokens[index + 1]?.move);
     if (current.move && paired) {
-      result.push(paired);
+      appendSseMove(result, paired);
       index += 1;
       continue;
     }
@@ -97,13 +110,14 @@ export function formatSseMoves(value: string): string {
       continue;
     }
     const suffix = suffixForTurns(current.move.turns);
-    if (current.move.face === 'x') result.push(`CR${suffix}`);
-    else if (current.move.face === 'y') result.push(`CU${suffix}`);
-    else if (current.move.face === 'z') result.push(`CF${suffix}`);
-    else if (current.move.face.endsWith('w')) result.push(`T${current.move.face[0]}${suffix}`);
+    if (current.move.face === 'x') appendSseMove(result, `CR${suffix}`);
+    else if (current.move.face === 'y') appendSseMove(result, `CU${suffix}`);
+    else if (current.move.face === 'z') appendSseMove(result, `CF${suffix}`);
+    else if (current.move.face.endsWith('w'))
+      appendSseMove(result, `T${current.move.face[0]}${suffix}`);
     else if (isSliceMove(current.move))
-      result.push(`${sseMiddleLayer[current.move.face]}${suffix}`);
-    else result.push(`${current.move.face}${suffix}`);
+      appendSseMove(result, `${sseMiddleLayer[current.move.face]}${suffix}`);
+    else appendSseMove(result, `${current.move.face}${suffix}`);
   }
   return result.join(' ');
 }
