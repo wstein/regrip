@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { Alg } from 'cubing/alg';
+import { cube3x3x3 } from 'cubing/puzzles';
 
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 import kociembaFixtures from '../../test/fixtures/kociemba-cubie-level.json';
+import ssePatterns from '../../test/fixtures/sse-patterns.json';
+import { kpuzzleReady, patternToFacelets } from '../adapters/cubing/utils';
 
 import {
   formatCapabilities,
@@ -62,7 +66,7 @@ describe('cube information formatters', () => {
         EP: [8, 1, 2, 3, 11, 5, 6, 7, 4, 9, 10, 0],
         EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       }),
-    ).toBe('(urf,bru,drb,frd) (ur,br,dr,fr)');
+    ).toBe('(urf,bru,drb,frd)\n(ur,br,dr,fr)');
   });
 
   it('uses a prefix for a net corner twist and rejects invalid coordinates', () => {
@@ -92,6 +96,24 @@ describe('cube information formatters', () => {
         const decoded = CubeFacelets.faceletsToKociembaState(facelets);
         expect(decoded.TAG).toBe('Ok');
         if (decoded.TAG === 'Ok') expect(decoded._0).toEqual(state);
+      }
+    },
+  );
+
+  it.each(ssePatterns)(
+    'round-trips $name algorithms through facelets into grouped SSE permutation cycles',
+    async ({ algorithms, facelets, ssePermutation }) => {
+      await kpuzzleReady;
+      const kpuzzle = await cube3x3x3.kpuzzle();
+      for (const algorithm of algorithms) {
+        expect(patternToFacelets(kpuzzle.defaultPattern().applyAlg(new Alg(algorithm)))).toBe(
+          facelets,
+        );
+      }
+      const decoded = CubeFacelets.faceletsToKociembaState(facelets);
+      expect(decoded.TAG).toBe('Ok');
+      if (decoded.TAG === 'Ok') {
+        expect(formatSupersetEngPermutation(decoded._0)).toBe(ssePermutation);
       }
     },
   );

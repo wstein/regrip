@@ -65,7 +65,7 @@ describe('cube exports', () => {
         },
         'sse-permutation',
       ),
-    ).toBe('(urf,bru,drb,frd) (ur,br,dr,fr)');
+    ).toBe('(urf,bru,drb,frd)\n(ur,br,dr,fr)');
   });
 
   it('formats each cubie coordinate array on its own copy-ready line', () => {

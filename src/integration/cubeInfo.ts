@@ -147,11 +147,12 @@ export function formatSingmasterCycles(state: SmartCubeCubieState): string {
  * CubeTwister Superset ENG 3×3 permutation cycles from Kociemba coordinates.
  * Location tokens encode each corner or edge's orientation by their letter
  * order. Smart-cube CP/CO/EP/EO data has no observable center orientation,
- * so side-part cycles such as `(++u)` are intentionally omitted.
+ * so side-part cycles such as `(++u)` are intentionally omitted. A newline
+ * groups corner cycles above edge cycles, matching CubeTwister's presentation.
  */
 export function formatSupersetEngPermutation(state: SmartCubeCubieState): string {
   const cornerCycles = supersetEngCycles(state.CP, state.CO, corners, 3, ['', '-', '+']);
   const edgeCycles = supersetEngCycles(state.EP, state.EO, edges, 2, ['', '+']);
   if (cornerCycles === undefined || edgeCycles === undefined) return '(unavailable)';
-  return [cornerCycles, edgeCycles].filter(Boolean).join(' ');
+  return [cornerCycles, edgeCycles].filter(Boolean).join('\n');
 }

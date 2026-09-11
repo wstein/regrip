@@ -1,0 +1,23 @@
+[
+  {
+    "name": "A410.08 — 6 Orthogonal U's",
+    "source": "https://www.randelshofer.ch/rubik/patterns/A410.08.html",
+    "algorithms": [
+      "R' F B' U F D' R L' F U' F B'",
+      "U' R L' F R B' U D' R F' R L'",
+      "U D' B D' R L' F D' B' U D' L",
+      "F' U D' R U L' F B' U R' U D'"
+    ],
+    "facelets": "FFFUUFFFFUUUURRUUURRRRFRRFRBDBBDBBBBDLDDLDDDDLLLBBLLLL",
+    "ssePermutation": "(-urf) (ufl,rub,frd) (ulb,rbd,fdl) (+dbl)\n(ur,rf,fu) (ub,rd,fl) (dl,lb,bd)",
+    "publishedPermutation": "(+urf) (ufl,rub,frd) (dlf,lbu,bdr) (-dbl)\n(ur,rf,fu) (dr,lf,bu) (bd,dl,lb)\n(+r) (+u) (++f)"
+  },
+  {
+    "name": "A410.09 — reflected 6 Orthogonal U's",
+    "source": "https://www.randelshofer.ch/rubik/patterns/A410.09.html",
+    "algorithms": ["L F B' D' B' U R L' B' D F B'"],
+    "facelets": "FUFFUFFFFUUUURUURURRRFFRRRRBBBBDDBBBDDDDLLDDDLBLLBLLLL",
+    "ssePermutation": "(-urf) (ufl,rub,frd) (ulb,rbd,fdl) (+dbl)\n(ur,rf,fu) (ul,rb,fd) (dl,lb,bd)",
+    "publishedPermutation": "(+urf) (ufl,rub,frd) (dlf,lbu,bdr) (-dbl)\n(ur,rf,fu) (rb,fd,ul) (bd,dl,lb)\n(+r) (+u) (++f)"
+  }
+]

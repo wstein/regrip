@@ -119,6 +119,8 @@ and replay fixtures small, isolated tests.
   an Extended Singmaster notation grammar and compiler reference.
 - [CubeTwister Superset ENG 3×3 notation](https://www.randelshofer.ch/cubetwister/doc/notations/superset_eng_3x3.html) —
   the reference for Copy as SSE permutation cycles.
+- [CubeTwister Pretty Patterns A410.08](https://www.randelshofer.ch/rubik/patterns/A410.08.html) —
+  a published algorithm/permutation reference used by the facelet-to-SSE fixtures.
 - [Superset ENG 3×3 move notation](https://www.randelshofer.ch/rubik/patterns/doc/supersetENG_3x3.html) —
   the reference for Copy SSE detected moves.
 - [WCA Regulations, Article 12: Notation](https://www.worldcubeassociation.org/regulations/#article-12-notation) —
