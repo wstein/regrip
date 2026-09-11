@@ -487,7 +487,3 @@ infoPanel.on('detectedMoves', 'input', () => infoPanel.syncDetectedMoveCount());
 infoPanel.on('start-timer', 'click', () => {
   timerController.dispatch('activate');
 });
-
-infoPanel.on('cube', 'touchstart', () => {
-  timerController.dispatch('activate');
-});
