@@ -20,6 +20,9 @@ flowchart LR
 
   subgraph Session ["packages/core/src/session/ — headless lifecycle"]
     SC["smartCubeSession.ts\nlifecycle · calibration · gyro flush"]
+  end
+
+  subgraph Integration ["src/integration/ — browser-lab glue"]
     TC["timerController.ts\ntimer effects · skew"]
     CE["cubeEvents.ts\nrouter · formatters"]
   end
@@ -33,7 +36,7 @@ flowchart LR
     TM["Timer"]
   end
 
-  subgraph App ["src/app/ — presentation"]
+  subgraph App ["src/app/ + src/adapters/ — presentation"]
     IP["infoPanel.ts"]
     LL["liveLog.ts"]
     SV["sceneView (Three.js)"]
