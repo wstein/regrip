@@ -49,26 +49,19 @@ describe('JSONL log', () => {
     );
   });
 
-  it('coalesces an explicitly keyed duplicate while preserving commands and reset behavior', () => {
+  it('preserves repeated device snapshots, including an unchanged sync response', () => {
     const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
     const seen: string[] = [];
     const facelets = 'U'.repeat(54);
-    const dedupeKey = `facelets:73:${facelets}`;
     log.subscribe((entry) => seen.push(entry.type));
 
-    expect(
-      log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, { dedupeKey }),
-    ).toBe(true);
+    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
     expect(log.record('cube_command', { name: 'Sync state' })).toBe(true);
-    expect(
-      log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, { dedupeKey }),
-    ).toBe(false);
-    expect(seen).toEqual(['cube_event', 'cube_command']);
+    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
+    expect(seen).toEqual(['cube_event', 'cube_command', 'cube_event']);
 
     log.clear();
-    expect(
-      log.record('cube_event', { type: 'FACELETS', serial: 73, facelets }, { dedupeKey }),
-    ).toBe(true);
+    expect(log.record('cube_event', { type: 'FACELETS', serial: 73, facelets })).toBe(true);
   });
 
   it('attaches the download link and releases its blob URL after the click task', () => {

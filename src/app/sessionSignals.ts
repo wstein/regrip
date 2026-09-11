@@ -29,7 +29,9 @@ export function createSessionSignals(session: SessionStore): SessionSignals {
     state.value = next;
   });
   const unsubscribeEvents = session.subscribeEvents((next) => {
-    event.value = next;
+    // A transport may reuse an event object for unchanged state snapshots.
+    // Publish a distinct value so every incoming packet reaches the app.
+    event.value = { ...next };
   });
   return {
     state,

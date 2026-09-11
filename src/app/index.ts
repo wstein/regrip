@@ -215,9 +215,7 @@ sessionSignals.event.subscribe((event) => {
     );
     return;
   }
-  const dedupeKey =
-    event.type === 'FACELETS' ? `facelets:${event.serial ?? 'none'}:${event.facelets}` : undefined;
-  eventLog.record('cube_event', event as unknown as Record<string, unknown>, { dedupeKey });
+  eventLog.record('cube_event', event as unknown as Record<string, unknown>);
   cubeEvents.handle(event);
 });
 
@@ -285,9 +283,12 @@ sessionSignals.state.subscribe((state) => {
         }
       },
       onResult: (name, error) => {
+        let status = 'sent';
+        if (error) status = 'failed';
+        else if (name === 'Sync state') status = 'confirmed';
         eventLog.record('cube_command', {
           name,
-          status: error ? 'failed' : 'sent',
+          status,
           error: error instanceof Error ? error.message : error ? String(error) : null,
         });
       },

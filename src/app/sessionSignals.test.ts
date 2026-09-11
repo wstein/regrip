@@ -32,9 +32,17 @@ describe('session signals bridge', () => {
     await session.connect();
     expect(signals.state.value.status).toBe('connected');
 
-    events$.next({ type: 'BATTERY', timestamp: 1, batteryLevel: 98 });
+    const battery = { type: 'BATTERY', timestamp: 1, batteryLevel: 98 } as const;
+    const received: unknown[] = [];
+    const unsubscribeEvents = signals.event.subscribe((event) => {
+      if (event) received.push(event);
+    });
+    events$.next(battery);
+    events$.next(battery);
     expect(signals.event.value).toMatchObject({ type: 'BATTERY', batteryLevel: 98 });
+    expect(received).toHaveLength(2);
 
+    unsubscribeEvents();
     signals.dispose();
     await session.disconnect();
     expect(signals.state.value.status).toBe('connected');
