@@ -118,7 +118,9 @@ and replay fixtures small, isolated tests.
 - [cube-notation-compiler](https://github.com/Afront/cube-notation-compiler) —
   an Extended Singmaster notation grammar and compiler reference.
 - [CubeTwister Superset ENG 3×3 notation](https://www.randelshofer.ch/cubetwister/doc/notations/superset_eng_3x3.html) —
-  the reference for Copy as SSE permutation cycles.
+  the reference for Copy as SSE permutation cycles. Regrip canonically roots
+  corner cycles by `URF DFR UBR DRB ULB DBL UFL DLF`, then edge cycles by
+  `UR RF DR BU RB BD UL LB DL FU LF FD`; CP/CO/EP/EO storage remains Kociemba-ordered.
 - [CubeTwister Pretty Patterns A410.08](https://www.randelshofer.ch/rubik/patterns/A410.08.html) —
   a published algorithm/permutation reference used by the facelet-to-SSE fixtures.
 - [Superset ENG 3×3 move notation](https://www.randelshofer.ch/rubik/patterns/doc/supersetENG_3x3.html) —

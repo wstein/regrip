@@ -12,6 +12,7 @@ import {
   formatOfflineStats,
   formatSingmasterCycles,
   formatSupersetEngPermutation,
+  parseSupersetEngPermutation,
 } from './cubeInfo';
 
 describe('cube information formatters', () => {
@@ -88,6 +89,18 @@ describe('cube information formatters', () => {
     ).toBe('(unavailable)');
   });
 
+  it('round-trips its SSE corner and edge projection to Kociemba coordinates', () => {
+    const state = {
+      CP: [4, 1, 2, 0, 7, 5, 6, 3],
+      CO: [2, 0, 0, 1, 1, 0, 0, 2],
+      EP: [8, 1, 2, 3, 11, 5, 6, 7, 4, 9, 10, 0],
+      EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    };
+    expect(parseSupersetEngPermutation(formatSupersetEngPermutation(state))).toEqual(state);
+    expect(parseSupersetEngPermutation('(++u)')).toBeUndefined();
+    expect(parseSupersetEngPermutation('(urf,not-a-location)')).toBeUndefined();
+  });
+
   it.each(kociembaFixtures)(
     'matches Kociemba cubie-level fixture: $name',
     ({ state, display, facelets }) => {
@@ -114,6 +127,7 @@ describe('cube information formatters', () => {
       expect(decoded.TAG).toBe('Ok');
       if (decoded.TAG === 'Ok') {
         expect(formatSupersetEngPermutation(decoded._0)).toBe(ssePermutation);
+        expect(parseSupersetEngPermutation(ssePermutation)).toEqual(decoded._0);
       }
     },
   );

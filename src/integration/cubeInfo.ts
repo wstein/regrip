@@ -137,6 +137,95 @@ function supersetEngCycles(
   return result.join(' ');
 }
 
+type ParsedSupersetLocation = { piece: number; rotation: number };
+
+function parseSupersetLocation(
+  token: string,
+  names: string[],
+  orientationModulus: number,
+): ParsedSupersetLocation | undefined {
+  const normalized = token.toUpperCase();
+  for (let piece = 0; piece < names.length; piece += 1) {
+    for (let rotation = 0; rotation < orientationModulus; rotation += 1) {
+      if (rotateLeft(names[piece]!, rotation) === normalized) return { piece, rotation };
+    }
+  }
+  return undefined;
+}
+
+function parseSupersetCycles(
+  cycles: Array<{ sign: string; locations: string[] }>,
+  names: string[],
+  orientationModulus: number,
+): { permutation: number[]; orientation: number[] } | undefined {
+  const permutation = Array.from({ length: names.length }, (_, index) => index);
+  const orientation = new Array<number>(names.length).fill(0);
+  const seen = new Set<number>();
+  for (const cycle of cycles) {
+    const netRotation =
+      cycle.sign === '+' ? (orientationModulus === 2 ? 1 : 2) : cycle.sign === '-' ? 1 : 0;
+    if (cycle.sign === '-' && orientationModulus === 2) return undefined;
+    const entries = cycle.locations.map((token) =>
+      parseSupersetLocation(token, names, orientationModulus),
+    );
+    if (entries.some((entry) => entry === undefined)) return undefined;
+    const locations = entries as ParsedSupersetLocation[];
+    if (locations.some(({ piece }) => seen.has(piece))) return undefined;
+    locations.forEach(({ piece }) => seen.add(piece));
+    for (let index = 0; index < locations.length; index += 1) {
+      const current = locations[index]!;
+      const previous = locations[(index - 1 + locations.length) % locations.length]!;
+      permutation[current.piece] = previous.piece;
+      orientation[current.piece] =
+        index === 0
+          ? (netRotation - previous.rotation + orientationModulus) % orientationModulus
+          : (current.rotation - previous.rotation + orientationModulus) % orientationModulus;
+    }
+  }
+  return { permutation, orientation };
+}
+
+/**
+ * Parse Regrip's corner/edge SSE permutation projection back into smart-cube
+ * Kociemba coordinates. Centre cycles are deliberately unsupported because a
+ * standard 54-facelet cube state does not retain centre orientation.
+ */
+export function parseSupersetEngPermutation(value: string): SmartCubeCubieState | undefined {
+  const cycles: Array<{ sign: string; locations: string[] }> = [];
+  const matcher = /\(([+-]?)([^()]*)\)/g;
+  let consumed = '';
+  for (const match of value.matchAll(matcher)) {
+    consumed += match[0];
+    const locations = match[2]!
+      .split(',')
+      .map((location) => location.trim())
+      .filter(Boolean);
+    if (locations.length === 0) return undefined;
+    cycles.push({ sign: match[1]!, locations });
+  }
+  if (consumed.replace(/\s/g, '') !== value.replace(/\s/g, '')) return undefined;
+  const cornerCycles = cycles.filter((cycle) => cycle.locations[0]!.length === 3);
+  const edgeCycles = cycles.filter((cycle) => cycle.locations[0]!.length === 2);
+  if (cornerCycles.length + edgeCycles.length !== cycles.length) return undefined;
+  const corners = parseSupersetCycles(
+    cornerCycles,
+    ['URF', 'UFL', 'ULB', 'UBR', 'DFR', 'DLF', 'DBL', 'DRB'],
+    3,
+  );
+  const edges = parseSupersetCycles(
+    edgeCycles,
+    ['UR', 'UF', 'UL', 'UB', 'DR', 'DF', 'DL', 'DB', 'FR', 'FL', 'BL', 'BR'],
+    2,
+  );
+  if (!corners || !edges) return undefined;
+  return {
+    CP: corners.permutation,
+    CO: corners.orientation,
+    EP: edges.permutation,
+    EO: edges.orientation,
+  };
+}
+
 /**
  * Singmaster cubie cycle notation projected from Kociemba cubie-level
  * coordinates. A corner cycle follows piece arrows, the inverse direction of
@@ -158,6 +247,8 @@ export function formatSingmasterCycles(state: SmartCubeCubieState): string {
  * order. Smart-cube CP/CO/EP/EO data has no observable center orientation,
  * so side-part cycles such as `(++u)` are intentionally omitted. A newline
  * groups corner cycles above edge cycles, matching CubeTwister's presentation.
+ * Roots use the CubeTwister location priority: `URF DFR UBR DRB ULB DBL UFL
+ * DLF`, followed by `UR RF DR BU RB BD UL LB DL FU LF FD` for edges.
  */
 export function formatSupersetEngPermutation(state: SmartCubeCubieState): string {
   const cornerCycles = supersetEngCycles(state.CP, state.CO, corners, supersetCornerOrder, 3, [
