@@ -84,7 +84,7 @@
     "@types/web-bluetooth": "^0.0.21",
     "cubing": "^0.63.4",
     "rxjs": "^7.8.2",
-    "smartcube-web-bluetooth": "github:wstein/smartcube-web-bluetooth#970b8a02ef1164ec793c1a16c4a00faf405bdeab",
+    "smartcube-web-bluetooth": "github:wstein/smartcube-web-bluetooth#361faee",
     "three": "^0.185.1"
   },
   "allowScripts": {
