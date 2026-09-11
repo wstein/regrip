@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
-import type { SmartCubeEvent } from 'smartcube-web-bluetooth';
+import type { SmartCubeDiagnosticEvent, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import { createCubeEventController } from '../integration/cubeEvents';
 import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
@@ -73,6 +73,48 @@ describe('future transport event handling', () => {
     expect(setPlayerAlgorithm).not.toHaveBeenCalled();
     expect(setInfo).not.toHaveBeenCalled();
     expect(showInfo).not.toHaveBeenCalled();
+    await session.disconnect();
+  });
+
+  it('routes raw diagnostics only to the diagnostic observer, never event reducers', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const diagnostics$ = new Subject<SmartCubeDiagnosticEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => ({
+        deviceName: 'Mock Cube',
+        deviceMAC: '',
+        protocol: { id: 'mock', name: 'Mock' },
+        capabilities: {
+          gyroscope: false,
+          battery: false,
+          facelets: false,
+          hardware: false,
+          reset: false,
+        },
+        events$,
+        diagnostics$,
+        sendCommand: vi.fn(async () => {}),
+        disconnect: vi.fn(async () => {}),
+      }),
+    });
+    const handleEvent = vi.fn();
+    const diagnostics: SmartCubeDiagnosticEvent[] = [];
+    session.subscribeEvents(handleEvent);
+    session.subscribeDiagnostics((diagnostic) => diagnostics.push(diagnostic));
+
+    await session.connect();
+    const diagnostic: SmartCubeDiagnosticEvent = {
+      type: 'UNKNOWN_PACKET',
+      protocol: 'qiyi',
+      timestamp: 1,
+      opcode: 0xfe,
+      bytes: [0x55, 0xfe],
+    };
+    diagnostics$.next(diagnostic);
+
+    expect(diagnostics).toEqual([diagnostic]);
+    expect(handleEvent).not.toHaveBeenCalled();
+    expect(session.getState().lastEvent).toBeNull();
     await session.disconnect();
   });
 });

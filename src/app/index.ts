@@ -66,6 +66,9 @@ const liveLog = createLiveLog({
 eventLog.subscribe((entry) => {
   liveLog.appendLogEntry(entry);
 });
+// Raw decoder evidence intentionally bypasses the JSONL state capture and the
+// session event stream. Live Trace keeps it in its own small debug buffer.
+session.subscribeDiagnostics((diagnostic) => liveLog.appendDiagnostic(diagnostic));
 const solverFrame = createSolverFrame();
 let cubeExportSource: CubeExportSource | undefined;
 const virtualFrameQuaternion = new THREE.Quaternion();

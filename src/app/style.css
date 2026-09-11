@@ -401,6 +401,10 @@ body {
   color: #ffe3b2;
   background: #72542b;
 }
+.trace-diagnostic .trace-badge {
+  color: #ffd8f2;
+  background: #6a3567;
+}
 .trace-regrip .trace-badge {
   color: #ffe4b5;
   background: #70502a;

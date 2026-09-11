@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeLogEntry, describeSessionEvent } from './liveLog';
+import { describeDiagnostic, describeLogEntry, describeSessionEvent } from './liveLog';
 
 describe('live trace event classification', () => {
   it('uses concise, filterable categories for session-only events', () => {
@@ -106,5 +106,30 @@ describe('live trace event classification', () => {
         data: { name: 'Sync state', status: 'sent', reason: 'move_gap', error: null },
       }),
     ).toEqual(['COMMAND', 'Sync state · sent · move gap']);
+  });
+
+  it('renders raw transport diagnostics as a separate debug category', () => {
+    expect(
+      describeDiagnostic({
+        type: 'UNKNOWN_PACKET',
+        protocol: 'qiyi',
+        timestamp: 1,
+        opcode: 0xfe,
+        bytes: [0x55, 0xfe, 0x0a],
+      }),
+    ).toBe('qiyi opcode 0xfe · 3 bytes · 55 fe 0a');
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'transport_diagnostic',
+        data: {
+          protocol: 'qiyi',
+          opcode: 254,
+          bytes: [85, 254],
+          byteLength: 700,
+          truncated: true,
+        },
+      }),
+    ).toEqual(['DIAGNOSTIC', 'qiyi opcode 0xfe · 700 bytes · 55 fe (truncated)']);
   });
 });

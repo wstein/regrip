@@ -1,11 +1,23 @@
 import { computed, signal } from '@preact/signals-core';
 
-import type { SmartCubeSessionEvent } from '@wstein/regrip-core/session/smartCubeSession';
+import type {
+  SmartCubeSessionDiagnostic,
+  SmartCubeSessionEvent,
+} from '@wstein/regrip-core/session/smartCubeSession';
 import { byId } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
 export type TraceCategory =
-  'MOVE' | 'EVENT' | 'STATE' | 'COMMAND' | 'UNKNOWN' | 'GYRO' | 'REGRIP' | 'TRIGGER' | 'SHAKE';
+  | 'MOVE'
+  | 'EVENT'
+  | 'STATE'
+  | 'COMMAND'
+  | 'UNKNOWN'
+  | 'DIAGNOSTIC'
+  | 'GYRO'
+  | 'REGRIP'
+  | 'TRIGGER'
+  | 'SHAKE';
 
 export type TraceEntry = {
   id: number;
@@ -24,6 +36,9 @@ type LiveLogOptions = {
 };
 
 const maxBufferedEntries = 10_000;
+/** Raw packets are debug evidence, never allowed to evict state evidence. */
+const maxBufferedDiagnostics = 512;
+const maxDiagnosticBytes = 512;
 const maxVisibleRows = 300;
 
 function hardwareSummary(data: Record<string, unknown>): string {
@@ -39,6 +54,15 @@ function faceletsSummary(data: Record<string, unknown>): string {
   const serial = typeof data.serial === 'number' ? ` #${data.serial}` : '';
   const stickers = typeof data.facelets === 'string' ? ` · ${data.facelets.length} stickers` : '';
   return `facelets${serial}${stickers}`;
+}
+
+function hexBytes(bytes: readonly number[]): string {
+  return bytes.map((byte) => byte.toString(16).padStart(2, '0')).join(' ');
+}
+
+export function describeDiagnostic(event: SmartCubeSessionDiagnostic): string {
+  const opcode = event.opcode === undefined ? '' : ` opcode 0x${event.opcode.toString(16)}`;
+  return `${event.protocol}${opcode} · ${event.bytes.length} bytes · ${hexBytes(event.bytes)}`;
 }
 
 export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCategory, string] {
@@ -106,6 +130,19 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
     const reason = typeof data.reason === 'string' ? ` · ${data.reason.replace(/_/g, ' ')}` : '';
     return ['COMMAND', `${name}${status}${reason}`];
   }
+  if (entry.type === 'transport_diagnostic') {
+    const protocol = typeof data.protocol === 'string' ? data.protocol : 'transport';
+    const opcode = typeof data.opcode === 'number' ? ` opcode 0x${data.opcode.toString(16)}` : '';
+    const bytes = Array.isArray(data.bytes)
+      ? data.bytes.filter((byte): byte is number => typeof byte === 'number')
+      : [];
+    const originalLength = typeof data.byteLength === 'number' ? data.byteLength : bytes.length;
+    const suffix = data.truncated === true ? ' (truncated)' : '';
+    return [
+      'DIAGNOSTIC',
+      `${protocol}${opcode} · ${originalLength} bytes · ${hexBytes(bytes)}${suffix}`,
+    ];
+  }
   return ['EVENT', entry.type.replace(/_/g, ' ')];
 }
 
@@ -152,8 +189,14 @@ export function createLiveLog({
     new Set(['MOVE', 'EVENT', 'STATE', 'COMMAND', 'UNKNOWN', 'REGRIP', 'TRIGGER', 'SHAKE']),
   );
   const entries = signal<TraceEntry[]>([]);
+  const diagnostics = signal<TraceEntry[]>([]);
+  const allEntries = computed(() =>
+    [...entries.value, ...diagnostics.value].sort((left, right) => left.id - right.id),
+  );
   const visibleEntries = computed(() =>
-    entries.value.filter((entry) => activeFilters.value.has(entry.category)).slice(-maxVisibleRows),
+    allEntries.value
+      .filter((entry) => activeFilters.value.has(entry.category))
+      .slice(-maxVisibleRows),
   );
   const selected = new Set<number>();
   let newestFirst = true;
@@ -167,7 +210,7 @@ export function createLiveLog({
   let renderPending = false;
 
   const selectedEntries = (): TraceEntry[] =>
-    entries.value.filter((entry) => selected.has(entry.id));
+    allEntries.value.filter((entry) => selected.has(entry.id));
   const selectedMoves = (): string[] =>
     selectedEntries()
       .filter((entry) => entry.category === 'MOVE')
@@ -197,7 +240,7 @@ export function createLiveLog({
   };
 
   const updateStats = (): void => {
-    const captured = entries.value.length;
+    const captured = allEntries.value.length;
     const shown = visibleEntries.value.length;
     stats.textContent = `${captured} captured event${captured === 1 ? '' : 's'}${
       shown === captured ? '' : ` · ${shown} shown`
@@ -205,7 +248,7 @@ export function createLiveLog({
   };
 
   const entryById = (id: number | undefined): TraceEntry | undefined =>
-    entries.value.find((entry) => entry.id === id);
+    allEntries.value.find((entry) => entry.id === id);
 
   const serializeEntry = (entry: TraceEntry): string => serializeJsonl([entry.log]);
 
@@ -367,6 +410,44 @@ export function createLiveLog({
     }
   };
 
+  const appendDiagnostic = (event: SmartCubeSessionDiagnostic): void => {
+    const bytes = [...event.bytes].slice(0, maxDiagnosticBytes);
+    const data: JsonValue = {
+      type: event.type,
+      protocol: event.protocol,
+      timestamp: event.timestamp,
+      opcode: event.opcode ?? null,
+      bytes,
+      byteLength: event.bytes.length,
+      truncated: event.bytes.length > bytes.length,
+    };
+    const log: LogEntry = {
+      recordedAt: new Date(event.timestamp).toISOString(),
+      type: 'transport_diagnostic',
+      data,
+    };
+    const [, message] = describeLogEntry(log);
+    const entry: TraceEntry = {
+      id: nextId++,
+      category: 'DIAGNOSTIC',
+      message,
+      log,
+    };
+    const nextDiagnostics = [...diagnostics.value, entry];
+    while (nextDiagnostics.length > maxBufferedDiagnostics) {
+      const removed = nextDiagnostics.shift()!;
+      selected.delete(removed.id);
+      if (focusedId === removed.id) focusedId = undefined;
+    }
+    diagnostics.value = nextDiagnostics;
+    updateStats();
+    if (activeFilters.value.has('DIAGNOSTIC') && !paused) requestRender();
+    else {
+      updateSelection();
+      updateDetail();
+    }
+  };
+
   const append = (
     category: TraceCategory,
     message: string,
@@ -395,6 +476,7 @@ export function createLiveLog({
   });
   clear.addEventListener('click', () => {
     entries.value = [];
+    diagnostics.value = [];
     selected.clear();
     lastSelectedId = undefined;
     focusedId = undefined;
@@ -475,6 +557,7 @@ export function createLiveLog({
 
   return {
     append,
+    appendDiagnostic,
     appendSessionEvent(event: SmartCubeSessionEvent): void {
       const [category, message] = describeSessionEvent(event);
       append(category, message, eventTimestamp(event), event as unknown as JsonValue);
@@ -483,7 +566,7 @@ export function createLiveLog({
       const [category, message] = describeLogEntry(entry);
       appendEntry(category, message, entry);
     },
-    getEntries: (): readonly TraceEntry[] => entries.value,
+    getEntries: (): readonly TraceEntry[] => allEntries.value,
     getVisibleEntries: (): readonly TraceEntry[] => visibleEntries.value,
     getSelectedEntries: (): TraceEntry[] => selectedEntries(),
   };

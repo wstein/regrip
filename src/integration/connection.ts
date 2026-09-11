@@ -22,5 +22,5 @@ export const macAddressProvider = async (
 };
 
 export async function connectCube(): Promise<SmartCubeTransportConnection> {
-  return connectSmartCube(macAddressProvider);
+  return connectSmartCube({ macAddressProvider, diagnostics: true });
 }

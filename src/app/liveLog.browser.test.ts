@@ -9,6 +9,7 @@ const filters = [
   'STATE',
   'COMMAND',
   'UNKNOWN',
+  'DIAGNOSTIC',
   'GYRO',
   'REGRIP',
   'TRIGGER',
@@ -244,6 +245,33 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector('#trace-stats')?.textContent).toBe(
       '302 captured events · 1 shown',
     );
+  });
+
+  it('keeps capped raw diagnostics separate from state evidence and hidden by default', () => {
+    mountTrace();
+    const trace = createLiveLog();
+    trace.append('MOVE', 'R');
+    for (let index = 0; index < 513; index += 1) {
+      trace.appendDiagnostic({
+        type: 'UNKNOWN_PACKET',
+        protocol: 'qiyi',
+        timestamp: index,
+        opcode: 0xfe,
+        bytes: Array.from({ length: 600 }, () => index),
+      });
+    }
+
+    expect(trace.getEntries()).toHaveLength(513);
+    expect(trace.getEntries().filter((entry) => entry.category === 'MOVE')).toHaveLength(1);
+    expect(trace.getEntries().filter((entry) => entry.category === 'DIAGNOSTIC')).toHaveLength(512);
+    expect(trace.getVisibleEntries().map((entry) => entry.message)).toEqual(['R']);
+
+    click('[data-trace-filter="DIAGNOSTIC"]');
+    const diagnostic = trace.getVisibleEntries().at(-1)!;
+    expect(diagnostic.log.data.bytes).toHaveLength(512);
+    expect(diagnostic.log.data.truncated).toBe(true);
+    expect(diagnostic.message).toContain('600 bytes');
+    expect(diagnostic.message).toContain('(truncated)');
   });
 
   it('pauses auto-follow after manual scrolling and resumes from Newest', () => {
