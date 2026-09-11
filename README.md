@@ -40,6 +40,7 @@ flowchart LR
   end
 
   BLE -->|"typed SmartCubeEvent"| SC
+  BLE -. "optional decoder diagnostics\n(app trace only)" .-> LL
   JSONL -->|"same typed events\n(timestamps injected)"| SC
   SC --> TC --> CE
   CE -->|"(state, action) → state"| MB & OS & RD & MBT & VCF & TM
@@ -66,7 +67,8 @@ to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a c
 - Display-rate gyro coalescing and a profile-configurable 0.5° microjitter threshold keep high-rate
   BLE orientation packets from flooding the UI without changing the calibrated domain math.
 - Virtual `x`, `y`, and `z` regrips from calibrated gyro poses. Face moves and the R/U/F orientation
-  gizmo stay in the current virtual cube frame.
+  gizmo stay in the current virtual cube frame. The detector commits only an unambiguous cardinal
+  quarter turn: diagonal calibration dead zones and ambiguous half turns leave its ratchet unchanged.
 
 ### Coordinate frames
 
@@ -88,7 +90,8 @@ integer Body↔Solver mapping, updated only by detected `x/y/z` regrips.
   magnet layer.
 - Editable detected moves, cube state, solve timer, JSONL recording, and a local live event trace.
   The trace supports filters, sort direction, fixed JSON detail, selection, copy/export, and replay
-  of selected moves.
+  of selected moves. Its default-off **Diagnostic** filter shows opt-in decoder evidence without
+  entering the cube-state session, reducers, or replay capture.
 - A capability-gated command panel: state/battery/hardware refresh plus supported vendor controls.
   GoCube controls include backlight actions, gyro calibration, orientation enablement, and confirmed
   reboot; every command result is recorded in the local trace and JSONL capture.
@@ -108,6 +111,25 @@ the checks below, and commit the resulting lockfile change together with the pac
 Some encrypted cube protocols require a MAC address. If automatic advertisement watching is not
 available, the app prompts for one and explains how to enable
 `chrome://flags/#enable-experimental-web-platform-features` in Chrome.
+
+### Protocol diagnostics
+
+The lab enables the transport library's optional diagnostic stream for a connection. It is a
+debugging channel, separate from normal cube events: diagnostics are held in their own bounded
+live-trace buffer (512 packets, with each displayed payload capped at 512 bytes), are off by
+default, and cannot mutate cube state or evict JSONL replay evidence.
+
+| Protocol family   | Diagnostic evidence                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| GoCube            | Plaintext UART `RAW_PACKET` frames and malformed-frame reasons                               |
+| GAN               | Decrypted `DECODED_PACKET` frames and validation failures; encrypted radio bytes are omitted |
+| MoYu32            | Decrypted opcode frames and unknown-opcode reports; encrypted radio bytes are omitted        |
+| Giiker / MoYu MHC | Plaintext frames and malformed-frame reasons                                                 |
+| QiYi              | Unknown decoded packets that could not become a cube event                                   |
+
+The packet types (`RAW_PACKET`, `DECODED_PACKET`, `MALFORMED_PACKET`, and `UNKNOWN_PACKET`) are
+decoder evidence, not `MOVE` or `FACELETS` events. A valid packet continues normally through the
+typed session event stream; an unrecognized one remains diagnostic-only.
 
 ## Architecture
 

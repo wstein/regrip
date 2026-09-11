@@ -48,11 +48,29 @@ src/integration + core domain reducers
           │ player effects, timer effects, display state
           ▼
 src/app + src/adapters
+
+BLE decoder diagnostics (optional)
+          │ SmartCubeDiagnosticEvent
+          ▼
+session.subscribeDiagnostics() ─────────────► src/app live trace only
 ```
 
 Domain reducers receive timestamps as data rather than calling `Date.now()`. That makes a JSONL
 replay deterministic: the same source events produce the same feature decisions, virtual regrips,
 and timer values. The browser timer display uses a replay virtual clock when replay is active.
+
+### Diagnostic boundary
+
+`SmartCubeDiagnosticEvent` is deliberately not a `SmartCubeSessionEvent`. It carries packet-level
+decoder evidence (`RAW_PACKET`, `DECODED_PACKET`, `MALFORMED_PACKET`, or `UNKNOWN_PACKET`) for the
+default-off Diagnostic trace filter. The core subscribes and exposes it on a separate observer
+channel, but never routes it through cube-state reducers, trigger detectors, or the normal JSONL
+replay capture. The app bounds this separate buffer and displayed byte payload, so a noisy decoder
+cannot displace moves or snapshots from the session record.
+
+Encrypted protocol implementations may emit decoded packet evidence but must not emit wire
+ciphertext. Plaintext protocol diagnostics can include raw frames where that is useful for decoder
+investigation.
 
 ## Frames
 
@@ -67,6 +85,14 @@ and timer values. The browser timer display uses a replay virtual clock when rep
 `SensorToBody` is a fixed profile axis convention. `GyroOrientation` captures the session basis;
 `VirtualCubeFrame` separately tracks exact solver-to-body permutations. World quaternion math
 never rewrites notation or facelets, avoiding float drift in the user-facing solver frame.
+
+## Regrip confidence
+
+`RegripDetector` is frame-agnostic and emits cube-body `x`/`y`/`z` tokens. It advances its ratchet
+only when the nearest cardinal quarter turn strictly improves the current residual and leaves it
+inside the configured acceptance region. This rejects diagonal calibration dead zones and ambiguous
+large rotations instead of alternating regrips forever; the app projects accepted body tokens into
+the solver frame for display.
 
 ## Reducer pattern
 

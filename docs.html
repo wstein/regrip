@@ -107,6 +107,7 @@
           <a href="#doc-start">Getting started</a>
           <a href="#doc-connect">Connecting a cube</a>
           <a href="#doc-events">Events</a>
+          <a href="#doc-diagnostics">Diagnostics</a>
           <a href="#doc-moves">Moves API</a>
           <a href="#doc-protocols">Protocols</a>
         </nav>
@@ -141,8 +142,8 @@ console.log(cube.protocol); // "gocube"</pre>
 
           <h6 id="doc-events">Events</h6>
           <p>
-            Every move, facelet update, gyro reading and regrip is emitted as a typed event on the
-            trace stream.
+            Every move, facelet update, gyro reading and regrip is emitted as a typed cube event on
+            the trace stream. These events alone can update cube state and are captured for replay.
           </p>
           <table class="table" style="margin-bottom: 8px">
             <thead>
@@ -172,6 +173,52 @@ console.log(cube.protocol); // "gocube"</pre>
           </table>
           <hr class="hr" />
 
+          <h6 id="doc-diagnostics">Diagnostics</h6>
+          <p>
+            The default-off <strong>Diagnostic</strong> trace filter exposes optional packet-decoder
+            evidence without treating it as cube state. Diagnostic packets are held in a separate
+            bounded buffer and never enter move tracking, facelet reconciliation, triggers, or the
+            normal JSONL replay capture.
+          </p>
+          <table class="table" style="margin-bottom: 8px">
+            <thead>
+              <tr>
+                <th>Protocol family</th>
+                <th>Diagnostic evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>GoCube</td>
+                <td>Plaintext raw frames and malformed-frame reasons</td>
+              </tr>
+              <tr>
+                <td>GAN</td>
+                <td>Decoded frames and validation failures; encrypted wire bytes are omitted</td>
+              </tr>
+              <tr>
+                <td>MoYu32</td>
+                <td>
+                  Decoded opcode frames and unknown-opcode reports; encrypted wire bytes are omitted
+                </td>
+              </tr>
+              <tr>
+                <td>Giiker / MoYu MHC</td>
+                <td>Plaintext frames and malformed-frame reasons</td>
+              </tr>
+              <tr>
+                <td>QiYi</td>
+                <td>Unknown decoded packets</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Packet kinds are <code>RAW_PACKET</code>, <code>DECODED_PACKET</code>,
+            <code>MALFORMED_PACKET</code>, and <code>UNKNOWN_PACKET</code>. A valid decoded packet
+            still produces its normal typed cube event; an unknown packet remains diagnostic-only.
+          </p>
+          <hr class="hr" />
+
           <h6 id="doc-moves">Moves API</h6>
           <p>
             Moves are reported in standard cube notation (U, U', F, F2 …) and can be simplified to
@@ -181,8 +228,8 @@ console.log(cube.protocol); // "gocube"</pre>
 
           <h6 id="doc-protocols">Protocols</h6>
           <p>
-            GoCube and GAN12 UI are supported today; a JSONL mock protocol lets you replay a
-            recorded trace without hardware.
+            The transport adapter auto-detects supported GAN, GoCube, Giiker, MoYu, and QiYi cubes.
+            A JSONL mock protocol lets you replay a recorded trace without hardware.
           </p>
         </div>
       </div>
