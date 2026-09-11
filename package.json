@@ -35,7 +35,7 @@
     "prettier:format": "prettier --write .",
     "prettier:format:check": "prettier --check .",
     "build": "npm run res:build && tsc && vite build",
-    "lint": "eslint src",
+    "lint": "eslint src packages/core/src",
     "preview": "vite preview",
     "test": "npm run res:build && vitest run",
     "test:browser": "playwright test",
@@ -47,7 +47,7 @@
   },
   "lint-staged": {
     "*.{res,resi}": "rescript format",
-    "src/**/*.{ts,tsx}": [
+    "{src,packages/core/src}/**/*.{ts,tsx}": [
       "prettier --write",
       "eslint --fix"
     ],
