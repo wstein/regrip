@@ -95,6 +95,7 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
   await expect(page.locator('#cubieState')).not.toHaveValue('');
   await page.locator('#copy-cube-state').click();
   await expect(page.locator('#copy-cubie-coordinates')).toHaveText('CP / CO / EP / EO');
+  await expect(page.locator('#copy-sse-permutation')).toHaveText('SSE permutation');
 });
 
 test('renders the authoritative facelet snapshot after repeated sync requests', async ({

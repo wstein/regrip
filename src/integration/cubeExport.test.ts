@@ -45,9 +45,27 @@ describe('cube exports', () => {
       'UUUUUUUUU RRRRRRRRR FFFFFFFFF DDDDDDDDD LLLLLLLLL BBBBBBBBB',
     );
     expect(formatCubeExport(source, 'singmaster-cycles')).toBe('');
+    expect(formatCubeExport(source, 'sse-permutation')).toBe('');
     expect(formatCubeExport(source, 'cubie-coordinates')).toBe(
       'CP: 0,1,2,3,4,5,6,7\nCO: 0,0,0,0,0,0,0,0\nEP: 0,1,2,3,4,5,6,7,8,9,10,11\nEO: 0,0,0,0,0,0,0,0,0,0,0,0',
     );
+  });
+
+  it('formats a CubeTwister Superset ENG permutation export', () => {
+    expect(
+      formatCubeExport(
+        {
+          facelets,
+          state: {
+            CP: [4, 1, 2, 0, 7, 5, 6, 3],
+            CO: [2, 0, 0, 1, 1, 0, 0, 2],
+            EP: [8, 1, 2, 3, 11, 5, 6, 7, 4, 9, 10, 0],
+            EO: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          },
+        },
+        'sse-permutation',
+      ),
+    ).toBe('(urf,bru,drb,frd) (ur,br,dr,fr)');
   });
 
   it('formats each cubie coordinate array on its own copy-ready line', () => {

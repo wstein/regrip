@@ -68,6 +68,66 @@ function cycles(
   return result.join(' ');
 }
 
+function rotateLeft(value: string, amount: number): string {
+  const offset = amount % value.length;
+  return `${value.slice(offset)}${value.slice(0, offset)}`;
+}
+
+function inversePermutation(permutation: number[]): number[] | undefined {
+  const inverse = new Array<number>(permutation.length);
+  for (let slot = 0; slot < permutation.length; slot += 1) {
+    const piece = permutation[slot]!;
+    if (
+      !Number.isInteger(piece) ||
+      piece < 0 ||
+      piece >= permutation.length ||
+      inverse[piece] !== undefined
+    ) {
+      return undefined;
+    }
+    inverse[piece] = slot;
+  }
+  return inverse;
+}
+
+function supersetEngCycles(
+  permutation: number[],
+  orientation: number[],
+  names: string[],
+  orientationModulus: number,
+  signs: string[],
+): string | undefined {
+  if (
+    permutation.length !== names.length ||
+    orientation.length !== names.length ||
+    orientation.some(
+      (value) => !Number.isInteger(value) || value < 0 || value >= orientationModulus,
+    )
+  ) {
+    return undefined;
+  }
+  const destinationByPiece = inversePermutation(permutation);
+  if (!destinationByPiece) return undefined;
+
+  const visited = new Array(names.length).fill(false);
+  const result: string[] = [];
+  for (let start = 0; start < names.length; start += 1) {
+    if (visited[start]) continue;
+    const cycle: string[] = [];
+    let piece = start;
+    let rotation = 0;
+    while (!visited[piece]) {
+      visited[piece] = true;
+      cycle.push(rotateLeft(names[piece]!, rotation).toLowerCase());
+      const destination = destinationByPiece[piece]!;
+      rotation = (rotation + orientation[destination]!) % orientationModulus;
+      piece = destination;
+    }
+    if (cycle.length > 1 || rotation !== 0) result.push(`(${signs[rotation]}${cycle.join(',')})`);
+  }
+  return result.join(' ');
+}
+
 /**
  * Singmaster cubie cycle notation projected from Kociemba cubie-level
  * coordinates. A corner cycle follows piece arrows, the inverse direction of
@@ -81,4 +141,17 @@ export function formatSingmasterCycles(state: SmartCubeCubieState): string {
   ]
     .filter(Boolean)
     .join(' ');
+}
+
+/**
+ * CubeTwister Superset ENG 3×3 permutation cycles from Kociemba coordinates.
+ * Location tokens encode each corner or edge's orientation by their letter
+ * order. Smart-cube CP/CO/EP/EO data has no observable center orientation,
+ * so side-part cycles such as `(++u)` are intentionally omitted.
+ */
+export function formatSupersetEngPermutation(state: SmartCubeCubieState): string {
+  const cornerCycles = supersetEngCycles(state.CP, state.CO, corners, 3, ['', '-', '+']);
+  const edgeCycles = supersetEngCycles(state.EP, state.EO, edges, 2, ['', '+']);
+  if (cornerCycles === undefined || edgeCycles === undefined) return '(unavailable)';
+  return [cornerCycles, edgeCycles].filter(Boolean).join(' ');
 }

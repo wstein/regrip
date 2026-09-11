@@ -478,6 +478,9 @@ infoPanel.on('copy-spaced-facelets', 'click', () =>
 infoPanel.on('copy-singmaster-cycles', 'click', () =>
   copyCubeExport('singmaster-cycles', 'Singmaster cycles'),
 );
+infoPanel.on('copy-sse-permutation', 'click', () =>
+  copyCubeExport('sse-permutation', 'SSE permutation'),
+);
 infoPanel.on('copy-cubie-coordinates', 'click', () =>
   copyCubeExport('cubie-coordinates', 'CP / CO / EP / EO'),
 );

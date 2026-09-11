@@ -115,3 +115,7 @@ and replay fixtures small, isolated tests.
 - `eslint.config.js` — checked TypeScript import boundaries
 - [David Singmaster's cycle-notation discussion (PDF)](https://maths-people.anu.edu.au/~burkej/cube/singmaster.pdf) —
   the reference for the compact cubie-cycle display.
+- [cube-notation-compiler](https://github.com/Afront/cube-notation-compiler) —
+  an Extended Singmaster notation grammar and compiler reference.
+- [CubeTwister Superset ENG 3×3 notation](https://www.randelshofer.ch/cubetwister/doc/notations/superset_eng_3x3.html) —
+  the reference for Copy as SSE permutation cycles.
