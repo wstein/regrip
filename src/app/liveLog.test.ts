@@ -89,5 +89,12 @@ describe('live trace event classification', () => {
         data: { name: 'Sync state', status: 'sent', error: null },
       }),
     ).toEqual(['EVENT', 'Sync state · sent']);
+    expect(
+      describeLogEntry({
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'cube_command',
+        data: { name: 'Sync state', status: 'sent', reason: 'move_gap', error: null },
+      }),
+    ).toEqual(['EVENT', 'Sync state · sent · move gap']);
   });
 });

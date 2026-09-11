@@ -210,6 +210,16 @@ sessionSignals.event.subscribe((event) => {
   }
   if (event.type === 'MOVE_GAP') {
     eventLog.record('move_gap', event);
+    if (session.getState().connection?.capabilities.facelets) {
+      // The session sends REQUEST_FACELETS immediately after publishing this
+      // gap. Record that recovery request before its snapshot can arrive.
+      eventLog.record('cube_command', {
+        name: 'Sync state',
+        status: 'sent',
+        reason: 'move_gap',
+        error: null,
+      });
+    }
     cubeEvents.invalidatePlayerState();
     infoPanel.showFeedback(
       `Missed ${event.missing} move${event.missing === 1 ? '' : 's'}; syncing cube state.`,

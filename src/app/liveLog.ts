@@ -99,7 +99,8 @@ export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
   if (entry.type === 'cube_command') {
     const name = typeof data.name === 'string' ? data.name : 'cube command';
     const status = typeof data.status === 'string' ? ` · ${data.status}` : '';
-    return ['EVENT', `${name}${status}`];
+    const reason = typeof data.reason === 'string' ? ` · ${data.reason.replace(/_/g, ' ')}` : '';
+    return ['EVENT', `${name}${status}${reason}`];
   }
   return ['EVENT', entry.type.replace(/_/g, ' ')];
 }
