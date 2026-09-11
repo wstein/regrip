@@ -7,6 +7,7 @@ import {
   formatSseMoves,
   parseDetectedMoves,
   simplifyMoves,
+  simplifyMovesModuloRotations,
   simplifySseMoves,
 } from './moveSimplifier';
 
@@ -69,6 +70,17 @@ describe('simplifyMoves', () => {
           .isIdentical(kpuzzle.algToTransformation(new Alg(input))),
       ).toBe(true);
     }
+  });
+});
+
+describe('simplifyMovesModuloRotations', () => {
+  it('folds opposing outer turns into slices when simplifying the recorded frame', () => {
+    expect(simplifyMovesModuloRotations("U U D' D'")).toBe('E2');
+    expect(simplifyMovesModuloRotations("E2 M2 R L' R L'")).toBe('E2');
+  });
+
+  it('keeps the exact simplifier lossless for callers that need the final frame', () => {
+    expect(simplifyMoves("U U D' D'")).toBe('U2 D2');
   });
 });
 

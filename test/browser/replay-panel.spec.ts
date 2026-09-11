@@ -115,14 +115,18 @@ test('switches the editable detected-move notation without changing its canonica
   await expect(page.locator('#moveCount')).toHaveText('4');
 
   await page.locator('#simplify-detected-moves').click();
-  await expect(moves).toHaveValue("SU' TR CR");
-  await expect(page.locator('#moveCount')).toHaveText('4');
+  await expect(moves).toHaveValue("MD' TF");
+  await expect(page.locator('#moveCount')).toHaveText('2');
 
   await page.locator('#detected-notation-twizzle').click();
-  await expect(moves).toHaveValue("U' D r Rv");
+  await expect(moves).toHaveValue("2D' f");
 
   await page.locator('#detected-notation-wca').click();
-  await expect(moves).toHaveValue("U' D Rw x");
+  await expect(moves).toHaveValue("E' Fw");
+
+  await moves.fill("E2 M2 R L' R L'");
+  await page.locator('#simplify-detected-moves').click();
+  await expect(moves).toHaveValue('E2');
 });
 
 test('renders the authoritative facelet snapshot after repeated sync requests', async ({

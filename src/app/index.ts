@@ -16,7 +16,7 @@ import { mountFullscreenToggle } from './fullscreen';
 import {
   formatDetectedMoves,
   parseDetectedMoves,
-  simplifyMoves,
+  simplifyMovesModuloRotations,
   simplifySseMoves,
   type DetectedMoveNotation,
 } from './moveSimplifier';
@@ -462,7 +462,7 @@ infoPanel.on('clear-detected-moves', 'click', () => {
 });
 
 infoPanel.on('simplify-detected-moves', 'click', () => {
-  const simplified = simplifyMoves(canonicalDetectedMoves());
+  const simplified = simplifyMovesModuloRotations(canonicalDetectedMoves());
   if (detectedMoveNotation === 'sse') {
     infoPanel.setDetectedMoves(simplifySseMoves(simplified));
     infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(simplified));

@@ -65,6 +65,25 @@ const opposingFaces: Readonly<Record<Face, Face>> = {
   B: 'F',
 };
 
+/**
+ * A pair such as `R L'` contains a whole-cube rotation plus one middle
+ * slice: `R L' = x M`.  Simplify can intentionally discard that final
+ * frame rotation, leaving the useful fixed-frame slice notation.
+ */
+const opposingPairRules: Readonly<
+  Record<
+    Face,
+    { rotation: 'x' | 'y' | 'z'; rotationTurns: number; slice: Slice; sliceTurns: number }
+  >
+> = {
+  R: { rotation: 'x', rotationTurns: 1, slice: 'M', sliceTurns: 1 },
+  L: { rotation: 'x', rotationTurns: 3, slice: 'M', sliceTurns: 3 },
+  U: { rotation: 'y', rotationTurns: 1, slice: 'E', sliceTurns: 1 },
+  D: { rotation: 'y', rotationTurns: 3, slice: 'E', sliceTurns: 3 },
+  F: { rotation: 'z', rotationTurns: 1, slice: 'S', sliceTurns: 3 },
+  B: { rotation: 'z', rotationTurns: 3, slice: 'S', sliceTurns: 1 },
+};
+
 function sseOpposingSlice(
   first: ParsedMove | undefined,
   second: ParsedMove | undefined,
@@ -74,6 +93,44 @@ function sseOpposingSlice(
     return undefined;
   }
   return `S${first.face}${suffixForTurns(first.turns)}`;
+}
+
+function opposingPairToRotationAndSlice(
+  first: ParsedMove | undefined,
+  second: ParsedMove | undefined,
+): { rotation: ParsedMove; slice: ParsedMove } | undefined {
+  if (!first || !second || !isOuterFaceMove(first) || !isOuterFaceMove(second)) return undefined;
+  if (opposingFaces[first.face] !== second.face || inverseTurns(first.turns) !== second.turns) {
+    return undefined;
+  }
+  const rule = opposingPairRules[first.face];
+  return {
+    rotation: { face: rule.rotation, turns: (rule.rotationTurns * first.turns) % 4 },
+    slice: { face: rule.slice, turns: (rule.sliceTurns * first.turns) % 4 },
+  };
+}
+
+function combineAdjacentOuterTurns(tokens: readonly string[]): string[] {
+  const result: string[] = [];
+  for (const token of tokens) {
+    const move = parseMove(token);
+    const previousToken = result.at(-1);
+    const previous = previousToken ? parseMove(previousToken) : undefined;
+    if (
+      move &&
+      previous &&
+      isOuterFaceMove(move) &&
+      isOuterFaceMove(previous) &&
+      move.face === previous.face
+    ) {
+      result.pop();
+      const turns = (previous.turns + move.turns) % 4;
+      if (turns !== 0) result.push(formatMove({ face: move.face, turns }));
+    } else {
+      result.push(token);
+    }
+  }
+  return result;
 }
 
 function appendSseMove(result: string[], token: string): void {
@@ -382,7 +439,10 @@ function toWideMove(face: ParsedMove, rotation: ParsedMove): ParsedMove | undefi
  * shortest suffix for the remaining cube orientation. Unknown notation stays
  * an opaque barrier: its surrounding rotations are never reordered.
  */
-export function simplifyMoves(value: string): string {
+function simplifyMoveStream(
+  value: string,
+  options: { foldOpposingPairs: boolean; retainFinalOrientation: boolean },
+): string {
   const result: Array<ParsedMove | string> = [];
   let orientation = identity;
   const reduceTail = (): void => {
@@ -406,16 +466,35 @@ export function simplifyMoves(value: string): string {
     if (typeof move !== 'string') reduceTail();
   };
   const flushOrientation = (): void => {
-    canonicalRotations.get(orientationKey(orientation))!.forEach(append);
+    if (options.retainFinalOrientation) {
+      canonicalRotations.get(orientationKey(orientation))!.forEach(append);
+    }
     orientation = identity;
   };
 
-  for (const token of value.trim().split(/\s+/)) {
+  const rawTokens = value.trim().split(/\s+/).filter(Boolean);
+  const tokens = options.foldOpposingPairs ? combineAdjacentOuterTurns(rawTokens) : rawTokens;
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index]!;
     if (token === '') continue;
     const move = parseMove(token);
     if (!move) {
       flushOrientation();
       append(token);
+    } else if (options.foldOpposingPairs) {
+      const pair = opposingPairToRotationAndSlice(move, parseMove(tokens[index + 1] ?? ''));
+      if (pair) {
+        orientation = compose(
+          orientation,
+          rotationOrientation(pair.rotation.face as 'x' | 'y' | 'z', pair.rotation.turns),
+        );
+        append(reframe(pair.slice, orientation));
+        index += 1;
+      } else if (move.face === 'x' || move.face === 'y' || move.face === 'z') {
+        orientation = compose(orientation, rotationOrientation(move.face, move.turns));
+      } else if (isFaceMove(move) || isSliceMove(move)) {
+        append(reframe(move, orientation));
+      }
     } else if (move.face === 'x' || move.face === 'y' || move.face === 'z') {
       orientation = compose(orientation, rotationOrientation(move.face, move.turns));
     } else if (isFaceMove(move) || isSliceMove(move)) {
@@ -424,4 +503,19 @@ export function simplifyMoves(value: string): string {
   }
   flushOrientation();
   return result.map((entry) => (typeof entry === 'string' ? entry : formatMove(entry))).join(' ');
+}
+
+/** Preserve the exact cube transformation, retaining any final regrip. */
+export function simplifyMoves(value: string): string {
+  return simplifyMoveStream(value, { foldOpposingPairs: false, retainFinalOrientation: true });
+}
+
+/**
+ * Simplify the move record in its current cube frame. Opposing outer-face
+ * turns become middle slices and a remaining whole-cube rotation is omitted.
+ * This is deliberately used only for the explicit Simplify action; live QTM
+ * capture and notation switching remain lossless.
+ */
+export function simplifyMovesModuloRotations(value: string): string {
+  return simplifyMoveStream(value, { foldOpposingPairs: true, retainFinalOrientation: false });
 }
