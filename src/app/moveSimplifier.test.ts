@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { Alg } from 'cubing/alg';
+import { cube3x3x3 } from 'cubing/puzzles';
 
 import { simplifyMoves } from './moveSimplifier';
 
@@ -21,7 +23,27 @@ describe('simplifyMoves', () => {
     ["y y' z z z", "z'"],
     ['R U U R', 'R U2 R'],
     ['R unknown R R', 'R unknown R2'],
+    ['x z2 x2', 'x y2'],
+    ["x U x'", 'F'],
+    ["y R y'", 'B'],
+    ["z U z'", 'L'],
+    ["y Rw y'", 'Bw'],
   ])('simplifies %j to %j', (input, expected) => {
     expect(simplifyMoves(input)).toBe(expected);
+  });
+
+  it('preserves cube state while normalizing a detected regrip stream', async () => {
+    const input =
+      "y R y R Rw' y R2 x' R' L' y Lw Rw' y Lw U R' y' z' y L' y' L z y' Uw x' z Rw x z2 x2";
+    const simplified = simplifyMoves(input);
+    const kpuzzle = await cube3x3x3.kpuzzle();
+
+    expect(
+      kpuzzle
+        .algToTransformation(new Alg(simplified))
+        .isIdentical(kpuzzle.algToTransformation(new Alg(input))),
+    ).toBe(true);
+    expect(simplified).toMatch(/(?:^| )x2 z'(?:$| )/);
+    expect(simplified).not.toContain('x z2 x2');
   });
 });
