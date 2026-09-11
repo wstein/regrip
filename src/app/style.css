@@ -54,6 +54,7 @@ body {
 .start-timer-cta {
   display: block;
   width: 100%;
+  margin-top: 1rem;
   box-sizing: border-box;
   text-align: left;
 }
