@@ -8,6 +8,7 @@ const filters = ['MOVE', 'EVENT', 'STATE', 'GYRO', 'REGRIP', 'TRIGGER', 'SHAKE']
 function mountTrace(): void {
   document.body.innerHTML = `
     <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button>
+    <span id="trace-stats"></span>
     <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
     <div id="trace-selection" hidden><span id="trace-selection-count"></span>
       <button id="select-all-trace"></button><button id="export-trace"></button>
@@ -145,11 +146,16 @@ describe('live trace browser interactions', () => {
     mountTrace();
     const onClear = vi.fn();
     const trace = createLiveLog({ onClear });
+    expect(document.querySelector('#trace-stats')?.textContent).toBe('0 captured events');
     trace.append('MOVE', 'R');
+    expect(document.querySelector('#trace-stats')?.textContent).toBe('1 captured event');
+    trace.append('EVENT', 'battery');
+    expect(document.querySelector('#trace-stats')?.textContent).toBe('2 captured events');
 
     click('#clear-trace');
 
     expect(trace.getEntries()).toEqual([]);
+    expect(document.querySelector('#trace-stats')?.textContent).toBe('0 captured events');
     expect(onClear).toHaveBeenCalledOnce();
   });
 

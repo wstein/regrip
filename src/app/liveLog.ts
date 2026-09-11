@@ -113,6 +113,7 @@ export function createLiveLog({
   now = () => new Date(),
 }: LiveLogOptions = {}) {
   const root = byId('event-log-rows');
+  const stats = byId('trace-stats');
   const clear = byId('clear-trace');
   const sort = byId('sort-trace');
   const follow = byId<HTMLButtonElement>('follow-trace');
@@ -171,6 +172,11 @@ export function createLiveLog({
     selection.hidden = count === 0;
     selectionCount.textContent = `${count} selected`;
     reproduceButton.toggleAttribute('disabled', selectedMoves().length === 0);
+  };
+
+  const updateStats = (): void => {
+    const count = entries.value.length;
+    stats.textContent = `${count} captured event${count === 1 ? '' : 's'}`;
   };
 
   const entryById = (id: number | undefined): TraceEntry | undefined =>
@@ -279,6 +285,7 @@ export function createLiveLog({
       }),
     );
     updateSelection();
+    updateStats();
     updateDetail();
     root.scrollTop = autoFollow ? followEdge() : previousScrollTop;
   };
@@ -399,6 +406,7 @@ export function createLiveLog({
     if (!contextMenu.hidden && !contextMenu.contains(event.target as Node)) hideContextMenu();
   });
   updateFollowButton();
+  updateStats();
 
   return {
     append,

@@ -89,6 +89,18 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+.trace-heading-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+#trace-stats {
+  color: #8c9ab8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
 .trace-heading-actions {
   display: flex;
   flex-wrap: wrap;

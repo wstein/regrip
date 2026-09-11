@@ -13,7 +13,10 @@
       <div class="app-layout">
         <aside id="event-log" aria-label="Live event trace">
           <div class="trace-heading">
-            <h2>Live Trace</h2>
+            <div class="trace-heading-title">
+              <h2>Live Trace</h2>
+              <span id="trace-stats" aria-live="polite">0 captured events</span>
+            </div>
             <!-- prettier-ignore -->
             <div class="trace-heading-actions">
             <button id="download-log" type="button" class="trace-download-button">
