@@ -27,6 +27,10 @@ describe('VitePress documentation integration', () => {
     expect(app).toMatch(/>GitHub@unknown</);
   });
 
+  it('keeps the documentation in its single dark theme', () => {
+    expect(vitepress).toMatch(/cleanUrls: true,\s+appearance: false,/);
+  });
+
   it('generates VitePress-compatible Markdown API documentation', () => {
     expect(typedoc.out).toBe('docs/site/api');
     expect(typedoc.plugin).toEqual(['typedoc-plugin-markdown', 'typedoc-vitepress-theme']);

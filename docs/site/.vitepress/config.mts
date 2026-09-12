@@ -51,6 +51,7 @@ export default defineConfig({
   description: 'Smart-cube developer console documentation.',
   base: '/regrip/docs/',
   cleanUrls: true,
+  appearance: false,
   themeConfig: {
     nav: [
       { text: 'Console', link: 'https://wstein.github.io/regrip/' },
@@ -66,6 +67,5 @@ export default defineConfig({
       '/api/': [{ text: 'API', items: apiSidebar }],
     },
     search: { provider: 'local' },
-    appearance: false,
   },
 });
