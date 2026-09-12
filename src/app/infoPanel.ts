@@ -61,7 +61,10 @@ export function showFeedback(message: string): void {
 }
 
 export function setInfo(id: string, value: string): void {
-  input(id).value = value;
+  const el = input(id);
+  el.value = value;
+  el.title = value;
+  el.dataset.na = String(value === notAvailable);
 }
 
 export function showInfo(id: string): void {
@@ -69,6 +72,19 @@ export function showInfo(id: string): void {
   const label = document.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
   if (!label) throw new Error(`Missing label for #${id}`);
   label.hidden = false;
+  if (
+    [
+      'eventSerial',
+      'centerOrientation',
+      'goCubeType',
+      'offlineMoves',
+      'offlineDuration',
+      'offlineSolves',
+    ].includes(id)
+  ) {
+    const offlineTitle = document.getElementById('info-offline-title');
+    if (offlineTitle) offlineTitle.hidden = false;
+  }
 }
 
 export function setTimer(value: string): void {
@@ -174,13 +190,17 @@ export function clearInfo(): void {
     .querySelectorAll<HTMLInputElement>('.info input, .cubie-state-panel input')
     .forEach((element) => {
       element.value = notAvailable;
+      element.title = notAvailable;
+      element.dataset.na = 'true';
     });
   optionalInfoIds.forEach((id) => {
-    input(id).hidden = true;
+    const element = document.getElementById(id);
+    if (element) element.hidden = true;
     const label = document.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
-    if (!label) throw new Error(`Missing label for #${id}`);
-    label.hidden = true;
+    if (label) label.hidden = true;
   });
+  const offlineTitle = document.getElementById('info-offline-title');
+  if (offlineTitle) offlineTitle.hidden = true;
   clearDetectedMoves();
 }
 
