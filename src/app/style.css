@@ -56,6 +56,19 @@ body {
 .site-topbar-nav a[aria-current='page'] {
   color: #8bb7ff;
 }
+.site-topbar-fullscreen {
+  margin-left: 0.15rem;
+  padding: 0.35rem 0.6rem;
+  border-color: #3d4d70;
+  background: #11192b;
+  color: #c8d5f2;
+  font-size: 0.75rem;
+}
+.site-topbar-fullscreen[aria-pressed='true'] {
+  color: #eef4ff;
+  border-color: #7299e5;
+  background: #213b67;
+}
 .help {
   max-width: 48rem;
   margin: 0 0 1.25rem;

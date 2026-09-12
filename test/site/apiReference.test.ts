@@ -27,6 +27,14 @@ describe('VitePress documentation integration', () => {
     expect(app).toMatch(/>GitHub@unknown</);
   });
 
+  it('places the global fullscreen action in the site navigation', () => {
+    const navigation = app.match(/<nav class="site-topbar-nav"[\s\S]*?<\/nav>/)?.[0];
+    const cubeActions = app.match(/<div class="control-actions">[\s\S]*?<\/div>/)?.[0];
+
+    expect(navigation).toContain('id="fullscreen"');
+    expect(cubeActions).not.toContain('id="fullscreen"');
+  });
+
   it('keeps the documentation in its single dark theme', () => {
     expect(vitepress).toMatch(/cleanUrls: true,\s+appearance: false,/);
   });
