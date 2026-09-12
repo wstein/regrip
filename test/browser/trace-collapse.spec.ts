@@ -38,8 +38,8 @@ test('collapses live trace sidebar into slim rail and expands workspace', async 
 
   // 3. Captured events update the badge while collapsed
   const badge = page.locator('#trace-collapsed-badge');
-  const badgeText = await badge.textContent();
-  expect(Number(badgeText)).toBeGreaterThan(0);
+  await page.keyboard.press('Shift+ArrowRight');
+  await expect(badge).not.toHaveText('0');
 
   // 4. Click collapsed rail to expand back
   await rail.click();
