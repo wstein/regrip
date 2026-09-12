@@ -1,0 +1,16 @@
+{
+  "name": "@wstein/gentype-canary",
+  "namespace": true,
+  "sources": [{ "dir": "src", "subdirs": true }],
+  "package-specs": {
+    "module": "esmodule",
+    "in-source": true
+  },
+  "suffix": ".res.js",
+  "gentypeconfig": {
+    "path": "node_modules/gentype/gentype.exe",
+    "module": "esmodule",
+    "moduleResolution": "bundler",
+    "generatedFileExtension": ".gen.ts"
+  }
+}

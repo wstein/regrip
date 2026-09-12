@@ -24,7 +24,9 @@ blob-report/
 
 # ReScript
 *.res.mjs
+*.res.js
 *.gen.ts
+*.gen.tsx
 lib/
 .rescript/
 repomix-regrip.xml.txt

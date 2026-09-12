@@ -1,0 +1,15 @@
+{
+  "name": "@wstein/gentype-canary",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rescript",
+    "clean": "rescript clean",
+    "verify": "npm run clean && npm run build && node verify.mjs"
+  },
+  "devDependencies": {
+    "gentype": "4.5.0",
+    "rescript": "12.3.1",
+    "typescript": "5.9.3"
+  }
+}

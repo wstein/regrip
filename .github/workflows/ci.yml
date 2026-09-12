@@ -99,3 +99,17 @@ jobs:
       - run: npm ci
       - run: npm run check:events
       - run: npm run check:declarations
+
+  gentype-canary:
+    name: genType canary (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/gentype-canary/package-lock.json
+      - run: npm ci --prefix tools/gentype-canary
+      - run: npm run verify --prefix tools/gentype-canary
