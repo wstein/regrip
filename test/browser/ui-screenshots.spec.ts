@@ -7,6 +7,19 @@ import { expect, test } from '@playwright/test';
 // screenshot assertions require one explicit capture size on every platform.
 test.use({ viewport: { width: 1408, height: 1600 } });
 
+test('keeps detected moves clear of cube telemetry', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const moves = await page.locator('.detected-moves-panel').boundingBox();
+  const telemetry = await page.locator('.device-card').boundingBox();
+  expect(moves).not.toBeNull();
+  expect(telemetry).not.toBeNull();
+  const separatedHorizontally = moves!.x + moves!.width <= telemetry!.x;
+  const separatedVertically =
+    moves!.y + moves!.height <= telemetry!.y || telemetry!.y + telemetry!.height <= moves!.y;
+  expect(separatedHorizontally || separatedVertically).toBe(true);
+});
+
 for (const fixture of ['disconnected', 'gocube-edge', 'gan-ui12'] as const) {
   test(`captures ${fixture} UI`, async ({ page }) => {
     await page.goto(
