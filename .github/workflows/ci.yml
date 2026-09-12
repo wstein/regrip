@@ -97,6 +97,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:coverage
       - name: Publish coverage summary
         if: always()
