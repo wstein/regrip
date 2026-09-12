@@ -1,4 +1,5 @@
 import { format } from '@wstein/regrip-core/domain/Time';
+import { step as stepTimer } from '@wstein/regrip-core/domain/Timer';
 import {
   faceletsToPatternData,
   solvedFacelets,
@@ -25,6 +26,11 @@ const pattern = faceletsToPatternData(solvedFacelets);
 const patternKeys = Object.keys(pattern).sort().join(',');
 if (patternKeys !== 'CENTERS,CORNERS,EDGES') {
   throw new Error(`expected cubing.js KPatternData keys, received ${patternKeys}`);
+}
+
+const [timerState, timerEffects] = stepTimer('idle', 'activate', true);
+if (timerState !== 'ready' || !timerEffects.includes('showTimer')) {
+  throw new Error('expected generated Timer wrapper to preserve tagged effects');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));

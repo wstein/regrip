@@ -5,6 +5,7 @@ import {
   type SmartCubeTransportConnection,
 } from '@wstein/regrip-core';
 import { format } from '@wstein/regrip-core/domain/Time';
+import { step as stepTimer, type effect as TimerEffect } from '@wstein/regrip-core/domain/Timer';
 import {
   initial as initialMoveBuffer,
   pushRecent,
@@ -32,6 +33,12 @@ const session: SmartCubeSession = createSmartCubeSession({
 void session;
 const formatted: string = format(61_001);
 void formatted;
+const [, timerEffects]: ['idle' | 'ready' | 'running' | 'stopped', TimerEffect[]] = stepTimer(
+  'idle',
+  'activate',
+  true,
+);
+void timerEffects;
 // genType currently lowers an optional labeled argument to a required nullable
 // parameter. Supplying undefined is the supported generated-boundary spelling.
 void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);

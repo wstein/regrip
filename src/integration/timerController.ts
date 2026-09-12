@@ -5,7 +5,7 @@ import type { SmartCubeMoveEvent } from 'smartcube-web-bluetooth';
 import * as SmartCubeBindings from '@wstein/regrip-core/bindings/Bindings_SmartCube';
 import * as MoveBuffer from '@wstein/regrip-core/domain/MoveBuffer';
 import * as Time from '@wstein/regrip-core/domain/Time';
-import * as Timer from '@wstein/regrip-core/domain/Timer.res.mjs';
+import * as Timer from '@wstein/regrip-core/domain/Timer';
 
 export function createLocalTimer(
   setValue: (milliseconds: number) => void,
@@ -48,23 +48,23 @@ type TimerControllerOptions = {
   showTimer: (show: boolean) => void;
   setTimerColor: (color: string) => void;
   setSkew: (value: string) => void;
-  setPhase?: (phase: Timer.Phase | 'idle', finalTime?: string) => void;
+  setPhase?: (phase: Timer.Phase_t | 'idle', finalTime?: string) => void;
   setTps?: (tps: number | null) => void;
 };
 
-const PHASE_COLOR: Record<Timer.Phase, string> = {
+const PHASE_COLOR: Record<Timer.Phase_t, string> = {
   ready: '#0f0',
   running: '#999',
   stopped: '#fff',
 };
 
 export function createTimerController(options: TimerControllerOptions) {
-  let state: Timer.State = 'idle';
+  let state: Timer.state = 'idle';
   let moves = MoveBuffer.initial<SmartCubeMoveEvent>();
   const setTimerValue = (milliseconds: number) => options.setTimer(Time.format(milliseconds));
   const localTimer = createLocalTimer(setTimerValue, options.now);
 
-  function applyEffect(effect: Timer.Effect): void {
+  function applyEffect(effect: Timer.effect): void {
     if (typeof effect === 'string') {
       switch (effect) {
         case 'showTimer':
@@ -119,7 +119,7 @@ export function createTimerController(options: TimerControllerOptions) {
     }
   }
 
-  function dispatch(input: Timer.Input): void {
+  function dispatch(input: Timer.input): void {
     const [next, effects] = Timer.step(state, input, options.isConnected());
     const prev = state;
     state = next;

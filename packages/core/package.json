@@ -53,6 +53,10 @@
       "types": "./dist/domain/CubeFacelets.gen.d.ts",
       "default": "./dist/domain/CubeFacelets.gen.js"
     },
+    "./domain/Timer": {
+      "types": "./dist/domain/Timer.gen.d.ts",
+      "default": "./dist/domain/Timer.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",

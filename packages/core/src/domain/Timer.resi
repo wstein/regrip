@@ -2,20 +2,21 @@
 // caller to apply. Variants are @tag-normalized with explicit lowercase wire
 // values (mirrored in Timer.res.d.mts).
 
-@tag("kind")
+@genType @tag("kind")
 type state =
   | @as("idle") Idle
   | @as("ready") Ready
   | @as("running") Running
   | @as("stopped") Stopped
 
-@tag("kind")
+@genType @tag("kind")
 type input =
   | @as("activate") Activate
   | @as("moveDetected") MoveDetected
   | @as("solved") Solved
   | @as("disconnected") Disconnected
 
+@genType
 module Phase: {
   @tag("kind")
   type t =
@@ -24,7 +25,7 @@ module Phase: {
     | @as("stopped") Stopped
 }
 
-@tag("kind")
+@genType @tag("kind")
 type effect =
   | @as("showTimer") ShowTimer
   | @as("hideTimer") HideTimer
@@ -35,4 +36,5 @@ type effect =
   | @as("setPhase") SetPhase({phase: Phase.t})
   | @as("setValueMs") SetValueMs({ms: float})
 
+@genType
 let step: (state, input, ~connected: bool) => (state, array<effect>)
