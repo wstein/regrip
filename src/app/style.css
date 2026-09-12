@@ -1254,12 +1254,17 @@ body {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
   margin-top: 0.55rem;
 }
 .detected-moves-actions button {
-  padding: 0.28rem 0.55rem;
-  font-size: 0.72rem;
+  padding: 0.32rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: 0.4rem;
+  min-height: 1.85rem;
+  box-sizing: border-box;
+  text-align: center;
 }
 .detected-moves-notation-label {
   align-self: center;
@@ -1269,11 +1274,13 @@ body {
   font-weight: 700;
 }
 .detected-moves-notation button {
-  padding: 0.24rem 0.5rem;
+  padding: 0.26rem 0.55rem;
   color: #aab9d9;
   border-color: #3b4b70;
   background: #111c35;
+  border-radius: 0.4rem;
   font-size: 0.72rem;
+  font-weight: 600;
 }
 .detected-moves-notation button[aria-pressed='true'] {
   color: #e7efff;
@@ -1288,14 +1295,17 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
-  margin-top: 0.65rem;
+  margin-top: 0.55rem;
 }
 .cube-toolbar > button,
 .cube-toolbar .cube-export,
 .cube-toolbar .cube-export > button {
   width: 100%;
-  padding: 0.38rem 0.5rem;
-  font-size: 0.72rem;
+  padding: 0.32rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: 0.4rem;
+  min-height: 1.85rem;
   box-sizing: border-box;
   text-align: center;
   justify-content: center;
@@ -1333,7 +1343,7 @@ body {
 }
 button {
   border: 1px solid #465a85;
-  border-radius: 0.55rem;
+  border-radius: 0.4rem;
   padding: 0.45rem 0.72rem;
   color: #eaf0ff;
   background: #1d2a47;
@@ -1420,11 +1430,6 @@ button:disabled {
 .cube-export {
   position: relative;
   flex: 0 0 auto;
-}
-.control-actions > button,
-.control-actions .cube-export > button {
-  padding: 0.45rem 0.68rem;
-  font-size: 0.78rem;
 }
 .cube-export-menu {
   position: absolute;
