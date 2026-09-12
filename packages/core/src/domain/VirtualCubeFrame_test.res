@@ -51,4 +51,18 @@ describe("VirtualCubeFrame", () => {
     t->expect(VirtualCubeFrame.reframeFacelets(frame, solved))->Expect.toBe(solved)
     t->expect(VirtualCubeFrame.reframeFacelets(frame, "short"))->Expect.toBe("short")
   })
+
+  test("reframes a scramble across mixed axes and a half turn", t => {
+    let scrambled = "FBFRULDLFUBUURDBDBFFRLFFLURDBDUDFURLDBRLLURRBLDLRBDUFB"
+    let frame = VirtualCubeFrame.make()
+    VirtualCubeFrame.applyRegrip(frame, CubeNotation.XTurn)
+    VirtualCubeFrame.applyRegrip(frame, CubeNotation.ZDouble)
+    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
+
+    let reframed = VirtualCubeFrame.reframeFacelets(frame, scrambled)
+    t
+    ->expect(reframed)
+    ->Expect.toBe("BRBBUFRFRBUDLRFRFDFLDRFUFBBRUUBDDURFULULLBLDDLDLRBDLUF")
+    t->expect(CubeFacelets.decodeFacelets(reframed)->Result.isOk)->Expect.toBe(true)
+  })
 })
