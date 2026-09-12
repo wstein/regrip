@@ -2,6 +2,9 @@
   "name": "@wstein/gentype-canary",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24.15.0"
+  },
   "scripts": {
     "build": "rescript",
     "clean": "rescript clean",
