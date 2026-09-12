@@ -6,6 +6,8 @@ import {
 } from '@wstein/regrip-core/domain/PlayerSync';
 import { degreesToRadians, fromEuler } from '@wstein/regrip-core/domain/Quaternion';
 import { regripFromString, token } from '@wstein/regrip-core/domain/CubeNotation';
+import sensorToBody, { apply as applySensorMap } from '@wstein/regrip-core/domain/SensorToBody';
+import { home } from '@wstein/regrip-core/domain/GyroOrientation';
 import {
   faceletsToPatternData,
   solvedFacelets,
@@ -58,6 +60,11 @@ if (
 
 if (token('y', '2') !== 'y2' || regripFromString("x'") !== "x'") {
   throw new Error('expected generated CubeNotation wrapper to preserve literal tokens');
+}
+
+const mappedHome = applySensorMap(sensorToBody, home);
+if (Math.abs(mappedHome.w - home.w) > 1e-12) {
+  throw new Error('expected generated SensorToBody and GyroOrientation wrappers to compose');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));

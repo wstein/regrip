@@ -28,7 +28,7 @@ import {
 import { bundledProfiles } from '@wstein/regrip-core/session/profile/bundled';
 import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfile';
 import { parseSensorToBodyAxisMap } from '@wstein/regrip-core/session/profile/axisMap';
-import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody.res.mjs';
+import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody';
 import type { ProfileOverrides, ResolvedProfile } from '@wstein/regrip-core/session/profile/types';
 
 /** A whole-cube rotation inferred from calibrated gyro orientation. */

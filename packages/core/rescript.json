@@ -1,6 +1,6 @@
 {
   "name": "@wstein/regrip-core",
-  "namespace": "RegripCore",
+  "namespace": true,
   "sources": [
     {
       "dir": "src",

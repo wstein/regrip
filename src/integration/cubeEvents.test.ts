@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
+import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import { createCubeEventController } from './cubeEvents';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';

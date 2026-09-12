@@ -13,6 +13,11 @@ import {
 } from '@wstein/regrip-core/domain/PlayerSync';
 import { identity, type t as Quaternion } from '@wstein/regrip-core/domain/Quaternion';
 import { token, type regripToken } from '@wstein/regrip-core/domain/CubeNotation';
+import sensorToBody, { type t as SensorToBody } from '@wstein/regrip-core/domain/SensorToBody';
+import {
+  home,
+  type state as GyroOrientationState,
+} from '@wstein/regrip-core/domain/GyroOrientation';
 import {
   initial as initialMoveBuffer,
   pushRecent,
@@ -52,6 +57,12 @@ const quaternion: Quaternion = identity;
 void quaternion;
 const regrip: regripToken = token('x', "'");
 void regrip;
+const sensorMap: SensorToBody = sensorToBody;
+void sensorMap;
+const gyroHome: Quaternion = home;
+declare const gyroState: GyroOrientationState;
+void gyroHome;
+void gyroState;
 // genType currently lowers an optional labeled argument to a required nullable
 // parameter. Supplying undefined is the supported generated-boundary spelling.
 void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);

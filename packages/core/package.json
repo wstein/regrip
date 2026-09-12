@@ -69,6 +69,14 @@
       "types": "./dist/domain/CubeNotation.gen.d.ts",
       "default": "./dist/domain/CubeNotation.gen.js"
     },
+    "./domain/SensorToBody": {
+      "types": "./dist/domain/SensorToBody.gen.d.ts",
+      "default": "./dist/domain/SensorToBody.gen.js"
+    },
+    "./domain/GyroOrientation": {
+      "types": "./dist/domain/GyroOrientation.gen.d.ts",
+      "default": "./dist/domain/GyroOrientation.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",

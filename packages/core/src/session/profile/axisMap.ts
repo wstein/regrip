@@ -1,4 +1,4 @@
-import type { SensorToBody } from '@wstein/regrip-core/domain/SensorToBody.res.mjs';
+import type { t as SensorToBody } from '@wstein/regrip-core/domain/SensorToBody';
 
 const axes = new Set(['x', 'y', 'z']);
 
