@@ -16,6 +16,10 @@ and records the same typed event stream it can replay later without a cube.
 [Browse the API](https://wstein.github.io/regrip/docs/api/) ·
 [Understand the architecture](ARCHITECTURE.md)
 
+> **Privacy:** All cube processing runs locally in your browser. Regrip has no application backend
+> and does not upload Bluetooth telemetry, replay files, move history, analysis, or exports. Data
+> leaves the browser only when you explicitly copy, download, or share it.
+
 ![Regrip main panel showing the virtual cube, detected moves, solve analysis, and state export](docs/assets/regrip-console-main.png)
 
 ## Highlights
