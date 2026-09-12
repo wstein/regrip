@@ -465,6 +465,14 @@ body {
   border-color: #7299e5;
   background: #273f69;
 }
+#trace-export-scope {
+  padding: 0.2rem 1.45rem 0.2rem 0.4rem;
+  border: 1px solid #465a85;
+  border-radius: 0.35rem;
+  color: #dce6ff;
+  background: #111c35;
+  font-size: 0.65rem;
+}
 .trace-filters {
   display: flex;
   flex-wrap: wrap;

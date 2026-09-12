@@ -131,6 +131,15 @@
                 </button>
               </div>
               <div class="trace-action-group" role="group" aria-label="Export trace">
+                <select
+                  id="trace-export-scope"
+                  aria-label="Trace export scope"
+                  title="Choose which trace events to export"
+                >
+                  <option value="filtered" selected>Filtered</option>
+                  <option value="all">All</option>
+                  <option value="selected">Selected</option>
+                </select>
                 <button
                   id="download-log"
                   type="button"

@@ -451,26 +451,45 @@ function currentReplayHeader() {
   };
 }
 
-function currentFilteredJsonlLog(): string {
+function currentTraceEntriesJsonlLog(entries: ReturnType<typeof liveLog.getEntries>): string {
   return serializeJsonl([
     {
       recordedAt: new Date().toISOString(),
       type: 'trace_header',
       data: currentReplayHeader(),
     },
-    ...liveLog.getFilteredEntries().map((entry) => entry.log),
+    ...entries.map((entry) => entry.log),
   ]);
 }
 
+const traceExportScope = document.getElementById('trace-export-scope') as HTMLSelectElement;
+
+function currentScopedJsonlLog(): string | undefined {
+  if (traceExportScope.value === 'all') return eventLog.toJsonl(currentReplayHeader());
+  const entries =
+    traceExportScope.value === 'selected'
+      ? liveLog.getSelectedEntries()
+      : liveLog.getFilteredEntries();
+  if (traceExportScope.value === 'selected' && entries.length === 0) {
+    infoPanel.showFeedback('Select trace events first.');
+    return undefined;
+  }
+  return currentTraceEntriesJsonlLog(entries);
+}
+
 infoPanel.on('download-log', 'click', () => {
+  const contents = currentScopedJsonlLog();
+  if (contents === undefined) return;
   const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
-  downloadJsonl(currentFilteredJsonlLog(), filename);
+  downloadJsonl(contents, filename);
   infoPanel.showFeedback('Trace downloaded.');
 });
 
 infoPanel.on('copy-log', 'click', () => {
+  const contents = currentScopedJsonlLog();
+  if (contents === undefined) return;
   void infoPanel
-    .copyText(currentFilteredJsonlLog())
+    .copyText(contents)
     .then(() => infoPanel.showFeedback('Trace JSONL copied.'))
     .catch((error) => {
       console.error('unable to copy trace JSONL', error);

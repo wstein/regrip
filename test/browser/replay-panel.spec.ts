@@ -139,7 +139,7 @@ test('copies the complete current JSONL trace', async ({ page }) => {
   await expect(page.locator('#app-feedback')).toHaveText('Trace JSONL copied.');
 });
 
-test('copies only trace categories enabled by the current filters', async ({ page }) => {
+test('exports all, filtered, or selected trace events', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
   await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
@@ -153,6 +153,9 @@ test('copies only trace categories enabled by the current filters', async ({ pag
   const exportButtons = page.locator('[aria-label="Export trace"] button');
   await expect(exportButtons).toHaveCount(2);
   await expect(exportButtons).toHaveText(['Download', 'Copy']);
+  const exportScope = page.locator('#trace-export-scope');
+  await expect(exportScope).toHaveValue('filtered');
+  await expect(exportScope.locator('option')).toHaveText(['Filtered', 'All', 'Selected']);
 
   await page.locator('[data-trace-filter="EVENT"]').click();
   await page.locator('#copy-log').click();
@@ -176,6 +179,26 @@ test('copies only trace categories enabled by the current filters', async ({ pag
   expect(downloadedJsonl).toContain('"type":"MOVE"');
   expect(downloadedJsonl).not.toContain('"type":"FACELETS"');
   await expect(page.locator('#app-feedback')).toHaveText('Trace downloaded.');
+
+  await exportScope.selectOption('all');
+  await page.locator('#copy-log').click();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('copied-filtered-jsonl')))
+    .toContain('"type":"FACELETS"');
+
+  await exportScope.selectOption('selected');
+  await page.locator('#copy-log').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Select trace events first.');
+
+  await page
+    .locator('.trace-row')
+    .first()
+    .click({ modifiers: ['Shift'] });
+  await page.locator('#copy-log').click();
+  const selectedJsonl = await page.evaluate(
+    () => localStorage.getItem('copied-filtered-jsonl') ?? '',
+  );
+  expect(selectedJsonl.trim().split('\n')).toHaveLength(2);
 });
 
 test('renders the replayed cubie permutation, not only its algorithm text', async ({ page }) => {
