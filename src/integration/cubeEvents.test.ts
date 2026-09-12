@@ -41,6 +41,103 @@ async function flushAsyncWork(): Promise<void> {
 }
 
 describe('cube event gyro bridge', () => {
+  it('routes derived session events through one ordered integration boundary', () => {
+    const calls: string[] = [];
+    const onMoveGap = vi.fn();
+    const onShake = vi.fn();
+    const controller = createCubeEventController({
+      solveScramble: async () => '',
+      addMove: (move) => calls.push(`player:${move}`),
+      recordMove: (move) => calls.push(`detected:${move}`),
+      projectMove: (move) => `solver:${move}`,
+      projectRegrip: (token) => `solver:${token}`,
+      applyRegrip: (token) => calls.push(`apply:${token}`),
+      onRegrip: (_event, solverToken) => calls.push(`regrip:${solverToken}`),
+      onCustomTrigger: (_event, solverMove) => calls.push(`trigger:${solverMove}`),
+      onShake,
+      onMoveGap,
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+    });
+
+    controller.handle({
+      type: 'REGRIP',
+      timestamp: 1,
+      notationToken: 'y',
+      sensorFrameToken: 'y',
+    });
+    controller.handle({ type: 'CUSTOM_TRIGGER', timestamp: 2, move: 'R' });
+    const shake = { type: 'SHAKE', timestamp: 3, steps: 4, reversals: 3, spanMs: 200 } as const;
+    controller.handle(shake);
+    const gap = {
+      type: 'MOVE_GAP',
+      timestamp: 4,
+      previousSerial: 10,
+      serial: 13,
+      missing: 2,
+    } as const;
+    controller.handle(gap);
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 5,
+      face: 1,
+      direction: 0,
+      move: 'R',
+      localTimestamp: 5,
+      cubeTimestamp: null,
+    });
+
+    expect(calls).toEqual([
+      'detected:solver:y',
+      'apply:y',
+      'regrip:solver:y',
+      'trigger:solver:R',
+      'detected:solver:R',
+    ]);
+    expect(onShake).toHaveBeenCalledWith(shake);
+    expect(onMoveGap).toHaveBeenCalledWith(gap);
+  });
+
+  it('reports raw protocol events from the same dispatcher but keeps gyro separate', () => {
+    const onProtocolEvent = vi.fn();
+    const controller = createCubeEventController({
+      solveScramble: async () => '',
+      addMove: vi.fn(),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+      onProtocolEvent,
+    });
+    const move = {
+      type: 'MOVE',
+      timestamp: 1,
+      face: 0,
+      direction: 0,
+      move: 'U',
+      localTimestamp: 1,
+      cubeTimestamp: null,
+    } as const;
+
+    controller.handle(move);
+    controller.handle({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: Quaternion.identity,
+      relative: Quaternion.identity,
+      stabilized: Quaternion.identity,
+      velocityMagnitude: 0,
+      dtSeconds: 0,
+    });
+
+    expect(onProtocolEvent).toHaveBeenCalledOnce();
+    expect(onProtocolEvent).toHaveBeenCalledWith(move);
+  });
+
   it('reports an unknown normalized event without mutating cube state', () => {
     const onUnknownEvent = vi.fn();
     const addMove = vi.fn();
@@ -75,7 +172,7 @@ describe('cube event gyro bridge', () => {
     const { controller, setOrientation } = makeController();
     const rawTurn = xRotation(67.5);
     const stabilized = xRotation(90);
-    controller.handleGyro({
+    controller.handle({
       type: 'GYRO',
       timestamp: 2,
       quaternion: rawTurn,

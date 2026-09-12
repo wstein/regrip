@@ -254,6 +254,8 @@ const cubeEvents = createCubeEventController({
   resetPlayerTracking: () => playerPatterns.reset(),
   invalidatePlayerTracking: () => playerPatterns.reset(),
   projectMove: (move) => solverFrame.translate(move),
+  projectRegrip: (token) => solverFrame.solverToken(token),
+  applyRegrip: (token) => solverFrame.applyRegrip(token),
   addMove: (move) => {
     playerSync.addMove(move);
   },
@@ -284,6 +286,39 @@ const cubeEvents = createCubeEventController({
       stabilized: event.stabilized,
     });
   },
+  onProtocolEvent: (event) => eventLog.record('cube_event', event),
+  onRegrip: (event, solverToken) => {
+    eventLog.record('virtual_regrip', { ...event, solverToken });
+    syncVirtualFrameOrientation(`⟳ ${solverToken}`);
+  },
+  onCustomTrigger: (event, solverMove) => {
+    eventLog.record('custom_trigger', { ...event, solverMove });
+    infoPanel.showFeedback(`Custom trigger detected: ${solverMove}`);
+    const { faces } = solverFrame.orientation();
+    infoPanel.setActiveGrip(formatGripDescription(faces), `⚡ ${solverMove}`);
+  },
+  onShake: (event) => {
+    eventLog.record('shake_trigger', event);
+    infoPanel.showFeedback(`Shake detected: ${event.steps} steps, ${event.reversals} reversals`);
+    const { faces } = solverFrame.orientation();
+    infoPanel.setActiveGrip(formatGripDescription(faces), '〰 Shake');
+  },
+  onMoveGap: (event) => {
+    eventLog.record('move_gap', event);
+    if (session.getState().connection?.capabilities.facelets) {
+      // The session sends REQUEST_FACELETS immediately after publishing this
+      // gap. Record that recovery request before its snapshot can arrive.
+      eventLog.record('cube_command', {
+        name: 'Sync state',
+        status: 'sent',
+        reason: 'move_gap',
+        error: null,
+      });
+    }
+    infoPanel.showFeedback(
+      `Missed ${event.missing} move${event.missing === 1 ? '' : 's'}; syncing cube state.`,
+    );
+  },
   onFacelets: (source) => {
     // Preserve the canonical body-frame snapshot. The solver frame affects
     // move notation and grip presentation only, never copied cube state.
@@ -302,54 +337,6 @@ sessionSignals.event.subscribe((event) => {
   if (!event) return;
   solveAnalysis.onEvent(event);
   if (event.type === 'MOVE') timingDiagnostics.onMove(event);
-  if (event.type === 'GYRO') {
-    cubeEvents.handleGyro(event);
-    return;
-  }
-  if (event.type === 'REGRIP') {
-    // World gyro only detects this event; Body→Solver integer permutations,
-    // never quaternions, translate BLE URFDLB moves and facelets for the user.
-    const solverToken = solverFrame.solverToken(event.notationToken);
-    eventLog.record('virtual_regrip', { ...event, solverToken });
-    appendDetectedMove(solverToken);
-    solverFrame.applyRegrip(event.notationToken);
-    syncVirtualFrameOrientation(`⟳ ${solverToken}`);
-    return;
-  }
-  if (event.type === 'CUSTOM_TRIGGER') {
-    const solverMove = solverFrame.translate(event.move);
-    eventLog.record('custom_trigger', { ...event, solverMove });
-    infoPanel.showFeedback(`Custom trigger detected: ${solverMove}`);
-    const { faces } = solverFrame.orientation();
-    infoPanel.setActiveGrip(formatGripDescription(faces), `⚡ ${solverMove}`);
-    return;
-  }
-  if (event.type === 'SHAKE') {
-    eventLog.record('shake_trigger', { ...event });
-    infoPanel.showFeedback(`Shake detected: ${event.steps} steps, ${event.reversals} reversals`);
-    const { faces } = solverFrame.orientation();
-    infoPanel.setActiveGrip(formatGripDescription(faces), '〰 Shake');
-    return;
-  }
-  if (event.type === 'MOVE_GAP') {
-    eventLog.record('move_gap', event);
-    if (session.getState().connection?.capabilities.facelets) {
-      // The session sends REQUEST_FACELETS immediately after publishing this
-      // gap. Record that recovery request before its snapshot can arrive.
-      eventLog.record('cube_command', {
-        name: 'Sync state',
-        status: 'sent',
-        reason: 'move_gap',
-        error: null,
-      });
-    }
-    cubeEvents.invalidatePlayerState();
-    infoPanel.showFeedback(
-      `Missed ${event.missing} move${event.missing === 1 ? '' : 's'}; syncing cube state.`,
-    );
-    return;
-  }
-  eventLog.record('cube_event', event);
   cubeEvents.handle(event);
 });
 

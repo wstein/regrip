@@ -5,7 +5,15 @@ import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync';
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import { formatOfflineStats, formatSingmasterCycles } from './cubeInfo';
-import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
+import type {
+  CustomTriggerEvent,
+  MoveGapEvent,
+  SessionGyroEvent,
+  ShakeTriggerEvent,
+  SmartCubeSessionEvent,
+  VirtualRegripEvent,
+} from '@wstein/regrip-core/session/smartCubeSession';
+import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
 
 export type ScrambleSolver = (facelets: string) => Promise<string>;
 export type SolveDetector = (facelets: string) => boolean;
@@ -33,7 +41,16 @@ type CubeEventControllerOptions = {
   /** Translate a protocol-body move into the displayed solver frame. */
   projectMove?: (move: string) => string;
   /** Always records detected notation, including while the 3D player is untrusted. */
-  recordMove?: (move: string, rawMove: string) => void;
+  recordMove?: (move: string, rawMove?: string) => void;
+  /** Translate a detected body-frame regrip before applying it to the solver frame. */
+  projectRegrip?: (token: RegripToken) => string;
+  applyRegrip?: (token: RegripToken) => void;
+  onRegrip?: (event: VirtualRegripEvent, solverToken: string) => void;
+  onCustomTrigger?: (event: CustomTriggerEvent, solverMove: string) => void;
+  onShake?: (event: ShakeTriggerEvent) => void;
+  onMoveGap?: (event: MoveGapEvent) => void;
+  /** Raw transport events suitable for capture before their UI effects are applied. */
+  onProtocolEvent?: (event: NonGyroSmartCubeEvent) => void;
   addMove: (move: string) => void;
   setOrientation: (quaternion: { x: number; y: number; z: number; w: number }) => void;
   setPlayerAlgorithm: (algorithm: string) => void;
@@ -194,28 +211,56 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     options.invalidatePlayerTracking?.();
   }
 
-  function handle(event: NonGyroSmartCubeEvent): void {
+  function handle(event: SmartCubeSessionEvent): void {
     switch (event.type) {
+      case 'GYRO':
+        handleGyro(event);
+        break;
+      case 'REGRIP': {
+        // World gyro only detects the gesture. Integer Body→Solver frame
+        // permutations, never quaternions, rename subsequent BLE moves.
+        const solverToken = options.projectRegrip?.(event.notationToken) ?? event.notationToken;
+        options.recordMove?.(solverToken);
+        options.applyRegrip?.(event.notationToken);
+        options.onRegrip?.(event, solverToken);
+        break;
+      }
+      case 'CUSTOM_TRIGGER':
+        options.onCustomTrigger?.(event, options.projectMove?.(event.move) ?? event.move);
+        break;
+      case 'SHAKE':
+        options.onShake?.(event);
+        break;
+      case 'MOVE_GAP':
+        invalidatePlayerState();
+        options.onMoveGap?.(event);
+        break;
       case 'MOVE':
+        options.onProtocolEvent?.(event);
         handleMove(event);
         break;
       case 'FACELETS':
+        options.onProtocolEvent?.(event);
         handleFacelets(event).catch((error) => console.error('facelets handler failed', error));
         break;
       case 'HARDWARE':
+        options.onProtocolEvent?.(event);
         handleHardware(event);
         break;
       case 'BATTERY':
+        options.onProtocolEvent?.(event);
         options.setInfo('batteryLevel', `${event.batteryLevel}%`);
         break;
       case 'DISCONNECT':
+        options.onProtocolEvent?.(event);
         options.onDisconnect();
         break;
       default:
+        options.onProtocolEvent?.(event as NonGyroSmartCubeEvent);
         options.onUnknownEvent?.(event);
         break;
     }
   }
 
-  return { handle, handleGyro, invalidatePlayerState, reset };
+  return { handle, invalidatePlayerState, reset };
 }
