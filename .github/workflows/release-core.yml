@@ -1,4 +1,4 @@
-name: Release core package
+name: Build core release artifact
 
 on:
   push:
@@ -7,19 +7,16 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   release:
-    name: Test and publish core
+    name: Test and package core
     runs-on: ubuntu-latest
-    environment: npm
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          registry-url: https://registry.npmjs.org
           package-manager-cache: false
       - run: npm ci
       - name: Verify tag matches the core package version
@@ -35,5 +32,3 @@ jobs:
           path: artifacts/core/*.tgz
           if-no-files-found: error
           retention-days: 30
-      - name: Publish validated tarball with provenance
-        run: npm publish artifacts/core/*.tgz --access public --provenance

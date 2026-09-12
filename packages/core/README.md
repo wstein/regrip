@@ -54,7 +54,4 @@ imports from an unpacked tarball consumer fixture.
 
 Push a package-specific tag matching the version in `package.json`, such as `core-v0.1.0`. The
 release workflow tests the core, builds and smoke-tests one tarball, retains it as a workflow
-artifact, and publishes those exact bytes to npm through trusted publishing with provenance.
-
-Configure npm's trusted publisher for owner `wstein`, repository `regrip`, workflow
-`release-core.yml`, and environment `npm`; the workflow intentionally contains no registry token.
+artifact for download, and does not publish it to a package registry.

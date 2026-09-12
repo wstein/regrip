@@ -12,10 +12,6 @@
   "bugs": {
     "url": "https://github.com/wstein/regrip/issues"
   },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
