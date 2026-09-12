@@ -155,11 +155,24 @@
           <div id="event-log-rows" role="log" aria-live="polite"></div>
           <section id="trace-detail" class="trace-detail" hidden aria-live="polite">
             <div class="trace-detail-heading">
-              <span id="trace-detail-summary">Select an event</span>
-              <div>
+              <div class="trace-detail-meta">
+                <span id="trace-detail-badge" class="trace-badge">EVENT</span>
+                <span id="trace-detail-summary">Select an event</span>
+                <span id="trace-detail-time" class="trace-detail-time"></span>
+              </div>
+              <div class="trace-detail-actions">
                 <button id="copy-trace-detail" type="button">Copy</button>
+                <button
+                  id="close-trace-detail"
+                  type="button"
+                  aria-label="Close trace detail"
+                  title="Close inspector"
+                >
+                  ✕
+                </button>
               </div>
             </div>
+            <div id="trace-detail-chips" class="trace-detail-chips" hidden></div>
             <pre id="trace-detail-json"></pre>
           </section>
           <menu id="trace-context-menu" class="trace-context-menu" hidden>

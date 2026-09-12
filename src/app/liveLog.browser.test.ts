@@ -37,8 +37,13 @@ function mountTrace(): void {
           <button id="copy-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
         </div>
         <div id="event-log-rows"></div>
-        <section id="trace-detail" hidden><span id="trace-detail-summary"></span>
+        <section id="trace-detail" hidden>
+          <span id="trace-detail-badge"></span>
+          <span id="trace-detail-summary"></span>
+          <span id="trace-detail-time"></span>
           <button id="copy-trace-detail"></button>
+          <button id="close-trace-detail"></button>
+          <div id="trace-detail-chips"></div>
           <pre id="trace-detail-json"></pre>
         </section>
         <menu id="trace-context-menu" hidden><button id="select-trace-event"></button>
@@ -342,5 +347,31 @@ describe('live trace browser interactions', () => {
     expect(log.dataset.collapsed).toBe('false');
     expect(rail.hidden).toBe(true);
     expect(toggle.textContent).toContain('◀');
+  });
+
+  it('renders quick-glance chips, syntax-highlighted json, and dismisses on close button', () => {
+    mountTrace();
+    const trace = createLiveLog({ now: () => new Date('2026-09-09T10:00:00.000Z') });
+    trace.append('MOVE', 'R', undefined, { move: 'R', turns: 1 });
+    click('[data-trace-id="1"]');
+
+    const detail = document.querySelector<HTMLElement>('#trace-detail')!;
+    expect(detail.hidden).toBe(false);
+    expect(document.querySelector('#trace-detail-badge')?.textContent).toBe('MOVE');
+    expect(document.querySelector('#trace-detail-chips')?.textContent).toContain('Move: R');
+
+    // Syntax highlighted JSON tokens
+    const jsonPre = document.querySelector('#trace-detail-json')!;
+    const keys = Array.from(jsonPre.querySelectorAll('.json-key')).map((el) => el.textContent);
+    const strings = Array.from(jsonPre.querySelectorAll('.json-string')).map(
+      (el) => el.textContent,
+    );
+    expect(keys).toContain('"move"');
+    expect(strings).toContain('"R"');
+    expect(jsonPre.querySelector('.json-number')?.textContent).toBe('1');
+
+    // Close button dismisses inspector
+    click('#close-trace-detail');
+    expect(detail.hidden).toBe(true);
   });
 });

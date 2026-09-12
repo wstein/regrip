@@ -60,6 +60,152 @@ function hexBytes(bytes: readonly number[]): string {
   return bytes.map((byte) => byte.toString(16).padStart(2, '0')).join(' ');
 }
 
+export function highlightJson(jsonString: string): DocumentFragment {
+  const fragment = document.createDocumentFragment();
+  const tokenRegex =
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[{}[\],:]|[^\s{}[\],:]+|\s+)/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = tokenRegex.exec(jsonString)) !== null) {
+    const token = match[0];
+    if (!token) continue;
+
+    if (token.startsWith('"')) {
+      if (token.endsWith(':')) {
+        const colonIndex = token.lastIndexOf(':');
+        const keyPart = token.slice(0, colonIndex).trimEnd();
+        const punctPart = token.slice(keyPart.length);
+        const keySpan = document.createElement('span');
+        keySpan.className = 'json-key';
+        keySpan.textContent = keyPart;
+        fragment.appendChild(keySpan);
+
+        const colonSpan = document.createElement('span');
+        colonSpan.className = 'json-punct';
+        colonSpan.textContent = punctPart;
+        fragment.appendChild(colonSpan);
+      } else {
+        const strSpan = document.createElement('span');
+        strSpan.className = 'json-string';
+        strSpan.textContent = token;
+        fragment.appendChild(strSpan);
+      }
+    } else if (token === 'true' || token === 'false') {
+      const boolSpan = document.createElement('span');
+      boolSpan.className = 'json-boolean';
+      boolSpan.textContent = token;
+      fragment.appendChild(boolSpan);
+    } else if (token === 'null') {
+      const nullSpan = document.createElement('span');
+      nullSpan.className = 'json-null';
+      nullSpan.textContent = token;
+      fragment.appendChild(nullSpan);
+    } else if (/^-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?$/.test(token)) {
+      const numSpan = document.createElement('span');
+      numSpan.className = 'json-number';
+      numSpan.textContent = token;
+      fragment.appendChild(numSpan);
+    } else if (/^[{}[\],:]$/.test(token)) {
+      const punctSpan = document.createElement('span');
+      punctSpan.className = 'json-punct';
+      punctSpan.textContent = token;
+      fragment.appendChild(punctSpan);
+    } else {
+      fragment.appendChild(document.createTextNode(token));
+    }
+  }
+  return fragment;
+}
+
+export function extractTraceChips(entry: TraceEntry): Array<{ label: string; value: string }> {
+  const chips: Array<{ label: string; value: string }> = [];
+  const data = (entry.log.data as Record<string, unknown> | undefined) ?? {};
+
+  if (entry.category === 'MOVE') {
+    const move = typeof data.move === 'string' ? data.move : entry.message;
+    chips.push({ label: 'Move', value: move });
+    if (typeof data.face === 'string') {
+      chips.push({ label: 'Face', value: data.face });
+    }
+    if (typeof data.turns === 'number') {
+      chips.push({ label: 'Turns', value: String(data.turns) });
+    }
+    if (typeof data.amount === 'number') {
+      chips.push({ label: 'Amount', value: String(data.amount) });
+    }
+  } else if (entry.category === 'STATE') {
+    const stateVal =
+      typeof data.status === 'string'
+        ? data.status
+        : typeof data.state === 'string'
+          ? data.state
+          : entry.message;
+    chips.push({ label: 'State', value: stateVal });
+    if (typeof data.profile === 'string') {
+      chips.push({ label: 'Profile', value: data.profile });
+    }
+  } else if (entry.category === 'REGRIP') {
+    const solverToken =
+      typeof data.solverToken === 'string'
+        ? data.solverToken
+        : typeof data.notationToken === 'string'
+          ? data.notationToken
+          : entry.message;
+    chips.push({ label: 'Regrip', value: solverToken });
+    if (typeof data.sensorFrameToken === 'string') {
+      chips.push({ label: 'Sensor', value: data.sensorFrameToken });
+    }
+  } else if (entry.category === 'TRIGGER') {
+    chips.push({
+      label: 'Trigger',
+      value: typeof data.move === 'string' ? data.move : entry.message,
+    });
+  } else if (entry.category === 'SHAKE') {
+    chips.push({ label: 'Gesture', value: 'Shake' });
+    if (typeof data.steps === 'number') chips.push({ label: 'Steps', value: String(data.steps) });
+    if (typeof data.reversals === 'number')
+      chips.push({ label: 'Reversals', value: String(data.reversals) });
+  } else if (entry.category === 'COMMAND') {
+    if (typeof data.name === 'string') chips.push({ label: 'Command', value: data.name });
+    if (typeof data.status === 'string') chips.push({ label: 'Status', value: data.status });
+  }
+
+  if (typeof data.batteryLevel === 'number') {
+    chips.push({ label: 'Battery', value: `${data.batteryLevel}%` });
+  } else if (typeof data.battery === 'number') {
+    chips.push({ label: 'Battery', value: `${data.battery}%` });
+  }
+
+  if (typeof data.hardwareName === 'string') {
+    chips.push({ label: 'Hardware', value: data.hardwareName });
+  }
+
+  if (Array.isArray(data.facelets)) {
+    chips.push({ label: 'Facelets', value: `${data.facelets.length} stickers` });
+  } else if (typeof data.facelets === 'string') {
+    chips.push({ label: 'Facelets', value: `${data.facelets.length} stickers` });
+  }
+
+  if (data.quaternion && typeof data.quaternion === 'object') {
+    const q = data.quaternion as Record<string, number>;
+    if (typeof q.x === 'number' && typeof q.y === 'number') {
+      chips.push({
+        label: 'Quat',
+        value: `[${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}]`,
+      });
+    }
+  }
+
+  if (typeof data.opcode === 'number') {
+    chips.push({ label: 'Opcode', value: `0x${data.opcode.toString(16).padStart(2, '0')}` });
+  }
+  if (Array.isArray(data.bytes)) {
+    chips.push({ label: 'Payload', value: `${data.bytes.length} B` });
+  }
+
+  return chips;
+}
+
 export function describeDiagnostic(event: SmartCubeSessionDiagnostic): string {
   const opcode = event.opcode === undefined ? '' : ` opcode 0x${event.opcode.toString(16)}`;
   return `${event.protocol}${opcode} · ${event.bytes.length} bytes · ${hexBytes(event.bytes)}`;
@@ -180,6 +326,10 @@ export function createLiveLog({
   const detailSummary = byId('trace-detail-summary');
   const detailJson = byId('trace-detail-json');
   const copyDetail = byId('copy-trace-detail');
+  const detailBadge = document.getElementById('trace-detail-badge');
+  const detailTime = document.getElementById('trace-detail-time');
+  const detailChips = document.getElementById('trace-detail-chips');
+  const closeDetail = document.getElementById('close-trace-detail');
   const contextMenu = byId('trace-context-menu');
   const selectContextEvent = byId('select-trace-event');
   const copyContextEvent = byId('copy-trace-event');
@@ -346,8 +496,49 @@ export function createLiveLog({
     const entry = entryById(focusedId);
     detail.hidden = !entry;
     if (!entry) return;
-    detailSummary.textContent = `${entry.category} · ${displayTime(Date.parse(entry.log.recordedAt))}`;
-    detailJson.textContent = JSON.stringify(entry.log, null, 2);
+
+    const recordedMs = Date.parse(entry.log.recordedAt);
+    const allEntries = entries.value;
+    const firstMs = allEntries.length > 0 ? Date.parse(allEntries[0].log.recordedAt) : recordedMs;
+    const deltaMs = isNaN(recordedMs) || isNaN(firstMs) ? 0 : recordedMs - firstMs;
+    const deltaStr = deltaMs < 1000 ? `+${deltaMs}ms` : `+${(deltaMs / 1000).toFixed(3)}s`;
+
+    if (detailBadge) {
+      detailBadge.textContent = entry.category;
+      detailBadge.dataset.category = entry.category;
+      detailBadge.className = `trace-badge trace-badge-${entry.category.toLowerCase()}`;
+    }
+    if (detailSummary) {
+      detailSummary.textContent = entry.message || entry.category;
+    }
+    if (detailTime) {
+      detailTime.textContent = `${deltaStr} · ${displayTime(recordedMs)}`;
+    }
+
+    if (detailChips) {
+      const chips = extractTraceChips(entry);
+      detailChips.replaceChildren();
+      if (chips.length > 0) {
+        detailChips.hidden = false;
+        for (const chip of chips) {
+          const chipEl = document.createElement('span');
+          chipEl.className = 'trace-chip';
+          const labelSpan = document.createElement('span');
+          labelSpan.className = 'trace-chip-label';
+          labelSpan.textContent = `${chip.label}:`;
+          const valueSpan = document.createElement('span');
+          valueSpan.className = 'trace-chip-value';
+          valueSpan.textContent = chip.value;
+          chipEl.append(labelSpan, ' ', valueSpan);
+          detailChips.appendChild(chipEl);
+        }
+      } else {
+        detailChips.hidden = true;
+      }
+    }
+
+    const rawJson = JSON.stringify(entry.log, null, 2);
+    detailJson.replaceChildren(highlightJson(rawJson));
   };
 
   const hideContextMenu = (): void => {
@@ -623,6 +814,11 @@ export function createLiveLog({
   copyDetail.addEventListener('click', () => {
     const entry = entryById(focusedId);
     if (entry) copyEntry(entry);
+  });
+  closeDetail?.addEventListener('click', () => {
+    focusedId = undefined;
+    detail.hidden = true;
+    render();
   });
   selectContextEvent.addEventListener('click', () => {
     if (contextId !== undefined) selectEntry(contextId, false);
