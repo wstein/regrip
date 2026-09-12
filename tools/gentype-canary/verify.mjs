@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { copyFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 
+// Step 1: genType must actually have run.
 const generated = resolve('src/Time.gen.ts');
 if (!existsSync(generated)) {
   throw new Error(
@@ -10,9 +10,18 @@ if (!existsSync(generated)) {
   );
 }
 
-const runtime = await import(pathToFileURL(resolve('src/Time.res.js')).href);
-if (runtime.format(61_001) !== '1:01.001') {
-  throw new Error('The generated ReScript runtime did not preserve Time.format.');
-}
+// Step 2: real compilation, not --noEmit. This is the part a type-check-only
+// canary skips: it proves the generated wrapper is valid emittable TypeScript,
+// not just valid enough for the checker to accept it in isolation.
+execFileSync('npx', ['tsc', '--project', 'tsconfig.json'], { stdio: 'inherit' });
 
-execFileSync('npx', ['tsc', '--noEmit', '--project', 'tsconfig.json'], { stdio: 'inherit' });
+// Step 3: the compiled wrapper's own relative import (./Time.res.js) only
+// resolves at runtime if the raw ReScript runtime output ships beside it —
+// exactly the packaging shape @wstein/regrip-core would need after `npm
+// pack`. tsc does not copy non-TS files into outDir; do it explicitly here.
+copyFileSync(resolve('src/Time.res.js'), resolve('dist/src/Time.res.js'));
+
+// Step 4: execute the compiled dist output — the actual publishable
+// chain (Time.res -> Time.res.js -> Time.gen.ts -> dist/Time.gen.js) — in a
+// fresh Node process, not by importing the pre-compiled source directly.
+execFileSync('node', ['dist/consumer.js'], { stdio: 'inherit' });
