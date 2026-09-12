@@ -97,6 +97,11 @@ The app keeps protocol and user notation deliberately separate:
 body-to-world basis. World quaternions never translate moves or facelets: those use `VirtualCubeFrame`'s
 integer Body↔Solver mapping, updated only by detected `x/y/z` regrips.
 
+All **Copy state** formats deliberately remain in the canonical `URFDLB` body frame. Virtual
+regrips change displayed move notation and the grip indicator, but never rotate exported facelets,
+permutations, cubie coordinates, KPattern data, Regrip state JSON, or Orbit64. This makes copied
+state stable against presentation-only grip changes and directly comparable to protocol snapshots.
+
 - A 300 ms returned-face custom trigger (`R R'`, for example), detected independently of the gyro
   magnet layer.
 - Editable detected moves, cube state, session/replay elapsed time, expandable solve analysis,

@@ -37,6 +37,7 @@ export function createSolverFrame() {
   /**
    * Express body-local Kociemba facelets in the current solver regrip frame.
    * Both sticker positions/grid orientation and sticker colour labels change.
+   * This is an opt-in presentation transform; canonical state exports must not use it.
    */
   const reframeFacelets = (facelets: string): string =>
     VirtualCubeFrame.reframeFacelets(frame, facelets);

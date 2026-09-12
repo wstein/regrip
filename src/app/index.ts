@@ -298,6 +298,8 @@ const cubeEvents = createCubeEventController({
     });
   },
   onFacelets: (source) => {
+    // Preserve the canonical body-frame snapshot. The solver frame affects
+    // move notation and grip presentation only, never copied cube state.
     cubeExportSource = source;
   },
   onUnknownEvent: (event) => {

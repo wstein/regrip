@@ -13,6 +13,10 @@ export type CubeExportFormat =
   | 'kpattern-json'
   | 'regrip-state-json'
   | 'orbit64';
+/**
+ * Physical cube state normalized to the protocol's canonical URFDLB body frame.
+ * Virtual solver-frame regrips must never be applied to this export source.
+ */
 export type CubeExportSource = { facelets: string; state?: SmartCubeCubieState };
 
 const base64url = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';

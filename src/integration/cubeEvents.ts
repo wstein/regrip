@@ -43,7 +43,7 @@ type CubeEventControllerOptions = {
   onSolved?: () => void;
   onGyro?: (sample: { event: SessionGyroEvent }) => void;
   onHardware?: (event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>) => void;
-  /** The canonical solver-frame state available for copy/export controls. */
+  /** Canonical URFDLB body-frame state; virtual regrips never alter copy/export data. */
   onFacelets?: (source: { facelets: string; state?: SmartCubeCubieState }) => void;
   solveDetector?: SolveDetector;
   onUnknownEvent?: (event: unknown) => void;

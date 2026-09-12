@@ -37,6 +37,14 @@ editable solver-frame algorithm, and use **Simplify** only when you explicitly w
 export. **Raw QTM** is a read-only diagnostic view of the original body-frame `MOVE` packets; it is
 not changed by simplifying the editable algorithm.
 
+## Cube-state exports
+
+Every format under **Copy state** describes the physical cube in the canonical `URFDLB` body frame.
+The values do not rotate when the virtual grip changes: regrips affect the user-facing move
+notation and grip indicator, but not compact or color facelets, permutation cycles, cubie
+coordinates, KPattern JSON, Regrip state JSON, or Orbit64. This keeps exports stable and directly
+comparable with protocol snapshots, solvers, and external tools.
+
 ## API reference
 
 The [API reference](/api/) is generated from the TypeScript boundary of

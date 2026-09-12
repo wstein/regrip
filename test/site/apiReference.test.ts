@@ -121,6 +121,12 @@ describe('VitePress documentation integration', () => {
     expect(app).toContain('Re-detect sensor data');
   });
 
+  it('documents the canonical body-frame state export invariant', () => {
+    expect(docs).toContain('## Cube-state exports');
+    expect(docs).toContain('canonical `URFDLB` body frame');
+    expect(docs).toContain('do not rotate when the virtual grip changes');
+  });
+
   it('renders grip as a compact status chip', () => {
     expect(app).toContain('class="grip-indicator"');
     const gripRule = appStyles.match(/\.grip-status\s*\{([^}]*)\}/)?.[1];
