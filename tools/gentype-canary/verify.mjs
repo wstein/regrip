@@ -15,13 +15,13 @@ if (!existsSync(generated)) {
 // not just valid enough for the checker to accept it in isolation.
 execFileSync('npx', ['tsc', '--project', 'tsconfig.json'], { stdio: 'inherit' });
 
-// Step 3: the compiled wrapper's own relative import (./Time.res.js) only
+// Step 3: the compiled wrapper's own relative import (./Time.res.mjs) only
 // resolves at runtime if the raw ReScript runtime output ships beside it —
 // exactly the packaging shape @wstein/regrip-core would need after `npm
 // pack`. tsc does not copy non-TS files into outDir; do it explicitly here.
-copyFileSync(resolve('src/Time.res.js'), resolve('dist/src/Time.res.js'));
+copyFileSync(resolve('src/Time.res.mjs'), resolve('dist/src/Time.res.mjs'));
 
 // Step 4: execute the compiled dist output — the actual publishable
-// chain (Time.res -> Time.res.js -> Time.gen.ts -> dist/Time.gen.js) — in a
+// chain (Time.res -> Time.res.mjs -> Time.gen.ts -> dist/Time.gen.js) — in a
 // fresh Node process, not by importing the pre-compiled source directly.
 execFileSync('node', ['dist/consumer.js'], { stdio: 'inherit' });

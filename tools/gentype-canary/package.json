@@ -10,6 +10,7 @@
   "devDependencies": {
     "gentype": "4.5.0",
     "rescript": "12.3.1",
+    "rescript-vitest": "3.0.1",
     "typescript": "5.9.3"
   }
 }
