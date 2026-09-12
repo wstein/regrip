@@ -253,6 +253,20 @@
           <main class="workspace-card">
             <div class="cube-workspace">
               <div class="cube-column">
+                <div class="cube-view-toolbar" aria-label="Cube view controls">
+                  <button
+                    id="track-orientation"
+                    type="button"
+                    aria-pressed="false"
+                    title="Requires a connected cube with a gyroscope."
+                    disabled
+                  >
+                    Track orientation
+                  </button>
+                  <button id="reset-gyro" type="button" title="Connect a cube first." disabled>
+                    Reset view
+                  </button>
+                </div>
                 <div class="cube-viewport-wrapper">
                   <div id="cube"></div>
                   <div id="grip-status" class="grip-status" aria-label="Virtual grip orientation">
@@ -294,18 +308,6 @@
                       <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
                     </div>
                   </div>
-                  <button
-                    id="track-orientation"
-                    type="button"
-                    aria-pressed="false"
-                    title="Requires a connected cube with a gyroscope."
-                    disabled
-                  >
-                    Track orientation
-                  </button>
-                  <button id="reset-gyro" type="button" title="Connect a cube first." disabled>
-                    Reset view
-                  </button>
                 </div>
               </div>
 

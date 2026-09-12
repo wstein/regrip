@@ -1291,12 +1291,19 @@ body {
   justify-content: space-between;
   margin-top: 1rem;
 }
+.cube-view-toolbar,
 .cube-toolbar {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
+}
+.cube-view-toolbar {
+  margin-bottom: 0.55rem;
+}
+.cube-toolbar {
   margin-top: 0.55rem;
 }
+.cube-view-toolbar > button,
 .cube-toolbar > button,
 .cube-toolbar .cube-export,
 .cube-toolbar .cube-export > button {
