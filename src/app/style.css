@@ -51,15 +51,15 @@ body {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  margin-left: auto;
+  margin-left: 1.25rem;
+  padding-left: 1.25rem;
+  border-left: 1px solid #344464;
 }
 .site-topbar-nav {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-left: 0.75rem;
-  padding-left: 0.75rem;
-  border-left: 1px solid #344464;
+  margin-left: auto;
 }
 .site-topbar-nav a {
   color: #aebbd9;
@@ -1679,6 +1679,8 @@ button:disabled {
   .site-topbar-controls {
     width: 100%;
     margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
   }
   .site-topbar-nav {
     flex-basis: 100%;

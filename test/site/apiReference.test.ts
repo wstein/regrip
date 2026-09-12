@@ -69,11 +69,12 @@ describe('VitePress documentation integration', () => {
     expect(telemetryHeader).not.toContain('id="connect"');
   });
 
-  it('groups global controls and separates them from navigation', () => {
+  it('groups page-specific controls between brand and navigation', () => {
     expect(app).toContain(
       'class="site-topbar-controls" role="group" aria-label="Global console controls"',
     );
-    expect(appStyles).toMatch(/\.site-topbar-nav\s*\{[^}]*border-left:/s);
+    expect(appStyles).toMatch(/\.site-topbar-controls\s*\{[^}]*border-left:/s);
+    expect(appStyles).toMatch(/\.site-topbar-nav\s*\{[^}]*margin-left:\s*auto;/s);
     const deviceActionsRule = appStyles.match(/\.site-topbar-device-actions\s*\{([^}]*)\}/)?.[1];
     expect(deviceActionsRule).not.toContain('border-left');
   });
