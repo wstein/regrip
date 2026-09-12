@@ -1,7 +1,7 @@
 import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetooth';
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
-import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync.res.mjs';
+import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync';
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import { formatOfflineStats, formatSingmasterCycles } from './cubeInfo';
@@ -60,7 +60,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   // frame, matching the body-frame 3D player and incoming FACELETS snapshots.
   let normalizedPattern: CubeFacelets.patternData | undefined;
 
-  function applyPlayerEffects(effects: PlayerSync.PlayerSyncEffect[]): void {
+  function applyPlayerEffects(effects: PlayerSync.effect[]): void {
     for (const effect of effects) {
       switch (effect.kind) {
         case 'setAlgorithm':

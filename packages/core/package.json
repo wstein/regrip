@@ -57,6 +57,10 @@
       "types": "./dist/domain/Timer.gen.d.ts",
       "default": "./dist/domain/Timer.gen.js"
     },
+    "./domain/PlayerSync": {
+      "types": "./dist/domain/PlayerSync.gen.d.ts",
+      "default": "./dist/domain/PlayerSync.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",

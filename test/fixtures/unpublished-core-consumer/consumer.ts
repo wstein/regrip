@@ -7,6 +7,11 @@ import {
 import { format } from '@wstein/regrip-core/domain/Time';
 import { step as stepTimer, type effect as TimerEffect } from '@wstein/regrip-core/domain/Timer';
 import {
+  initial as initialPlayerSync,
+  move as playerMove,
+  type effect as PlayerSyncEffect,
+} from '@wstein/regrip-core/domain/PlayerSync';
+import {
   initial as initialMoveBuffer,
   pushRecent,
   recentMoves,
@@ -39,6 +44,8 @@ const [, timerEffects]: ['idle' | 'ready' | 'running' | 'stopped', TimerEffect[]
   true,
 );
 void timerEffects;
+const [, playerEffects]: [unknown, PlayerSyncEffect[]] = playerMove(initialPlayerSync, 'R');
+void playerEffects;
 // genType currently lowers an optional labeled argument to a required nullable
 // parameter. Supplying undefined is the supported generated-boundary spelling.
 void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);

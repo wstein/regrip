@@ -1,6 +1,10 @@
 import { format } from '@wstein/regrip-core/domain/Time';
 import { step as stepTimer } from '@wstein/regrip-core/domain/Timer';
 import {
+  initial as initialPlayerSync,
+  move as playerMove,
+} from '@wstein/regrip-core/domain/PlayerSync';
+import {
   faceletsToPatternData,
   solvedFacelets,
 } from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
@@ -31,6 +35,15 @@ if (patternKeys !== 'CENTERS,CORNERS,EDGES') {
 const [timerState, timerEffects] = stepTimer('idle', 'activate', true);
 if (timerState !== 'ready' || !timerEffects.includes('showTimer')) {
   throw new Error('expected generated Timer wrapper to preserve tagged effects');
+}
+
+const [, playerEffects] = playerMove(initialPlayerSync, 'R');
+if (
+  playerEffects.length !== 1 ||
+  playerEffects[0]?.kind !== 'addMove' ||
+  playerEffects[0].move !== 'R'
+) {
+  throw new Error('expected generated PlayerSync wrapper to preserve tagged effects');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));
