@@ -31,6 +31,7 @@ import { parseSensorToBodyAxisMap } from '@wstein/regrip-core/session/profile/ax
 import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody.res.mjs';
 import type { ProfileOverrides, ResolvedProfile } from '@wstein/regrip-core/session/profile/types';
 
+/** A whole-cube rotation inferred from calibrated gyro orientation. */
 export type VirtualRegripEvent = {
   type: 'REGRIP';
   timestamp: number;
@@ -40,6 +41,7 @@ export type VirtualRegripEvent = {
   sensorFrameToken: RegripToken;
 };
 
+/** A configured move-based gesture recognized by the session. */
 export type CustomTriggerEvent = {
   type: 'CUSTOM_TRIGGER';
   timestamp: number;
@@ -47,6 +49,7 @@ export type CustomTriggerEvent = {
   move: string;
 };
 
+/** A shake gesture recognized from the calibrated gyro stream. */
 export type ShakeTriggerEvent = {
   type: 'SHAKE';
   /** Time of the final reversal-bearing gyro sample; emission lags by the guard. */
@@ -65,6 +68,7 @@ export type MoveGapEvent = {
   missing: number;
 };
 
+/** Raw gyro data enriched with the session's calibrated orientation. */
 export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
@@ -74,6 +78,7 @@ export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   dtSeconds: number;
 };
 
+/** Union of raw cube events and session-derived events. */
 export type SmartCubeSessionEvent =
   | Exclude<SmartCubeEvent, { type: 'GYRO' }>
   | SessionGyroEvent
@@ -87,6 +92,7 @@ type FaceletsEvent = Extract<SmartCubeEvent, { type: 'FACELETS' }>;
 type SessionEventType = SmartCubeSessionEvent['type'];
 type SessionEventOf<T extends SessionEventType> = Extract<SmartCubeSessionEvent, { type: T }>;
 
+/** Observable state owned by a smart-cube session. */
 export type SmartCubeSessionState = {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
   connection: SmartCubeTransportConnection | null;
@@ -97,6 +103,7 @@ export type SmartCubeSessionState = {
   error: string | null;
 };
 
+/** Dependencies and optional host overrides for a smart-cube session. */
 export type SmartCubeSessionOptions = {
   connect: () => Promise<SmartCubeTransportConnection>;
   /**
@@ -113,11 +120,13 @@ export type SmartCubeSessionOptions = {
   features?: SessionFeaturesPatch;
 };
 
+/** Host scheduler used to coalesce gyro updates at display cadence. */
 export type GyroFrameScheduler = {
   schedule: (flush: () => void) => unknown;
   cancel: (handle: unknown) => void;
 };
 
+/** Public controller returned by {@link createSmartCubeSession}. */
 export type SmartCubeSession = ReturnType<typeof createSmartCubeSession>;
 
 /**
@@ -142,6 +151,7 @@ const browserGyroFrameScheduler: GyroFrameScheduler =
         cancel: () => {},
       };
 
+/** Create a connection-safe smart-cube session and derived-event pipeline. */
 export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   let subscription: Subscription | null = null;
   let diagnosticSubscription: Subscription | null = null;

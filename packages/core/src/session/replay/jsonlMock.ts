@@ -20,17 +20,20 @@ type JsonlReplayHeader = {
   version: typeof JSONL_REPLAY_VERSION;
 };
 
+/** Transport identity reconstructed from a replay capture. */
 export type JsonlMockIdentity = {
   deviceName: string;
   deviceMAC: string;
   protocol: { id: string; name: string };
 };
 
+/** One structurally valid record from a replayable JSONL export. */
 export type ValidatedJsonlEntry = Omit<JsonlEntry, 'data'> & {
   recordedAt: string;
   data: Record<string, unknown>;
 };
 
+/** Parsed capture data shared by JSONL replay consumers. */
 export type JsonlReplay = {
   entries: readonly ValidatedJsonlEntry[];
   header: JsonlReplayHeader | null;
@@ -64,6 +67,7 @@ function readHeader(entry: ValidatedJsonlEntry, lineNumber: number): JsonlReplay
   return { format, version };
 }
 
+/** Narrow an unknown JSONL payload to the minimum smart-cube event shape. */
 export function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
   if (!value || typeof value !== 'object') return false;
   const event = value as { type?: unknown; timestamp?: unknown };

@@ -2,8 +2,13 @@
   "$schema": "https://typedoc.org/schema.json",
   "name": "Regrip API",
   "sourceLinkTemplate": "https://github.com/wstein/regrip/blob/{gitRevision}/{path}#L{line}",
+  "tsconfig": "packages/core/tsconfig.json",
   "entryPointStrategy": "expand",
-  "entryPoints": ["packages/core/src/**/*.res.d.mts"],
+  "entryPoints": [
+    "packages/core/src/**/*.res.d.mts",
+    "packages/core/src/bindings/**/*.ts",
+    "packages/core/src/session/**/*.ts"
+  ],
   "out": "docs/site/api",
   "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
   "docsRoot": "docs/site",
@@ -14,5 +19,9 @@
   },
   "readme": "none",
   "excludeInternal": true,
-  "excludePrivate": true
+  "excludePrivate": true,
+  "exclude": ["**/*.test.ts"],
+  "validation": {
+    "notExported": false
+  }
 }

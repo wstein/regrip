@@ -16,6 +16,7 @@ function deepMerge(
   return merged;
 }
 
+/** Layer a profile patch over a selected profile without mutating either input. */
 export function mergeProfiles(
   base: SmartCubeProfile,
   next: SmartCubeProfile | SmartCubeProfilePatch,

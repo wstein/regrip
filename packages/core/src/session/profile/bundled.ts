@@ -9,6 +9,7 @@ import giiker from '../../profiles/profiles/giiker.json';
 import unknown from '../../profiles/profiles/unknown.json';
 import type { SmartCubeProfile } from './types';
 
+/** Built-in cube profiles selected from the connected device identity. */
 export const bundledProfiles: SmartCubeProfile[] = [
   // JSON imports widen discriminant literals to `string`; schema.test.ts
   // validates this bundled data before it reaches the typed session boundary.

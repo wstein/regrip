@@ -18,8 +18,10 @@ export type ShakeTriggerSpec = {
   cooldownMs?: number;
 };
 
+/** One configured app-level gesture detector. */
 export type CustomTriggerSpec = MoveBackTriggerSpec | ShakeTriggerSpec;
 
+/** Complete runtime feature configuration after profile resolution. */
 export type SessionFeatures = {
   stabilizer: {
     enabled: boolean;
@@ -33,6 +35,7 @@ export type SessionFeatures = {
   customTrigger: { enabled: boolean; triggers: CustomTriggerSpec[] };
 };
 
+/** Partial profile or host override for session features. */
 export type SessionFeaturesPatch = {
   stabilizer?: {
     enabled?: boolean;
@@ -46,6 +49,7 @@ export type SessionFeaturesPatch = {
   customTrigger?: { enabled?: boolean; triggers?: CustomTriggerSpec[] };
 };
 
+/** Baseline feature configuration used when no profile overrides it. */
 export const defaultSessionFeatures: SessionFeatures = {
   stabilizer: {
     enabled: true,
@@ -107,6 +111,7 @@ export function mergeSessionFeatures(
   return merge(base, patch) as SessionFeatures;
 }
 
+/** Resolve profile feature overrides onto the baseline configuration. */
 export function resolveSessionFeatures(profileFeatures?: SessionFeaturesPatch): SessionFeatures {
   return mergeSessionFeatures(defaultSessionFeatures, profileFeatures);
 }

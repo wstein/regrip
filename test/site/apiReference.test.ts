@@ -35,6 +35,12 @@ describe('VitePress documentation integration', () => {
     expect(typedoc.out).toBe('docs/site/api');
     expect(typedoc.plugin).toEqual(['typedoc-plugin-markdown', 'typedoc-vitepress-theme']);
     expect(typedoc.docsRoot).toBe('docs/site');
+    expect(typedoc.entryPoints).toEqual([
+      'packages/core/src/**/*.res.d.mts',
+      'packages/core/src/bindings/**/*.ts',
+      'packages/core/src/session/**/*.ts',
+    ]);
+    expect(typedoc.tsconfig).toBe('packages/core/tsconfig.json');
   });
 
   it('draws sidebar expanders without depending on VitePress icon masks', () => {

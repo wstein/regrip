@@ -42,6 +42,7 @@ function recordLeafSources(
   }
 }
 
+/** Select and resolve the most specific profile for a cube identity. */
 export function resolveProfile(
   context: DeviceContext,
   profiles: readonly SmartCubeProfile[],

@@ -29,6 +29,7 @@ import {
   type JsonlReplay,
 } from './jsonlMock';
 
+/** Choose raw transport replay or recorded session-output replay. */
 export type ReplayFeed = 'connection' | 'session';
 /** Browser-local storage used only by the dev replay harness. */
 export const REPLAY_STORAGE_KEY = 'regrip.replay.jsonl';
@@ -394,6 +395,7 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
  */
 export type ReplaySessionController = ReturnType<typeof createReplaySession>;
 
+/** Create a deterministic session facade driven by a JSONL capture. */
 export function createReplaySession(contents: string, feed: ReplayFeed = 'connection') {
   const replayData = createJsonlReplay(contents);
   const items = parseReplayItems(replayData.entries, feed);
