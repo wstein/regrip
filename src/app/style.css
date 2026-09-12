@@ -1371,8 +1371,8 @@ body {
 }
 button {
   border: 1px solid #465a85;
-  border-radius: 0.6rem;
-  padding: 0.55rem 0.85rem;
+  border-radius: 0.55rem;
+  padding: 0.45rem 0.72rem;
   color: #eaf0ff;
   background: #1d2a47;
   font: inherit;

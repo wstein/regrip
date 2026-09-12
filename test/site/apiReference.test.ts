@@ -86,6 +86,12 @@ describe('VitePress documentation integration', () => {
     expect(appStyles).toMatch(/\.site-topbar-inner\s*\{[^}]*margin:\s*0 auto;/s);
   });
 
+  it('uses compact developer-tool button density', () => {
+    const baseButtonRule = appStyles.match(/\nbutton\s*\{([^}]*)\}/)?.[1];
+
+    expect(baseButtonRule).toContain('padding: 0.45rem 0.72rem');
+  });
+
   it('keeps detected-move editing actions above the algorithm editor', () => {
     const panel = app.match(/<section class="detected-moves-panel"[\s\S]*?<\/section>/)?.[0];
 
