@@ -89,6 +89,7 @@ jobs:
 
   coverage:
     name: Coverage
+    needs: browser-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -97,8 +98,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:coverage
+      - run: npm run res:build
+      - run: npm run test:coverage:core
+      - run: npm run test:coverage:app
+      - name: Download browser coverage
+        uses: actions/download-artifact@v5
+        with:
+          name: browser-coverage-${{ github.sha }}
+          path: .nyc_output
+      - run: npm run test:coverage:merge
       - name: Publish coverage summary
         if: always()
         run: node scripts/report-coverage-summary.mjs
@@ -111,7 +119,7 @@ jobs:
           retention-days: 14
 
   browser-test:
-    name: Browser test
+    name: Browser test + coverage capture
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -122,7 +130,15 @@ jobs:
       - run: npm ci
       - run: npm run res:build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
+      - run: npm run test:coverage:browser
+      - name: Upload browser coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-coverage-${{ github.sha }}
+          path: .nyc_output
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
 
   smartcube-events:
     name: Smartcube event contract
