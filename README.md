@@ -200,7 +200,7 @@ npm run test:screenshots:update # Intentionally refresh those PNG baselines
 npm run build    # ReScript + TypeScript + production Vite build
 npm run lint     # Enforce layer import boundaries
 npm run core:pack:check # Pack only @wstein/regrip-core and verify an isolated consumer
-npm run docs:api # Generate TypeDoc to docs/api/
+npm run docs:build # Generate API Markdown and build the VitePress documentation site
 ```
 
 ### Curated architecture bundle
@@ -231,12 +231,12 @@ Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on m
 
 ## API documentation
 
-Run `npm run docs:api`, then visit
-[`http://localhost:5173/docs/api/index.html`](http://localhost:5173/docs/api/index.html) while the
-dev server is running. Before generation, that route provides a fallback page with the local commands.
+Run `npm run docs:dev` to generate the API Markdown and serve the VitePress documentation site.
+The narrative guide and generated API reference share its navigation, layout, and dark theme.
 
-GitHub Pages generates and serves the same reference at
-[`/regrip/docs/api/index.html`](https://wstein.github.io/regrip/docs/api/index.html).
+GitHub Pages serves the guide at
+[`/regrip/docs/`](https://wstein.github.io/regrip/docs/) and the generated API reference at
+[`/regrip/docs/api/`](https://wstein.github.io/regrip/docs/api/).
 For source-native ReScript documentation JSON, use:
 
 ```sh

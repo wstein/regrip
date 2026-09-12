@@ -101,10 +101,9 @@
 
 - [x] Add project-wide ReScript/Prettier formatting, a CI format gate, and
       ignore generated ReScript declarations.
-- [x] Add `npm run docs:api` TypeDoc generation for the TypeScript public
-      boundary; generated `docs/api/` is intentionally untracked.
-- [x] Serve the generated TypeDoc site at `/docs/api/index.html` locally and
-      under GitHub Pages, with a local fallback guide before docs are generated.
+- [x] Generate the TypeScript public boundary as Markdown and publish it with
+      the VitePress narrative guide at `/docs/api/`; generated `docs/site/api/`
+      is intentionally untracked.
 - [ ] Use `rescript-tools doc` JSON as input for a ReScript-native documentation
       view only if TypeDoc's TypeScript-facing API docs prove insufficient.
 

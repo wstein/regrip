@@ -5,41 +5,31 @@ import { describe, expect, it } from 'vitest';
 const read = (relative: string): string =>
   readFileSync(fileURLToPath(new URL(`../../${relative}`, import.meta.url)), 'utf8');
 
-describe('generated API reference integration', () => {
-  const docs = read('docs.html');
-  const fallback = read('docs/api-fallback.html');
+describe('VitePress documentation integration', () => {
+  const docs = read('docs/site/index.md');
+  const vitepress = read('docs/site/.vitepress/config.mts');
+  const app = read('index.html');
   const typedoc = JSON.parse(read('typedoc.json')) as Record<string, unknown>;
 
-  it('docs.html links to the generated reference at /docs/api/', () => {
-    expect(docs).toMatch(/href="\.\/docs\/api\/(index\.html)?"/);
+  it('links narrative documentation to the generated API route', () => {
+    expect(docs).toContain('](/api/)');
   });
 
-  it('docs.html presents the reference as its own section, not a bare nav link', () => {
-    expect(docs).toContain('class="api-callout"');
+  it('uses Lab, Docs, API, and GitHub navigation across the app and docs', () => {
+    expect(vitepress).toMatch(/text: 'Lab'/);
+    expect(vitepress).toMatch(/text: 'Docs'/);
+    expect(vitepress).toMatch(/text: 'API'/);
+    expect(vitepress).toMatch(/text: 'GitHub'/);
+    expect(app).toMatch(/class="site-topbar"/);
+    expect(app).toMatch(/>Lab</);
+    expect(app).toMatch(/>Docs</);
+    expect(app).toMatch(/>API</);
+    expect(app).toMatch(/>GitHub</);
   });
 
-  it('the pre-generation fallback uses the same dark palette as the lab', () => {
-    expect(fallback).toMatch(/#090d18|#0d1325|#edf2ff/);
-  });
-
-  it('the fallback links back into the site', () => {
-    expect(fallback).toContain('docs.html');
-    expect(fallback).toMatch(/href="(\.\.\/\.\.\/|\/|\.\/)(index\.html)?"/);
-  });
-
-  it('typedoc themes the generated site and links back to the lab and docs', () => {
-    expect(typedoc.customCss).toBe('./docs/api-theme.css');
-    const links = typedoc.navigationLinks as Record<string, string> | undefined;
-    expect(links).toBeDefined();
-    expect(Object.values(links ?? {}).join(' ')).toMatch(/docs\.html/);
-  });
-
-  it('the typedoc theme override retunes the base colours without a webfont', () => {
-    const theme = read('docs/api-theme.css');
-    expect(theme).toMatch(/--color-background:/);
-    expect(theme).toMatch(/--color-link:/);
-    expect(theme).toMatch(/:root\[data-theme='light'\]/);
-    expect(theme).toMatch(/\.tsd-theme-toggle/);
-    expect(theme).not.toMatch(/@import|Archivo|Modernist/);
+  it('generates VitePress-compatible Markdown API documentation', () => {
+    expect(typedoc.out).toBe('docs/site/api');
+    expect(typedoc.plugin).toEqual(['typedoc-plugin-markdown', 'typedoc-vitepress-theme']);
+    expect(typedoc.docsRoot).toBe('docs/site');
   });
 });

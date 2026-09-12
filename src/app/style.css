@@ -26,6 +26,36 @@ body {
   padding: 1.5rem;
   box-sizing: border-box;
 }
+.site-topbar {
+  display: flex;
+  align-items: center;
+  min-height: 3.25rem;
+  margin: -1.5rem -1.5rem 1.5rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid #2b3859;
+  background: #090d18;
+}
+.site-topbar-brand {
+  margin-right: auto;
+  color: #edf2ff;
+  font-weight: 800;
+  text-decoration: none;
+}
+.site-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.site-topbar-nav a {
+  color: #aebbd9;
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.site-topbar-nav a:hover,
+.site-topbar-nav a[aria-current='page'] {
+  color: #8bb7ff;
+}
 .help {
   max-width: 48rem;
   margin: 0 0 1.25rem;

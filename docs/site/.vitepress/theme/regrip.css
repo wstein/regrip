@@ -1,0 +1,63 @@
+:root {
+  --vp-c-bg: #090d18;
+  --vp-c-bg-alt: #10192c;
+  --vp-c-bg-elv: #18233c;
+  --vp-c-bg-soft: #10192c;
+  --vp-c-text-1: #edf2ff;
+  --vp-c-text-2: #aebbd9;
+  --vp-c-text-3: #7686a8;
+  --vp-c-brand-1: #c3daff;
+  --vp-c-brand-2: #8bb7ff;
+  --vp-c-brand-3: #5b8fdb;
+  --vp-c-border: #2b3859;
+  --vp-nav-bg-color: #090d18;
+  --vp-sidebar-bg-color: #10192c;
+  --vp-code-block-bg: #10192c;
+  --vp-code-copy-code-bg: #18233c;
+  --vp-font-family-base:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --vp-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html,
+body {
+  background: radial-gradient(circle at 15% 0%, #202c50 0, #0d1325 40%, #090d18 100%);
+}
+
+.VPNav {
+  border-bottom: 1px solid #2b3859;
+  background: #090d18;
+}
+
+.VPNavBar .title {
+  color: #edf2ff;
+  font-weight: 800;
+}
+
+.VPNavBarMenuLink,
+.VPSidebarItem .text {
+  color: #aebbd9;
+}
+
+.VPNavBarMenuLink:hover,
+.VPNavBarMenuLink.active,
+.VPSidebarItem.is-active > .item > .link > .text {
+  color: #8bb7ff;
+}
+
+.VPSidebar {
+  border-right: 1px solid #2b3859;
+}
+
+.VPDoc a,
+.VPContent a {
+  color: #8bb7ff;
+  font-weight: 650;
+  text-underline-offset: 0.16em;
+}
+
+.VPDoc code {
+  border: 1px solid #2b3859;
+  background: #10192c;
+  color: #d9e4fb;
+}

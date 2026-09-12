@@ -4,15 +4,15 @@
   "sourceLinkTemplate": "https://github.com/wstein/regrip/blob/{gitRevision}/{path}#L{line}",
   "entryPointStrategy": "expand",
   "entryPoints": ["packages/core/src/**/*.res.d.mts"],
-  "out": "docs/api",
+  "out": "docs/site/api",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
+  "docsRoot": "docs/site",
+  "entryFileName": "index.md",
+  "sidebar": {
+    "collapsed": true,
+    "pretty": true
+  },
   "readme": "none",
   "excludeInternal": true,
-  "excludePrivate": true,
-  "customCss": "./docs/api-theme.css",
-  "titleLink": "/regrip/",
-  "navigationLinks": {
-    "Lab": "/regrip/",
-    "Docs": "/regrip/docs.html",
-    "GitHub": "https://github.com/wstein/regrip"
-  }
+  "excludePrivate": true
 }
