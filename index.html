@@ -17,6 +17,34 @@
           <a href="./docs/">Docs</a>
           <a href="./docs/api/">API</a>
           <a id="source-revision" href="https://github.com/wstein/regrip">GitHub@unknown</a>
+          <div
+            class="site-topbar-device-actions"
+            role="group"
+            aria-label="Cube connection controls"
+          >
+            <div class="mock-device-picker">
+              <button
+                id="mock-device-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="mock-device-menu"
+              >
+                Try a mock cube ▾
+              </button>
+              <menu id="mock-device-menu" hidden>
+                <li>
+                  <button type="button" data-mock-fixture="gocube-edge">GoCube Edge (demo)</button>
+                </li>
+                <li><button type="button" data-mock-fixture="gan-ui12">GAN UI12 (demo)</button></li>
+                <li><button type="button" data-mock-load>Load JSONL file…</button></li>
+              </menu>
+              <input id="mock-device-file" type="file" accept=".jsonl,application/json" hidden />
+              <span id="mock-device-badge" hidden>Mock cube active</span>
+              <button id="mock-device-exit" type="button" hidden>Exit mock</button>
+              <span id="mock-device-status" class="mock-device-status" role="alert" hidden></span>
+            </div>
+            <button id="connect" type="button">Connect</button>
+          </div>
           <button id="fullscreen" class="site-topbar-fullscreen" type="button" aria-pressed="false">
             ⛶ Fullscreen
           </button>
@@ -318,41 +346,8 @@
 
           <aside class="device-card">
             <div class="device-card-header">
-              <h2>Cube Connection</h2>
-              <div class="device-card-actions">
-                <div class="mock-device-picker">
-                  <button
-                    id="mock-device-toggle"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="mock-device-menu"
-                  >
-                    Try a mock cube ▾
-                  </button>
-                  <menu id="mock-device-menu" hidden>
-                    <li>
-                      <button type="button" data-mock-fixture="gocube-edge">
-                        GoCube Edge (demo)
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" data-mock-fixture="gan-ui12">GAN UI12 (demo)</button>
-                    </li>
-                    <li><button type="button" data-mock-load>Load JSONL file…</button></li>
-                  </menu>
-                  <input
-                    id="mock-device-file"
-                    type="file"
-                    accept=".jsonl,application/json"
-                    hidden
-                  />
-                  <span id="mock-device-badge" hidden>Mock cube active</span>
-                  <button id="mock-device-exit" type="button" hidden>Exit mock</button>
-                </div>
-                <button id="connect" type="button">Connect</button>
-              </div>
+              <h2>Cube Telemetry</h2>
             </div>
-            <p id="mock-device-status" class="mock-device-status" role="alert" hidden></p>
             <div class="info">
               <div class="info-group-title">Device Identity</div>
               <label for="connectionStatus">Connection Status</label>

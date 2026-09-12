@@ -41,6 +41,20 @@ describe('VitePress documentation integration', () => {
     expect(cubeActions).not.toContain('id="fullscreen"');
   });
 
+  it('keeps global device controls in the topbar and telemetry controls out of the card header', () => {
+    const navigation = app.match(/<nav class="site-topbar-nav"[\s\S]*?<\/nav>/)?.[0];
+    const telemetryHeader = app.match(/<div class="device-card-header">[\s\S]*?<\/div>/)?.[0];
+
+    expect(navigation).toContain('class="site-topbar-device-actions"');
+    expect(navigation).toContain('id="connect"');
+    expect(navigation).toContain('id="mock-device-toggle"');
+    expect(navigation!.indexOf('id="connect"')).toBeLessThan(
+      navigation!.indexOf('id="fullscreen"'),
+    );
+    expect(telemetryHeader).toContain('<h2>Cube Telemetry</h2>');
+    expect(telemetryHeader).not.toContain('id="connect"');
+  });
+
   it('keeps the documentation in its single dark theme', () => {
     expect(vitepress).toMatch(/cleanUrls: true,\s+appearance: false,/);
   });

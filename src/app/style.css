@@ -950,11 +950,16 @@ body {
   color: #dce6ff;
   font-weight: 750;
 }
-.device-card-actions,
+.site-topbar-device-actions,
 .mock-device-picker {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+}
+.site-topbar-device-actions {
+  margin-left: 0.15rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid #344464;
 }
 .mock-device-picker {
   position: relative;
@@ -1004,9 +1009,19 @@ body {
   font-weight: 700;
 }
 .mock-device-status {
-  margin: -0.25rem 0 0.75rem;
+  position: absolute;
+  z-index: 13;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #8c3547;
+  border-radius: 0.35rem;
   color: #ffb6c3;
+  background: #351923;
   font-size: 0.7rem;
+  box-shadow: 0 0.5rem 1.2rem rgb(0 0 0 / 35%);
 }
 
 #cube {
@@ -1574,7 +1589,39 @@ button:disabled {
     order: 2;
   }
 }
+@media (max-width: 64rem) {
+  .site-topbar {
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    height: auto;
+    padding-block: 0.65rem;
+  }
+  .site-topbar-brand {
+    margin-right: 0;
+  }
+  .site-topbar-nav {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.65rem;
+  }
+}
 @media (max-width: 42rem) {
+  .site-topbar-nav {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+  .site-topbar-device-actions {
+    width: 100%;
+    margin-left: 0;
+    padding-top: 0.5rem;
+    padding-left: 0;
+    border-top: 1px solid #273653;
+    border-left: 0;
+  }
+  .site-topbar-fullscreen {
+    margin-left: auto;
+  }
   .trace-filter-group {
     flex-wrap: wrap;
   }
