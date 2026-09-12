@@ -110,6 +110,7 @@ describe('VitePress documentation integration', () => {
     expect(cubeColumn!.indexOf('id="grip-status"')).toBeLessThan(
       cubeColumn!.indexOf('class="control-actions cube-toolbar"'),
     );
+    expect(cubeColumn).toMatch(/id="copy-cube-state"[\s\S]*?>\s*Copy state ▾\s*<\/button>/);
   });
 
   it('keeps the documentation in its single dark theme', () => {
