@@ -1,5 +1,3 @@
-/** Format a millisecond duration as "m:ss.mmm". */
-@genType
 let format = (ms: float): string => {
   let total = Math.trunc(ms)
   let minutes = Math.trunc(total /. 60000.)
