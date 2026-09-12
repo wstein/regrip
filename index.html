@@ -253,14 +253,16 @@
           <main class="workspace-card">
             <div class="cube-workspace">
               <div class="cube-column">
-                <div id="cube"></div>
-                <div id="grip-status" class="grip-status" aria-label="Virtual grip orientation">
-                  <div class="grip-identity">
-                    <span class="grip-indicator" aria-hidden="true"></span>
-                    <span class="grip-label">Grip</span>
-                    <span id="grip-value" class="grip-value">Home</span>
+                <div class="cube-viewport-wrapper">
+                  <div id="cube"></div>
+                  <div id="grip-status" class="grip-status" aria-label="Virtual grip orientation">
+                    <div class="grip-identity">
+                      <span class="grip-indicator" aria-hidden="true"></span>
+                      <span class="grip-label">Grip</span>
+                      <span id="grip-value" class="grip-value">Home</span>
+                    </div>
+                    <span id="grip-gesture" class="grip-gesture" hidden></span>
                   </div>
-                  <span id="grip-gesture" class="grip-gesture" hidden></span>
                 </div>
                 <div class="control-actions cube-toolbar" aria-label="Cube controls">
                   <button id="reset-state" type="button">Reset state</button>
@@ -309,25 +311,13 @@
 
               <section class="detected-moves-panel" aria-label="Detected moves">
                 <div class="detected-moves-heading">
-                  <div class="detected-moves-title-group">
-                    <label for="detectedMoves">Detected moves</label>
-                    <span id="quick-game-heading" class="quick-game-tag">Quick game</span>
-                  </div>
+                  <label for="detectedMoves">Detected moves</label>
                   <div class="solve-summary" aria-live="polite">
                     <span class="move-count"><strong id="moveCount">0</strong> moves</span>
                     <span id="tps-container" class="tps-count" hidden
                       ><strong id="tpsValue">0.0</strong> TPS</span
                     >
                     <div id="timer">0:00.000</div>
-                    <button
-                      id="start-timer"
-                      type="button"
-                      class="start-timer-cta"
-                      title="Connect a cube or choose a replay capture first."
-                      disabled
-                    >
-                      Start game
-                    </button>
                   </div>
                 </div>
                 <div class="detected-moves-toolbar">
@@ -366,9 +356,21 @@
                   ></textarea>
                 </div>
                 <div class="detected-moves-footer">
-                  <p id="quick-game-status" class="quick-game-status">
-                    Connect a cube or choose a replay capture to begin.
-                  </p>
+                  <div class="quick-game-bar">
+                    <button
+                      id="start-timer"
+                      type="button"
+                      class="start-timer-cta"
+                      title="Connect a cube or choose a replay capture first."
+                      disabled
+                    >
+                      Start game
+                    </button>
+                    <span id="quick-game-heading" class="quick-game-tag">Quick game</span>
+                    <span id="quick-game-status" class="quick-game-status">
+                      Connect a cube or choose a replay capture to begin.
+                    </span>
+                  </div>
                   <div class="detected-moves-actions">
                     <button id="simplify-detected-moves" type="button">Simplify</button>
                     <button id="clear-detected-moves" type="button">Clear</button>

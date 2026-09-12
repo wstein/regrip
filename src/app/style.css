@@ -112,30 +112,35 @@ body {
   max-width: none;
   margin: 1rem 0 0;
 }
-.detected-moves-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.quick-game-tag {
-  color: #63779d;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
 .detected-moves-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
   margin-top: 0.55rem;
+}
+.quick-game-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.quick-game-tag {
+  color: #63779d;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .quick-game-status {
   margin: 0;
   color: #798ba8;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .start-timer-cta {
   display: flex;
@@ -1086,18 +1091,27 @@ body {
   flex: 0 0 auto;
   width: clamp(15rem, 21vw, 19rem);
 }
+.cube-viewport-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
 .grip-status {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  z-index: 2;
   display: flex;
   align-items: center;
   align-self: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-top: 0.55rem;
-  padding: 0.3rem 0.6rem;
-  border: 1px solid #263554;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid #2b3e66;
   border-radius: 999px;
-  background: #0c1426;
-  font-size: 0.72rem;
+  background: rgba(12, 20, 38, 0.88);
+  backdrop-filter: blur(6px);
+  font-size: 0.7rem;
   box-sizing: border-box;
 }
 .grip-identity {
@@ -1347,13 +1361,20 @@ body {
   margin-top: 1rem;
 }
 .cube-toolbar {
-  gap: 0.35rem;
-  margin-top: 0.55rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
 }
 .cube-toolbar > button,
+.cube-toolbar .cube-export,
 .cube-toolbar .cube-export > button {
-  padding: 0.32rem 0.5rem;
-  font-size: 0.7rem;
+  width: 100%;
+  padding: 0.38rem 0.5rem;
+  font-size: 0.72rem;
+  box-sizing: border-box;
+  text-align: center;
+  justify-content: center;
 }
 .command-panel {
   margin-top: 1rem;
