@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function resiFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -53,7 +54,7 @@ function documentedArity(signature) {
   return topLevelParameters(input).length;
 }
 
-function documentedValues(resiPath) {
+function documentedValues(resiPath, rescriptTools) {
   const output = execFileSync(process.execPath, [rescriptTools, 'doc', resiPath], {
     encoding: 'utf8',
   });
@@ -73,40 +74,63 @@ function declarationArity(declaration, value) {
   return topLevelParameters(match[1]).length;
 }
 
-const sourceRoots = [join(process.cwd(), 'src'), join(process.cwd(), 'packages', 'core', 'src')];
+/** Produce a compilable placeholder for a value missing from a `.res.d.mts` bridge. */
+export function missingDeclarationStub({ name, arity }) {
+  if (arity === undefined) return `export const ${name}: unknown;`;
+  const parameters = Array.from({ length: arity }, (_, index) => `arg${index + 1}: unknown`);
+  return `export function ${name}(${parameters.join(', ')}): unknown;`;
+}
 
-for (const sourceRoot of sourceRoots) {
-  for (const resiPath of resiFiles(sourceRoot)) {
-    const declarationPath = resiPath.replace(/\.resi$/, '.res.d.mts');
-    let declaration = '';
-    try {
-      declaration = readFileSync(declarationPath, 'utf8');
-    } catch {
-      failures.push(`${resiPath}: missing ${declarationPath}`);
-      continue;
-    }
-    for (const { name: value, arity } of documentedValues(resiPath)) {
-      const exported =
-        new RegExp(`export\\s+(?:const|function)\\s+${value}\\b`).test(declaration) ||
-        new RegExp(`as ${value}[ };]`).test(declaration);
-      if (!exported) {
-        failures.push(`${resiPath}: ${value} is absent from ${declarationPath}`);
+/** Return declaration-bridge failures for all ReScript interfaces in the repository. */
+export function checkRescriptDeclarations(cwd = process.cwd()) {
+  const failures = [];
+  const rescriptTools = join(cwd, 'node_modules', 'rescript', 'cli', 'rescript-tools.js');
+  const sourceRoots = [join(cwd, 'src'), join(cwd, 'packages', 'core', 'src')];
+
+  for (const sourceRoot of sourceRoots) {
+    for (const resiPath of resiFiles(sourceRoot)) {
+      const declarationPath = resiPath.replace(/\.resi$/, '.res.d.mts');
+      let declaration = '';
+      try {
+        declaration = readFileSync(declarationPath, 'utf8');
+      } catch {
+        failures.push(`${resiPath}: missing ${declarationPath}`);
         continue;
       }
-      if (arity !== undefined) {
-        const actualArity = declarationArity(declaration, value);
-        if (actualArity === undefined) {
+      for (const { name: value, arity } of documentedValues(resiPath, rescriptTools)) {
+        const exported =
+          new RegExp(`export\\s+(?:const|function)\\s+${value}\\b`).test(declaration) ||
+          new RegExp(`as ${value}[ };]`).test(declaration);
+        if (!exported) {
           failures.push(
-            `${resiPath}: ${value} has ${arity} arguments but is not a function in ${declarationPath}`,
+            `${resiPath}: ${value} is absent from ${declarationPath}\n` +
+              `  Add: ${missingDeclarationStub({ name: value, arity })}`,
           );
-        } else if (actualArity !== arity) {
-          failures.push(
-            `${resiPath}: ${value} has ${arity} arguments in the ReScript interface but ${actualArity} in ${declarationPath}`,
-          );
+          continue;
+        }
+        if (arity !== undefined) {
+          const actualArity = declarationArity(declaration, value);
+          if (actualArity === undefined) {
+            failures.push(
+              `${resiPath}: ${value} has ${arity} arguments but is not a function in ${declarationPath}`,
+            );
+          } else if (actualArity !== arity) {
+            failures.push(
+              `${resiPath}: ${value} has ${arity} arguments in the ReScript interface but ${actualArity} in ${declarationPath}`,
+            );
+          }
         }
       }
     }
   }
+
+  return failures;
 }
-if (failures.length) throw new Error(`ReScript declaration drift:\n${failures.join('\n')}`);
-console.log('ReScript declaration exports and arities verified via rescript-tools doc.');
+
+export function main() {
+  const failures = checkRescriptDeclarations();
+  if (failures.length) throw new Error(`ReScript declaration drift:\n${failures.join('\n')}`);
+  console.log('ReScript declaration exports and arities verified via rescript-tools doc.');
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
