@@ -57,8 +57,8 @@ describe('VitePress documentation integration', () => {
     expect(topbar!.indexOf('site-topbar-brand')).toBeLessThan(
       topbar!.indexOf('site-topbar-device-actions'),
     );
-    expect(topbar!.indexOf('id="fullscreen"')).toBeLessThan(
-      topbar!.indexOf('site-topbar-device-actions'),
+    expect(topbar!.indexOf('site-topbar-device-actions')).toBeLessThan(
+      topbar!.indexOf('id="fullscreen"'),
     );
     expect(topbar!.indexOf('site-topbar-device-actions')).toBeLessThan(
       topbar!.indexOf('site-topbar-nav'),
