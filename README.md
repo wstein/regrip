@@ -2,265 +2,112 @@
 
 [![CI](https://github.com/wstein/regrip/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/regrip/actions/workflows/ci.yml)
 [![Pages](https://github.com/wstein/regrip/actions/workflows/pages.yml/badge.svg)](https://github.com/wstein/regrip/actions/workflows/pages.yml)
-[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://wstein.github.io/regrip/)
+[![Live console](https://img.shields.io/badge/console-live-brightgreen)](https://wstein.github.io/regrip/)
 [![ReScript](https://img.shields.io/badge/ReScript-12-e84f4f?logo=rescript&logoColor=white)](https://rescript-lang.org)
 [![Web Bluetooth](https://img.shields.io/badge/Web_Bluetooth-enabled-0082fc?logo=bluetooth&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-## Event pipeline
+Regrip is a browser developer console and reusable session core for smart cubes. It connects to
+supported hardware over Web Bluetooth, turns gyro telemetry into solver-frame regrips and gestures,
+and records the same typed event stream it can replay later without a cube.
 
-Two entry points, one pipeline. State lives in the session's reducer chain — never in the UI.
-
-```mermaid
-flowchart LR
-  subgraph Sources
-    BLE["🦷 BLE hardware\n(GAN / GoCube / …)"]
-    JSONL["📄 JSONL replay\n(jsonlMock.e2e.test.ts)"]
-  end
-
-  subgraph Session ["packages/core/src/session/ — headless lifecycle"]
-    SC["smartCubeSession.ts\nlifecycle · calibration · gyro flush"]
-  end
-
-  subgraph Integration ["src/integration/ — browser-lab glue"]
-    TA["timingDiagnostics / sessionElapsed / solveAnalysis"]
-    CE["cubeEvents.ts\nrouter · formatters"]
-  end
-
-  subgraph Domain ["packages/core/src/domain/ — pure ReScript reducers"]
-    MB["MoveBuffer"]
-    OS["OrientationStabilizer"]
-    RD["RegripDetector"]
-    MBT["MoveBackTrigger"]
-    VCF["VirtualCubeFrame"]
-  end
-
-  subgraph App ["src/app/ + src/adapters/ — presentation"]
-    IP["infoPanel.ts"]
-    LL["liveLog.ts"]
-    SV["sceneView (Three.js)"]
-  end
-
-  BLE -->|"typed SmartCubeEvent"| SC
-  BLE -. "optional decoder diagnostics\n(app trace only)" .-> LL
-  JSONL -->|"same typed events\n(timestamps injected)"| SC
-  SC -->|"(state, action) → state"| Domain
-  Domain -->|"new immutable state"| SC
-  SC --> TA & CE
-  TA --> IP
-  CE --> IP & LL & SV
-```
-
-`smartCubeSession.ts` owns most of that reducer pipeline directly (regrip, custom-trigger, and
-stabilization state all live inside the session); `cubeEvents.ts` applies the session's ordered
-output to the player, cube-state export, and trace — it does not call the reducers itself.
-
-> **JSONL replay** feeds the exact same event types with recorded timestamps through the session and
-> integration pipeline, so the pure reducers reach the same decisions, state, regrips, elapsed time,
-> and solve metrics
-> as the original live session — deterministic, not merely similar. UI/log rendering built from that
-> state is not held to the same guarantee.
-> See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design rationale.
-
-A single-page [Vite](https://vite.dev) example for the
-[Generic Smart Cube API](https://github.com/wstein/smartcube-web-bluetooth). It uses Web Bluetooth
-to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a cubing.js
-`TwistyPlayer`, and provides session/replay timing, solve analysis, and gyro orientation.
+[Open the Console](https://wstein.github.io/regrip/) ·
+[Read the docs](https://wstein.github.io/regrip/docs/) ·
+[Browse the API](https://wstein.github.io/regrip/docs/api/) ·
+[Understand the architecture](ARCHITECTURE.md)
 
 ## Highlights
 
-- A session-owned Bluetooth lifecycle with connection status, initial-state requests, safe teardown,
-  and profile resolution.
-- Per-model profiles for stabilization, gyro axes, battery presentation, and protocol quirks.
-- Pure ReScript magnetic gyro stabilization: cube-symmetry detents, hysteresis, velocity gating,
-  and a configurable drift adjustment.
-- Display-rate gyro coalescing and a profile-configurable 0.5° microjitter threshold keep high-rate
-  BLE orientation packets from flooding the UI without changing the calibrated domain math.
-- Virtual `x`, `y`, and `z` regrips from calibrated gyro poses. Face moves and the R/U/F orientation
-  gizmo stay in the current virtual cube frame. The detector commits only an unambiguous cardinal
-  quarter turn: diagonal calibration dead zones and ambiguous half turns leave its ratchet unchanged.
+- **One headless session:** connection lifecycle, initial state, profiles, calibration, event order,
+  and safe teardown live outside the UI.
+- **Gyro-aware solver frame:** magnetic stabilization and calibrated orientation produce virtual
+  `x`, `y`, and `z` regrips without corrupting physical cube state.
+- **First-class gestures:** configurable returned-face triggers (`R R'`, for example) and
+  quaternion-based shake triggers are emitted as typed, recordable, replayable events.
+- **Deterministic replay:** bundled or local JSONL captures run through the same session and reducer
+  chain as live Bluetooth events.
+- **Developer observability:** inspect, filter, copy, and download the live event trace; decoder
+  diagnostics remain isolated from cube state and replay evidence.
+- **Useful cube tooling:** editable WCA, SiGN, and SSE move views; raw QTM evidence; solve analysis;
+  and canonical facelet, cycle, cubie-coordinate, KPattern, Regrip JSON, and Orbit64 exports.
+- **Portable core:** pure ReScript reducers and a typed TypeScript session boundary ship as the
+  independently validated `@wstein/regrip-core` artifact.
 
-### Coordinate frames
+Supported protocol families currently include GAN, Giiker, GoCube, MoYu, and QiYi through the
+pin-tested [`smartcube-web-bluetooth`](https://github.com/wstein/smartcube-web-bluetooth) transport.
 
-The app keeps protocol and user notation deliberately separate:
+## Quick start
 
-| Frame  | Purpose                                                                                               |
-| ------ | ----------------------------------------------------------------------------------------------------- |
-| Sensor | Raw BLE quaternion from the IMU die.                                                                  |
-| Body   | Cube shell: protocol `MOVE`/`FACELETS` values and URFDLB labels.                                      |
-| World  | Calibrated gyro pose used only for regrip detection and rendering.                                    |
-| Solver | User-facing white-up/green-front notation, maintained as an exact integer solver-to-body permutation. |
-| Scene  | Renderer home pose applied after the world-relative gyro pose.                                        |
-
-`SensorToBody` is a fixed per-model axis convention; `GyroOrientation` then captures a per-session
-body-to-world basis. World quaternions never translate moves or facelets: those use `VirtualCubeFrame`'s
-integer Body↔Solver mapping, updated only by detected `x/y/z` regrips.
-
-All **Copy state** formats deliberately remain in the canonical `URFDLB` body frame. Virtual
-regrips change displayed move notation and the grip indicator, but never rotate exported facelets,
-permutations, cubie coordinates, KPattern data, Regrip state JSON, or Orbit64. This makes copied
-state stable against presentation-only grip changes and directly comparable to protocol snapshots.
-
-- A 300 ms returned-face custom trigger (`R R'`, for example), detected independently of the gyro
-  magnet layer.
-- Editable detected moves, cube state, session/replay elapsed time, expandable solve analysis,
-  JSONL recording, and a local live event trace.
-  The trace supports filters, sort direction, fixed JSON detail, selection, copy/export, and replay
-  of selected moves. Its default-off **Diagnostic** filter shows opt-in decoder evidence without
-  entering the cube-state session, reducers, or replay capture.
-- A capability-gated command panel: state/battery/hardware refresh plus supported vendor controls.
-  GoCube controls include backlight actions, gyro calibration, orientation enablement, and confirmed
-  reboot; every command result is recorded in the local trace and JSONL capture.
-
-The dependency is pinned to a tested `smartcube-web-bluetooth` commit. Update it deliberately, run
-the checks below, and commit the resulting lockfile change together with the package change.
-
-## Cube information and hardware notes
-
-- Connection state, selected protocol, capabilities, device and hardware details, and battery level.
-- Standard `MOVE`, `FACELETS`, `GYRO`, `HARDWARE`, `BATTERY`, and `DISCONNECT` events.
-- Optional protocol metadata only when it is supplied: GAN serial/cubie state, GoCube center
-  orientation, model type, and Edge offline statistics.
-- Clock skew for cubes that expose a cube timestamp. GoCube does not, so its solve time remains the
-  locally measured elapsed time and its skew field reports that a cube clock is unavailable.
-
-Some encrypted cube protocols require a MAC address. If automatic advertisement watching is not
-available, the app prompts for one and explains how to enable
-`chrome://flags/#enable-experimental-web-platform-features` in Chrome.
-
-### Protocol diagnostics
-
-The lab enables the transport library's optional diagnostic stream for a connection. It is a
-debugging channel, separate from normal cube events: diagnostics are held in their own bounded
-live-trace buffer (512 packets, with each displayed payload capped at 512 bytes), are off by
-default, and cannot mutate cube state or evict JSONL replay evidence.
-
-| Protocol family   | Diagnostic evidence                                                                          |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| GoCube            | Plaintext UART `RAW_PACKET` frames and malformed-frame reasons                               |
-| GAN               | Decrypted `DECODED_PACKET` frames and validation failures; encrypted radio bytes are omitted |
-| MoYu32            | Decrypted opcode frames and unknown-opcode reports; encrypted radio bytes are omitted        |
-| Giiker / MoYu MHC | Plaintext frames and malformed-frame reasons                                                 |
-| QiYi              | Unknown decoded packets that could not become a cube event                                   |
-
-The packet types (`RAW_PACKET`, `DECODED_PACKET`, `MALFORMED_PACKET`, and `UNKNOWN_PACKET`) are
-decoder evidence, not `MOVE` or `FACELETS` events. A valid packet continues normally through the
-typed session event stream; an unrecognized one remains diagnostic-only.
-
-## Architecture
-
-`src/app/index.ts` is the composition root: it mounts the player and DOM controls. The reusable
-headless session and pure domain live in `packages/core`; the browser-lab glue is `src/integration`.
-ESLint checks both workspace roots so core code cannot depend on presentation layers.
-
-`@wstein/regrip-core` exists as its own layer, not just an organizational split, because that buys:
-
-- **Hardware-independent behavior.** Domain reducers run from recorded inputs, so a failure seen only
-  on a real cube is reproducible from a JSONL capture, without the cube.
-- **Shared behavior.** Regrip and CubeLab consume the same calibration, stabilization, regrip,
-  trigger, recovery, and frame-mapping rules instead of forking them per app.
-- **Enforced separation.** TypeScript in `packages/core` cannot reach DOM, Signals, Three.js, or lab
-  integration — checked by `eslint.config.js`, not just documented. The ReScript domain remains pure
-  deterministic math with paired reducer tests.
-- **Race and integrity safety.** Packet gaps, duplicate snapshots, async player-solve races, and
-  replay timing are handled as testable state machines instead of ad hoc event-handler ordering.
-
-| Module                                              | Responsibility                                                            |
-| --------------------------------------------------- | ------------------------------------------------------------------------- |
-| `src/app/`                                          | DOM, trace/JSONL tooling, styles, and composition root                    |
-| `src/app/sessionSignals.ts`                         | App-only reactive mirror of headless session state and ordered events     |
-| `packages/core/src/session/smartCubeSession.ts`     | Headless lifecycle, calibrated event stream, regrips, and custom triggers |
-| `packages/core/src/session/profile/`                | Profile inheritance, matching, overrides, and per-field provenance        |
-| `packages/core/src/session/replay/replaySession.ts` | Deterministic virtual-clock JSONL replay at connection or session output  |
-| `src/integration/`                                  | Browser-lab connection, event routing, timer, export, and metadata glue   |
-| `src/adapters/cubing/`                              | cubing.js scramble solver, facelet bridge, and TwistyPlayer               |
-| `src/adapters/three/`                               | Three.js scene, orientation render loop, and R/U/F gizmo                  |
-| `packages/core/src/domain/`                         | Pure ReScript cube, timing, trigger, quaternion, and stabilization logic  |
-
-The core domain logic is [ReScript](https://rescript-lang.org), compiled in-source to `*.res.mjs`:
-
-| Module                                                                                                          | Responsibility                                                                                           |
-| --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `CubeFacelets.res` / `CubeNotation.res`                                                                         | Pure solved-state detection, facelet conversion, and shared move/orientation types                       |
-| `Time.res` / `MoveBuffer.res`                                                                                   | Duration formatting and recent-move buffers                                                              |
-| `Quaternion.res` / `CubeSymmetry.res`                                                                           | Quaternion math and the 24 cube orientations                                                             |
-| `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res` / `GyroPipeline.res`                 | Detents, hysteresis, velocity gating, drift, calibrated poses, and the composed per-packet gyro pipeline |
-| `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` / `ShakeTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face/shake triggers                  |
-| `MoveTracker.res` / `SnapshotDeduper.res`                                                                       | Dropped-packet serial-gap detection and duplicate/unsolicited-snapshot policy                            |
-| `PlayerSync.res` / `ReplayCursor.res`                                                                           | Race-safe async-snapshot reconciliation for the 3D player, and the deterministic JSONL replay cursor     |
-| `packages/core/src/bindings/Bindings_SmartCube.res`                                                             | Typed timestamp-helper boundary to the Bluetooth library                                                 |
-
-genType derives `*.gen.ts` wrappers from those ReScript interfaces, so the published TypeScript
-boundary stays synchronized with the source signatures.
-
-## Development
+Requirements: Node.js 24.15 or newer and npm.
 
 ```sh
-npm install
-npm run dev      # ReScript watch + Vite dev server
-npm test         # Compile ReScript and run Vitest specs
-npm run test:coverage # Enforce line gates and generate app/core HTML coverage reports
-npm run test:snapshot # Refresh the deterministic JSONL session-contract snapshot
-npm run test:browser  # Run Chromium coverage for the WebGL orientation gizmo
-npm run test:screenshots # Verify disconnected, GoCube Edge, and GAN UI12 UI baselines
-npm run test:screenshots:update # Intentionally refresh those PNG baselines
-npm run build    # ReScript + TypeScript + production Vite build
-npm run lint     # Enforce layer import boundaries
-npm run core:pack:check # Pack only @wstein/regrip-core and verify an isolated consumer
-npm run docs:build # Generate API Markdown and build the VitePress documentation site
+npm ci
+npm run dev
 ```
 
-### Curated architecture bundle
+Open the local URL printed by Vite. Use **Connect** for a Bluetooth cube, or choose a bundled capture
+from **Replay captures** to explore the complete Console without hardware.
 
-`repomix.config.json` defines the small, review-safe architecture bundle used for NotebookLM and
-visual/product analysis. It includes the app, browser integrations, and reusable core sources while
-excluding device captures, generated output, and lockfiles.
+Web Bluetooth works in compatible Chromium-based browsers. Some encrypted protocols need a MAC
+address; when advertisement watching is unavailable, the Console prompts for it.
 
-```sh
-npx repomix --config repomix.config.json
-```
+## Replay without hardware
 
-This creates the ignored `repomix-regrip.xml.txt` handover file. It is an analysis aid, not a build
-input or a replacement for the generated API reference.
+The Console includes redacted GoCube Edge and GAN UI12 captures and accepts local Regrip JSONL files.
+Replay provides play/pause, move-keyframe navigation, stepping, seeking, speed control, and two feed
+modes:
 
-The JSONL replay fixture is deliberately synthetic and redacted. Do not commit unreviewed hardware
-captures: exported logs can contain device and session data.
+- **Recorded events (exact)** preserves saved regrips and gesture detections.
+- **Re-detect sensor data** runs captured transport samples through a fresh session using the
+  recorded feature configuration.
 
-To inspect a fixture without hardware, run `npm run dev`, open the Console, and choose **Replay
-captures**. Pick a bundled GoCube Edge or GAN UI12 demo, or load a local JSONL file. The file is
-validated before it is retained in browser session storage, and Replay mode is selected before the
-session is created, so it uses the same transport boundary as a real cube. Replay code and bundled
-fixtures are lazy-loaded only after Replay mode is requested; `npm run check:replay-lazy` enforces that production
-bundle boundary after `npm run build`.
+The deterministic browser harness is also available at
+`/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). Add `&autoplay` or
+`&feed=session` when testing playback behavior.
 
-The deterministic browser-test harness remains available at
-`/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). Add `&feed=session` for
-session-output inspection or `&autoplay` to advance immediately. The Replay strip supports
-play/pause, move-keyframe navigation, stepping, seeking, speed selection, and local JSONL import.
-New exports include captured device and protocol identity so replay selects the same device profile.
-Local captures default to **Recorded events (exact)** so saved regrips and gesture detections are
-preserved. **Re-detect sensor data** instead runs the captured transport samples through a fresh
-session using the recorded feature configuration. Its results can differ when recording began after
-gyro calibration or detector history was established.
+## Repository map
 
-Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
+| Path                      | Purpose                                             |
+| ------------------------- | --------------------------------------------------- |
+| `packages/core/`          | Headless session, profiles, replay, and pure domain |
+| `src/app/`                | Console DOM, state, controls, trace, and styles     |
+| `src/integration/`        | Browser effects and session-to-UI event routing     |
+| `src/adapters/`           | cubing.js and Three.js boundaries                   |
+| `test/browser/`           | Playwright integration and visual tests             |
+| `docs/site/`              | VitePress guide and generated API reference         |
+| `ARCHITECTURE.md`         | Pipeline, frame, replay, and dependency invariants  |
+| `packages/core/README.md` | Core consumer and release-artifact details          |
 
-## API documentation
+## Essential commands
 
-Run `npm run docs:dev` to generate the API Markdown and serve the VitePress documentation site.
-The narrative guide and generated API reference share its navigation, layout, and dark theme.
+| Command                   | Purpose                                                    |
+| ------------------------- | ---------------------------------------------------------- |
+| `npm run dev`             | Start ReScript watch and the Vite Console                  |
+| `npm test`                | Build ReScript and run core plus application tests         |
+| `npm run test:browser`    | Run Playwright browser tests                               |
+| `npm run test:coverage`   | Enforce coverage gates and generate HTML reports           |
+| `npm run build`           | Build ReScript, TypeScript, and the production application |
+| `npm run lint`            | Enforce TypeScript and dependency boundaries               |
+| `npm run core:pack:check` | Pack core and test isolated TypeScript/ReScript consumers  |
+| `npm run docs:dev`        | Generate the API reference and serve the VitePress site    |
 
-GitHub Pages serves the guide at
-[`/regrip/docs/`](https://wstein.github.io/regrip/docs/) and the generated API reference at
-[`/regrip/docs/api/`](https://wstein.github.io/regrip/docs/api/).
-For source-native ReScript documentation JSON, use:
+Use `npm run test:screenshots` for visual baselines and `npm run test:snapshot` when intentionally
+updating the deterministic replay contract. See [AGENTS.md](AGENTS.md) for the complete contributor
+command reference.
 
-```sh
-npx rescript-tools doc packages/core/src/domain/Quaternion.resi
-```
+## Core release artifacts
 
-## Community
+`@wstein/regrip-core` is not published to npm yet. A tag matching its package version, such as
+`core-v0.1.0`, runs tests, builds one tarball, validates that exact archive with isolated TypeScript
+and ReScript consumers, and retains it as a downloadable GitHub Actions artifact.
 
-- Read [CONTRIBUTING.md](.github/CONTRIBUTING.md) before proposing a change.
-- Follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
-- Report security issues according to [SECURITY.md](.github/SECURITY.md), not in a public issue.
+## Documentation and community
+
+- [Architecture and invariants](ARCHITECTURE.md)
+- [Core package guide](packages/core/README.md)
+- [Contributing guide](.github/CONTRIBUTING.md)
+- [Code of Conduct](.github/CODE_OF_CONDUCT.md)
+- [Security policy](.github/SECURITY.md)
+
+Report security issues through the security policy, not a public issue. Device captures may contain
+device or session data; do not commit unreviewed captures.

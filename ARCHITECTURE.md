@@ -1,78 +1,111 @@
 # Regrip architecture
 
-Regrip separates deterministic smart-cube behavior from browser presentation. A captured JSONL
-event stream must be replayable through the same session and reducer chain that handled it live.
+Regrip separates deterministic smart-cube behavior from browser presentation. Live Bluetooth and
+recorded JSONL enter through the same transport contract; session state lives in the reducer chain,
+never in the UI.
 
-## Workspace layout
+## Design goals
 
-```
+The `@wstein/regrip-core` boundary provides:
+
+- **Hardware-independent behavior.** A captured input stream reproduces domain decisions without
+  requiring the physical cube.
+- **Shared behavior.** Regrip and other hosts can consume the same calibration, stabilization,
+  regrip, trigger, recovery, and frame-mapping rules.
+- **Enforced separation.** Core cannot reach the DOM, Signals, Three.js, or Console integration.
+- **Race and integrity safety.** Packet gaps, duplicate snapshots, player-solve races, and replay
+  timing are explicit state machines rather than event-handler ordering conventions.
+
+## Workspace layers
+
+```text
 packages/core/src/domain/       Pure ReScript reducers and cube math
 packages/core/src/bindings/     Typed boundary to smartcube-web-bluetooth
-packages/core/src/session/      Portable, headless connection lifecycle and replay
+packages/core/src/session/      Portable connection lifecycle, profiles, and replay
 src/adapters/                   cubing.js and Three.js host adapters
-src/integration/                Browser-lab effects: events, timer, export, connection chooser
-src/app/                        DOM, signals, styles, and composition root
+src/integration/                Browser effects: events, timing, export, connection chooser
+src/app/                        DOM, Signals, controls, trace, styles, and composition root
 ```
 
-`@wstein/regrip-core` is the reusable MIT core consumed by this lab and CubeLab. The lab never
-owns Bluetooth decoding or gyro/regrip math; it composes the core with browser-specific rendering
-and controls.
+`src/app/index.ts` is the composition root. The browser Console composes the portable core with
+rendering and controls; it does not own Bluetooth decoding or gyro/regrip math.
 
-## Dependency rules
+### Dependency rules
 
-The portable core cannot import the lab. In particular:
-
-- `packages/core/src/domain/` is pure deterministic math: no DOM, Bluetooth, renderer, clock, or
+- `packages/core/src/domain/` is deterministic math: no DOM, Bluetooth, renderer, clock, or
   framework dependencies.
-- `packages/core/src/session/` owns the headless lifecycle and may use core bindings/domain code,
-  but cannot reach `src/app`, `src/adapters`, or `src/integration`.
-- `src/app/` is the only Signals/DOM layer.
-- `src/integration/` applies core events and reducer effects to the lab; `src/adapters/` bridges
-  cubing.js and Three.js.
+- `packages/core/src/session/` may use core bindings and domain modules but cannot reach the app,
+  adapters, or integration layers.
+- `src/integration/` applies session output to browser concerns without depending on presentation.
+- `src/adapters/` contains cubing.js and Three.js objects; those objects do not leak into the app.
+- `src/app/` is the only Signals and DOM layer.
 
-`npm run lint` checks TypeScript in both `src/` and `packages/core/src/`; lint-staged does the
-same for changed files. The path rules and Signals ban are therefore CI enforcement, not a
-code-review convention. ReScript compilation and its paired reducer tests enforce the remaining
-domain boundary.
+`npm run lint` enforces the TypeScript import boundaries in both workspace roots. ReScript
+interfaces, compilation, and paired reducer tests enforce the pure-domain boundary.
 
-## Deterministic data flow
+## Event pipeline
 
+```mermaid
+flowchart LR
+  subgraph Sources
+    BLE["BLE hardware\nGAN / GoCube / …"]
+    JSONL["JSONL replay\nrecorded timestamps"]
+  end
+
+  subgraph Core ["@wstein/regrip-core"]
+    SC["smartCubeSession.ts\nlifecycle · profiles · calibration"]
+    Domain["ReScript reducers\nstabilize · regrip · trigger · reconcile"]
+  end
+
+  subgraph Integration ["src/integration/"]
+    CE["cubeEvents.ts\nevent routing"]
+    TA["timing diagnostics\nsession elapsed · solve analysis"]
+  end
+
+  subgraph Presentation ["src/app/ + src/adapters/"]
+    Trace["live trace"]
+    Player["cubing.js player"]
+    Scene["Three.js scene"]
+    HUD["Console HUD"]
+  end
+
+  BLE -->|"SmartCubeEvent"| SC
+  JSONL -->|"same event contract"| SC
+  SC --> Domain
+  Domain --> SC
+  SC --> CE & TA
+  CE --> Trace & Player & Scene & HUD
+  TA --> HUD
+  BLE -. "SmartCubeDiagnosticEvent" .-> Trace
 ```
-BLE hardware or JSONL replay
-          │ typed SmartCubeEvent, recorded timestamps
-          ▼
-@wstein/regrip-core/session
-          │ ordered session events and feature/profile state
-          ▼
-src/integration + core domain reducers
-          │ player effects, timer effects, display state
-          ▼
-src/app + src/adapters
 
-BLE decoder diagnostics (optional)
-          │ SmartCubeDiagnosticEvent
-          ▼
-session.subscribeDiagnostics() ─────────────► src/app live trace only
-```
+`smartCubeSession.ts` owns stabilization, regrip, custom-trigger, shake-trigger, move tracking, and
+snapshot policy state. It publishes one ordered session stream. `cubeEvents.ts` applies that output
+to the player, export model, trace, and renderer; it does not call the reducers itself.
 
-Domain reducers receive timestamps as data rather than calling `Date.now()`. That makes a JSONL
-replay deterministic: the same source events produce the same feature decisions, virtual regrips,
-and timer values. The browser timer display uses a replay virtual clock when replay is active.
+Domain reducers receive timestamps as input rather than calling the host clock. Effects are data
+(`AddMove`, `SetAlgorithm`, and similar values), executed by the session or integration layer.
 
-### Diagnostic boundary
+## Deterministic replay
 
-`SmartCubeDiagnosticEvent` is deliberately not a `SmartCubeSessionEvent`. It carries packet-level
-decoder evidence (`RAW_PACKET`, `DECODED_PACKET`, `MALFORMED_PACKET`, or `UNKNOWN_PACKET`) for the
-default-off Diagnostic trace filter. The core subscribes and exposes it on a separate observer
-channel, but never routes it through cube-state reducers, trigger detectors, or the normal JSONL
-replay capture. The app bounds this separate buffer and displayed byte payload, so a noisy decoder
-cannot displace moves or snapshots from the session record.
+JSONL replay injects recorded timestamps through the same session and reducer chain as a live
+connection. Given the same starting configuration and source events, the domain produces the same
+state, virtual regrips, triggers, elapsed time, and solve metrics. UI animation and log rendering are
+not part of that deterministic guarantee.
 
-Encrypted protocol implementations may emit decoded packet evidence but must not emit wire
-ciphertext. Plaintext protocol diagnostics can include raw frames where that is useful for decoder
-investigation.
+Two replay feeds serve different investigations:
 
-## Frames
+- **Recorded events (exact)** replays saved session output, preserving recorded regrips and gesture
+  detections even when a capture began after detector history was established.
+- **Re-detect sensor data** sends captured transport samples through a fresh session using the
+  recorded feature configuration. Results may differ when calibration or detector history predates
+  the capture.
+
+Replay mode is selected before session construction. The Console does not swap a live session at
+runtime. Replay code and bundled fixtures are lazy-loaded only after replay is requested;
+`npm run check:replay-lazy` enforces that production-bundle boundary.
+
+## Coordinate frames and state invariants
 
 | Frame  | Fixed to      | Used for                                              |
 | ------ | ------------- | ----------------------------------------------------- |
@@ -82,50 +115,118 @@ investigation.
 | Solver | User notation | Exact integer Body↔Solver move and facelet projection |
 | Scene  | Renderer      | Three.js home pose                                    |
 
-`SensorToBody` is a fixed profile axis convention. `GyroOrientation` captures the session basis;
-`VirtualCubeFrame` separately tracks exact solver-to-body permutations. World quaternion math
-never rewrites notation or facelets, avoiding float drift in the user-facing solver frame.
+`SensorToBody` is a fixed per-model axis convention. `GyroOrientation` captures the session's
+body-to-world basis. `VirtualCubeFrame` separately maintains the exact solver-to-body permutation.
+World quaternion math never translates notation or facelets, avoiding floating-point drift in the
+solver frame.
 
-## Regrip confidence
+All **Copy state** formats remain in canonical `URFDLB` body order. Virtual regrips change displayed
+moves and the grip indicator but never rotate compact or color facelets, permutation cycles,
+CP/CO/EP/EO, KPattern JSON, Regrip state JSON, or Orbit64. Exports therefore remain directly
+comparable with protocol snapshots, solvers, and external tools.
 
-`RegripDetector` is frame-agnostic and emits cube-body `x`/`y`/`z` tokens. It advances its ratchet
-only when the nearest cardinal quarter turn strictly improves the current residual and leaves it
-inside the configured acceptance region. This rejects diagonal calibration dead zones and ambiguous
-large rotations instead of alternating regrips forever; the app projects accepted body tokens into
+## Gyro, regrips, and gestures
+
+Per-device profiles define sensor axes, stabilization, battery presentation, protocol quirks, and
+feature overrides. The gyro pipeline combines cube-symmetry magnetic detents, hysteresis, velocity
+gating, drift adjustment, display-rate coalescing, and a configurable microjitter threshold.
+
+`RegripDetector` emits body-frame `x`, `y`, or `z` only when an unambiguous cardinal quarter turn
+strictly improves the residual and falls inside the acceptance region. Diagonal calibration dead
+zones and ambiguous half turns leave the ratchet unchanged. Accepted body tokens are projected into
 the solver frame for display.
 
-## Reducer pattern
+Custom gestures are independent typed session events:
 
-Core state machines follow the `PlayerSync.res` / `GyroPipeline.res` shape:
+- `MoveBackTrigger` recognizes a face followed by its inverse within the configured window (300 ms
+  by default), such as `R R'`.
+- `ShakeTrigger` recognizes a configurable burst of reversal-bearing calibrated orientation steps.
+  Sample gaps, a nearby face turn, and cooldown rules reject accidental candidates.
 
-```
+Both are configured under `features.customTrigger.triggers`, recorded in JSONL, and preserved by
+exact session-output replay. The `all` feature preset enables returned-face and shake triggers;
+profiles or hosts may override their thresholds.
+
+## Events, hardware, and diagnostics
+
+Normal transport events include `MOVE`, `FACELETS`, `GYRO`, `HARDWARE`, `BATTERY`, and `DISCONNECT`.
+Optional protocol metadata is present only when supplied by hardware: GAN serial/cubie state,
+GoCube center orientation, model type, and Edge offline statistics. Clock skew is calculated only
+for cubes exposing cube timestamps; GoCube solve timing remains locally measured.
+
+Some encrypted protocols require a MAC address. When automatic advertisement watching is
+unavailable, the Console requests one rather than weakening the transport boundary.
+
+### Diagnostic boundary
+
+`SmartCubeDiagnosticEvent` is not a `SmartCubeSessionEvent`. Diagnostics provide packet-level
+decoder evidence for a default-off trace channel and never enter cube-state reducers, gesture
+detectors, or normal JSONL replay capture. The app keeps a separate 512-entry diagnostic buffer and
+caps displayed payloads at 512 bytes, so decoder noise cannot evict session evidence.
+
+| Protocol family   | Diagnostic evidence                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| GoCube            | Plaintext UART `RAW_PACKET` frames and malformed-frame reasons                               |
+| GAN               | Decrypted `DECODED_PACKET` frames and validation failures; encrypted radio bytes are omitted |
+| MoYu32            | Decrypted opcode frames and unknown-opcode reports; encrypted radio bytes are omitted        |
+| Giiker / MoYu MHC | Plaintext frames and malformed-frame reasons                                                 |
+| QiYi              | Unknown decoded packets that could not become a cube event                                   |
+
+The diagnostic kinds are `RAW_PACKET`, `DECODED_PACKET`, `MALFORMED_PACKET`, and `UNKNOWN_PACKET`.
+A valid decoded packet continues through the normal event stream; an unrecognized packet remains
+diagnostic-only.
+
+## Reducer and module map
+
+Core state machines follow this pattern:
+
+```text
 (state, input) -> (nextState, effects)
 ```
 
-Effects are data (`AddMove`, `SetAlgorithm`, and so on), not DOM or renderer calls. The portable
-session and lab integration execute them. This makes packet gaps, snapshot races, regrip detection,
-and replay fixtures small, isolated tests.
+| Module or directory                                 | Responsibility                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------ |
+| `packages/core/src/session/smartCubeSession.ts`     | Lifecycle, ordered events, calibration, regrips, and triggers      |
+| `packages/core/src/session/profile/`                | Profile inheritance, matching, overrides, and per-field provenance |
+| `packages/core/src/session/replay/replaySession.ts` | Virtual-clock replay at transport or session-output level          |
+| `CubeFacelets.res` / `CubeNotation.res`             | Solved-state detection, facelet conversion, and notation types     |
+| `Quaternion.res` / `CubeSymmetry.res`               | Quaternion math and the 24 cube orientations                       |
+| `GyroPipeline.res` and its component reducers       | Detents, hysteresis, velocity gating, drift, and calibrated poses  |
+| `RegripDetector.res` / `VirtualCubeFrame.res`       | Virtual rotations and exact Body↔Solver mapping                    |
+| `MoveBackTrigger.res` / `ShakeTrigger.res`          | Returned-face and calibrated-orientation gesture detection         |
+| `MoveTracker.res` / `SnapshotDeduper.res`           | Serial-gap detection and duplicate/unsolicited snapshot policy     |
+| `PlayerSync.res` / `ReplayCursor.res`               | Race-safe player reconciliation and deterministic replay cursor    |
+| `src/integration/`                                  | Browser event routing, timing, exports, and metadata               |
+| `src/adapters/cubing/` / `src/adapters/three/`      | Solver/player and renderer boundaries                              |
 
-## Useful references
+The ReScript compiler produces `*.res.mjs`; genType derives typed `*.gen.ts` wrappers from public
+interfaces. The release check packs the core and compiles isolated TypeScript and ReScript
+consumers against the resulting tarball.
 
-- [packages/core/README.md](packages/core/README.md) — core consumer surface
-- [README.md](README.md) — lab setup and event-pipeline overview
-- `packages/core/src/domain/PlayerSync.res` — canonical reducer-plus-effects style
-- `packages/core/src/session/jsonlMock.e2e.test.ts` — JSONL replay at the connection boundary
-- `eslint.config.js` — checked TypeScript import boundaries
-- [David Singmaster's cycle-notation discussion (PDF)](https://maths-people.anu.edu.au/~burkej/cube/singmaster.pdf) —
-  the reference for the compact cubie-cycle display.
-- [cube-notation-compiler](https://github.com/Afront/cube-notation-compiler) —
-  an Extended Singmaster notation grammar and compiler reference.
-- [CubeTwister Superset ENG 3×3 notation](https://www.randelshofer.ch/cubetwister/doc/notations/superset_eng_3x3.html) —
-  the reference for Copy as SSE permutation cycles. Regrip canonically roots
-  corner cycles by `URF DFR UBR DRB ULB DBL UFL DLF`, then edge cycles by
-  `UR RF DR BU RB BD UL LB DL FU LF FD`; CP/CO/EP/EO storage remains Kociemba-ordered.
-- [CubeTwister Pretty Patterns A410.08](https://www.randelshofer.ch/rubik/patterns/A410.08.html) —
-  a published algorithm/permutation reference used by the facelet-to-SSE fixtures.
-- [Superset ENG 3×3 move notation](https://www.randelshofer.ch/rubik/patterns/doc/supersetENG_3x3.html) —
-  the reference for Copy SSE detected moves.
-- [WCA Regulations, Article 12: Notation](https://www.worldcubeassociation.org/regulations/#article-12-notation) —
-  the reference for the WCA detected-move editor view.
-- [CubeTwister / TWIZZLE description](https://www.randelshofer.ch/cube/twister/doc/description.php) —
-  the reference for the Twizzle detected-move editor view.
+## Maintainer boundaries
+
+The `smartcube-web-bluetooth` dependency is pinned to a tested commit. Update it deliberately, run
+the event-contract and full test suites, and commit its lockfile change with the dependency update.
+
+`repomix.config.json` defines an ignored, review-safe architecture bundle for external analysis:
+
+```sh
+npx repomix --config repomix.config.json
+```
+
+The resulting `repomix-regrip.xml.txt` is a handover aid, not a build input. Hardware JSONL captures
+may contain device and session data and must not be committed without review and redaction.
+
+## References
+
+- [Core consumer guide](packages/core/README.md)
+- `packages/core/src/session/jsonlMock.e2e.test.ts` — replay contract at the connection boundary
+- `packages/core/src/domain/PlayerSync.res` — reducer-plus-effects example
+- `eslint.config.js` — enforced TypeScript dependency boundaries
+- [David Singmaster's cycle-notation discussion (PDF)](https://maths-people.anu.edu.au/~burkej/cube/singmaster.pdf)
+- [Extended Singmaster notation compiler](https://github.com/Afront/cube-notation-compiler)
+- [CubeTwister Superset ENG 3×3 permutation notation](https://www.randelshofer.ch/cubetwister/doc/notations/superset_eng_3x3.html)
+- [CubeTwister Pretty Patterns A410.08](https://www.randelshofer.ch/rubik/patterns/A410.08.html)
+- [Superset ENG 3×3 move notation](https://www.randelshofer.ch/rubik/patterns/doc/supersetENG_3x3.html)
+- [WCA Regulations, Article 12: Notation](https://www.worldcubeassociation.org/regulations/#article-12-notation)
+- [CubeTwister / TWIZZLE description](https://www.randelshofer.ch/cube/twister/doc/description.php)
