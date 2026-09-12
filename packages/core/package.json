@@ -49,6 +49,10 @@
       "types": "./dist/domain/MoveBackTrigger.gen.d.ts",
       "default": "./dist/domain/MoveBackTrigger.gen.js"
     },
+    "./domain/CubeFacelets": {
+      "types": "./dist/domain/CubeFacelets.gen.d.ts",
+      "default": "./dist/domain/CubeFacelets.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",

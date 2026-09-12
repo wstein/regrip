@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Alg } from 'cubing/alg';
 import { cube3x3x3 } from 'cubing/puzzles';
 
-import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import kociembaFixtures from '../../test/fixtures/kociemba-cubie-level.json';
 import ssePatterns from '../../test/fixtures/sse-patterns.json';
 import { kpuzzleReady, patternToFacelets } from '../adapters/cubing/utils';

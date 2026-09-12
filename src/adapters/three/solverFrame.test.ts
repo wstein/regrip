@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
 import { createSolverFrame } from './solverFrame';
 

@@ -2,7 +2,7 @@ import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetoot
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
 import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync.res.mjs';
-import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
 import { formatOfflineStats, formatSingmasterCycles } from './cubeInfo';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
@@ -12,13 +12,13 @@ export type ScrambleSolver = (facelets: string) => Promise<string>;
 export type SolveDetector = (facelets: string) => boolean;
 export const defaultSolveDetector: SolveDetector = CubeFacelets.isSolvedFacelets;
 
-function cubieStateFromPattern(pattern: CubeFacelets.PatternData): SmartCubeCubieState {
+function cubieStateFromPattern(pattern: CubeFacelets.patternData): SmartCubeCubieState {
   const decoded = CubeFacelets.faceletsToKociembaState(CubeFacelets.patternDataToFacelets(pattern));
   if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
   return decoded._0;
 }
 
-function patternFromFacelets(facelets: string): CubeFacelets.PatternData | undefined {
+function patternFromFacelets(facelets: string): CubeFacelets.patternData | undefined {
   const decoded = CubeFacelets.decodeFacelets(facelets);
   return decoded.TAG === 'Ok' ? decoded._0 : undefined;
 }
@@ -58,7 +58,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   let playerUntrusted = false;
   // Copy/export state is always normalized to the protocol's canonical URFDLB
   // frame, matching the body-frame 3D player and incoming FACELETS snapshots.
-  let normalizedPattern: CubeFacelets.PatternData | undefined;
+  let normalizedPattern: CubeFacelets.patternData | undefined;
 
   function applyPlayerEffects(effects: PlayerSync.PlayerSyncEffect[]): void {
     for (const effect of effects) {

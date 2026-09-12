@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import { formatCubeExport, formatCubieCoordinates, formatOrbit64 } from './cubeExport';
 
 const solved = {

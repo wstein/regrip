@@ -1,9 +1,17 @@
 import { KPattern, KPuzzle } from 'cubing/kpuzzle';
 import { cube3x3x3 } from 'cubing/puzzles';
 
-import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 
 let KPUZZLE_333: KPuzzle;
+
+// cubing.js types its orbit map more broadly than the concrete 3×3 runtime
+// shape. The packed-core regression test verifies these exact uppercase keys.
+const asCorePatternData = (patternData: KPattern['patternData']): CubeFacelets.patternData =>
+  patternData as unknown as CubeFacelets.patternData;
+
+const asCubingPatternData = (patternData: CubeFacelets.patternData): KPattern['patternData'] =>
+  patternData as unknown as KPattern['patternData'];
 
 /**
  * Resolves once the 3x3x3 KPuzzle required by `faceletsToPattern` has loaded.
@@ -19,7 +27,7 @@ const kpuzzleReady: Promise<void> = cube3x3x3.kpuzzle().then((v) => {
  * @returns String representing cube facelets in the Kociemba notation
  */
 function patternToFacelets(pattern: KPattern): string {
-  return CubeFacelets.patternDataToFacelets(pattern.patternData);
+  return CubeFacelets.patternDataToFacelets(asCorePatternData(pattern.patternData));
 }
 
 /**
@@ -29,7 +37,10 @@ function patternToFacelets(pattern: KPattern): string {
  * @throws if `facelets` is not a valid 3x3x3 state, or if called before `kpuzzleReady` resolves
  */
 function faceletsToPattern(facelets: string): KPattern {
-  return new KPattern(KPUZZLE_333, CubeFacelets.faceletsToPatternData(facelets));
+  return new KPattern(
+    KPUZZLE_333,
+    asCubingPatternData(CubeFacelets.faceletsToPatternData(facelets)),
+  );
 }
 
 export { patternToFacelets, faceletsToPattern, kpuzzleReady };
