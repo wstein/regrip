@@ -44,7 +44,7 @@ describe.skipIf(!capturesAvailable)('smart cube session over the library Bluetoo
         connection.capabilities.battery = false;
         return connection;
       },
-      virtualRegrips: true,
+      features: { regrip: { enabled: true } },
     });
     const received: string[] = [];
     session.subscribeEvents((event) => received.push(event.type));

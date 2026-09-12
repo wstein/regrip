@@ -139,7 +139,7 @@ describe('smart cube session', () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({
       connect: async () => connection(events$),
-      virtualRegrips: true,
+      features: { regrip: { enabled: true } },
     });
     const received: SmartCubeSessionEvent[] = [];
     session.subscribeEvents((event) => {

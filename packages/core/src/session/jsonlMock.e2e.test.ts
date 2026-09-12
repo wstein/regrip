@@ -24,7 +24,7 @@ describe('JSONL session replay contract', () => {
     const mock = createJsonlMockConnection(jsonl);
     const session = createSmartCubeSession({
       connect: async () => mock.connection,
-      virtualRegrips: true,
+      features: { regrip: { enabled: true } },
     });
     const received: string[] = [];
     session.subscribeEvents((event) => {
