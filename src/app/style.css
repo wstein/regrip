@@ -1307,6 +1307,15 @@ body {
   justify-content: space-between;
   margin-top: 1rem;
 }
+.cube-toolbar {
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+.cube-toolbar > button,
+.cube-toolbar .cube-export > button {
+  padding: 0.32rem 0.5rem;
+  font-size: 0.7rem;
+}
 .command-panel {
   margin-top: 1rem;
   padding-top: 1rem;

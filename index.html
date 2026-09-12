@@ -243,6 +243,41 @@
                   </div>
                   <span id="grip-gesture" class="grip-gesture" hidden></span>
                 </div>
+                <div class="control-actions cube-toolbar" aria-label="Cube controls">
+                  <button id="reset-state" type="button">Reset State</button>
+                  <div class="cube-export">
+                    <button
+                      id="copy-cube-state"
+                      type="button"
+                      aria-expanded="false"
+                      aria-controls="cube-export-menu"
+                    >
+                      Copy as…
+                    </button>
+                    <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
+                      <button id="copy-compact-facelets" type="button" role="menuitem">
+                        Compact facelets
+                      </button>
+                      <button id="copy-spaced-facelets" type="button" role="menuitem">
+                        Spaced facelets
+                      </button>
+                      <button id="copy-singmaster-cycles" type="button" role="menuitem">
+                        Singmaster cycles
+                      </button>
+                      <button id="copy-sse-permutation" type="button" role="menuitem">
+                        SSE permutation
+                      </button>
+                      <button id="copy-cubie-coordinates" type="button" role="menuitem">
+                        CP / CO / EP / EO
+                      </button>
+                      <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
+                    </div>
+                  </div>
+                  <button id="track-orientation" type="button" aria-pressed="false" disabled>
+                    Track orientation
+                  </button>
+                  <button id="reset-gyro" type="button" disabled>Reset View</button>
+                </div>
               </div>
 
               <section class="detected-moves-panel" aria-label="Detected Moves">
@@ -311,44 +346,6 @@
               />
             </section>
 
-            <div class="controls">
-              <div class="control-actions">
-                <button id="reset-state" type="button">Reset State</button>
-                <div class="cube-export">
-                  <button
-                    id="copy-cube-state"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="cube-export-menu"
-                  >
-                    Copy as…
-                  </button>
-                  <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
-                    <button id="copy-compact-facelets" type="button" role="menuitem">
-                      Compact facelets
-                    </button>
-                    <button id="copy-spaced-facelets" type="button" role="menuitem">
-                      Spaced facelets
-                    </button>
-                    <button id="copy-singmaster-cycles" type="button" role="menuitem">
-                      Singmaster cycles
-                    </button>
-                    <button id="copy-sse-permutation" type="button" role="menuitem">
-                      SSE permutation
-                    </button>
-                    <button id="copy-cubie-coordinates" type="button" role="menuitem">
-                      CP / CO / EP / EO
-                    </button>
-                    <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
-                  </div>
-                </div>
-                <button id="track-orientation" type="button" aria-pressed="false" disabled>
-                  Track orientation
-                </button>
-                <button id="reset-gyro" type="button" disabled>Reset View</button>
-              </div>
-              <div class="log-actions"></div>
-            </div>
             <section id="command-panel" class="command-panel" hidden></section>
             <section class="quick-game" aria-labelledby="quick-game-heading">
               <h3 id="quick-game-heading">Quick Game</h3>

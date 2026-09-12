@@ -35,7 +35,7 @@ describe('VitePress documentation integration', () => {
 
   it('places the global fullscreen action in the topbar controls', () => {
     const topbar = app.match(/<header class="site-topbar">[\s\S]*?<\/header>/)?.[0];
-    const cubeActions = app.match(/<div class="control-actions">[\s\S]*?<\/div>/)?.[0];
+    const cubeActions = app.match(/<div class="control-actions[^"]*"[^>]*>[\s\S]*?<\/div>/)?.[0];
 
     expect(topbar).toContain('id="fullscreen"');
     expect(cubeActions).not.toContain('id="fullscreen"');
@@ -74,6 +74,17 @@ describe('VitePress documentation integration', () => {
     expect(panel).toContain('class="detected-moves-toolbar"');
     expect(panel!.indexOf('class="detected-moves-actions"')).toBeLessThan(
       panel!.indexOf('class="detected-moves-editor"'),
+    );
+  });
+
+  it('keeps a compact cube toolbar inside the cube column', () => {
+    const cubeColumn = app.match(
+      /<div class="cube-column">[\s\S]*?<section class="detected-moves-panel"/,
+    )?.[0];
+
+    expect(cubeColumn).toContain('class="control-actions cube-toolbar"');
+    expect(cubeColumn!.indexOf('id="grip-status"')).toBeLessThan(
+      cubeColumn!.indexOf('class="control-actions cube-toolbar"'),
     );
   });
 
