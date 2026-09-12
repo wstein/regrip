@@ -33,8 +33,7 @@ function mountTrace(): void {
         <span id="trace-stats"></span>
         <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
         <div id="trace-selection" hidden><span id="trace-selection-count"></span>
-          <button id="select-all-trace"></button><button id="export-trace"></button>
-          <button id="copy-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
+          <button id="select-all-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
         </div>
         <div id="event-log-rows"></div>
         <section id="trace-detail" hidden>
@@ -156,21 +155,11 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector('#trace-selection-count')?.textContent).toBe('2 selected');
   });
 
-  it('supports shift-click ranges, type bulk selection, copy, export, and local move reproduction', async () => {
+  it('supports shift-click ranges, type bulk selection, and local move reproduction', () => {
     mountTrace();
     const reproduce = vi.fn();
-    const copy = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText: copy },
-      configurable: true,
-    });
-    const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:trace');
-    const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
-    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     const trace = createLiveLog({
       onReproduceMoves: reproduce,
-      now: () => new Date('2026-09-09T10:00:00.000Z'),
     });
     trace.append('MOVE', 'R', 1, { move: 'R' });
     trace.append('EVENT', 'battery', 2, { battery: 98 });
@@ -197,15 +186,8 @@ describe('live trace browser interactions', () => {
     expect(document.querySelector<HTMLElement>('#trace-detail')?.hidden).toBe(false);
     expect(document.querySelector('#trace-detail-json')?.textContent).toContain('"move": "R"');
 
-    click('#copy-trace');
-    await Promise.resolve();
-    expect(copy).toHaveBeenCalledWith(expect.stringContaining('"move":"R"'));
-
-    click('#export-trace');
-    expect(createObjectURL).toHaveBeenCalledOnce();
-    expect(anchorClick).toHaveBeenCalledOnce();
-    const blob = createObjectURL.mock.calls[0]![0] as Blob;
-    expect(await blob.text()).toContain('"move":"U\'"');
+    expect(document.querySelector('#copy-trace')).toBeNull();
+    expect(document.querySelector('#export-trace')).toBeNull();
 
     click('#reproduce-trace');
     expect(reproduce).toHaveBeenCalledWith(['R', "U'"]);

@@ -383,8 +383,6 @@ export function createLiveLog({
   const selection = byId('trace-selection');
   const selectionCount = byId('trace-selection-count');
   const selectAll = byId('select-all-trace');
-  const exportButton = byId('export-trace');
-  const copyButton = byId('copy-trace');
   const reproduceButton = byId<HTMLButtonElement>('reproduce-trace');
   const clearSelection = byId('clear-trace-selection');
   const detail = byId('trace-detail');
@@ -867,15 +865,6 @@ export function createLiveLog({
     selected.clear();
     lastSelectedId = undefined;
     render();
-  });
-  exportButton.addEventListener('click', () => {
-    const contents = serializeJsonl(selectedEntries().map((entry) => entry.log));
-    if (contents)
-      downloadJsonl(contents, `smartcube-trace-${now().toISOString().replace(/:/g, '-')}.jsonl`);
-  });
-  copyButton.addEventListener('click', () => {
-    const contents = serializeJsonl(selectedEntries().map((entry) => entry.log));
-    if (contents) void navigator.clipboard?.writeText(contents);
   });
   reproduceButton.addEventListener('click', () => onReproduceMoves?.(selectedMoves()));
   copyDetail.addEventListener('click', () => {
