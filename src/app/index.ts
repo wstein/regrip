@@ -35,6 +35,7 @@ import { featurePresets } from '@wstein/regrip-core/session/features';
 import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 import { createSolverFrame } from '../adapters/three/solverFrame';
 import { sourceRevision } from './sourceRevision';
+import { loadReplayFromUrl, mountMockDevicePicker } from './mockDevice';
 
 let detectedMoveNotation: DetectedMoveNotation = 'wca';
 
@@ -84,12 +85,15 @@ let sceneRenderer: SceneRenderer | undefined;
 let orientationTracking = false;
 const playerSync = createTwistyPlayerSync(twistyPlayer, () => sceneRenderer?.requestRender());
 const playerPatterns = createPatternReconciler();
-// Replaced with `undefined` by Vite in production, allowing Rollup to exclude
-// the replay transport and panel from the published lab bundle.
-const replay = import.meta.env.DEV ? window.__smartcubeReplay : undefined;
+const preseededReplay = import.meta.env.DEV ? window.__smartcubeReplay : undefined;
+const mockReplayLoad = preseededReplay
+  ? ({ requested: false } as const)
+  : await loadReplayFromUrl();
+const replay = preseededReplay ?? (mockReplayLoad.requested ? mockReplayLoad.replay : undefined);
 const session =
   replay?.session ?? createSmartCubeSession({ connect: connectCube, features: featurePresets.all });
 if (replay) void import('./replayPanel').then(({ mountReplayPanel }) => mountReplayPanel(replay));
+mountMockDevicePicker({ load: mockReplayLoad });
 const sessionSignals = createSessionSignals(session);
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
@@ -556,3 +560,7 @@ infoPanel.on('detectedMoves', 'input', () =>
 infoPanel.on('start-timer', 'click', () => {
   timerController.dispatch('activate');
 });
+
+// Subscribe every UI integration before the in-app mock transport publishes
+// its initial connection state. The dev harness continues to connect itself.
+if (replay && !preseededReplay) void session.connect();

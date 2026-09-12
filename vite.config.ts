@@ -38,6 +38,7 @@ export default defineConfig(async ({ command }) => {
       },
     },
     build: {
+      target: 'es2022',
       chunkSizeWarningLimit: 2048,
       rollupOptions: {
         input: {
