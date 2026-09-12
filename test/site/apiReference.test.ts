@@ -24,7 +24,7 @@ describe('VitePress documentation integration', () => {
     expect(app).toMatch(/>Lab</);
     expect(app).toMatch(/>Docs</);
     expect(app).toMatch(/>API</);
-    expect(app).toMatch(/>GitHub</);
+    expect(app).toMatch(/>GitHub@unknown</);
   });
 
   it('generates VitePress-compatible Markdown API documentation', () => {

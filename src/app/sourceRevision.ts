@@ -11,9 +11,9 @@ export function sourceRevision(sha: string): SourceRevision {
   if (normalizedSha && /^[0-9a-f]{7,40}$/i.test(normalizedSha)) {
     return {
       href: `${SOURCE_REPOSITORY_URL}/tree/${normalizedSha}`,
-      label: `wstein/regrip@${normalizedSha.slice(0, 7)}`,
+      label: `GitHub@${normalizedSha.slice(0, 7)}`,
     };
   }
 
-  return { href: SOURCE_REPOSITORY_URL, label: 'wstein/regrip@unknown' };
+  return { href: SOURCE_REPOSITORY_URL, label: 'GitHub@unknown' };
 }
