@@ -22,21 +22,30 @@ function mountTrace(): void {
     return 0;
   });
   document.body.innerHTML = `
-    <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button><button id="pause-trace"></button>
-    <span id="trace-stats"></span>
-    <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
-    <div id="trace-selection" hidden><span id="trace-selection-count"></span>
-      <button id="select-all-trace"></button><button id="export-trace"></button>
-      <button id="copy-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
-    </div>
-    <div id="event-log-rows"></div>
-    <section id="trace-detail" hidden><span id="trace-detail-summary"></span>
-      <button id="copy-trace-detail"></button>
-      <pre id="trace-detail-json"></pre>
-    </section>
-    <menu id="trace-context-menu" hidden><button id="select-trace-event"></button>
-      <button id="copy-trace-event"></button><button id="export-trace-event"></button>
-    </menu>`;
+    <div class="app-layout">
+      <aside id="event-log" data-collapsed="false">
+        <button id="toggle-trace-collapse" type="button" aria-expanded="true">◀</button>
+        <div id="trace-collapsed-rail" hidden>
+          <span class="trace-rail-title">Live Trace</span>
+          <span id="trace-collapsed-badge">0</span>
+        </div>
+        <button id="clear-trace"></button><button id="sort-trace"></button><button id="follow-trace"></button><button id="pause-trace"></button>
+        <span id="trace-stats"></span>
+        <div class="trace-filters">${filters.map((category) => `<button data-trace-filter="${category}"></button>`).join('')}</div>
+        <div id="trace-selection" hidden><span id="trace-selection-count"></span>
+          <button id="select-all-trace"></button><button id="export-trace"></button>
+          <button id="copy-trace"></button><button id="reproduce-trace"></button><button id="clear-trace-selection"></button>
+        </div>
+        <div id="event-log-rows"></div>
+        <section id="trace-detail" hidden><span id="trace-detail-summary"></span>
+          <button id="copy-trace-detail"></button>
+          <pre id="trace-detail-json"></pre>
+        </section>
+        <menu id="trace-context-menu" hidden><button id="select-trace-event"></button>
+          <button id="copy-trace-event"></button><button id="export-trace-event"></button>
+        </menu>
+      </aside>
+    </div>`;
 }
 
 function click(selector: string, options: MouseEventInit = {}): void {
@@ -305,5 +314,33 @@ describe('live trace browser interactions', () => {
     trace.append('EVENT', 'third');
     expect(root.scrollTop).toBe(0);
     expect(document.querySelector<HTMLButtonElement>('#follow-trace')?.disabled).toBe(true);
+  });
+
+  it('toggles collapsible sidebar and updates collapsed event badge', () => {
+    mountTrace();
+    const trace = createLiveLog();
+    const toggle = document.querySelector<HTMLButtonElement>('#toggle-trace-collapse')!;
+    const log = document.querySelector<HTMLElement>('#event-log')!;
+    const badge = document.querySelector<HTMLElement>('#trace-collapsed-badge')!;
+    const rail = document.querySelector<HTMLElement>('#trace-collapsed-rail')!;
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(log.dataset.collapsed).toBe('false');
+    expect(rail.hidden).toBe(true);
+
+    click('#toggle-trace-collapse');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(log.dataset.collapsed).toBe('true');
+    expect(rail.hidden).toBe(false);
+    expect(toggle.textContent).toContain('▶');
+
+    trace.append('MOVE', 'R');
+    expect(badge.textContent).toBe('1');
+
+    click('#trace-collapsed-rail');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(log.dataset.collapsed).toBe('false');
+    expect(rail.hidden).toBe(true);
+    expect(toggle.textContent).toContain('◀');
   });
 });

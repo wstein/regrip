@@ -184,6 +184,50 @@ export function createLiveLog({
   const selectContextEvent = byId('select-trace-event');
   const copyContextEvent = byId('copy-trace-event');
   const exportContextEvent = byId('export-trace-event');
+  const eventLog = document.getElementById('event-log');
+  const appLayout = document.querySelector('.app-layout');
+  const toggleCollapse = document.getElementById(
+    'toggle-trace-collapse',
+  ) as HTMLButtonElement | null;
+  const collapsedRail = document.getElementById('trace-collapsed-rail');
+  const expandCollapse = document.getElementById(
+    'expand-trace-collapse',
+  ) as HTMLButtonElement | null;
+  const collapsedBadge = document.getElementById('trace-collapsed-badge');
+
+  let collapsed = false;
+
+  const setCollapsed = (next: boolean): void => {
+    collapsed = next;
+    if (eventLog) {
+      eventLog.dataset.collapsed = String(collapsed);
+    }
+    if (appLayout) {
+      appLayout.classList.toggle('trace-collapsed', collapsed);
+    }
+    if (toggleCollapse) {
+      toggleCollapse.setAttribute('aria-expanded', String(!collapsed));
+      toggleCollapse.textContent = collapsed ? '▶' : '◀';
+      toggleCollapse.setAttribute(
+        'aria-label',
+        collapsed ? 'Expand live trace sidebar' : 'Collapse live trace sidebar',
+      );
+      toggleCollapse.setAttribute(
+        'title',
+        collapsed ? 'Expand trace (focus mode)' : 'Collapse trace (focus mode)',
+      );
+    }
+    if (collapsedRail) {
+      collapsedRail.hidden = !collapsed;
+    }
+  };
+
+  toggleCollapse?.addEventListener('click', () => setCollapsed(!collapsed));
+  expandCollapse?.addEventListener('click', () => setCollapsed(false));
+  collapsedRail?.addEventListener('click', (e) => {
+    if (e.target !== expandCollapse) setCollapsed(false);
+  });
+
   const groupContainers = document.querySelectorAll<HTMLElement>(
     '.trace-heading-actions, .trace-filters',
   );
@@ -277,6 +321,9 @@ export function createLiveLog({
     stats.textContent = `${captured} captured event${captured === 1 ? '' : 's'}${
       shown === captured ? '' : ` · ${shown} shown`
     }${paused ? ' · paused' : ''}`;
+    if (collapsedBadge) {
+      collapsedBadge.textContent = String(captured);
+    }
   };
 
   const entryById = (id: number | undefined): TraceEntry | undefined =>
@@ -612,5 +659,12 @@ export function createLiveLog({
     getEntries: (): readonly TraceEntry[] => allEntries.value,
     getVisibleEntries: (): readonly TraceEntry[] => displayedEntries(),
     getSelectedEntries: (): TraceEntry[] => selectedEntries(),
+    toggleCollapse(): void {
+      setCollapsed(!collapsed);
+    },
+    isCollapsed(): boolean {
+      return collapsed;
+    },
+    setCollapsed,
   };
 }

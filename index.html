@@ -20,10 +20,43 @@
         </nav>
       </header>
       <div class="app-layout">
-        <aside id="event-log" aria-label="Live event trace">
+        <aside id="event-log" aria-label="Live event trace" data-collapsed="false">
+          <div
+            id="trace-collapsed-rail"
+            class="trace-collapsed-rail"
+            hidden
+            title="Expand trace sidebar"
+          >
+            <button
+              id="expand-trace-collapse"
+              type="button"
+              class="trace-rail-expand"
+              aria-label="Expand live trace sidebar"
+              title="Expand trace (focus mode)"
+            >
+              ▶
+            </button>
+            <div class="trace-rail-label">Live Trace</div>
+            <span id="trace-collapsed-badge" class="trace-collapsed-badge" title="Captured events"
+              >0</span
+            >
+          </div>
           <div class="trace-heading">
             <div class="trace-heading-title">
-              <h2>Live Trace</h2>
+              <div class="trace-title-group">
+                <button
+                  id="toggle-trace-collapse"
+                  type="button"
+                  class="trace-collapse-button"
+                  aria-expanded="true"
+                  aria-controls="event-log"
+                  aria-label="Collapse live trace sidebar"
+                  title="Collapse trace (focus mode)"
+                >
+                  ◀
+                </button>
+                <h2>Live Trace</h2>
+              </div>
               <span id="trace-stats" aria-live="polite">0 captured events</span>
             </div>
             <div class="trace-heading-actions">
