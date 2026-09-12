@@ -17,6 +17,7 @@
   "scripts": {
     "core:build": "npm --workspace @wstein/regrip-core run build",
     "core:pack:check": "node scripts/pack-core-smoke.mjs",
+    "core:pack:release": "node scripts/pack-core-smoke.mjs --output artifacts/core",
     "core:watch": "npm --workspace @wstein/regrip-core exec -- rescript watch",
     "core:format": "npm --workspace @wstein/regrip-core exec -- rescript format",
     "core:format:check": "npm --workspace @wstein/regrip-core exec -- rescript format --check",

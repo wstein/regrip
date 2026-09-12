@@ -1,0 +1,39 @@
+name: Release core package
+
+on:
+  push:
+    tags:
+      - 'core-v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  release:
+    name: Test and publish core
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm ci
+      - name: Verify tag matches the core package version
+        run: node scripts/check-core-release-tag.mjs "${GITHUB_REF_NAME}"
+      - name: Test core package
+        run: npm run res:build && npm run test:core
+      - name: Build and smoke-test release tarball
+        run: npm run core:pack:release
+      - name: Upload validated release tarball
+        uses: actions/upload-artifact@v7
+        with:
+          name: regrip-core-${{ github.ref_name }}
+          path: artifacts/core/*.tgz
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish validated tarball with provenance
+        run: npm publish artifacts/core/*.tgz --access public --provenance

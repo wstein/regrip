@@ -10,6 +10,7 @@ lerna-debug.log*
 
 node_modules
 dist
+/artifacts/
 docs/api
 docs/site/api
 dist-ssr

@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import {
+  copyFileSync,
   cpSync,
   mkdirSync,
   mkdtempSync,
@@ -9,7 +10,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -19,6 +20,13 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 // `npm run` injects its own npm_config_cache, which can point at a stale global
 // cache. Keep this ephemeral pack check isolated unless a caller opts in.
 const npmCache = process.env.REGRIP_NPM_CACHE ?? join(tmpdir(), 'regrip-npm-cache');
+const outputFlag = process.argv.indexOf('--output');
+const outputDirectory =
+  outputFlag === -1 ? undefined : resolve(root, process.argv[outputFlag + 1] ?? '');
+
+if (outputFlag !== -1 && !process.argv[outputFlag + 1]) {
+  throw new Error('--output requires a destination directory.');
+}
 
 const writeTransportPeerStub = (directory) => {
   mkdirSync(directory, { recursive: true });
@@ -154,6 +162,13 @@ try {
   run(['exec', '--', 'rescript', 'build'], consumer);
   execFileSync(process.execPath, ['src/Consumer.res.mjs'], { cwd: consumer, stdio: 'inherit' });
   execFileSync(process.execPath, ['time-runtime.mjs'], { cwd: consumer, stdio: 'inherit' });
+
+  if (outputDirectory) {
+    mkdirSync(outputDirectory, { recursive: true });
+    const retainedTarball = join(outputDirectory, basename(tarball));
+    copyFileSync(tarball, retainedTarball);
+    console.log(`Validated core tarball: ${retainedTarball}`);
+  }
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

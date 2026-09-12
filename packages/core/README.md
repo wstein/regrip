@@ -49,3 +49,12 @@ The former `*.res.mjs` subpaths are internal runtime dependencies and are no lon
 See the repository [architecture guide](../../ARCHITECTURE.md) for layer and frame semantics. The
 release check builds the package, inspects `npm pack`, and compiles both TypeScript and ReScript
 imports from an unpacked tarball consumer fixture.
+
+## Releases
+
+Push a package-specific tag matching the version in `package.json`, such as `core-v0.1.0`. The
+release workflow tests the core, builds and smoke-tests one tarball, retains it as a workflow
+artifact, and publishes those exact bytes to npm through trusted publishing with provenance.
+
+Configure npm's trusted publisher for owner `wstein`, repository `regrip`, workflow
+`release-core.yml`, and environment `npm`; the workflow intentionally contains no registry token.

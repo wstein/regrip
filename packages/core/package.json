@@ -3,6 +3,19 @@
   "version": "0.1.0",
   "description": "MIT smart-cube session core for Regrip and CubeLab",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wstein/regrip.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/wstein/regrip/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/wstein/regrip/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
