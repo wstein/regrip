@@ -87,7 +87,7 @@ export function mountMockDevicePicker({
 
   const active = load.requested && load.replay !== undefined;
   toggle.dataset.mockActive = String(active);
-  if (active) toggle.textContent = 'Mock cube active ▾';
+  if (active) toggle.textContent = 'Replay mode ▾';
   activeMenuItem.hidden = !active;
   status.textContent = load.requested && load.error ? load.error : '';
   status.hidden = status.textContent === '';

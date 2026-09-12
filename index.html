@@ -45,7 +45,7 @@
                   <li>
                     <button id="disconnect-cube" type="button" hidden>Disconnect cube</button>
                   </li>
-                  <li class="connect-menu-label" role="presentation">Demo mock cubes</li>
+                  <li class="connect-menu-label" role="presentation">Replay captures</li>
                   <li>
                     <button type="button" data-mock-fixture="gocube-edge">
                       GoCube Edge (demo)
@@ -56,7 +56,7 @@
                   </li>
                   <li><button type="button" data-mock-load>Load JSONL capture…</button></li>
                   <li class="connect-menu-active" hidden>
-                    <button id="mock-device-exit" type="button">Exit mock mode</button>
+                    <button id="mock-device-exit" type="button">Exit replay mode</button>
                   </li>
                 </menu>
                 <input id="mock-device-file" type="file" accept=".jsonl,application/json" hidden />
@@ -377,13 +377,13 @@
             <section class="quick-game" aria-labelledby="quick-game-heading">
               <div class="quick-game-copy">
                 <h3 id="quick-game-heading">Quick game</h3>
-                <p id="quick-game-status">Connect a cube or choose a mock cube to begin.</p>
+                <p id="quick-game-status">Connect a cube or choose a replay capture to begin.</p>
               </div>
               <button
                 id="start-timer"
                 type="button"
                 class="start-timer-cta"
-                title="Connect a cube or choose a mock cube first."
+                title="Connect a cube or choose a replay capture first."
                 disabled
               >
                 Start game

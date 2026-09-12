@@ -220,11 +220,11 @@ input or a replacement for the generated API reference.
 The JSONL replay fixture is deliberately synthetic and redacted. Do not commit unreviewed hardware
 captures: exported logs can contain device and session data.
 
-To inspect a fixture without hardware, run `npm run dev`, open the Console, and choose **Try a mock
-cube**. Pick a bundled GoCube Edge or GAN UI12 demo, or load a local JSONL file. The file is validated
-before it is retained in browser session storage, and mock mode is selected before the session is
-created, so it uses the same transport boundary as a real cube. Replay code and bundled fixtures are
-lazy-loaded only after mock mode is requested; `npm run check:replay-lazy` enforces that production
+To inspect a fixture without hardware, run `npm run dev`, open the Console, and choose **Replay
+captures**. Pick a bundled GoCube Edge or GAN UI12 demo, or load a local JSONL file. The file is
+validated before it is retained in browser session storage, and Replay mode is selected before the
+session is created, so it uses the same transport boundary as a real cube. Replay code and bundled
+fixtures are lazy-loaded only after Replay mode is requested; `npm run check:replay-lazy` enforces that production
 bundle boundary after `npm run build`.
 
 The deterministic browser-test harness remains available at

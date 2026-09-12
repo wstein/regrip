@@ -162,7 +162,7 @@ describe('timer button state and TPS indicator', () => {
     const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;
 
     setTimerActivateEnabled(false);
-    expect(btn.title).toContain('Connect a cube');
+    expect(btn.title).toContain('replay capture');
 
     setTimerActivateEnabled(true);
     expect(btn.title).toContain('solving timer');
@@ -170,7 +170,7 @@ describe('timer button state and TPS indicator', () => {
 
   it('updates timer button text and dataset state through lifecycle phases', () => {
     document.body.innerHTML = `
-      <p id="quick-game-status">Connect a cube or choose a mock cube to begin.</p>
+      <p id="quick-game-status">Connect a cube or choose a replay capture to begin.</p>
       <button id="start-timer" type="button" class="start-timer-cta" disabled>Start game</button>
     `;
     const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;

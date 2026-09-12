@@ -52,7 +52,7 @@ describe('VitePress documentation integration', () => {
     expect(topbar).toContain('aria-controls="connect-menu"');
     expect(topbar).toContain('id="connect-bluetooth"');
     expect(topbar).toContain('Connect Bluetooth Cube (Web Bluetooth)');
-    expect(topbar).toContain('Demo mock cubes');
+    expect(topbar).toContain('Replay captures');
     expect(topbar).not.toContain('id="mock-device-toggle"');
     expect(topbar!.indexOf('site-topbar-brand')).toBeLessThan(
       topbar!.indexOf('site-topbar-device-actions'),

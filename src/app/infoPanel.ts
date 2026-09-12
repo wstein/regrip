@@ -229,11 +229,7 @@ export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
   const connect = button('connect');
   const connected = label === 'Disconnect';
   const mockActive = connect.dataset.mockActive === 'true';
-  connect.textContent = connected
-    ? mockActive
-      ? 'Mock cube active ▾'
-      : 'Connected ▾'
-    : 'Connect ▾';
+  connect.textContent = connected ? (mockActive ? 'Replay mode ▾' : 'Connected ▾') : 'Connect ▾';
   connect.dataset.state = connected ? 'connected' : 'connect';
   const connectBluetooth = button('connect-bluetooth');
   const disconnect = button('disconnect-cube');
@@ -267,9 +263,11 @@ export function setResetOrientationEnabled(enabled: boolean): void {
 export function setTimerActivateEnabled(enabled: boolean): void {
   const start = button('start-timer');
   start.disabled = !enabled;
-  start.title = enabled ? 'Arm the solving timer.' : 'Connect a cube or choose a mock cube first.';
+  start.title = enabled
+    ? 'Arm the solving timer.'
+    : 'Connect a cube or choose a replay capture first.';
   if (!enabled)
-    byId('quick-game-status').textContent = 'Connect a cube or choose a mock cube to begin.';
+    byId('quick-game-status').textContent = 'Connect a cube or choose a replay capture to begin.';
 }
 
 export type TimerButtonState = 'idle' | 'ready' | 'running' | 'stopped';

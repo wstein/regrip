@@ -7,7 +7,7 @@
 - `src/app/` owns DOM, Preact Signals, controls, trace UI, and composition. `src/integration/` applies session output to app concerns; `src/adapters/` contains cubing.js and Three.js bridges.
 - Two Vite HTML entry points exist at the repo root: `index.html` (the lab app) and `landing.html`. Narrative and generated API documentation live in `docs/site/` and are built with VitePress.
 - Browser tests live in `test/browser/`; unit tests sit beside source as `*.test.ts` (files named `*.browser.test.ts` run under jsdom via a `// @vitest-environment jsdom` pragma). ReScript tests use `*_test.res`.
-- You can exercise the full app without physical hardware: `npm run dev`, open the Console, and choose **Try a mock cube** for a bundled fixture or local JSONL file. The deterministic browser harness remains available at `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`); add `&autoplay` to advance immediately or `&feed=session` to replay session output.
+- You can exercise the full app without physical hardware: `npm run dev`, open the Console, and choose a bundled or local capture under **Replay captures**. The deterministic browser harness remains available at `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`); add `&autoplay` to advance immediately or `&feed=session` to replay session output.
 - Do not commit device captures. Local `smartcube-log-*.jsonl`, generated `dist/`, and `bun.lock` are ignored; npm and `package-lock.json` are the supported package workflow.
 
 ## Build, Test, and Development Commands
