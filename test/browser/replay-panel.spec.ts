@@ -137,11 +137,13 @@ test('aligns syntax-highlighted tokens pixel-for-pixel with textarea caret posit
   const moves = page.locator('#detectedMoves');
   await moves.fill('B F d Dw2');
 
-  const diff = await page.evaluate(() => {
+  const { diff, minGap } = await page.evaluate(() => {
     const textarea = document.querySelector<HTMLTextAreaElement>('#detectedMoves')!;
-    const dToken = document.querySelectorAll<HTMLElement>('.move-token')[2]; // 'd'
+    const tokens = Array.from(document.querySelectorAll<HTMLElement>('.move-token'));
+    const dToken = tokens[2]; // 'd'
     const measurer = document.createElement('span');
     measurer.style.font = window.getComputedStyle(textarea).font;
+    measurer.style.wordSpacing = window.getComputedStyle(textarea).wordSpacing;
     measurer.style.letterSpacing = '0';
     measurer.style.whiteSpace = 'pre';
     measurer.textContent = 'B F ';
@@ -150,13 +152,23 @@ test('aligns syntax-highlighted tokens pixel-for-pixel with textarea caret posit
       textarea.getBoundingClientRect().left +
       parseFloat(window.getComputedStyle(textarea).paddingLeft) +
       measurer.getBoundingClientRect().width;
-    const dPaddingLeft = parseFloat(window.getComputedStyle(dToken).paddingLeft);
-    const actualTextX = dToken.getBoundingClientRect().left + dPaddingLeft;
+    const dTextRange = document.createRange();
+    dTextRange.selectNodeContents(dToken.firstChild!);
+    const actualTextX = dTextRange.getBoundingClientRect().left;
     measurer.remove();
-    return Math.abs(expectedX - actualTextX);
+
+    let minGap = Infinity;
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const gap =
+        tokens[i + 1].getBoundingClientRect().left - tokens[i].getBoundingClientRect().right;
+      if (gap < minGap) minGap = gap;
+    }
+
+    return { diff: Math.abs(expectedX - actualTextX), minGap };
   });
 
   expect(diff).toBeLessThanOrEqual(0.5);
+  expect(minGap).toBeGreaterThanOrEqual(8);
 });
 
 test('renders the authoritative facelet snapshot after repeated sync requests', async ({
