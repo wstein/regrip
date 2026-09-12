@@ -7,7 +7,7 @@ import { createTwistyPlayerSync } from '../adapters/cubing/twistyPlayerSync';
 import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
-import { createJsonlLog, downloadJsonl } from './jsonlLog';
+import { createJsonlLog, downloadJsonl, serializeJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { mountFullscreenToggle } from './fullscreen';
 import { createDetectedMovesController } from './detectedMovesController';
@@ -435,9 +435,9 @@ infoPanel.on('disconnect-cube', 'click', async () => {
   if (session.getState().connection) await session.disconnect();
 });
 
-function currentJsonlLog(): string {
+function currentReplayHeader() {
   const state = session.getState();
-  return eventLog.toJsonl({
+  return {
     format: JSONL_REPLAY_FORMAT,
     version: JSONL_REPLAY_VERSION,
     session: {
@@ -448,7 +448,22 @@ function currentJsonlLog(): string {
       profile: state.profile.id,
       profileValue: state.profile.value,
     },
-  });
+  };
+}
+
+function currentJsonlLog(): string {
+  return eventLog.toJsonl(currentReplayHeader());
+}
+
+function currentFilteredJsonlLog(): string {
+  return serializeJsonl([
+    {
+      recordedAt: new Date().toISOString(),
+      type: 'trace_header',
+      data: currentReplayHeader(),
+    },
+    ...liveLog.getFilteredEntries().map((entry) => entry.log),
+  ]);
 }
 
 infoPanel.on('download-log', 'click', () => {
@@ -465,6 +480,22 @@ infoPanel.on('copy-log', 'click', () => {
     .catch((error) => {
       console.error('unable to copy trace JSONL', error);
       infoPanel.showFeedback('Could not copy trace JSONL.');
+    });
+});
+
+infoPanel.on('download-filtered-log', 'click', () => {
+  const filename = `smartcube-filtered-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
+  downloadJsonl(currentFilteredJsonlLog(), filename);
+  infoPanel.showFeedback('Filtered trace downloaded.');
+});
+
+infoPanel.on('copy-filtered-log', 'click', () => {
+  void infoPanel
+    .copyText(currentFilteredJsonlLog())
+    .then(() => infoPanel.showFeedback('Filtered trace JSONL copied.'))
+    .catch((error) => {
+      console.error('unable to copy filtered trace JSONL', error);
+      infoPanel.showFeedback('Could not copy filtered trace JSONL.');
     });
 });
 

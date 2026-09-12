@@ -476,11 +476,10 @@ export function createLiveLog({
   const allEntries = computed(() =>
     [...entries.value, ...diagnostics.value].sort((left, right) => left.id - right.id),
   );
-  const visibleEntries = computed(() =>
-    allEntries.value
-      .filter((entry) => activeFilters.value.has(entry.category))
-      .slice(-maxVisibleRows),
+  const filteredEntries = computed(() =>
+    allEntries.value.filter((entry) => activeFilters.value.has(entry.category)),
   );
+  const visibleEntries = computed(() => filteredEntries.value.slice(-maxVisibleRows));
   const selected = new Set<number>();
   let newestFirst = true;
   let autoFollow = true;
@@ -918,6 +917,7 @@ export function createLiveLog({
       appendEntry(category, message, entry);
     },
     getEntries: (): readonly TraceEntry[] => allEntries.value,
+    getFilteredEntries: (): readonly TraceEntry[] => filteredEntries.value,
     getVisibleEntries: (): readonly TraceEntry[] => displayedEntries(),
     getSelectedEntries: (): TraceEntry[] => selectedEntries(),
     toggleCollapse(): void {

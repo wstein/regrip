@@ -265,10 +265,15 @@ describe('live trace browser interactions', () => {
 
     expect(trace.getEntries()).toHaveLength(302);
     expect(trace.getVisibleEntries().map((entry) => entry.message)).toEqual(['R']);
+    expect(trace.getFilteredEntries().map((entry) => entry.message)).toEqual(['R']);
     expect(document.querySelector('#event-log-rows')?.textContent).toContain('R');
     expect(document.querySelector('#trace-stats')?.textContent).toBe(
       '302 captured events · 1 shown',
     );
+
+    click('[data-trace-filter="GYRO"]');
+    expect(trace.getFilteredEntries()).toHaveLength(302);
+    expect(trace.getVisibleEntries()).toHaveLength(300);
   });
 
   it('keeps capped raw diagnostics separate from state evidence and hidden by default', () => {

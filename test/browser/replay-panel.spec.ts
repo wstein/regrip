@@ -139,6 +139,41 @@ test('copies the complete current JSONL trace', async ({ page }) => {
   await expect(page.locator('#app-feedback')).toHaveText('Trace JSONL copied.');
 });
 
+test('copies only trace categories enabled by the current filters', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: (value: string) => localStorage.setItem('copied-filtered-jsonl', value) },
+    });
+  });
+
+  await page.locator('[data-trace-filter="EVENT"]').click();
+  await page.locator('#copy-filtered-log').click();
+
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('copied-filtered-jsonl')))
+    .toContain('"type":"trace_header"');
+  const jsonl = await page.evaluate(() => localStorage.getItem('copied-filtered-jsonl') ?? '');
+  expect(jsonl).toContain('"type":"MOVE"');
+  expect(jsonl).not.toContain('"type":"FACELETS"');
+  await expect(page.locator('#app-feedback')).toHaveText('Filtered trace JSONL copied.');
+
+  const downloadStarted = page.waitForEvent('download');
+  await page.locator('#download-filtered-log').click();
+  const download = await downloadStarted;
+  expect(download.suggestedFilename()).toMatch(/^smartcube-filtered-log-.*\.jsonl$/);
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const downloadedJsonl = Buffer.concat(chunks).toString('utf8');
+  expect(downloadedJsonl).toContain('"type":"MOVE"');
+  expect(downloadedJsonl).not.toContain('"type":"FACELETS"');
+  await expect(page.locator('#app-feedback')).toHaveText('Filtered trace downloaded.');
+});
+
 test('renders the replayed cubie permutation, not only its algorithm text', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
@@ -235,6 +270,8 @@ test('reports unavailable state exports and rejected clipboard writes', async ({
   );
   await page.locator('#copy-log').click();
   await expect(page.locator('#app-feedback')).toHaveText('Could not copy trace JSONL.');
+  await page.locator('#copy-filtered-log').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Could not copy filtered trace JSONL.');
   await page.locator('#copy-detected-moves').click();
   await expect(page.locator('#app-feedback')).toHaveText('Could not copy detected moves.');
 });
