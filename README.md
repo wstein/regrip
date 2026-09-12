@@ -16,6 +16,8 @@ and records the same typed event stream it can replay later without a cube.
 [Browse the API](https://wstein.github.io/regrip/docs/api/) ·
 [Understand the architecture](ARCHITECTURE.md)
 
+![Regrip main panel showing the virtual cube, detected moves, solve analysis, and state export](docs/assets/regrip-console-main.png)
+
 ## Highlights
 
 - **One headless session:** connection lifecycle, initial state, profiles, calibration, event order,
@@ -60,6 +62,8 @@ modes:
 - **Recorded events (exact)** preserves saved regrips and gesture detections.
 - **Re-detect sensor data** runs captured transport samples through a fresh session using the
   recorded feature configuration.
+
+![Replay transport showing feed selection, playback controls, move navigation, and timeline markers](docs/assets/regrip-replay-panel.png)
 
 The deterministic browser harness is also available at
 `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). Add `&autoplay` or
