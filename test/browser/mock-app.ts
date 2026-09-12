@@ -29,7 +29,7 @@ const source = await fetch('/index.html').then((response) => response.text());
 document.body.innerHTML = new DOMParser().parseFromString(source, 'text/html').body.innerHTML;
 await import('../../src/app/index.ts');
 if (contents) {
-  (document.querySelector('#connect') as HTMLButtonElement).click();
+  (document.querySelector('#connect-bluetooth') as HTMLButtonElement).click();
   await new Promise((resolve) => setTimeout(resolve, 50));
   if (autoplay) await window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER);
 }
