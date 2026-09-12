@@ -125,7 +125,12 @@ const faceColors: Record<string, number> = {
   B: 0x3568ff,
 };
 
-function syncVirtualFrameOrientation(): void {
+function formatGripDescription(faces: { front: string; up: string; right: string }): string {
+  const isHome = faces.front === 'F' && faces.up === 'U' && faces.right === 'R';
+  return isHome ? 'Home' : `F:${faces.front} U:${faces.up} R:${faces.right}`;
+}
+
+function syncVirtualFrameOrientation(gesture?: string): void {
   const { right, up, front, faces } = solverFrame.orientation();
   virtualFrameQuaternion.setFromRotationMatrix(
     new THREE.Matrix4().makeBasis(
@@ -138,6 +143,7 @@ function syncVirtualFrameOrientation(): void {
   virtualFrameColors.y = faceColors[faces.up]!;
   virtualFrameColors.z = faceColors[faces.front]!;
   sceneRenderer?.requestRender();
+  infoPanel.setActiveGrip(formatGripDescription(faces), gesture);
 }
 
 function setOrientationTracking(tracking: boolean): void {
@@ -274,18 +280,22 @@ sessionSignals.event.subscribe((event) => {
     eventLog.record('virtual_regrip', { ...event, solverToken });
     appendDetectedMove(solverToken);
     solverFrame.applyRegrip(event.notationToken);
-    syncVirtualFrameOrientation();
+    syncVirtualFrameOrientation(`⟳ ${solverToken}`);
     return;
   }
   if (event.type === 'CUSTOM_TRIGGER') {
     const solverMove = solverFrame.translate(event.move);
     eventLog.record('custom_trigger', { ...event, solverMove });
     infoPanel.showFeedback(`Custom trigger detected: ${solverMove}`);
+    const { faces } = solverFrame.orientation();
+    infoPanel.setActiveGrip(formatGripDescription(faces), `⚡ ${solverMove}`);
     return;
   }
   if (event.type === 'SHAKE') {
     eventLog.record('shake_trigger', { ...event });
     infoPanel.showFeedback(`Shake detected: ${event.steps} steps, ${event.reversals} reversals`);
+    const { faces } = solverFrame.orientation();
+    infoPanel.setActiveGrip(formatGripDescription(faces), '〰 Shake');
     return;
   }
   if (event.type === 'MOVE_GAP') {

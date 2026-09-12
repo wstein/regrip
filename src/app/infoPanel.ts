@@ -60,6 +60,34 @@ export function showFeedback(message: string): void {
   }, 3200);
 }
 
+let gripGestureTimeout: number | undefined;
+
+export function setActiveGrip(gripName: string, gesture?: string): void {
+  const value = document.getElementById('grip-value');
+  if (value) value.textContent = gripName;
+  const badge = document.getElementById('grip-gesture');
+  if (badge) {
+    if (gesture) {
+      badge.textContent = gesture;
+      badge.hidden = false;
+      window.clearTimeout(gripGestureTimeout);
+      gripGestureTimeout = window.setTimeout(() => {
+        badge.hidden = true;
+      }, 3000);
+    } else {
+      badge.hidden = true;
+    }
+  }
+}
+
+export function clearActiveGrip(): void {
+  const value = document.getElementById('grip-value');
+  if (value) value.textContent = 'Home';
+  const badge = document.getElementById('grip-gesture');
+  if (badge) badge.hidden = true;
+  window.clearTimeout(gripGestureTimeout);
+}
+
 export function setInfo(id: string, value: string): void {
   const el = input(id);
   el.value = value;
@@ -201,6 +229,7 @@ export function clearInfo(): void {
   });
   const offlineTitle = document.getElementById('info-offline-title');
   if (offlineTitle) offlineTitle.hidden = true;
+  clearActiveGrip();
   clearDetectedMoves();
 }
 

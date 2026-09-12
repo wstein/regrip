@@ -2,8 +2,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  clearActiveGrip,
   clearInfo,
   countDetectedMoves,
+  setActiveGrip,
   setInfo,
   setOrientationTracking,
   setOrientationTrackingAvailable,
@@ -92,5 +94,31 @@ describe('telemetry info panel', () => {
     expect(input.hidden).toBe(true);
     expect(label.hidden).toBe(true);
     expect(input.dataset.na).toBe('true');
+  });
+});
+
+describe('grip status indicator', () => {
+  it('updates grip value and reveals gesture badge', () => {
+    document.body.innerHTML = `
+      <div id="grip-status">
+        <span id="grip-value">Home</span>
+        <span id="grip-gesture" hidden></span>
+      </div>
+    `;
+    const value = document.querySelector<HTMLElement>('#grip-value')!;
+    const gesture = document.querySelector<HTMLElement>('#grip-gesture')!;
+
+    setActiveGrip('y (F: Red)');
+    expect(value.textContent).toBe('y (F: Red)');
+    expect(gesture.hidden).toBe(true);
+
+    setActiveGrip('y (F: Red)', 'Regrip: y');
+    expect(value.textContent).toBe('y (F: Red)');
+    expect(gesture.textContent).toBe('Regrip: y');
+    expect(gesture.hidden).toBe(false);
+
+    clearActiveGrip();
+    expect(value.textContent).toBe('Home');
+    expect(gesture.hidden).toBe(true);
   });
 });
