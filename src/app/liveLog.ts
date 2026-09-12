@@ -117,57 +117,182 @@ export function highlightJson(jsonString: string): DocumentFragment {
   return fragment;
 }
 
-export function extractTraceChips(entry: TraceEntry): Array<{ label: string; value: string }> {
-  const chips: Array<{ label: string; value: string }> = [];
-  const data = (entry.log.data as Record<string, unknown> | undefined) ?? {};
+type TraceChip = { label: string; value: string };
+type TraceData = Record<string, unknown>;
+type EventDescriptor = {
+  category: TraceCategory;
+  summarize: (data: TraceData, logType?: string) => string;
+  chips?: (data: TraceData, message: string) => TraceChip[];
+};
 
-  if (entry.category === 'MOVE') {
-    const move = typeof data.move === 'string' ? data.move : entry.message;
-    chips.push({ label: 'Move', value: move });
-    if (typeof data.face === 'string') {
-      chips.push({ label: 'Face', value: data.face });
-    }
-    if (typeof data.turns === 'number') {
-      chips.push({ label: 'Turns', value: String(data.turns) });
-    }
-    if (typeof data.amount === 'number') {
-      chips.push({ label: 'Amount', value: String(data.amount) });
-    }
-  } else if (entry.category === 'STATE') {
-    const stateVal =
+const stateChips = (data: TraceData, message: string): TraceChip[] => [
+  {
+    label: 'State',
+    value:
       typeof data.status === 'string'
         ? data.status
         : typeof data.state === 'string'
           ? data.state
-          : entry.message;
-    chips.push({ label: 'State', value: stateVal });
-    if (typeof data.profile === 'string') {
-      chips.push({ label: 'Profile', value: data.profile });
-    }
-  } else if (entry.category === 'REGRIP') {
-    const solverToken =
-      typeof data.solverToken === 'string'
-        ? data.solverToken
-        : typeof data.notationToken === 'string'
-          ? data.notationToken
-          : entry.message;
-    chips.push({ label: 'Regrip', value: solverToken });
-    if (typeof data.sensorFrameToken === 'string') {
-      chips.push({ label: 'Sensor', value: data.sensorFrameToken });
-    }
-  } else if (entry.category === 'TRIGGER') {
-    chips.push({
-      label: 'Trigger',
-      value: typeof data.move === 'string' ? data.move : entry.message,
-    });
-  } else if (entry.category === 'SHAKE') {
-    chips.push({ label: 'Gesture', value: 'Shake' });
-    if (typeof data.steps === 'number') chips.push({ label: 'Steps', value: String(data.steps) });
-    if (typeof data.reversals === 'number')
-      chips.push({ label: 'Reversals', value: String(data.reversals) });
-  } else if (entry.category === 'COMMAND') {
-    if (typeof data.name === 'string') chips.push({ label: 'Command', value: data.name });
-    if (typeof data.status === 'string') chips.push({ label: 'Status', value: data.status });
+          : message,
+  },
+  ...(typeof data.profile === 'string' ? [{ label: 'Profile', value: data.profile }] : []),
+];
+
+const eventDescriptorDefinitions = {
+  MOVE: {
+    category: 'MOVE',
+    summarize: (data) => String(data.move),
+    chips: (data, message) => {
+      const chips: TraceChip[] = [
+        { label: 'Move', value: typeof data.move === 'string' ? data.move : message },
+      ];
+      if (typeof data.face === 'string') chips.push({ label: 'Face', value: data.face });
+      if (typeof data.turns === 'number') chips.push({ label: 'Turns', value: String(data.turns) });
+      if (typeof data.amount === 'number')
+        chips.push({ label: 'Amount', value: String(data.amount) });
+      return chips;
+    },
+  },
+  GYRO: {
+    category: 'GYRO',
+    summarize: (data, logType) => {
+      if (logType === 'gyro_stabilizer') return 'stabilized gyro';
+      if (!data.quaternion || typeof data.quaternion !== 'object') return 'gyro';
+      const quaternion = data.quaternion as TraceData;
+      if (
+        typeof quaternion.x !== 'number' ||
+        typeof quaternion.y !== 'number' ||
+        typeof quaternion.z !== 'number'
+      )
+        return 'gyro';
+      return `q ${quaternion.x.toFixed(2)}, ${quaternion.y.toFixed(2)}, ${quaternion.z.toFixed(2)}`;
+    },
+  },
+  REGRIP: {
+    category: 'REGRIP',
+    summarize: (data) => {
+      const token = typeof data.solverToken === 'string' ? data.solverToken : data.notationToken;
+      return `${String(token)} (${String(data.sensorFrameToken)})`;
+    },
+    chips: (data, message) => [
+      {
+        label: 'Regrip',
+        value:
+          typeof data.solverToken === 'string'
+            ? data.solverToken
+            : typeof data.notationToken === 'string'
+              ? data.notationToken
+              : message,
+      },
+      ...(typeof data.sensorFrameToken === 'string'
+        ? [{ label: 'Sensor', value: data.sensorFrameToken }]
+        : []),
+    ],
+  },
+  CUSTOM_TRIGGER: {
+    category: 'TRIGGER',
+    summarize: (data) => String(data.move),
+    chips: (data, message) => [
+      { label: 'Trigger', value: typeof data.move === 'string' ? data.move : message },
+    ],
+  },
+  SHAKE: {
+    category: 'SHAKE',
+    summarize: (data) => `${String(data.steps)} steps, ${String(data.reversals)} reversals`,
+    chips: (data) => [
+      { label: 'Gesture', value: 'Shake' },
+      ...(typeof data.steps === 'number' ? [{ label: 'Steps', value: String(data.steps) }] : []),
+      ...(typeof data.reversals === 'number'
+        ? [{ label: 'Reversals', value: String(data.reversals) }]
+        : []),
+    ],
+  },
+  MOVE_GAP: {
+    category: 'STATE',
+    summarize: (data) => `${String(data.missing)} missed move${data.missing === 1 ? '' : 's'}`,
+    chips: stateChips,
+  },
+  BATTERY: {
+    category: 'EVENT',
+    summarize: (data) => `battery ${String(data.batteryLevel)}%`,
+  },
+  HARDWARE: { category: 'EVENT', summarize: hardwareSummary },
+  FACELETS: { category: 'EVENT', summarize: faceletsSummary },
+  DISCONNECT: {
+    category: 'STATE',
+    summarize: () => 'cube disconnected',
+    chips: stateChips,
+  },
+  session_status: {
+    category: 'STATE',
+    summarize: (data) => String(data.status),
+    chips: stateChips,
+  },
+  log_started: { category: 'STATE', summarize: () => 'recording started', chips: stateChips },
+  log_stopped: {
+    category: 'STATE',
+    summarize: (data) => `recording stopped · ${String(data.entries)} events`,
+    chips: stateChips,
+  },
+  profile_selected: { category: 'EVENT', summarize: (data) => `profile ${String(data.id)}` },
+  cube_command: {
+    category: 'COMMAND',
+    summarize: (data) => {
+      const name = typeof data.name === 'string' ? data.name : 'cube command';
+      const status = typeof data.status === 'string' ? ` · ${data.status}` : '';
+      const reason = typeof data.reason === 'string' ? ` · ${data.reason.replace(/_/g, ' ')}` : '';
+      return `${name}${status}${reason}`;
+    },
+    chips: (data) => [
+      ...(typeof data.name === 'string' ? [{ label: 'Command', value: data.name }] : []),
+      ...(typeof data.status === 'string' ? [{ label: 'Status', value: data.status }] : []),
+    ],
+  },
+  transport_diagnostic: {
+    category: 'DIAGNOSTIC',
+    summarize: (data) => {
+      const protocol = typeof data.protocol === 'string' ? data.protocol : 'transport';
+      const opcode = typeof data.opcode === 'number' ? ` opcode 0x${data.opcode.toString(16)}` : '';
+      const bytes = Array.isArray(data.bytes)
+        ? data.bytes.filter((byte): byte is number => typeof byte === 'number')
+        : [];
+      const originalLength = typeof data.byteLength === 'number' ? data.byteLength : bytes.length;
+      const suffix = data.truncated === true ? ' (truncated)' : '';
+      return `${protocol}${opcode} · ${originalLength} bytes · ${hexBytes(bytes)}${suffix}`;
+    },
+  },
+} satisfies Record<SmartCubeSessionEvent['type'], EventDescriptor> &
+  Record<string, EventDescriptor>;
+const eventDescriptors: Record<string, EventDescriptor> = eventDescriptorDefinitions;
+
+const logDescriptorAliases: Record<string, string> = {
+  virtual_regrip: 'REGRIP',
+  custom_trigger: 'CUSTOM_TRIGGER',
+  shake_trigger: 'SHAKE',
+  move_gap: 'MOVE_GAP',
+  gyro_stabilizer: 'GYRO',
+};
+
+function descriptorForLogEntry(entry: LogEntry): EventDescriptor | undefined {
+  const data = entry.data as TraceData;
+  if (entry.type === 'cube_event') {
+    return typeof data.type === 'string' ? eventDescriptors[data.type] : undefined;
+  }
+  const key = logDescriptorAliases[entry.type] ?? entry.type;
+  return (
+    eventDescriptors[key] ??
+    (typeof data.type === 'string' ? eventDescriptors[data.type] : undefined)
+  );
+}
+
+export function extractTraceChips(entry: TraceEntry): TraceChip[] {
+  const data = (entry.log.data as TraceData | undefined) ?? {};
+  const descriptor = descriptorForLogEntry(entry.log);
+  const chips = descriptor?.chips?.(data, entry.message) ?? [];
+
+  if (!descriptor && entry.category === 'MOVE') {
+    const move = typeof data.move === 'string' ? data.move : entry.message;
+    chips.push({ label: 'Move', value: move });
   }
 
   if (typeof data.batteryLevel === 'number') {
@@ -188,7 +313,7 @@ export function extractTraceChips(entry: TraceEntry): Array<{ label: string; val
 
   if (data.quaternion && typeof data.quaternion === 'object') {
     const q = data.quaternion as Record<string, number>;
-    if (typeof q.x === 'number' && typeof q.y === 'number') {
+    if (typeof q.x === 'number' && typeof q.y === 'number' && typeof q.z === 'number') {
       chips.push({
         label: 'Quat',
         value: `[${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}]`,
@@ -212,81 +337,18 @@ export function describeDiagnostic(event: SmartCubeSessionDiagnostic): string {
 }
 
 export function describeSessionEvent(event: SmartCubeSessionEvent): [TraceCategory, string] {
-  switch (event.type) {
-    case 'MOVE':
-      return ['MOVE', event.move];
-    case 'GYRO':
-      return [
-        'GYRO',
-        `q ${event.quaternion.x.toFixed(2)}, ${event.quaternion.y.toFixed(2)}, ${event.quaternion.z.toFixed(2)}`,
-      ];
-    case 'REGRIP':
-      return ['REGRIP', `${event.notationToken} (${event.sensorFrameToken})`];
-    case 'CUSTOM_TRIGGER':
-      return ['TRIGGER', event.move];
-    case 'SHAKE':
-      return ['SHAKE', `${event.steps} steps, ${event.reversals} reversals`];
-    case 'MOVE_GAP':
-      return ['STATE', `${event.missing} missed move${event.missing === 1 ? '' : 's'}`];
-    case 'BATTERY':
-      return ['EVENT', `battery ${event.batteryLevel}%`];
-    case 'HARDWARE':
-      return ['EVENT', hardwareSummary(event)];
-    case 'FACELETS':
-      return ['EVENT', faceletsSummary(event)];
-    case 'DISCONNECT':
-      return ['STATE', 'cube disconnected'];
-  }
+  const descriptor = eventDescriptors[event.type]!;
+  return [descriptor.category, descriptor.summarize(event as unknown as TraceData)];
 }
 
 export function describeLogEntry(entry: LogEntry): [TraceCategory, string] {
   const data = entry.data as Record<string, unknown>;
+  const descriptor = descriptorForLogEntry(entry);
+  if (descriptor) return [descriptor.category, descriptor.summarize(data, entry.type)];
   if (entry.type === 'cube_event') {
-    const eventType = data.type;
-    if (eventType === 'MOVE' && typeof data.move === 'string') return ['MOVE', data.move];
-    if (eventType === 'DISCONNECT') return ['STATE', 'cube disconnected'];
-    if (eventType === 'BATTERY' && typeof data.batteryLevel === 'number')
-      return ['EVENT', `battery ${data.batteryLevel}%`];
-    if (eventType === 'HARDWARE') return ['EVENT', hardwareSummary(data)];
-    if (eventType === 'FACELETS') return ['EVENT', faceletsSummary(data)];
     return [
       'UNKNOWN',
-      typeof eventType === 'string' ? `unknown event · ${eventType}` : 'unknown cube event',
-    ];
-  }
-  if (entry.type === 'virtual_regrip') {
-    const solverToken =
-      typeof data.solverToken === 'string' ? data.solverToken : data.notationToken;
-    return ['REGRIP', `${String(solverToken)} (${String(data.sensorFrameToken)})`];
-  }
-  if (entry.type === 'custom_trigger') return ['TRIGGER', String(data.move)];
-  if (entry.type === 'shake_trigger')
-    return ['SHAKE', `${String(data.steps)} steps, ${String(data.reversals)} reversals`];
-  if (entry.type === 'move_gap')
-    return ['STATE', `${String(data.missing)} missed move${data.missing === 1 ? '' : 's'}`];
-  if (entry.type === 'gyro_stabilizer') return ['GYRO', 'stabilized gyro'];
-  if (entry.type === 'session_status') return ['STATE', String(data.status)];
-  if (entry.type === 'log_started') return ['STATE', 'recording started'];
-  if (entry.type === 'log_stopped')
-    return ['STATE', `recording stopped · ${String(data.entries)} events`];
-  if (entry.type === 'profile_selected') return ['EVENT', `profile ${String(data.id)}`];
-  if (entry.type === 'cube_command') {
-    const name = typeof data.name === 'string' ? data.name : 'cube command';
-    const status = typeof data.status === 'string' ? ` · ${data.status}` : '';
-    const reason = typeof data.reason === 'string' ? ` · ${data.reason.replace(/_/g, ' ')}` : '';
-    return ['COMMAND', `${name}${status}${reason}`];
-  }
-  if (entry.type === 'transport_diagnostic') {
-    const protocol = typeof data.protocol === 'string' ? data.protocol : 'transport';
-    const opcode = typeof data.opcode === 'number' ? ` opcode 0x${data.opcode.toString(16)}` : '';
-    const bytes = Array.isArray(data.bytes)
-      ? data.bytes.filter((byte): byte is number => typeof byte === 'number')
-      : [];
-    const originalLength = typeof data.byteLength === 'number' ? data.byteLength : bytes.length;
-    const suffix = data.truncated === true ? ' (truncated)' : '';
-    return [
-      'DIAGNOSTIC',
-      `${protocol}${opcode} · ${originalLength} bytes · ${hexBytes(bytes)}${suffix}`,
+      typeof data.type === 'string' ? `unknown event · ${data.type}` : 'unknown cube event',
     ];
   }
   return ['EVENT', entry.type.replace(/_/g, ' ')];

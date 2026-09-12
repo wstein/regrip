@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { describeDiagnostic, describeLogEntry, describeSessionEvent } from './liveLog';
+import {
+  describeDiagnostic,
+  describeLogEntry,
+  describeSessionEvent,
+  extractTraceChips,
+} from './liveLog';
 
 describe('live trace event classification', () => {
   it('uses concise, filterable categories for session-only events', () => {
@@ -19,6 +24,27 @@ describe('live trace event classification', () => {
     expect(
       describeSessionEvent({ type: 'SHAKE', timestamp: 240, steps: 4, reversals: 3, spanMs: 180 }),
     ).toEqual(['SHAKE', '4 steps, 3 reversals']);
+  });
+
+  it('uses one descriptor for session rows, recorded rows, and inspector chips', () => {
+    const event = {
+      type: 'MOVE_GAP',
+      timestamp: 10,
+      previousSerial: 4,
+      serial: 7,
+      missing: 2,
+    } as const;
+    const log = {
+      recordedAt: '2026-09-09T10:00:00.000Z',
+      type: 'move_gap',
+      data: event,
+    } as const;
+
+    expect(describeSessionEvent(event)).toEqual(['STATE', '2 missed moves']);
+    expect(describeLogEntry(log)).toEqual(describeSessionEvent(event));
+    expect(extractTraceChips({ id: 1, category: 'STATE', message: '2 missed moves', log })).toEqual(
+      [{ label: 'State', value: '2 missed moves' }],
+    );
   });
 
   it('summarizes high-rate gyro data without flooding the line', () => {
