@@ -27,13 +27,20 @@ body {
   box-sizing: border-box;
 }
 .site-topbar {
-  display: flex;
-  align-items: center;
   min-height: 3.25rem;
   margin: -1.5rem -1.5rem 1.5rem;
-  padding: 0 1.5rem;
   border-bottom: 1px solid #2b3859;
   background: #090d18;
+}
+.site-topbar-inner {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 96rem;
+  min-height: 3.25rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 .site-topbar-brand {
   color: #edf2ff;
@@ -1640,7 +1647,7 @@ button:disabled {
   }
 }
 @media (max-width: 64rem) {
-  .site-topbar {
+  .site-topbar-inner {
     flex-wrap: wrap;
     gap: 0.6rem 1rem;
     height: auto;

@@ -78,6 +78,14 @@ describe('VitePress documentation integration', () => {
     expect(deviceActionsRule).not.toContain('border-left');
   });
 
+  it('constrains ultrawide topbar content in a centered inner layout', () => {
+    const topbar = app.match(/<header class="site-topbar">[\s\S]*?<\/header>/)?.[0];
+
+    expect(topbar).toContain('class="site-topbar-inner"');
+    expect(appStyles).toMatch(/\.site-topbar-inner\s*\{[^}]*max-width:\s*96rem;/s);
+    expect(appStyles).toMatch(/\.site-topbar-inner\s*\{[^}]*margin:\s*0 auto;/s);
+  });
+
   it('keeps detected-move editing actions above the algorithm editor', () => {
     const panel = app.match(/<section class="detected-moves-panel"[\s\S]*?<\/section>/)?.[0];
 

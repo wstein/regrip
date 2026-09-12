@@ -11,48 +11,66 @@
   <body>
     <div id="app">
       <header class="site-topbar">
-        <a class="site-topbar-brand" href="./index.html">Regrip Dev Console</a>
-        <div class="site-topbar-controls" role="group" aria-label="Global console controls">
-          <button id="fullscreen" class="site-topbar-fullscreen" type="button" aria-pressed="false">
-            ⛶ Fullscreen
-          </button>
-          <div
-            class="site-topbar-device-actions"
-            role="group"
-            aria-label="Cube connection controls"
-          >
-            <div class="connect-picker">
-              <button id="connect" type="button" aria-expanded="false" aria-controls="connect-menu">
-                Connect ▾
-              </button>
-              <menu id="connect-menu" hidden>
-                <li>
-                  <button id="connect-bluetooth" type="button">
-                    Connect Bluetooth Cube (Web Bluetooth)
-                  </button>
-                </li>
-                <li><button id="disconnect-cube" type="button" hidden>Disconnect Cube</button></li>
-                <li class="connect-menu-label" role="presentation">Demo Mock Cubes</li>
-                <li>
-                  <button type="button" data-mock-fixture="gocube-edge">GoCube Edge (demo)</button>
-                </li>
-                <li><button type="button" data-mock-fixture="gan-ui12">GAN UI12 (demo)</button></li>
-                <li><button type="button" data-mock-load>Load JSONL capture…</button></li>
-                <li class="connect-menu-active" hidden>
-                  <button id="mock-device-exit" type="button">Exit mock mode</button>
-                </li>
-              </menu>
-              <input id="mock-device-file" type="file" accept=".jsonl,application/json" hidden />
-              <span id="mock-device-status" class="mock-device-status" role="alert" hidden></span>
+        <div class="site-topbar-inner">
+          <a class="site-topbar-brand" href="./index.html">Regrip Dev Console</a>
+          <div class="site-topbar-controls" role="group" aria-label="Global console controls">
+            <button
+              id="fullscreen"
+              class="site-topbar-fullscreen"
+              type="button"
+              aria-pressed="false"
+            >
+              ⛶ Fullscreen
+            </button>
+            <div
+              class="site-topbar-device-actions"
+              role="group"
+              aria-label="Cube connection controls"
+            >
+              <div class="connect-picker">
+                <button
+                  id="connect"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="connect-menu"
+                >
+                  Connect ▾
+                </button>
+                <menu id="connect-menu" hidden>
+                  <li>
+                    <button id="connect-bluetooth" type="button">
+                      Connect Bluetooth Cube (Web Bluetooth)
+                    </button>
+                  </li>
+                  <li>
+                    <button id="disconnect-cube" type="button" hidden>Disconnect Cube</button>
+                  </li>
+                  <li class="connect-menu-label" role="presentation">Demo Mock Cubes</li>
+                  <li>
+                    <button type="button" data-mock-fixture="gocube-edge">
+                      GoCube Edge (demo)
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" data-mock-fixture="gan-ui12">GAN UI12 (demo)</button>
+                  </li>
+                  <li><button type="button" data-mock-load>Load JSONL capture…</button></li>
+                  <li class="connect-menu-active" hidden>
+                    <button id="mock-device-exit" type="button">Exit mock mode</button>
+                  </li>
+                </menu>
+                <input id="mock-device-file" type="file" accept=".jsonl,application/json" hidden />
+                <span id="mock-device-status" class="mock-device-status" role="alert" hidden></span>
+              </div>
             </div>
           </div>
+          <nav class="site-topbar-nav" aria-label="Site navigation">
+            <a href="./index.html" aria-current="page">Console</a>
+            <a href="./docs/">Docs</a>
+            <a href="./docs/api/">API</a>
+            <a id="source-revision" href="https://github.com/wstein/regrip">GitHub@unknown</a>
+          </nav>
         </div>
-        <nav class="site-topbar-nav" aria-label="Site navigation">
-          <a href="./index.html" aria-current="page">Console</a>
-          <a href="./docs/">Docs</a>
-          <a href="./docs/api/">API</a>
-          <a id="source-revision" href="https://github.com/wstein/regrip">GitHub@unknown</a>
-        </nav>
       </header>
       <div class="app-layout">
         <aside id="event-log" aria-label="Live event trace" data-collapsed="false">
