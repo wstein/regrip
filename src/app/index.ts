@@ -38,6 +38,7 @@ import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSes
 import { createSolverFrame } from '../adapters/three/solverFrame';
 import { sourceRevision } from './sourceRevision';
 import { loadReplayFromUrl, mountMockDevicePicker } from './mockDevice';
+import { createDropdownMenu } from './dom';
 
 let detectedMoveNotation: DetectedMoveNotation = 'wca';
 let editableCanonicalMoves = '';
@@ -571,17 +572,14 @@ infoPanel.on('detected-notation-raw-qtm', 'click', () => setDetectedMoveNotation
 
 const cubeExportButton = document.getElementById('copy-cube-state') as HTMLButtonElement;
 const cubeExportMenu = document.getElementById('cube-export-menu') as HTMLElement;
-
-infoPanel.on('copy-cube-state', 'click', () => {
-  const open = cubeExportMenu.hidden;
-  cubeExportMenu.hidden = !open;
-  cubeExportButton.setAttribute('aria-expanded', String(open));
+const cubeExportDropdown = createDropdownMenu({
+  toggle: cubeExportButton,
+  menu: cubeExportMenu,
 });
 
 function copyCubeExport(format: CubeExportFormat, label: string): void {
   const value = formatCubeExport(cubeExportSource, format);
-  cubeExportMenu.hidden = true;
-  cubeExportButton.setAttribute('aria-expanded', 'false');
+  cubeExportDropdown.close();
   if (!value) {
     infoPanel.showFeedback(`No valid cube state is available for ${label}.`);
     return;

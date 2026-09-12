@@ -1,4 +1,5 @@
 import type { ReplaySessionController } from '@wstein/regrip-core/session/replay/replaySession';
+import { createDropdownMenu } from './dom';
 
 type MockFixture = 'gocube-edge' | 'gan-ui12' | 'local';
 
@@ -100,15 +101,7 @@ export function mountMockDevicePicker({
   status.textContent = load.requested && load.error ? load.error : '';
   status.hidden = status.textContent === '';
 
-  const closeMenu = (): void => {
-    menu.hidden = true;
-    toggle.setAttribute('aria-expanded', 'false');
-  };
-  toggle.addEventListener('click', () => {
-    const open = menu.hidden;
-    menu.hidden = !open;
-    toggle.setAttribute('aria-expanded', String(open));
-  });
+  const { close: closeMenu } = createDropdownMenu({ toggle, menu });
   menu.querySelectorAll<HTMLButtonElement>('[data-mock-fixture]').forEach((button) => {
     button.addEventListener('click', () => {
       const fixture = button.dataset.mockFixture;
@@ -145,10 +138,4 @@ export function mountMockDevicePicker({
     }
   });
   exit.addEventListener('click', () => navigate(buildMockDeviceUrl(location.href)));
-  document.addEventListener('click', (event) => {
-    if (!menu.contains(event.target as Node) && event.target !== toggle) closeMenu();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeMenu();
-  });
 }

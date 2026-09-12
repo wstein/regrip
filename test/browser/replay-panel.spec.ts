@@ -177,6 +177,25 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
   await expect(page.locator('#detected-notation-raw-qtm')).toHaveText('Raw QTM');
 });
 
+test('dismisses the cube-state export menu with Escape and outside click', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const toggle = page.locator('#copy-cube-state');
+  const menu = page.locator('#cube-export-menu');
+
+  await toggle.click();
+  await expect(menu).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+  await toggle.click();
+  await expect(menu).toBeVisible();
+  await page.locator('#detectedMoves').click();
+  await expect(menu).toBeHidden();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+});
+
 test('switches the editable detected-move notation without changing its canonical stream', async ({
   page,
 }) => {

@@ -4,7 +4,7 @@ import type {
   SmartCubeSessionDiagnostic,
   SmartCubeSessionEvent,
 } from '@wstein/regrip-core/session/smartCubeSession';
-import { byId } from './dom';
+import { byId, createDropdownMenu } from './dom';
 import { downloadJsonl, serializeJsonl, type JsonValue, type LogEntry } from './jsonlLog';
 
 export type TraceCategory =
@@ -541,10 +541,13 @@ export function createLiveLog({
     detailJson.replaceChildren(highlightJson(rawJson));
   };
 
-  const hideContextMenu = (): void => {
-    contextMenu.hidden = true;
-    contextId = undefined;
-  };
+  const contextDropdown = createDropdownMenu({
+    menu: contextMenu,
+    onClose: () => {
+      contextId = undefined;
+    },
+  });
+  const hideContextMenu = contextDropdown.close;
 
   const selectEntry = (id: number, range: boolean): void => {
     if (range && lastSelectedId !== undefined) {
@@ -601,7 +604,7 @@ export function createLiveLog({
     row.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       contextId = entry.id;
-      contextMenu.hidden = false;
+      contextDropdown.open();
       contextMenu.style.left = `${event.clientX}px`;
       contextMenu.style.top = `${event.clientY}px`;
     });
@@ -833,9 +836,6 @@ export function createLiveLog({
     const entry = entryById(contextId);
     if (entry) exportEntry(entry);
     hideContextMenu();
-  });
-  document.addEventListener('click', (event) => {
-    if (!contextMenu.hidden && !contextMenu.contains(event.target as Node)) hideContextMenu();
   });
   updateFollowButton();
   updatePauseButton();
