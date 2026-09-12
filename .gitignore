@@ -21,7 +21,8 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
-coverage/
+/coverage/
+docs/site/public/coverage/
 
 # ReScript
 *.res.mjs

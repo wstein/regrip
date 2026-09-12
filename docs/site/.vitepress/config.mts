@@ -57,14 +57,27 @@ export default defineConfig({
       { text: 'Console', link: 'https://wstein.github.io/regrip/' },
       { text: 'Docs', link: '/' },
       { text: 'API', link: '/api/' },
+      { text: 'Coverage', link: '/coverage/' },
       { text: 'GitHub', link: 'https://github.com/wstein/regrip' },
     ],
     sidebar: {
       '/': [
         { text: 'Documentation', items: [{ text: 'Overview', link: '/' }] },
-        { text: 'Reference', items: [{ text: 'API', link: '/api/' }] },
+        {
+          text: 'Reference',
+          items: [
+            { text: 'API', link: '/api/' },
+            { text: 'Coverage', link: '/coverage/' },
+          ],
+        },
       ],
       '/api/': [{ text: 'API', items: apiSidebar }],
+      '/coverage/': [
+        {
+          text: 'Coverage',
+          items: [{ text: 'Overview', link: '/coverage/' }],
+        },
+      ],
     },
     search: { provider: 'local' },
   },

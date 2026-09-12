@@ -15,6 +15,8 @@
 - `npm install` installs the workspace dependencies.
 - `npm run dev` starts ReScript watch and the Vite lab.
 - `npm test` builds ReScript, then runs separate core and app Vitest suites.
+- `npm run test:coverage` builds ReScript and generates separate app and core HTML coverage reports
+  under `docs/site/public/coverage/`; coverage is reported as a baseline without percentage gates.
 - `npm run build` runs the core/app type builds and production Vite build.
 - `npm run docs:dev` serves the VitePress guide and generated API Markdown; `npm run site:build` builds the complete Pages artifact.
 - `npm run lint` enforces TypeScript boundaries; `npm run format:check` checks ReScript and Prettier formatting.
