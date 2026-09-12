@@ -894,13 +894,10 @@ body {
   border: 0;
   outline: none;
   font:
-    700 0.95rem/1.6 'JetBrains Mono',
-    ui-monospace,
-    'SF Mono',
-    'SFMono-Regular',
-    Menlo,
-    Consolas,
-    monospace;
+    700 1.05rem/1.6 'Courier New',
+    Courier,
+    'Nimbus Mono PS',
+    serif;
   letter-spacing: normal;
   word-spacing: 0.25em;
   white-space: pre-wrap;
