@@ -179,7 +179,14 @@
 
             <section class="cubie-state-panel">
               <label for="cubieState" hidden>Singmaster Cycles</label>
-              <input id="cubieState" type="text" readonly value="- n/a -" hidden />
+              <input
+                id="cubieState"
+                type="text"
+                readonly
+                value="- n/a -"
+                placeholder="Solved (identity)"
+                hidden
+              />
               <div class="cube-export">
                 <button
                   id="copy-cube-state"
@@ -212,12 +219,11 @@
 
             <div class="controls">
               <div class="control-actions">
-                <button id="connect">Connect</button>
-                <button id="reset-state">Reset State</button>
+                <button id="reset-state" type="button">Reset State</button>
                 <button id="track-orientation" type="button" aria-pressed="false" disabled>
                   Track orientation
                 </button>
-                <button id="reset-gyro" disabled>Reset View</button>
+                <button id="reset-gyro" type="button" disabled>Reset View</button>
                 <button id="fullscreen" type="button" aria-pressed="false">⛶ Fullscreen</button>
               </div>
               <div class="log-actions"></div>
@@ -232,19 +238,23 @@
           </main>
 
           <aside class="device-card">
-            <h2>Cube Connection</h2>
+            <div class="device-card-header">
+              <h2>Cube Connection</h2>
+              <button id="connect" type="button">Connect</button>
+            </div>
             <div class="info">
+              <div class="info-group-title">Device Identity</div>
               <label for="connectionStatus">Connection Status</label>
               <input id="connectionStatus" type="text" readonly value="Disconnected" />
+
+              <label for="deviceName">Device Name</label>
+              <input id="deviceName" type="text" readonly value="- n/a -" />
 
               <label for="protocol">Protocol</label>
               <input id="protocol" type="text" readonly value="- n/a -" />
 
               <label for="capabilities">Capabilities</label>
               <input id="capabilities" type="text" readonly value="- n/a -" />
-
-              <label for="deviceName">Device Name</label>
-              <input id="deviceName" type="text" readonly value="- n/a -" />
 
               <label for="deviceMAC">Device MAC</label>
               <input id="deviceMAC" type="text" readonly value="- n/a -" />
@@ -261,12 +271,25 @@
               <label for="productDate">Product Date</label>
               <input id="productDate" type="text" readonly value="- n/a -" />
 
-              <label for="gyroSupported">Gyro Supported</label>
-              <input id="gyroSupported" type="text" readonly value="- n/a -" />
-
+              <div class="info-group-title">Live Sensors</div>
               <label for="batteryLevel">Battery</label>
               <input id="batteryLevel" type="text" readonly value="- n/a -" />
 
+              <label for="gyroSupported">Gyro Supported</label>
+              <input id="gyroSupported" type="text" readonly value="- n/a -" />
+
+              <label for="quaternion">Quaternion</label>
+              <input id="quaternion" type="text" readonly value="- n/a -" />
+
+              <label for="velocity">Angular Velocity</label>
+              <input id="velocity" type="text" readonly value="- n/a -" />
+
+              <label for="skew">Clock Skew</label>
+              <input id="skew" type="text" readonly value="- n/a -" />
+
+              <div class="info-group-title" id="info-offline-title" hidden>
+                Hardware &amp; Offline State
+              </div>
               <label for="eventSerial">Event Serial</label>
               <input id="eventSerial" type="text" readonly value="- n/a -" />
 
@@ -284,15 +307,6 @@
 
               <label for="offlineSolves">GoCube Offline Solves</label>
               <input id="offlineSolves" type="text" readonly value="- n/a -" />
-
-              <label for="skew">Clock Skew</label>
-              <input id="skew" type="text" readonly value="- n/a -" />
-
-              <label for="quaternion">Quaternion</label>
-              <input id="quaternion" type="text" readonly value="- n/a -" />
-
-              <label for="velocity">Angular Velocity</label>
-              <input id="velocity" type="text" readonly value="- n/a -" />
             </div>
           </aside>
         </div>
