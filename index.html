@@ -172,20 +172,20 @@
                   </button>
                   <button id="detected-notation-sse" type="button" aria-pressed="false">SSE</button>
                 </div>
-                <div
-                  id="detected-moves-chips"
-                  class="detected-moves-chips"
-                  aria-label="Detected move sequence"
-                >
-                  <span class="move-chips-empty">No moves recorded</span>
+                <div class="detected-moves-editor">
+                  <div
+                    id="detected-moves-highlight"
+                    class="detected-moves-highlight"
+                    aria-hidden="true"
+                  ></div>
+                  <textarea
+                    id="detectedMoves"
+                    rows="6"
+                    placeholder="U R F D L B"
+                    autocomplete="off"
+                    spellcheck="false"
+                  ></textarea>
                 </div>
-                <textarea
-                  id="detectedMoves"
-                  rows="6"
-                  placeholder="U R F D L B"
-                  autocomplete="off"
-                  spellcheck="false"
-                ></textarea>
                 <div class="detected-moves-actions">
                   <button id="simplify-detected-moves" type="button">Simplify</button>
                   <button id="clear-detected-moves" type="button">Clear</button>

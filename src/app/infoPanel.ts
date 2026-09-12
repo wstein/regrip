@@ -80,31 +80,47 @@ export function categorizeMoveToken(token: string): MoveCategory {
   return { face: 'unknown', isRotation: false };
 }
 
-export function syncDetectedMovesChips(): void {
-  const container = document.getElementById('detected-moves-chips');
-  if (!container) return;
-  const movesEl = document.getElementById('detectedMoves');
-  const text = movesEl instanceof HTMLTextAreaElement ? movesEl.value.trim() : '';
-  container.innerHTML = '';
-  if (!text) {
-    const empty = document.createElement('span');
-    empty.className = 'move-chips-empty';
-    empty.textContent = 'No moves recorded';
-    container.append(empty);
-    return;
-  }
-  const tokens = text.split(/\s+/);
-  tokens.forEach((token) => {
-    const chip = document.createElement('span');
-    chip.className = 'move-chip';
-    chip.textContent = token;
-    const { face, isRotation } = categorizeMoveToken(token);
-    chip.dataset.face = face;
-    if (isRotation) chip.classList.add('is-rotation');
-    container.append(chip);
+let scrollAttached = false;
+function ensureScrollSync(movesEl: HTMLTextAreaElement, container: HTMLElement): void {
+  if (scrollAttached) return;
+  scrollAttached = true;
+  movesEl.addEventListener('scroll', () => {
+    container.scrollTop = movesEl.scrollTop;
+    container.scrollLeft = movesEl.scrollLeft;
   });
-  container.scrollLeft = container.scrollWidth;
 }
+
+export function syncDetectedMovesHighlight(): void {
+  const container = document.getElementById('detected-moves-highlight');
+  const movesEl = document.getElementById('detectedMoves');
+  if (!container || !(movesEl instanceof HTMLTextAreaElement)) return;
+
+  ensureScrollSync(movesEl, container);
+
+  const text = movesEl.value;
+  container.innerHTML = '';
+  if (!text) return;
+
+  const parts = text.split(/(\s+)/);
+  for (const part of parts) {
+    if (!part) continue;
+    if (/^\s+$/.test(part)) {
+      container.appendChild(document.createTextNode(part));
+    } else {
+      const span = document.createElement('span');
+      span.className = 'move-token';
+      const { face, isRotation } = categorizeMoveToken(part);
+      span.dataset.face = face;
+      if (isRotation) span.classList.add('is-rotation');
+      span.textContent = part;
+      container.appendChild(span);
+    }
+  }
+  container.scrollTop = movesEl.scrollTop;
+  container.scrollLeft = movesEl.scrollLeft;
+}
+
+export const syncDetectedMovesChips = syncDetectedMovesHighlight;
 
 export function syncDetectedMoveCount(): void {
   const el = document.getElementById('moveCount');
@@ -112,12 +128,12 @@ export function syncDetectedMoveCount(): void {
   if (el && movesEl instanceof HTMLTextAreaElement) {
     el.textContent = String(countDetectedMoves(movesEl.value));
   }
-  syncDetectedMovesChips();
+  syncDetectedMovesHighlight();
 }
 
 export function setDetectedMoveCount(count: number): void {
   byId('moveCount').textContent = String(count);
-  syncDetectedMovesChips();
+  syncDetectedMovesHighlight();
 }
 
 let feedbackTimeout: number | undefined;
