@@ -32,4 +32,11 @@ describe('VitePress documentation integration', () => {
     expect(typedoc.plugin).toEqual(['typedoc-plugin-markdown', 'typedoc-vitepress-theme']);
     expect(typedoc.docsRoot).toBe('docs/site');
   });
+
+  it('draws sidebar expanders without depending on VitePress icon masks', () => {
+    const theme = read('docs/site/.vitepress/theme/regrip.css');
+
+    expect(theme).toContain('.VPSidebarItem .caret::after');
+    expect(theme).toContain('.VPSidebarItem.collapsed .caret::after');
+  });
 });

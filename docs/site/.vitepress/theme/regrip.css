@@ -49,6 +49,25 @@ body {
   border-right: 1px solid #2b3859;
 }
 
+/* VitePress' icon mask is not painted reliably by every browser/WebView. */
+.VPSidebarItem .caret-icon {
+  display: none;
+}
+
+.VPSidebarItem .caret::after {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-top: 0.14rem solid currentColor;
+  border-right: 0.14rem solid currentColor;
+  content: '';
+  transform: rotate(135deg);
+  transition: transform 0.25s;
+}
+
+.VPSidebarItem.collapsed .caret::after {
+  transform: rotate(45deg);
+}
+
 .VPDoc a,
 .VPContent a {
   color: #8bb7ff;
