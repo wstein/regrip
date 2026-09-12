@@ -88,27 +88,13 @@ export const featurePresets: Record<'all' | 'minimal' | 'none', SessionFeatures>
   },
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
 /** Deeply merge a feature patch. Arrays (the trigger list) replace wholesale. */
 export function mergeSessionFeatures(
   base: SessionFeatures,
   patch: SessionFeaturesPatch | undefined,
 ): SessionFeatures {
   if (!patch) return base;
-  const merge = (
-    left: Record<string, unknown>,
-    right: Record<string, unknown>,
-  ): Record<string, unknown> => {
-    const result = { ...left };
-    for (const [key, value] of Object.entries(right)) {
-      result[key] = isRecord(left[key]) && isRecord(value) ? merge(left[key], value) : value;
-    }
-    return result;
-  };
-  return merge(base, patch) as SessionFeatures;
+  return deepMergeRecord(base, patch) as SessionFeatures;
 }
 
 /** Resolve profile feature overrides onto the baseline configuration. */
@@ -133,3 +119,4 @@ export function stabilizerConfig(features: SessionFeatures): {
     driftDegPerSec: stabilizer.drift.enabled ? stabilizer.drift.degPerSec : 0,
   };
 }
+import { deepMergeRecord } from '../internal/deepMergeRecord';
