@@ -273,10 +273,18 @@
                       <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
                     </div>
                   </div>
-                  <button id="track-orientation" type="button" aria-pressed="false" disabled>
+                  <button
+                    id="track-orientation"
+                    type="button"
+                    aria-pressed="false"
+                    title="Requires a connected cube with a gyroscope."
+                    disabled
+                  >
                     Track orientation
                   </button>
-                  <button id="reset-gyro" type="button" disabled>Reset View</button>
+                  <button id="reset-gyro" type="button" title="Connect a cube first." disabled>
+                    Reset View
+                  </button>
                 </div>
               </div>
 
@@ -352,7 +360,13 @@
                 <h3 id="quick-game-heading">Quick Game</h3>
                 <p id="quick-game-status">Connect a cube or choose a mock cube to begin.</p>
               </div>
-              <button id="start-timer" type="button" class="start-timer-cta" disabled>
+              <button
+                id="start-timer"
+                type="button"
+                class="start-timer-cta"
+                title="Connect a cube or choose a mock cube first."
+                disabled
+              >
                 Start game
               </button>
             </section>

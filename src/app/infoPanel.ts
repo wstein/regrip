@@ -245,6 +245,9 @@ export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
 export function setOrientationTrackingAvailable(available: boolean): void {
   const tracker = button('track-orientation');
   tracker.disabled = !available;
+  tracker.title = available
+    ? 'Track the cube gyroscope in the 3D view.'
+    : 'Requires a connected cube with a gyroscope.';
   if (!available) tracker.setAttribute('aria-pressed', 'false');
 }
 
@@ -255,12 +258,16 @@ export function setOrientationTracking(tracking: boolean): void {
 
 /** Reset is disabled only while no active scene can be controlled. */
 export function setResetOrientationEnabled(enabled: boolean): void {
-  button('reset-gyro').disabled = !enabled;
+  const reset = button('reset-gyro');
+  reset.disabled = !enabled;
+  reset.title = enabled ? 'Reset the 3D view orientation.' : 'Connect a cube first.';
 }
 
 /** Starting the timer requires a connected cube to detect the first move against. */
 export function setTimerActivateEnabled(enabled: boolean): void {
-  button('start-timer').disabled = !enabled;
+  const start = button('start-timer');
+  start.disabled = !enabled;
+  start.title = enabled ? 'Arm the solving timer.' : 'Connect a cube or choose a mock cube first.';
   if (!enabled)
     byId('quick-game-status').textContent = 'Connect a cube or choose a mock cube to begin.';
 }

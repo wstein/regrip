@@ -10,6 +10,7 @@ import {
   setOrientationTracking,
   setOrientationTrackingAvailable,
   setResetOrientationEnabled,
+  setTimerActivateEnabled,
   setTimerButtonState,
   setTps,
   showInfo,
@@ -34,6 +35,8 @@ describe('orientation controls', () => {
     setResetOrientationEnabled(false);
     expect(tracker.disabled).toBe(true);
     expect(resetGyro.disabled).toBe(true);
+    expect(tracker.title).toContain('gyroscope');
+    expect(resetGyro.title).toContain('Connect a cube');
 
     setOrientationTrackingAvailable(true);
     setOrientationTracking(true);
@@ -42,6 +45,8 @@ describe('orientation controls', () => {
     expect(tracker.getAttribute('aria-pressed')).toBe('true');
     expect(resetGyro.textContent).toBe('Reset Gyro');
     expect(resetGyro.disabled).toBe(false);
+    expect(tracker.title).toContain('3D view');
+    expect(resetGyro.title).toContain('orientation');
 
     setOrientationTracking(false);
     expect(tracker.getAttribute('aria-pressed')).toBe('false');
@@ -149,6 +154,20 @@ describe('grip status indicator', () => {
 });
 
 describe('timer button state and TPS indicator', () => {
+  it('explains why the game action is unavailable', () => {
+    document.body.innerHTML = `
+      <p id="quick-game-status"></p>
+      <button id="start-timer" type="button"></button>
+    `;
+    const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;
+
+    setTimerActivateEnabled(false);
+    expect(btn.title).toContain('Connect a cube');
+
+    setTimerActivateEnabled(true);
+    expect(btn.title).toContain('solving timer');
+  });
+
   it('updates timer button text and dataset state through lifecycle phases', () => {
     document.body.innerHTML = `
       <p id="quick-game-status">Connect a cube or choose a mock cube to begin.</p>
