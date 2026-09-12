@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './baseFixtures';
 import { faceletsToPattern, kpuzzleReady } from '../../src/adapters/cubing/utils';
 
 const replayHeader =

@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, URL } from 'node:url';
 import { DevTools } from '@vitejs/devtools';
+import IstanbulPlugin from 'vite-plugin-istanbul';
 
 const workerImportMetaUrlRE =
   /\bnew\s+(?:Worker|SharedWorker)\s*\(\s*(new\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*\))/g;
@@ -18,7 +19,18 @@ function sourceCommitSha(): string {
 }
 
 export default defineConfig(async ({ command }) => {
-  const plugins = command === 'serve' ? [await DevTools({ embeddedVisibility: 'passive' })] : [];
+  const plugins: Plugin[] = [];
+  if (command === 'serve') plugins.push(await DevTools({ embeddedVisibility: 'passive' }));
+  if (process.env.VITE_COVERAGE === 'true') {
+    plugins.push(
+      IstanbulPlugin({
+        include: ['src/**/*.ts'],
+        exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
+        extension: ['.ts'],
+        requireEnv: true,
+      }),
+    );
+  }
 
   return {
     define: {
@@ -40,6 +52,7 @@ export default defineConfig(async ({ command }) => {
     build: {
       target: 'es2022',
       manifest: true,
+      sourcemap: process.env.VITE_COVERAGE === 'true',
       chunkSizeWarningLimit: 2048,
       rollupOptions: {
         input: {

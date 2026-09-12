@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './baseFixtures';
 
 test('selects and exits a bundled replay from the production app entry', async ({ page }) => {
   await page.goto('/?keep=yes');

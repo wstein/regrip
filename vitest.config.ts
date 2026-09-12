@@ -14,9 +14,9 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, 'lib/**'],
     environment: 'node',
     coverage: {
-      provider: 'v8',
-      reportsDirectory: 'docs/site/public/coverage/app',
-      reporter: ['text', 'json-summary', 'html', 'lcov'],
+      provider: 'istanbul',
+      reportsDirectory: 'docs/site/public/coverage/app-unit',
+      reporter: ['text', 'json', 'json-summary', 'html', 'lcov'],
       include: ['src/**/*.{ts,mjs}'],
       exclude: ['src/**/*.test.ts', 'src/**/*_test.res.mjs', 'src/**/*.gen.ts', 'src/**/*.d.ts'],
     },

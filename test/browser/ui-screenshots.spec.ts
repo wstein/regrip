@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './baseFixtures';
 
 // Tall enough that the whole `#app` fits in one frame — Playwright's
 // screenshot stitching skews the top strip when the element exceeds the

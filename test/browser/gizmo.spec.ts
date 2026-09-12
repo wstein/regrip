@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './baseFixtures';
 
 test('renders a visible X/Y/Z orientation gizmo in a real WebGL canvas', async ({ page }) => {
   const errors: string[] = [];

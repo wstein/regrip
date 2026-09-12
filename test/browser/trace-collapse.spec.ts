@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './baseFixtures';
 
 test('collapses live trace sidebar into slim rail and expands workspace', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');

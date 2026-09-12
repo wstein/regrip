@@ -23,6 +23,8 @@ blob-report/
 .playwright/
 /coverage/
 docs/site/public/coverage/
+.nyc_output/
+.nyc_output_combined/
 
 # ReScript
 *.res.mjs
