@@ -10,6 +10,8 @@ import {
   setOrientationTracking,
   setOrientationTrackingAvailable,
   setResetOrientationEnabled,
+  setTimerButtonState,
+  setTps,
   showInfo,
 } from './infoPanel';
 
@@ -120,5 +122,49 @@ describe('grip status indicator', () => {
     clearActiveGrip();
     expect(value.textContent).toBe('Home');
     expect(gesture.hidden).toBe(true);
+  });
+});
+
+describe('timer button state and TPS indicator', () => {
+  it('updates timer button text and dataset state through lifecycle phases', () => {
+    document.body.innerHTML = `
+      <button id="start-timer" type="button" class="start-timer-cta" disabled>
+        Scramble cube to arbitrary state, then press here to start the solving timer...
+      </button>
+    `;
+    const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;
+
+    setTimerButtonState('ready');
+    expect(btn.dataset.timerState).toBe('ready');
+    expect(btn.textContent).toContain('Ready: Turn any face');
+
+    setTimerButtonState('running');
+    expect(btn.dataset.timerState).toBe('running');
+    expect(btn.textContent).toContain('Solving in progress');
+
+    setTimerButtonState('stopped', '12.345');
+    expect(btn.dataset.timerState).toBe('stopped');
+    expect(btn.textContent).toContain('Solved in 12.345');
+
+    setTimerButtonState('idle');
+    expect(btn.dataset.timerState).toBe('idle');
+    expect(btn.textContent).toContain('Scramble cube to arbitrary state');
+  });
+
+  it('updates TPS metric display and toggles visibility', () => {
+    document.body.innerHTML = `
+      <span id="tps-container" class="tps-count" hidden>
+        <strong id="tpsValue">0.0</strong> TPS
+      </span>
+    `;
+    const container = document.querySelector<HTMLElement>('#tps-container')!;
+    const value = document.querySelector<HTMLElement>('#tpsValue')!;
+
+    setTps(4.25);
+    expect(container.hidden).toBe(false);
+    expect(value.textContent).toBe('4.3');
+
+    setTps(null);
+    expect(container.hidden).toBe(true);
   });
 });

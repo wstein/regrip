@@ -13,6 +13,7 @@ export function createLocalTimer(
 ) {
   let subscription: Subscription | null = null;
   let startedAt: number | undefined;
+  let lastElapsed = 0;
 
   const refresh = (): void => {
     if (startedAt !== undefined) setValue(clock() - startedAt);
@@ -21,13 +22,19 @@ export function createLocalTimer(
   return {
     start(): void {
       startedAt = clock();
+      lastElapsed = 0;
       subscription?.unsubscribe();
       subscription = interval(30).subscribe(refresh);
     },
-    stop(): void {
+    stop(): number {
       subscription?.unsubscribe();
       subscription = null;
+      lastElapsed = startedAt !== undefined ? clock() - startedAt : 0;
       startedAt = undefined;
+      return lastElapsed;
+    },
+    getElapsed(): number {
+      return startedAt !== undefined ? clock() - startedAt : lastElapsed;
     },
     refresh,
   };
@@ -41,6 +48,8 @@ type TimerControllerOptions = {
   showTimer: (show: boolean) => void;
   setTimerColor: (color: string) => void;
   setSkew: (value: string) => void;
+  setPhase?: (phase: Timer.Phase | 'idle', finalTime?: string) => void;
+  setTps?: (tps: number | null) => void;
 };
 
 const PHASE_COLOR: Record<Timer.Phase, string> = {
@@ -75,12 +84,22 @@ export function createTimerController(options: TimerControllerOptions) {
           break;
         case 'showFinalTime': {
           const solutionMoves = MoveBuffer.solutionMoves(moves);
+          let finalMs = 0;
           if (
             solutionMoves.length > 0 &&
             solutionMoves.every((move) => move.cubeTimestamp !== null)
           ) {
             const fitted = SmartCubeBindings.cubeTimestampLinearFit(solutionMoves);
-            setTimerValue(fitted.at(-1)?.cubeTimestamp ?? 0);
+            finalMs = fitted.at(-1)?.cubeTimestamp ?? 0;
+            setTimerValue(finalMs);
+          }
+          if (finalMs <= 0) {
+            finalMs = localTimer.getElapsed();
+          }
+          const formatted = finalMs > 0 ? Time.format(finalMs) : undefined;
+          options.setPhase?.('stopped', formatted);
+          if (solutionMoves.length > 0 && finalMs > 0) {
+            options.setTps?.(solutionMoves.length / (finalMs / 1000));
           }
           break;
         }
@@ -90,6 +109,9 @@ export function createTimerController(options: TimerControllerOptions) {
     switch (effect.kind) {
       case 'setPhase':
         options.setTimerColor(PHASE_COLOR[effect.phase]);
+        if (effect.phase !== 'stopped') {
+          options.setPhase?.(effect.phase);
+        }
         break;
       case 'setValueMs':
         setTimerValue(effect.ms);
@@ -99,8 +121,13 @@ export function createTimerController(options: TimerControllerOptions) {
 
   function dispatch(input: Timer.Input): void {
     const [next, effects] = Timer.step(state, input, options.isConnected());
+    const prev = state;
     state = next;
     effects.forEach(applyEffect);
+    if (next === 'idle' && prev !== 'idle') {
+      options.setPhase?.('idle');
+      options.setTps?.(null);
+    }
   }
 
   function onMove(move: SmartCubeMoveEvent): void {
@@ -119,6 +146,8 @@ export function createTimerController(options: TimerControllerOptions) {
   function reset(): void {
     moves = MoveBuffer.reset(moves);
     dispatch('disconnected');
+    options.setPhase?.('idle');
+    options.setTps?.(null);
   }
 
   return { dispatch, onMove, reset, refresh: localTimer.refresh };

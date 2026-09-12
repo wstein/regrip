@@ -210,6 +210,8 @@ const timerController = createTimerController({
   showTimer: infoPanel.showTimer,
   setTimerColor: infoPanel.setTimerColor,
   setSkew: (value) => infoPanel.setInfo('skew', value),
+  setPhase: (phase, finalTime) => infoPanel.setTimerButtonState(phase, finalTime),
+  setTps: infoPanel.setTps,
 });
 replay?.subscribeRebuild(() => timerController.reset());
 replay?.subscribeCursor(() => timerController.refresh());

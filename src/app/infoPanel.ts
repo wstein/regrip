@@ -155,6 +155,43 @@ export function setTimerActivateEnabled(enabled: boolean): void {
   button('start-timer').disabled = !enabled;
 }
 
+export type TimerButtonState = 'idle' | 'ready' | 'running' | 'stopped';
+
+export function setTimerButtonState(state: TimerButtonState, finalTime?: string): void {
+  const btn = document.getElementById('start-timer');
+  if (!(btn instanceof HTMLButtonElement)) return;
+  btn.dataset.timerState = state;
+  switch (state) {
+    case 'idle':
+      btn.textContent =
+        'Scramble cube to arbitrary state, then press here to start the solving timer...';
+      break;
+    case 'ready':
+      btn.textContent = '⚡ Ready: Turn any face to start solving timer...';
+      break;
+    case 'running':
+      btn.textContent = '⏱ Solving in progress... (turn until solved)';
+      break;
+    case 'stopped':
+      btn.textContent = finalTime
+        ? `🎉 Solved in ${finalTime}! Press here to solve again...`
+        : '🎉 Solved! Press here to solve again...';
+      break;
+  }
+}
+
+export function setTps(tps: number | null): void {
+  const container = document.getElementById('tps-container');
+  const value = document.getElementById('tpsValue');
+  if (!container || !value) return;
+  if (tps !== null && Number.isFinite(tps) && tps >= 0) {
+    value.textContent = tps.toFixed(1);
+    container.hidden = false;
+  } else {
+    container.hidden = true;
+  }
+}
+
 export function setConnectionStatus(status: string): void {
   const connectionStatus = input('connectionStatus');
   connectionStatus.value = status;
@@ -231,6 +268,8 @@ export function clearInfo(): void {
   if (offlineTitle) offlineTitle.hidden = true;
   clearActiveGrip();
   clearDetectedMoves();
+  setTimerButtonState('idle');
+  setTps(null);
 }
 
 export function mountCube(element: Node): void {

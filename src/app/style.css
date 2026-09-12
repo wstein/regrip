@@ -91,10 +91,50 @@ body {
   letter-spacing: 0.02em;
 }
 .start-timer-cta {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   box-sizing: border-box;
-  text-align: left;
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.start-timer-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.start-timer-cta[data-timer-state='ready'] {
+  border-color: #22c55e;
+  color: #dcfce7;
+  background: linear-gradient(135deg, #14532d 0%, #052e16 100%);
+  box-shadow: 0 0 1rem rgb(34 197 94 / 30%);
+  animation: timer-pulse 2s infinite ease-in-out;
+}
+.start-timer-cta[data-timer-state='running'] {
+  border-color: #38bdf8;
+  color: #e0f2fe;
+  background: linear-gradient(135deg, #075985 0%, #082f49 100%);
+  box-shadow: 0 0 1.2rem rgb(56 189 248 / 25%);
+}
+.start-timer-cta[data-timer-state='stopped'] {
+  border-color: #f59e0b;
+  color: #fef3c7;
+  background: linear-gradient(135deg, #78350f 0%, #451a03 100%);
+  box-shadow: 0 0 1.2rem rgb(245 158 11 / 25%);
+}
+@keyframes timer-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0.8rem rgb(34 197 94 / 25%);
+  }
+  50% {
+    box-shadow: 0 0 1.5rem rgb(34 197 94 / 50%);
+  }
 }
 .app-layout {
   flex: 1;
@@ -674,22 +714,32 @@ body {
     monospace;
   white-space: nowrap;
 }
-.move-count {
+.move-count,
+.tps-count {
   padding: 0.3rem 0.45rem;
   border: 1px solid #3b4b70;
   border-radius: 0.45rem;
   background: #111c35;
 }
-.move-count strong {
+.move-count strong,
+.tps-count strong {
   color: #eaf0ff;
 }
+.tps-count {
+  color: #38bdf8;
+  border-color: #0284c7;
+  background: #082f49;
+}
 .solve-summary #timer {
-  padding: 0.3rem 0.45rem;
+  padding: 0.3rem 0.55rem;
   border: 1px solid #536c9f;
   border-radius: 0.45rem;
   color: #fff;
   background: #111c35;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
   box-shadow: 0 0.4rem 1rem rgb(0 0 0 / 20%);
 }
 #detectedMoves {

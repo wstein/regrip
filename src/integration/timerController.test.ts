@@ -75,4 +75,32 @@ describe('timer controller', () => {
     expect(ui.setTimer).toHaveBeenCalledTimes(1);
     timer.reset();
   });
+
+  it('notifies phase changes and computes solve TPS on completion', () => {
+    const ui = {
+      setTimer: vi.fn(),
+      showTimer: vi.fn(),
+      setTimerColor: vi.fn(),
+      setSkew: vi.fn(),
+      setPhase: vi.fn(),
+      setTps: vi.fn(),
+    };
+    const timer = createTimerController({ isConnected: () => true, ...ui });
+
+    timer.dispatch('activate');
+    expect(ui.setPhase).toHaveBeenCalledWith('ready');
+
+    timer.onMove(move(1000));
+    expect(ui.setPhase).toHaveBeenCalledWith('running');
+
+    timer.onMove({ ...move(2000), localTimestamp: 2000, move: 'R' });
+
+    timer.dispatch('solved');
+    expect(ui.setPhase).toHaveBeenCalledWith('stopped', expect.any(String));
+    expect(ui.setTps).toHaveBeenCalledWith(2);
+
+    timer.reset();
+    expect(ui.setPhase).toHaveBeenCalledWith('idle');
+    expect(ui.setTps).toHaveBeenCalledWith(null);
+  });
 });
