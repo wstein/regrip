@@ -116,6 +116,11 @@ describe('VitePress documentation integration', () => {
     expect(cubeColumn).toMatch(/id="copy-cube-state"[\s\S]*?>\s*Copy state ▾\s*<\/button>/);
   });
 
+  it('describes exact playback separately from detector re-processing', () => {
+    expect(app).toContain('Recorded events (exact)');
+    expect(app).toContain('Re-detect sensor data');
+  });
+
   it('renders grip as a compact status chip', () => {
     expect(app).toContain('class="grip-indicator"');
     const gripRule = appStyles.match(/\.grip-status\s*\{([^}]*)\}/)?.[1];

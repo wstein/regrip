@@ -49,10 +49,17 @@ describe('mock device replay selection', () => {
 
   it('loads a validated local fixture from session storage', async () => {
     sessionStorage.setItem('regrip.replay.jsonl', localReplay);
-    history.replaceState(null, '', '/?replay&fixture=local&feed=session');
+    history.replaceState(null, '', '/?replay&fixture=local');
     const replay = expectLoaded(await loadReplayFromUrl());
     expect(replay.identity.deviceName).toBe('Local test cube');
     expect(replay.feed).toBe('session');
+  });
+
+  it('allows explicit connection-feed re-detection for a local fixture', async () => {
+    sessionStorage.setItem('regrip.replay.jsonl', localReplay);
+    history.replaceState(null, '', '/?replay&fixture=local&feed=connection');
+
+    expect(expectLoaded(await loadReplayFromUrl()).feed).toBe('connection');
   });
 
   it('reports invalid local JSONL without throwing', async () => {

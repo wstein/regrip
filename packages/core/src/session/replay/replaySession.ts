@@ -7,7 +7,7 @@ import type {
 
 import * as ReplayCursor from '@wstein/regrip-core/domain/ReplayCursor';
 import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
-import { resolveSessionFeatures } from '@wstein/regrip-core/session/features';
+import { resolveSessionFeatures, type SessionFeatures } from '@wstein/regrip-core/session/features';
 import { bundledProfiles } from '@wstein/regrip-core/session/profile/bundled';
 import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfile';
 import {
@@ -122,6 +122,84 @@ function vector3(value: unknown): Vector3 | undefined {
   const y = number(candidate.y);
   const z = number(candidate.z);
   return x === undefined || y === undefined || z === undefined ? undefined : { x, y, z };
+}
+
+function record(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function capturedFeatures(entries: JsonlReplay['entries']): SessionFeatures | undefined {
+  const session = record(entries[0]?.data.session);
+  const profileValue = record(session?.profileValue);
+  const features = record(profileValue?.features);
+  const stabilizer = record(features?.stabilizer);
+  const hysteresis = record(stabilizer?.hysteresis);
+  const drift = record(stabilizer?.drift);
+  const regrip = record(features?.regrip);
+  const customTrigger = record(features?.customTrigger);
+  const triggers = customTrigger?.triggers;
+  if (
+    typeof stabilizer?.enabled !== 'boolean' ||
+    number(stabilizer.radiusDeg) === undefined ||
+    number(stabilizer.snapDeg) === undefined ||
+    number(stabilizer.velocityMax) === undefined ||
+    typeof hysteresis?.enabled !== 'boolean' ||
+    number(hysteresis.marginDeg) === undefined ||
+    typeof drift?.enabled !== 'boolean' ||
+    number(drift.degPerSec) === undefined ||
+    typeof regrip?.enabled !== 'boolean' ||
+    number(regrip.thresholdDeg) === undefined ||
+    typeof customTrigger?.enabled !== 'boolean' ||
+    !Array.isArray(triggers)
+  ) {
+    return undefined;
+  }
+  const parsedTriggers = triggers.flatMap((value) => {
+    const trigger = record(value);
+    if (trigger?.kind === 'moveBack' && number(trigger.windowMs) !== undefined) {
+      return [{ kind: 'moveBack' as const, windowMs: trigger.windowMs as number }];
+    }
+    if (trigger?.kind !== 'shake') return [];
+    const optionalNumbers = [
+      'minStepAngleDeg',
+      'minSteps',
+      'minReversals',
+      'maxSampleGapMs',
+      'burstWindowMs',
+      'faceGuardMs',
+      'cooldownMs',
+    ] as const;
+    if (
+      optionalNumbers.some(
+        (key) => trigger[key] !== undefined && number(trigger[key]) === undefined,
+      )
+    ) {
+      return [];
+    }
+    return [
+      Object.fromEntries([
+        ['kind', 'shake'],
+        ...optionalNumbers.flatMap((key) =>
+          trigger[key] === undefined ? [] : ([[key, trigger[key]]] as const),
+        ),
+      ] as const) as SessionFeatures['customTrigger']['triggers'][number],
+    ];
+  });
+  if (parsedTriggers.length !== triggers.length) return undefined;
+  return {
+    stabilizer: {
+      enabled: stabilizer.enabled,
+      radiusDeg: stabilizer.radiusDeg as number,
+      snapDeg: stabilizer.snapDeg as number,
+      velocityMax: stabilizer.velocityMax as number,
+      hysteresis: { enabled: hysteresis.enabled, marginDeg: hysteresis.marginDeg as number },
+      drift: { enabled: drift.enabled, degPerSec: drift.degPerSec as number },
+    },
+    regrip: { enabled: regrip.enabled, thresholdDeg: regrip.thresholdDeg as number },
+    customTrigger: { enabled: customTrigger.enabled, triggers: parsedTriggers },
+  };
 }
 
 /**
@@ -330,7 +408,10 @@ function parseReplayItems(entries: JsonlReplay['entries'], feed: ReplayFeed): Re
   return items;
 }
 
-function createOutputSession(connection: SmartCubeConnection): ReplayOutputSession {
+function createOutputSession(
+  connection: SmartCubeConnection,
+  replayFeatures?: SessionFeatures,
+): ReplayOutputSession {
   // A2 bypasses the production connection lifecycle, but must still present
   // the same profile selected by the capture identity to the UI.
   const profile = resolveProfile(
@@ -346,7 +427,7 @@ function createOutputSession(connection: SmartCubeConnection): ReplayOutputSessi
     connection: null,
     lastEvent: null,
     profile,
-    features: resolveSessionFeatures(profile.value.features),
+    features: replayFeatures ?? resolveSessionFeatures(profile.value.features),
     error: null,
   };
   const states = createFanout<SmartCubeSessionState>();
@@ -416,6 +497,7 @@ export type ReplaySessionController = ReturnType<typeof createReplaySession>;
 /** Create a deterministic session facade driven by a JSONL capture. */
 export function createReplaySession(contents: string, feed: ReplayFeed = 'connection') {
   const replayData = createJsonlReplay(contents);
+  const replayFeatures = capturedFeatures(replayData.entries);
   const items = parseReplayItems(replayData.entries, feed);
   const timestamps = items.map((item) => item.timestamp);
   let cursor = ReplayCursor.seekTo(timestamps, 0);
@@ -463,10 +545,11 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
       output = undefined;
       current = createSmartCubeSession({
         connect: async () => mock.connection,
+        features: replayFeatures,
         gyroFrameScheduler: synchronousGyroScheduler,
       });
     } else {
-      output = createOutputSession(mock.connection);
+      output = createOutputSession(mock.connection, replayFeatures);
       current = output;
     }
     bind();

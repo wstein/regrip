@@ -36,7 +36,15 @@ export async function loadReplayFromUrl(): Promise<MockDeviceReplayLoad> {
         ? sessionStorage.getItem(REPLAY_STORAGE_KEY)
         : await bundledFixture(fixture);
     if (!contents) throw new Error('The local replay is no longer available in this tab.');
-    const feed = params.get('feed') === 'session' ? 'session' : 'connection';
+    const requestedFeed = params.get('feed');
+    const feed =
+      requestedFeed === 'session'
+        ? 'session'
+        : requestedFeed === 'connection'
+          ? 'connection'
+          : fixture === 'local'
+            ? 'session'
+            : 'connection';
     return { requested: true, replay: createReplaySession(contents, feed) };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

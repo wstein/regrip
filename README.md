@@ -233,6 +233,10 @@ The deterministic browser-test harness remains available at
 session-output inspection or `&autoplay` to advance immediately. The Replay strip supports
 play/pause, move-keyframe navigation, stepping, seeking, speed selection, and local JSONL import.
 New exports include captured device and protocol identity so replay selects the same device profile.
+Local captures default to **Recorded events (exact)** so saved regrips and gesture detections are
+preserved. **Re-detect sensor data** instead runs the captured transport samples through a fresh
+session using the recorded feature configuration. Its results can differ when recording began after
+gyro calibration or detector history was established.
 
 Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
 

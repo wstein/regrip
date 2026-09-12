@@ -192,6 +192,7 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
       const params = new URLSearchParams(location.search);
       params.set('replay', '');
       params.set('fixture', 'local');
+      params.set('feed', 'session');
       location.search = params.toString();
     } catch (error) {
       setImportStatus(error instanceof Error ? error.message : 'Unable to load JSONL.', true);

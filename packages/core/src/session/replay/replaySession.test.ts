@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { featurePresets } from '@wstein/regrip-core/session/features';
 import { createReplaySession } from './replaySession';
 
 const header =
@@ -17,6 +18,19 @@ const sessionLog = [
 ].join('\n');
 const identifiedHeader =
   '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1,"session":{"device":"GoCube Edge","protocol":"gocube"}}}';
+const featureHeader = JSON.stringify({
+  recordedAt: '2026-09-09T10:00:00.000Z',
+  type: 'trace_header',
+  data: {
+    format: 'regrip',
+    version: 1,
+    session: {
+      device: 'GoCube Edge',
+      protocol: 'gocube',
+      profileValue: { features: featurePresets.all },
+    },
+  },
+});
 const lifecycleLog = [
   header,
   '{"recordedAt":"2026-09-09T10:00:00.001Z","type":"session_status","data":{"status":"connecting"}}',
@@ -24,6 +38,16 @@ const lifecycleLog = [
   '{"recordedAt":"2026-09-09T10:00:00.003Z","type":"gyro_stabilizer","data":{"timestamp":30,"quaternion":{"x":0,"y":0,"z":0,"w":1},"relative":{"x":0,"y":0,"z":0,"w":1},"stabilized":{"x":0,"y":0,"z":0,"w":1},"velocityMagnitude":0,"dtSeconds":0}}',
   '{"recordedAt":"2026-09-09T10:00:00.004Z","type":"session_status","data":{"status":"disconnected"}}',
 ].join('\n');
+const gyroRecord = (
+  recordedAt: string,
+  timestamp: number,
+  quaternion: { x: number; y: number; z: number; w: number },
+) =>
+  JSON.stringify({
+    recordedAt,
+    type: 'gyro_stabilizer',
+    data: { timestamp, quaternion },
+  });
 
 describe('replay session', () => {
   it('anchors playback at the first captured timestamp without emitting it', async () => {
@@ -81,6 +105,69 @@ describe('replay session', () => {
     );
 
     expect(replay.session.getState().profile.id).toBe('gocube');
+  });
+
+  it('restores captured detector features when re-detecting the connection feed', async () => {
+    const replay = createReplaySession([featureHeader, ...rawLog.split('\n').slice(1)].join('\n'));
+
+    await replay.session.connect();
+
+    expect(replay.session.getState().features).toMatchObject({
+      regrip: { enabled: true, thresholdDeg: 60 },
+      customTrigger: {
+        enabled: true,
+        triggers: [{ kind: 'moveBack', windowMs: 300 }, { kind: 'shake' }],
+      },
+    });
+  });
+
+  it('re-runs enabled regrip and shake detectors from captured gyro samples', async () => {
+    const regrip = createReplaySession(
+      [
+        featureHeader,
+        gyroRecord('2026-09-09T10:00:00.010Z', 0, { x: 0, y: 0, z: 0, w: 1 }),
+        gyroRecord('2026-09-09T10:00:00.020Z', 10, {
+          x: Math.sin((33 * Math.PI) / 180),
+          y: 0,
+          z: 0,
+          w: Math.cos((33 * Math.PI) / 180),
+        }),
+      ].join('\n'),
+    );
+    const regripEvents: string[] = [];
+    regrip.session.subscribeEvents((event) => regripEvents.push(event.type));
+    await regrip.advanceTo(Number.MAX_SAFE_INTEGER);
+    expect(regripEvents).toContain('REGRIP');
+
+    const pose = (degrees: number) => ({
+      x: 0,
+      y: Math.sin((degrees * Math.PI) / 360),
+      z: 0,
+      w: Math.cos((degrees * Math.PI) / 360),
+    });
+    const shake = createReplaySession(
+      [
+        featureHeader,
+        ...[
+          [0, 0],
+          [60, 15],
+          [120, -15],
+          [180, 15],
+          [240, -15],
+          [700, -15],
+        ].map(([timestamp, degrees]) =>
+          gyroRecord(
+            new Date(Date.parse('2026-09-09T10:00:00.010Z') + timestamp!).toISOString(),
+            timestamp!,
+            pose(degrees!),
+          ),
+        ),
+      ].join('\n'),
+    );
+    const shakeEvents: string[] = [];
+    shake.session.subscribeEvents((event) => shakeEvents.push(event.type));
+    await shake.advanceTo(Number.MAX_SAFE_INTEGER);
+    expect(shakeEvents).toContain('SHAKE');
   });
 
   it('serializes overlapping seeks so only the latest target populates the rebuilt session', async () => {
