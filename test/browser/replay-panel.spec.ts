@@ -129,6 +129,36 @@ test('switches the editable detected-move notation without changing its canonica
   await expect(moves).toHaveValue('E2');
 });
 
+test('aligns syntax-highlighted tokens pixel-for-pixel with textarea caret position', async ({
+  page,
+}) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const moves = page.locator('#detectedMoves');
+  await moves.fill('B F d Dw2');
+
+  const diff = await page.evaluate(() => {
+    const textarea = document.querySelector<HTMLTextAreaElement>('#detectedMoves')!;
+    const dToken = document.querySelectorAll<HTMLElement>('.move-token')[2]; // 'd'
+    const measurer = document.createElement('span');
+    measurer.style.font = window.getComputedStyle(textarea).font;
+    measurer.style.letterSpacing = '0';
+    measurer.style.whiteSpace = 'pre';
+    measurer.textContent = 'B F ';
+    document.body.appendChild(measurer);
+    const expectedX =
+      textarea.getBoundingClientRect().left +
+      parseFloat(window.getComputedStyle(textarea).paddingLeft) +
+      measurer.getBoundingClientRect().width;
+    const dPaddingLeft = parseFloat(window.getComputedStyle(dToken).paddingLeft);
+    const actualTextX = dToken.getBoundingClientRect().left + dPaddingLeft;
+    measurer.remove();
+    return Math.abs(expectedX - actualTextX);
+  });
+
+  expect(diff).toBeLessThanOrEqual(0.5);
+});
+
 test('renders the authoritative facelet snapshot after repeated sync requests', async ({
   page,
 }) => {
