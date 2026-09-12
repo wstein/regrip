@@ -378,3 +378,28 @@ test('pauses trace auto-follow after scrolling and resumes it with Newest', asyn
   await expect.poll(() => rows.evaluate((node) => node.scrollTop)).toBe(0);
   await expect(page.locator('#follow-trace')).toBeDisabled();
 });
+
+test('navigates move keyframes and renders visual timeline markers', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  const markers = page.locator('#replay-markers .replay-marker');
+  await expect(markers.first()).toBeVisible();
+
+  const nextMove = page.locator('#replay-next-move');
+  const prevMove = page.locator('#replay-prev-move');
+
+  await expect(prevMove).toBeDisabled();
+  await expect(nextMove).toBeEnabled();
+
+  // Click next move to jump to the first move frame
+  await nextMove.click();
+  const posAfterNext = await page.locator('#replay-position').textContent();
+  const [current] = (posAfterNext ?? '').split(' / ').map(Number);
+  expect(current).toBeGreaterThan(0);
+
+  // prev move should now be enabled
+  await expect(prevMove).toBeEnabled();
+  await prevMove.click();
+  await expect(page.locator('#replay-position')).toHaveText('0 / 8');
+});

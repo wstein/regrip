@@ -34,7 +34,7 @@ export type ReplayFeed = 'connection' | 'session';
 /** Browser-local storage used only by the dev replay harness. */
 export const REPLAY_STORAGE_KEY = 'regrip.replay.jsonl';
 
-type ReplayItem = {
+export type ReplayItem = {
   timestamp: number;
   event?: SmartCubeEvent | SmartCubeSessionEvent;
   status?: SmartCubeSessionState['status'];
@@ -511,6 +511,9 @@ export function createReplaySession(contents: string, feed: ReplayFeed = 'connec
     },
     get length(): number {
       return items.length;
+    },
+    get items(): ReadonlyArray<ReplayItem> {
+      return items;
     },
     get position(): number {
       return ReplayCursor.position(cursor);

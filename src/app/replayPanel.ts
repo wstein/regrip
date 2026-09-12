@@ -20,6 +20,9 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
   const speed = byId<HTMLSelectElement>('replay-speed');
   const feed = byId<HTMLSelectElement>('replay-feed');
   const load = byId<HTMLButtonElement>('replay-load');
+  const prevMove = document.getElementById('replay-prev-move') as HTMLButtonElement | null;
+  const nextMove = document.getElementById('replay-next-move') as HTMLButtonElement | null;
+  const markersContainer = document.getElementById('replay-markers');
   const identity = byId('replay-identity');
   const importer = byId('replay-import');
   const jsonl = byId<HTMLTextAreaElement>('replay-jsonl');
@@ -32,6 +35,52 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
   scrubber.max = String(replay.length);
   identity.textContent = `${replay.identity.deviceName} · ${replay.identity.protocol.id}`;
 
+  const moveIndices: number[] = [];
+  if (replay.items) {
+    replay.items.forEach((item, index) => {
+      const type = item.event?.type;
+      if (type === 'MOVE') {
+        moveIndices.push(index);
+      }
+    });
+  }
+
+  const renderMarkers = (): void => {
+    if (!markersContainer || !replay.items || replay.length === 0) return;
+    markersContainer.replaceChildren();
+    replay.items.forEach((item, index) => {
+      const type = item.event?.type;
+      if (!type) return;
+      let category = '';
+      let label = '';
+      if (type === 'MOVE') {
+        category = 'move';
+        const moveName = 'move' in item.event ? item.event.move : 'Move';
+        label = `Frame ${index}: ${moveName}`;
+      } else if (type === 'REGRIP') {
+        category = 'regrip';
+        label = `Frame ${index}: Regrip`;
+      } else if (type === 'CUSTOM_TRIGGER' || type === 'SHAKE') {
+        category = 'trigger';
+        label = `Frame ${index}: ${type === 'SHAKE' ? 'Shake' : 'Trigger'}`;
+      }
+      if (!category) return;
+
+      const pct = (index / replay.length) * 100;
+      const marker = document.createElement('div');
+      marker.className = `replay-marker replay-marker-${category}`;
+      marker.style.left = `${pct}%`;
+      marker.title = label;
+      marker.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pause();
+        void replay.seekTo(index);
+      });
+      markersContainer.appendChild(marker);
+    });
+  };
+  renderMarkers();
+
   let playing = false;
   let frame: number | undefined;
   let previousNow = performance.now();
@@ -41,6 +90,13 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     position.textContent = `${replay.position} / ${replay.length}`;
     play.textContent = playing ? 'Pause' : 'Play';
     step.disabled = replay.done;
+
+    if (prevMove) {
+      prevMove.disabled = replay.position === 0;
+    }
+    if (nextMove) {
+      nextMove.disabled = replay.position >= replay.length;
+    }
   };
   const pause = (): void => {
     playing = false;
@@ -67,6 +123,18 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
 
   play.addEventListener('click', () => (playing ? pause() : start()));
   step.addEventListener('click', () => void replay.stepOne());
+  prevMove?.addEventListener('click', () => {
+    const current = replay.position;
+    const target = [...moveIndices].reverse().find((idx) => idx < current);
+    pause();
+    void replay.seekTo(target !== undefined ? target : 0);
+  });
+  nextMove?.addEventListener('click', () => {
+    const current = replay.position;
+    const target = moveIndices.find((idx) => idx > current);
+    pause();
+    void replay.seekTo(target !== undefined ? target : replay.length);
+  });
   reset.addEventListener('click', () => {
     pause();
     void replay.reset();
