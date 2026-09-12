@@ -812,6 +812,9 @@ body {
   color: #d8b4fe;
   background: #3b0764;
 }
+.move-chip.is-rotation {
+  font-style: italic;
+}
 .move-chip[data-face='M'],
 .move-chip[data-face='E'],
 .move-chip[data-face='S'] {

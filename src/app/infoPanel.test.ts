@@ -195,29 +195,60 @@ describe('timer button state and TPS indicator', () => {
 describe('detected moves chips', () => {
   it('renders styled chips for each move token and categorizes by face', () => {
     document.body.innerHTML = `
-      <textarea id="detectedMoves">R U' F2 M y</textarea>
+      <textarea id="detectedMoves">R U' F2 M y x z' CR CU CF</textarea>
       <div id="detected-moves-chips"></div>
     `;
     syncDetectedMovesChips();
 
     const container = document.querySelector<HTMLElement>('#detected-moves-chips')!;
     const chips = container.querySelectorAll<HTMLElement>('.move-chip');
-    expect(chips.length).toBe(5);
+    expect(chips.length).toBe(10);
 
     expect(chips[0].textContent).toBe('R');
     expect(chips[0].dataset.face).toBe('R');
+    expect(chips[0].classList.contains('is-rotation')).toBe(false);
 
     expect(chips[1].textContent).toBe("U'");
     expect(chips[1].dataset.face).toBe('U');
+    expect(chips[1].classList.contains('is-rotation')).toBe(false);
 
     expect(chips[2].textContent).toBe('F2');
     expect(chips[2].dataset.face).toBe('F');
+    expect(chips[2].classList.contains('is-rotation')).toBe(false);
 
     expect(chips[3].textContent).toBe('M');
     expect(chips[3].dataset.face).toBe('M');
+    expect(chips[3].classList.contains('is-rotation')).toBe(false);
 
+    // y rotates around U axis
     expect(chips[4].textContent).toBe('y');
-    expect(chips[4].dataset.face).toBe('rotation');
+    expect(chips[4].dataset.face).toBe('U');
+    expect(chips[4].classList.contains('is-rotation')).toBe(true);
+
+    // x rotates around R axis
+    expect(chips[5].textContent).toBe('x');
+    expect(chips[5].dataset.face).toBe('R');
+    expect(chips[5].classList.contains('is-rotation')).toBe(true);
+
+    // z rotates around F axis
+    expect(chips[6].textContent).toBe("z'");
+    expect(chips[6].dataset.face).toBe('F');
+    expect(chips[6].classList.contains('is-rotation')).toBe(true);
+
+    // CR rotates around R axis
+    expect(chips[7].textContent).toBe('CR');
+    expect(chips[7].dataset.face).toBe('R');
+    expect(chips[7].classList.contains('is-rotation')).toBe(true);
+
+    // CU rotates around U axis
+    expect(chips[8].textContent).toBe('CU');
+    expect(chips[8].dataset.face).toBe('U');
+    expect(chips[8].classList.contains('is-rotation')).toBe(true);
+
+    // CF rotates around F axis
+    expect(chips[9].textContent).toBe('CF');
+    expect(chips[9].dataset.face).toBe('F');
+    expect(chips[9].classList.contains('is-rotation')).toBe(true);
   });
 
   it('renders an empty state when no moves exist', () => {

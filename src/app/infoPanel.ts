@@ -40,18 +40,44 @@ export function countDetectedMoves(value: string): number {
   return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
 }
 
-export function categorizeMoveToken(token: string): string {
+export type MoveCategory = {
+  face: string;
+  isRotation: boolean;
+};
+
+export function categorizeMoveToken(token: string): MoveCategory {
   const clean = token.trim();
-  if (!clean) return 'unknown';
-  if (/^[xyz]/i.test(clean) || /^C[RUFLD]/i.test(clean)) return 'rotation';
-  if (/^M/i.test(clean)) return 'M';
-  if (/^E/i.test(clean)) return 'E';
-  if (/^S/i.test(clean)) return 'S';
+  if (!clean) return { face: 'unknown', isRotation: false };
+
+  // Cube rotations around axes:
+  // x / CR: rotates around R axis (Red)
+  if (/^x/i.test(clean) || /^CR/i.test(clean)) {
+    return { face: 'R', isRotation: true };
+  }
+  // y / CU: rotates around U axis (White / Slate)
+  if (/^y/i.test(clean) || /^CU/i.test(clean)) {
+    return { face: 'U', isRotation: true };
+  }
+  // z / CF: rotates around F axis (Green)
+  if (/^z/i.test(clean) || /^CF/i.test(clean)) {
+    return { face: 'F', isRotation: true };
+  }
+  // Other Twizzle/SSE rotation variants:
+  if (/^CL/i.test(clean)) return { face: 'L', isRotation: true };
+  if (/^CD/i.test(clean)) return { face: 'D', isRotation: true };
+  if (/^CB/i.test(clean)) return { face: 'B', isRotation: true };
+
+  // Slice moves:
+  if (/^M/i.test(clean)) return { face: 'M', isRotation: false };
+  if (/^E/i.test(clean)) return { face: 'E', isRotation: false };
+  if (/^S/i.test(clean)) return { face: 'S', isRotation: false };
+
+  // Outer face moves (R, L, U, D, F, B, including wide moves):
   if (/[RUFLDB]/i.test(clean)) {
     const match = clean.match(/[RUFLDB]/i);
-    return match ? match[0].toUpperCase() : 'unknown';
+    return { face: match ? match[0].toUpperCase() : 'unknown', isRotation: false };
   }
-  return 'unknown';
+  return { face: 'unknown', isRotation: false };
 }
 
 export function syncDetectedMovesChips(): void {
@@ -72,7 +98,9 @@ export function syncDetectedMovesChips(): void {
     const chip = document.createElement('span');
     chip.className = 'move-chip';
     chip.textContent = token;
-    chip.dataset.face = categorizeMoveToken(token);
+    const { face, isRotation } = categorizeMoveToken(token);
+    chip.dataset.face = face;
+    if (isRotation) chip.classList.add('is-rotation');
     container.append(chip);
   });
   container.scrollLeft = container.scrollWidth;
