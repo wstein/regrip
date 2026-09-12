@@ -156,4 +156,18 @@ describe("RegripDetector", () => {
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "RDFLUB"))->Expect.toBe("OGYRBW")
     t->expect(RegripDetector.permuteFaceOrder("BOYGRW", "LUFRDB"))->Expect.toBe("RBYOGW")
   })
+
+  test("maps inverse and half-turn face orders", t => {
+    [
+      (CubeNotation.XPrime, "FRDBLU", "BRUFLD"),
+      (CubeNotation.YPrime, "UBRDFL", "UFLDBR"),
+      (CubeNotation.ZPrime, "LUFRDB", "RDFLUB"),
+      (CubeNotation.XDouble, "URFDLB", "URFDLB"),
+    ]->Array.forEach(
+      ((token, sensor, notation)) => {
+        t->expect(RegripDetector.faceOrderForSensor(token))->Expect.toBe(sensor)
+        t->expect(RegripDetector.faceOrderForNotation(token))->Expect.toBe(notation)
+      },
+    )
+  })
 })

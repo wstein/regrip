@@ -13,6 +13,9 @@ describe("VirtualCubeFrame", () => {
 
   test("translates moves and exposes R/U/F directions after y", t => {
     let home = VirtualCubeFrame.make()
+    t->expect(VirtualCubeFrame.translate(home, ""))->Expect.toBe("")
+    t->expect(VirtualCubeFrame.translate(home, "?"))->Expect.toBe("?")
+    t->expect(VirtualCubeFrame.solverFaceForBody(home, "?"))->Expect.toBe("?")
     t->expect(VirtualCubeFrame.translate(home, "R'"))->Expect.toBe("R'")
     let frame = VirtualCubeFrame.applyRegrip(home, CubeNotation.YTurn)
     t->expect(VirtualCubeFrame.translate(frame, "F'"))->Expect.toBe("L'")
@@ -25,15 +28,19 @@ describe("VirtualCubeFrame", () => {
 
   test("expresses body regrip tokens in the current solver frame", t => {
     let home = VirtualCubeFrame.make()
-    t
-    ->expect(VirtualCubeFrame.solverToken(home, CubeNotation.XTurn))
-    ->Expect.toBe(CubeNotation.XTurn)
-    t
-    ->expect(VirtualCubeFrame.solverToken(home, CubeNotation.YPrime))
-    ->Expect.toBe(CubeNotation.YPrime)
-    t
-    ->expect(VirtualCubeFrame.solverToken(home, CubeNotation.ZDouble))
-    ->Expect.toBe(CubeNotation.ZDouble)
+    [
+      CubeNotation.XTurn,
+      CubeNotation.XPrime,
+      CubeNotation.XDouble,
+      CubeNotation.YTurn,
+      CubeNotation.YPrime,
+      CubeNotation.YDouble,
+      CubeNotation.ZTurn,
+      CubeNotation.ZPrime,
+      CubeNotation.ZDouble,
+    ]->Array.forEach(
+      token => t->expect(VirtualCubeFrame.solverToken(home, token))->Expect.toBe(token),
+    )
 
     // A body x rotation is about the solver z axis after this body y regrip.
     let frame = VirtualCubeFrame.applyRegrip(home, CubeNotation.YTurn)

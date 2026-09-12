@@ -7,6 +7,31 @@ let expectSamePose = (t, actual: Quaternion.t, expected: Quaternion.t) =>
   t->expect(Quaternion.angle(actual, expected))->Expect.Float.toBeCloseTo(0., 8)
 
 describe("GyroPipeline", () => {
+  test("reconfigures and resets pipeline state immutably", t => {
+    let config = GyroPipeline.makeConfig(OrientationStabilizer.defaults)
+    let config = GyroPipeline.withStabilizerConfig(config, OrientationStabilizer.defaults)
+    let config = GyroPipeline.withSensorToBody(config, SensorToBody.default)
+    let (advanced, _) = GyroPipeline.step(
+      GyroPipeline.initial,
+      Quaternion.identity,
+      1000.,
+      None,
+      ~config,
+      ~stabilizerEnabled=false,
+    )
+    let stabilizedReset = GyroPipeline.resetStabilizer(advanced)
+    let reset = GyroPipeline.reset(stabilizedReset)
+    let (_, sample) = GyroPipeline.step(
+      reset,
+      Quaternion.identity,
+      2000.,
+      None,
+      ~config,
+      ~stabilizerEnabled=false,
+    )
+    t->expect(sample.dtSeconds)->Expect.toBe(0.)
+  })
+
   test("normalizes, timestamps, and bypasses the magnet when disabled", t => {
     let config = GyroPipeline.makeConfig(OrientationStabilizer.defaults)
     let (state, first) = GyroPipeline.step(

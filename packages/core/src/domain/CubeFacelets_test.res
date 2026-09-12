@@ -205,6 +205,32 @@ describe("applyMove", () => {
     ->Expect.toBe("UUUUUUUUURRRRRRLLLFFFFFFBBBDDDDDDDDDLLLLLLRRRBBBBBBFFF")
   })
 
+  test("recognizes every outer-face turn and suffix", t => {
+    let initial = CubeFacelets.faceletsToPatternData(solved)
+    [
+      "U",
+      "U'",
+      "U2",
+      "R",
+      "R'",
+      "R2",
+      "F",
+      "F'",
+      "F2",
+      "D",
+      "D'",
+      "D2",
+      "L",
+      "L'",
+      "L2",
+      "B",
+      "B'",
+      "B2",
+    ]->Array.forEach(
+      move => t->expect(initial->CubeFacelets.applyMove(move)->Option.isSome)->Expect.toBe(true),
+    )
+  })
+
   test("does not claim to apply unsupported notation", t =>
     t
     ->expect(solved->CubeFacelets.faceletsToPatternData->CubeFacelets.applyMove("Rw"))

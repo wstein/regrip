@@ -251,4 +251,42 @@ describe('replay session', () => {
     expect(replay.length).toBe(3);
     expect(events).toEqual(['GYRO', 'REGRIP', 'SHAKE']);
   });
+
+  it('exposes the complete session facade in session-output mode', async () => {
+    const replay = createReplaySession(rawLog, 'session');
+    const moves: string[] = [];
+    const states: string[] = [];
+    const cursors: number[] = [];
+    const unsubscribeState = replay.session.subscribe((state) => states.push(state.status));
+    const unsubscribeMove = replay.session.on('MOVE', (event) => moves.push(event.move));
+    const unsubscribeDiagnostics = replay.session.subscribeDiagnostics(() => undefined);
+    const unsubscribeCursor = replay.subscribeCursor(() => cursors.push(replay.position));
+
+    expect(replay.feed).toBe('session');
+    expect(replay.identity.deviceName).toBe('JSONL mock cube');
+    expect(replay.items).toHaveLength(2);
+    await replay.session.connect();
+    replay.session.resetGyro();
+    replay.session.configureFeatures({ regrip: { enabled: false } });
+    await replay.session.sendCommand({ type: 'REQUEST_BATTERY' });
+    await expect(
+      replay.session.sendVendorCommand({ type: 'GAN_REQUEST_FACELETS' } as never),
+    ).rejects.toThrow('Unsupported cube command: GAN_REQUEST_FACELETS');
+    await expect(replay.session.syncFacelets()).rejects.toThrow(
+      'State sync is unavailable for session-feed replay',
+    );
+    await replay.advanceTo(Number.MAX_SAFE_INTEGER);
+    await replay.reset();
+    await replay.session.disconnect();
+
+    expect(moves).toEqual(['R']);
+    expect(states).toContain('connected');
+    expect(states.at(-1)).toBe('disconnected');
+    expect(cursors.length).toBeGreaterThan(0);
+
+    unsubscribeCursor();
+    unsubscribeDiagnostics();
+    unsubscribeMove();
+    unsubscribeState();
+  });
 });
