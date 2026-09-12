@@ -409,30 +409,32 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.setTimerActivateEnabled(true);
     infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
-    commandPanel.render(connection.capabilities, {
-      sendCommand: session.sendCommand,
-      syncState: session.syncFacelets,
-      sendVendorCommand: session.sendVendorCommand,
-      onBeforeSend: (command) => {
-        if ('type' in command && command.type === 'REQUEST_FACELETS') {
-          // A user-requested Sync State is an explicit reconciliation point.
-          // Do not let a stale local tracker suppress its authoritative player update.
-          cubeEvents.invalidatePlayerState();
-          playerPatterns.reset();
-        }
-      },
-      onSend: (name) => {
-        eventLog.record('cube_command', { name, status: 'sent', error: null });
-      },
-      onResult: (name, error) => {
-        if (!error) return;
-        eventLog.record('cube_command', {
-          name,
-          status: 'failed',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      },
-    });
+    if (replay) commandPanel.clear();
+    else
+      commandPanel.render(connection.capabilities, {
+        sendCommand: session.sendCommand,
+        syncState: session.syncFacelets,
+        sendVendorCommand: session.sendVendorCommand,
+        onBeforeSend: (command) => {
+          if ('type' in command && command.type === 'REQUEST_FACELETS') {
+            // A user-requested Sync State is an explicit reconciliation point.
+            // Do not let a stale local tracker suppress its authoritative player update.
+            cubeEvents.invalidatePlayerState();
+            playerPatterns.reset();
+          }
+        },
+        onSend: (name) => {
+          eventLog.record('cube_command', { name, status: 'sent', error: null });
+        },
+        onResult: (name, error) => {
+          if (!error) return;
+          eventLog.record('cube_command', {
+            name,
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        },
+      });
     return;
   }
   if (state.status === 'disconnected') {

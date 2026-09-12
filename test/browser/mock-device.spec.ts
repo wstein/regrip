@@ -14,6 +14,7 @@ test('selects and exits a bundled replay from the production app entry', async (
   await expect(page).toHaveURL(/keep=yes.*replay=.*fixture=gocube-edge/);
   await expect(page.locator('#connectionStatus')).toHaveValue('Connected');
   await expect(page.locator('#replay-panel')).toBeVisible();
+  await expect(page.locator('#command-panel')).toBeHidden();
   await expect(page.locator('#replay-identity')).toContainText('GoCube Edge');
   await expect(page.locator('#connect')).toHaveText('Replay mode ▾');
 
