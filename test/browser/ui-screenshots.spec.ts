@@ -20,6 +20,18 @@ test('keeps detected moves clear of cube telemetry', async ({ page }) => {
   expect(separatedHorizontally || separatedVertically).toBe(true);
 });
 
+test('keeps cube state actions visually equal on narrow screens', async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 900 });
+  await page.goto('/test/browser/mock-app.html');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const reset = await page.locator('#reset-state').boundingBox();
+  const copy = await page.locator('#copy-cube-state').boundingBox();
+  expect(reset).not.toBeNull();
+  expect(copy).not.toBeNull();
+  expect(Math.abs(reset!.width - copy!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(reset!.height - copy!.height)).toBeLessThanOrEqual(1);
+});
+
 for (const fixture of ['disconnected', 'gocube-edge', 'gan-ui12'] as const) {
   test(`captures ${fixture} UI`, async ({ page }) => {
     await page.goto(

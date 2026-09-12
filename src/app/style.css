@@ -1305,8 +1305,8 @@ body {
 }
 .cube-view-toolbar > button,
 .cube-toolbar > button,
-.cube-toolbar .cube-export,
 .cube-toolbar .cube-export > button {
+  box-sizing: border-box;
   width: 100%;
   padding: 0.32rem 0.65rem;
   font-size: 0.74rem;
@@ -1437,6 +1437,10 @@ button:disabled {
 .cube-export {
   position: relative;
   flex: 0 0 auto;
+}
+.cube-toolbar .cube-export {
+  width: 100%;
+  min-width: 0;
 }
 .cube-export-menu {
   position: absolute;
