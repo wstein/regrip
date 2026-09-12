@@ -570,7 +570,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   margin: 0;
   padding: 0.5rem;
   border: 1px solid #2b3859;
@@ -588,7 +589,54 @@ body {
   gap: 1.25rem;
 }
 .cube-column {
+  display: flex;
+  flex-direction: column;
   flex: 0 0 auto;
+}
+.grip-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  padding: 0.38rem 0.65rem;
+  border: 1px solid #263554;
+  border-radius: 0.55rem;
+  background: #0c1426;
+  font-size: 0.72rem;
+  box-sizing: border-box;
+}
+.grip-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.grip-label {
+  color: #7c8ea8;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.grip-label::after {
+  content: ':';
+}
+.grip-value {
+  color: #c9d8f8;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-weight: 700;
+}
+.grip-gesture {
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 750;
+  color: #f4ffd4;
+  background: #4b4e20;
+  border: 1px solid #6c6d29;
+}
+.grip-gesture[hidden] {
+  display: none;
 }
 
 .detected-moves-panel {
