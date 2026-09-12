@@ -120,7 +120,6 @@ try {
     'package/dist/domain/MoveBackTrigger.res.mjs',
     'package/dist/bindings/Bindings_SmartCube.gen.js',
     'package/dist/bindings/Bindings_SmartCube.res.mjs',
-    'package/src/domain/CubeFacelets.res.mjs',
   ];
   for (const path of required) {
     if (!packedFiles.includes(path)) {

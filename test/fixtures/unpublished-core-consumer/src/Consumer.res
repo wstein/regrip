@@ -1,7 +1,7 @@
-@module("@wstein/regrip-core/domain/CubeFacelets.res.mjs")
+@module("@wstein/regrip-core/domain/CubeFacelets")
 external solvedFacelets: string = "solvedFacelets"
 
-@module("@wstein/regrip-core/domain/CubeFacelets.res.mjs")
+@module("@wstein/regrip-core/domain/CubeFacelets")
 external isSolvedFacelets: string => bool = "isSolvedFacelets"
 
 if !isSolvedFacelets(solvedFacelets) {

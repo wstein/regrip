@@ -14,14 +14,14 @@ host control the transport version and keeps one observable implementation in th
 
 ## Consumer surface
 
-| Import family                                  | Purpose                                                       |
-| ---------------------------------------------- | ------------------------------------------------------------- |
-| `@wstein/regrip-core/domain/*.res.mjs`         | Pure ReScript cube, gyro, regrip, timing, and replay reducers |
-| `@wstein/regrip-core/session/smartCubeSession` | Headless connection lifecycle and ordered typed event stream  |
-| `@wstein/regrip-core/session/features`         | Feature defaults, presets, and runtime patches                |
-| `@wstein/regrip-core/session/profile/*`        | Profile resolution and profile types                          |
-| `@wstein/regrip-core/session/replay/*`         | Deterministic JSONL replay transport and fixtures             |
-| `@wstein/regrip-core/bindings/*`               | Typed BLE-library boundary; internal unless a host needs it   |
+| Import family                                  | Purpose                                                                                |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `@wstein/regrip-core/domain/<Module>`          | Generated TypeScript boundary for pure cube, gyro, regrip, timing, and replay reducers |
+| `@wstein/regrip-core/session/smartCubeSession` | Headless connection lifecycle and ordered typed event stream                           |
+| `@wstein/regrip-core/session/features`         | Feature defaults, presets, and runtime patches                                         |
+| `@wstein/regrip-core/session/profile/*`        | Profile resolution and profile types                                                   |
+| `@wstein/regrip-core/session/replay/*`         | Deterministic JSONL replay transport and fixtures                                      |
+| `@wstein/regrip-core/bindings/*`               | Typed BLE-library boundary; internal unless a host needs it                            |
 
 The package uses in-source ReScript compilation. genType derives a `*.gen.ts` wrapper for every
 public ReScript interface, so TypeScript declarations stay coupled to the ReScript source.

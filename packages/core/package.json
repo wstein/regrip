@@ -15,7 +15,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./bindings/*.res.mjs": "./src/bindings/*.res.mjs",
     "./bindings/Bindings_SmartCube": {
       "types": "./dist/bindings/Bindings_SmartCube.gen.d.ts",
       "default": "./dist/bindings/Bindings_SmartCube.gen.js"
@@ -24,7 +23,6 @@
       "types": "./dist/bindings/*.d.ts",
       "default": "./dist/bindings/*.js"
     },
-    "./domain/*.res.mjs": "./src/domain/*.res.mjs",
     "./domain/Time": {
       "types": "./dist/domain/Time.gen.d.ts",
       "default": "./dist/domain/Time.gen.js"
@@ -113,8 +111,6 @@
   },
   "files": [
     "dist",
-    "src/bindings/*.res.mjs",
-    "src/domain/*.res.mjs",
     "src/session/replay/fixtures/*.jsonl",
     "!src/**/*_test.res.mjs"
   ],

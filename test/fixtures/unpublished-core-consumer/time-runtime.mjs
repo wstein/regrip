@@ -28,10 +28,7 @@ import {
   initial as initialShakeTrigger,
   observe as observeShake,
 } from '@wstein/regrip-core/domain/ShakeTrigger';
-import {
-  faceletsToPatternData,
-  solvedFacelets,
-} from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
+import { faceletsToPatternData, solvedFacelets } from '@wstein/regrip-core/domain/CubeFacelets';
 import { initial, pushRecent, recentMoves } from '@wstein/regrip-core/domain/MoveBuffer';
 import { initial as initialMoveTracker, observeMove } from '@wstein/regrip-core/domain/MoveTracker';
 import {
