@@ -120,9 +120,14 @@ describe('formatSseMoves', () => {
 });
 
 describe('detected-move notation views', () => {
-  it('uses native SiGN spellings for the Twizzle view', () => {
-    expect(formatDetectedMoves("Rw U Lw' M E' S2 x", 'twizzle')).toBe("r U l' 2L 2D' 2F2 Rv");
-    expect(parseDetectedMoves("r U l' 2L 2D' 2F2 Rv", 'twizzle')).toBe("Rw U Lw' M E' S2 x");
+  it('uses native SiGN spellings for the SiGN view', () => {
+    expect(formatDetectedMoves("Rw U Lw' M E' S2 x", 'sign')).toBe("r U l' 2L 2D' 2F2 Rv");
+    expect(parseDetectedMoves("r U l' 2L 2D' 2F2 Rv", 'sign')).toBe("Rw U Lw' M E' S2 x");
+  });
+
+  it('leaves raw QTM tokens unchanged', () => {
+    expect(formatDetectedMoves("R U U'", 'raw-qtm')).toBe("R U U'");
+    expect(parseDetectedMoves("R U U'", 'raw-qtm')).toBe("R U U'");
   });
 
   it('round-trips SSE regrips, tiers, middle layers, and opposing slices', () => {

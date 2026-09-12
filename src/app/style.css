@@ -1271,6 +1271,13 @@ body {
   gap: 0.35rem;
   margin: 0 0 0.55rem;
 }
+.detected-moves-notation-label {
+  align-self: center;
+  margin-right: 0.1rem;
+  color: #8291b2;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
 .detected-moves-notation button {
   padding: 0.24rem 0.5rem;
   color: #aab9d9;

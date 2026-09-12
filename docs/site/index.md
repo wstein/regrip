@@ -32,8 +32,10 @@ diagnostic-only.
 
 ## Move notation
 
-Detected moves are retained as live quarter-turn moves. Choose WCA, Twizzle, or SSE notation to
-view them, and use **Simplify** only when you explicitly want a reduced export.
+Detected moves are retained as live quarter-turn moves. Choose WCA, SiGN, or SSE notation for the
+editable solver-frame algorithm, and use **Simplify** only when you explicitly want a reduced
+export. **Raw QTM** is a read-only diagnostic view of the original body-frame `MOVE` packets; it is
+not changed by simplifying the editable algorithm.
 
 ## API reference
 

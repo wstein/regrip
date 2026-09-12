@@ -38,6 +38,8 @@ import { sourceRevision } from './sourceRevision';
 import { loadReplayFromUrl, mountMockDevicePicker } from './mockDevice';
 
 let detectedMoveNotation: DetectedMoveNotation = 'wca';
+let editableCanonicalMoves = '';
+let rawQtmMoves: string[] = [];
 
 const sourceRevisionLink = document.getElementById('source-revision');
 if (sourceRevisionLink instanceof HTMLAnchorElement) {
@@ -47,32 +49,55 @@ if (sourceRevisionLink instanceof HTMLAnchorElement) {
 }
 
 function canonicalDetectedMoves(): string {
-  return parseDetectedMoves(infoPanel.getDetectedMoves(), detectedMoveNotation);
+  if (detectedMoveNotation !== 'raw-qtm') {
+    editableCanonicalMoves = parseDetectedMoves(infoPanel.getDetectedMoves(), detectedMoveNotation);
+  }
+  return editableCanonicalMoves;
 }
 
-function renderDetectedMoves(canonicalMoves: string): void {
-  infoPanel.setDetectedMoves(formatDetectedMoves(canonicalMoves, detectedMoveNotation));
-  infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(canonicalMoves));
+function renderDetectedMoves(): void {
+  const raw = rawQtmMoves.join(' ');
+  const displayedMoves =
+    detectedMoveNotation === 'raw-qtm'
+      ? raw
+      : formatDetectedMoves(editableCanonicalMoves, detectedMoveNotation);
+  infoPanel.setDetectedMoves(displayedMoves);
+  infoPanel.setDetectedMoveCount(
+    infoPanel.countDetectedMoves(detectedMoveNotation === 'raw-qtm' ? raw : editableCanonicalMoves),
+  );
+  const editor = document.getElementById('detectedMoves');
+  if (editor instanceof HTMLTextAreaElement) editor.readOnly = detectedMoveNotation === 'raw-qtm';
+  const simplify = document.getElementById('simplify-detected-moves');
+  if (simplify instanceof HTMLButtonElement) simplify.disabled = detectedMoveNotation === 'raw-qtm';
 }
 
 function setDetectedMoveNotation(notation: DetectedMoveNotation): void {
-  const canonicalMoves = canonicalDetectedMoves();
+  canonicalDetectedMoves();
   detectedMoveNotation = notation;
-  (['wca', 'twizzle', 'sse'] as const).forEach((candidate) => {
+  (['wca', 'sign', 'sse', 'raw-qtm'] as const).forEach((candidate) => {
     document
       .getElementById(`detected-notation-${candidate}`)
       ?.setAttribute('aria-pressed', String(candidate === notation));
   });
-  renderDetectedMoves(canonicalMoves);
+  renderDetectedMoves();
 }
 
-function appendDetectedMove(move: string): void {
+function appendDetectedMove(move: string, rawMove?: string): void {
   const canonicalMoves = canonicalDetectedMoves();
-  renderDetectedMoves(canonicalMoves ? `${canonicalMoves} ${move}` : move);
+  editableCanonicalMoves = canonicalMoves ? `${canonicalMoves} ${move}` : move;
+  if (rawMove) rawQtmMoves.push(rawMove);
+  renderDetectedMoves();
+}
+
+function clearDetectedMoveStreams(): void {
+  editableCanonicalMoves = '';
+  rawQtmMoves = [];
+  renderDetectedMoves();
 }
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
+clearDetectedMoveStreams();
 mountFullscreenToggle();
 
 // Resting pose shown before any gyro data; the cube settles to
@@ -107,7 +132,9 @@ const liveLog = createLiveLog({
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
     playerSync.setAlgorithm(algorithm);
-    renderDetectedMoves(algorithm);
+    editableCanonicalMoves = algorithm;
+    rawQtmMoves = [...moves];
+    renderDetectedMoves();
   },
 });
 eventLog.subscribe((entry) => {
@@ -231,8 +258,8 @@ const cubeEvents = createCubeEventController({
   addMove: (move) => {
     playerSync.addMove(move);
   },
-  recordMove: (move) => {
-    appendDetectedMove(move);
+  recordMove: (move, rawMove) => {
+    appendDetectedMove(move, rawMove);
   },
   setOrientation: (quaternion) => {
     if (!orientationTracking) return;
@@ -348,6 +375,7 @@ sessionSignals.state.subscribe((state) => {
     solverFrame.reset();
     syncVirtualFrameOrientation();
     infoPanel.clearInfo();
+    clearDetectedMoveStreams();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
     infoPanel.setTimerActivateEnabled(false);
@@ -416,6 +444,7 @@ sessionSignals.state.subscribe((state) => {
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
+    clearDetectedMoveStreams();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
     infoPanel.setTimerActivateEnabled(false);
@@ -432,6 +461,7 @@ sessionSignals.state.subscribe((state) => {
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
+    clearDetectedMoveStreams();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
     infoPanel.setTimerActivateEnabled(false);
@@ -482,17 +512,18 @@ infoPanel.on('copy-log', 'click', () => {
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
-  renderDetectedMoves('');
+  clearDetectedMoveStreams();
 });
 
 infoPanel.on('simplify-detected-moves', 'click', () => {
+  if (detectedMoveNotation === 'raw-qtm') return;
   const simplified = simplifyMovesModuloRotations(canonicalDetectedMoves());
   if (detectedMoveNotation === 'sse') {
-    infoPanel.setDetectedMoves(simplifySseMoves(simplified));
-    infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(simplified));
+    editableCanonicalMoves = parseDetectedMoves(simplifySseMoves(simplified), 'sse');
   } else {
-    renderDetectedMoves(simplified);
+    editableCanonicalMoves = simplified;
   }
+  renderDetectedMoves();
   infoPanel.showFeedback('Detected moves simplified.');
 });
 
@@ -507,8 +538,9 @@ infoPanel.on('copy-detected-moves', 'click', () => {
 });
 
 infoPanel.on('detected-notation-wca', 'click', () => setDetectedMoveNotation('wca'));
-infoPanel.on('detected-notation-twizzle', 'click', () => setDetectedMoveNotation('twizzle'));
+infoPanel.on('detected-notation-sign', 'click', () => setDetectedMoveNotation('sign'));
 infoPanel.on('detected-notation-sse', 'click', () => setDetectedMoveNotation('sse'));
+infoPanel.on('detected-notation-raw-qtm', 'click', () => setDetectedMoveNotation('raw-qtm'));
 
 const cubeExportButton = document.getElementById('copy-cube-state') as HTMLButtonElement;
 const cubeExportMenu = document.getElementById('cube-export-menu') as HTMLElement;

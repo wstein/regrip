@@ -35,7 +35,7 @@ type CubeEventControllerOptions = {
   /** Translate a protocol-body move into the displayed solver frame. */
   projectMove?: (move: string) => string;
   /** Always records detected notation, including while the 3D player is untrusted. */
-  recordMove?: (move: string) => void;
+  recordMove?: (move: string, rawMove: string) => void;
   addMove: (move: string) => void;
   setOrientation: (quaternion: { x: number; y: number; z: number; w: number }) => void;
   setPlayerAlgorithm: (algorithm: string) => void;
@@ -103,7 +103,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   function handleMove(event: Extract<SmartCubeEvent, { type: 'MOVE' }>): void {
     options.timer.onMove(event);
     const displayedMove = options.projectMove?.(event.move) ?? event.move;
-    options.recordMove?.(displayedMove);
+    options.recordMove?.(displayedMove, event.move);
     const nextPattern = normalizedPattern && CubeFacelets.applyMove(normalizedPattern, event.move);
     if (nextPattern) {
       normalizedPattern = nextPattern;

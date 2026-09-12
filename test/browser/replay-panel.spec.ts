@@ -96,9 +96,11 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
   await page.locator('#copy-cube-state').click();
   await expect(page.locator('#copy-cubie-coordinates')).toHaveText('CP / CO / EP / EO');
   await expect(page.locator('#copy-sse-permutation')).toHaveText('SSE permutation');
+  await expect(page.locator('.detected-moves-notation')).toContainText('Notation:');
   await expect(page.locator('#detected-notation-wca')).toHaveText('WCA');
-  await expect(page.locator('#detected-notation-twizzle')).toHaveText('Twizzle');
+  await expect(page.locator('#detected-notation-sign')).toHaveText('SiGN');
   await expect(page.locator('#detected-notation-sse')).toHaveText('SSE');
+  await expect(page.locator('#detected-notation-raw-qtm')).toHaveText('Raw QTM');
 });
 
 test('switches the editable detected-move notation without changing its canonical stream', async ({
@@ -118,7 +120,7 @@ test('switches the editable detected-move notation without changing its canonica
   await expect(moves).toHaveValue("MD' TF");
   await expect(page.locator('#moveCount')).toHaveText('2');
 
-  await page.locator('#detected-notation-twizzle').click();
+  await page.locator('#detected-notation-sign').click();
   await expect(moves).toHaveValue("2D' f");
 
   await page.locator('#detected-notation-wca').click();
@@ -127,6 +129,24 @@ test('switches the editable detected-move notation without changing its canonica
   await moves.fill("E2 M2 R L' R L'");
   await page.locator('#simplify-detected-moves').click();
   await expect(moves).toHaveValue('E2');
+});
+
+test('preserves the unsimplified body-frame move stream in Raw QTM', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+
+  const moves = page.locator('#detectedMoves');
+  await page.locator('#simplify-detected-moves').click();
+  await page.locator('#detected-notation-raw-qtm').click();
+
+  await expect(moves).toHaveValue("R U U'");
+  await expect(moves).toHaveAttribute('readonly', '');
+  await expect(page.locator('#simplify-detected-moves')).toBeDisabled();
+
+  await page.locator('#detected-notation-sign').click();
+  await expect(moves).not.toHaveAttribute('readonly', '');
+  await expect(page.locator('#simplify-detected-moves')).toBeEnabled();
 });
 
 test('aligns syntax-highlighted tokens pixel-for-pixel with textarea caret position', async ({

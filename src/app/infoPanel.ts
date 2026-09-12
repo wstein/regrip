@@ -63,7 +63,7 @@ export function categorizeMoveToken(token: string): MoveCategory {
   if (/^z/i.test(clean) || /^CF/i.test(clean)) {
     return { face: 'F', isRotation: true };
   }
-  // Other Twizzle/SSE rotation variants:
+  // Other SiGN/SSE rotation variants:
   if (/^CL/i.test(clean)) return { face: 'L', isRotation: true };
   if (/^CD/i.test(clean)) return { face: 'D', isRotation: true };
   if (/^CB/i.test(clean)) return { face: 'B', isRotation: true };
