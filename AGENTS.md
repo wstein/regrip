@@ -21,6 +21,7 @@
 - `npm run test:browser` runs Playwright. Use `npm run test:screenshots` for visual baseline checks.
 - `npm run core:pack:check` validates the packed `@wstein/regrip-core` artifact with isolated TypeScript and ReScript consumers.
 - `npm run check:replay-lazy` checks the production manifest after `npm run build` and fails if mock replay code or fixtures enter the eager app graph.
+- `npm run check:three-singleton` fails if the lockfile would install multiple Three.js runtimes.
 - To run a single test, build ReScript first (`npm run res:build` — a bare `vitest` invocation does not do this for you), then target the right one of the two split Vitest configs by file path:
   `npx vitest run --config vitest.config.ts src/app/commandPanel.browser.test.ts` (app-level, `src/`) or
   `npx vitest run --config packages/core/vitest.config.ts packages/core/src/domain/RegripDetector_test.res.mjs` (core-level, `packages/core/src/`). Add `-t "<name>"` to filter by test name.
