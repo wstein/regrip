@@ -1,9 +1,9 @@
 import type {
   SmartCubeCommand,
-  SmartCubeConnection,
   SmartCubeEvent,
+  SmartCubeTransportConnection,
   SmartCubeVendorCommand,
-} from 'smartcube-web-bluetooth';
+} from '../../bindings/smartCubeTransport';
 
 import * as ReplayCursor from '@wstein/regrip-core/domain/ReplayCursor';
 import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
@@ -409,7 +409,7 @@ function parseReplayItems(entries: JsonlReplay['entries'], feed: ReplayFeed): Re
 }
 
 function createOutputSession(
-  connection: SmartCubeConnection,
+  connection: SmartCubeTransportConnection,
   replayFeatures?: SessionFeatures,
 ): ReplayOutputSession {
   // A2 bypasses the production connection lifecycle, but must still present

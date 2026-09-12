@@ -1,9 +1,9 @@
 import { Subject } from 'rxjs';
 import type {
   SmartCubeCommand,
-  SmartCubeConnection,
   SmartCubeEvent,
-} from 'smartcube-web-bluetooth';
+  SmartCubeTransportConnection,
+} from '../../bindings/smartCubeTransport';
 
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../jsonlFormat';
 
@@ -161,7 +161,7 @@ export function createJsonlMockConnection(source: string | JsonlReplay) {
   const { events, identity } = replay;
   const events$ = new Subject<SmartCubeEvent>();
   const sentCommands: SmartCubeCommand[] = [];
-  const connection: SmartCubeConnection = {
+  const connection: SmartCubeTransportConnection = {
     deviceName: identity.deviceName,
     deviceMAC: identity.deviceMAC,
     protocol: identity.protocol,

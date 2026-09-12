@@ -95,6 +95,29 @@ export default [
       ],
     },
   },
+  {
+    files: ['packages/core/src/session/**/*.ts'],
+    ignores: testFiles,
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@preact/signals-core',
+              message:
+                'Signals are an app-only presentation concern; use src/app/sessionSignals.ts.',
+            },
+            {
+              name: 'smartcube-web-bluetooth',
+              message:
+                'Import transport types through packages/core/src/bindings/smartCubeTransport.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Keep ESLint focused on correctness and architecture, not presentation.
   prettierConfig,
 ];
