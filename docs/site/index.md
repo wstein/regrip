@@ -2,9 +2,9 @@
 layout: doc
 ---
 
-# Regrip Console documentation
+# Regrip Dev Console documentation
 
-Regrip Console is a browser developer console for supported smart cubes. Connect over Bluetooth,
+Regrip Dev Console is a browser developer console for supported smart cubes. Connect over Bluetooth,
 inspect the live trace, and export the exact evidence used to update the cube view.
 
 ## Getting started

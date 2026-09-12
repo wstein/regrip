@@ -27,6 +27,12 @@ describe('VitePress documentation integration', () => {
     expect(app).toMatch(/>GitHub@unknown</);
   });
 
+  it('identifies the developer surface as Regrip Dev Console', () => {
+    expect(app).toContain('<title>Regrip Dev Console</title>');
+    expect(app).toContain('>Regrip Dev Console</a>');
+    expect(docs).toContain('# Regrip Dev Console documentation');
+  });
+
   it('places the global fullscreen action in the site navigation', () => {
     const navigation = app.match(/<nav class="site-topbar-nav"[\s\S]*?<\/nav>/)?.[0];
     const cubeActions = app.match(/<div class="control-actions">[\s\S]*?<\/div>/)?.[0];
