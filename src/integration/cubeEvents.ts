@@ -3,7 +3,7 @@ import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetoot
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
 import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync';
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
-import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import { formatOfflineStats, formatSingmasterCycles } from './cubeInfo';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
 import type { TimerController } from './timerController';
@@ -24,7 +24,7 @@ function patternFromFacelets(facelets: string): CubeFacelets.patternData | undef
 }
 
 type CubeEventControllerOptions = {
-  homeOrientation?: Quaternion.Quaternion;
+  homeOrientation?: Quaternion.t;
   timer: TimerController;
   solveScramble: ScrambleSolver;
   /** Adapter-owned body-frame permutation reconciliation for the 3D player. */

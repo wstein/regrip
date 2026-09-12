@@ -1,4 +1,4 @@
-import type { Quaternion } from './Quaternion.res.mjs';
+import type { t as Quaternion } from './Quaternion.gen.js';
 import type { SensorToBody } from './SensorToBody.res.mjs';
 
 /** Opaque calibration state for the gyro orientation reducer. */

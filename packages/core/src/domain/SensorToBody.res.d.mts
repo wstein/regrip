@@ -1,4 +1,4 @@
-import type { Quaternion } from './Quaternion.res.mjs';
+import type { t as Quaternion } from './Quaternion.gen.js';
 
 export type BodyAxis = 'X' | 'Y' | 'Z';
 export type BodyComponent = { axis: BodyAxis; sign: number };

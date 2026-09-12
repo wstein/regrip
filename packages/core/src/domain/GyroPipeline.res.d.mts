@@ -1,5 +1,5 @@
 import type { OrientationStabilizerConfig } from './OrientationStabilizer.res.mjs';
-import type { Quaternion } from './Quaternion.res.mjs';
+import type { t as Quaternion } from './Quaternion.gen.js';
 import type { SensorToBody } from './SensorToBody.res.mjs';
 
 export type GyroVelocity = { x: number; y: number; z: number };

@@ -12,6 +12,7 @@
       "smartcube-web-bluetooth": ["./node_modules/smartcube-web-bluetooth/src/index.ts"]
     },
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

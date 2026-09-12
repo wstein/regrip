@@ -1,4 +1,4 @@
-import type { Quaternion } from './Quaternion.res.mjs';
+import type { t as Quaternion } from './Quaternion.gen.js';
 import type { Axis, RegripToken } from './CubeNotation.res.mjs';
 
 /** Independent virtual x/y/z regrip detector over calibrated gyro poses. */

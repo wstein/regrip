@@ -90,6 +90,8 @@ try {
     'package/dist/domain/Timer.res.mjs',
     'package/dist/domain/PlayerSync.gen.js',
     'package/dist/domain/PlayerSync.res.mjs',
+    'package/dist/domain/Quaternion.gen.js',
+    'package/dist/domain/Quaternion.res.mjs',
     'package/dist/domain/MoveTracker.gen.js',
     'package/dist/domain/MoveTracker.res.mjs',
     'package/dist/domain/SnapshotDeduper.gen.js',

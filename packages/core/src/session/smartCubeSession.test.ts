@@ -6,7 +6,7 @@ import type {
   SmartCubeEvent,
 } from 'smartcube-web-bluetooth';
 
-import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import {
   createSmartCubeSession,
   type GyroFrameScheduler,

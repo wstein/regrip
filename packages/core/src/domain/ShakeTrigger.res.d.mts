@@ -1,4 +1,4 @@
-import type { Quaternion } from './Quaternion.res.mjs';
+import type { t as Quaternion } from './Quaternion.gen.js';
 
 /** Opaque reducer state for the shake trigger. */
 export type ShakeTriggerState = unknown;

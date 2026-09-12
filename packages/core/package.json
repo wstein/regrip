@@ -61,6 +61,10 @@
       "types": "./dist/domain/PlayerSync.gen.d.ts",
       "default": "./dist/domain/PlayerSync.gen.js"
     },
+    "./domain/Quaternion": {
+      "types": "./dist/domain/Quaternion.gen.d.ts",
+      "default": "./dist/domain/Quaternion.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",

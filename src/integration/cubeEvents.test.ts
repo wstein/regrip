@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation.res.mjs';
-import * as Quaternion from '@wstein/regrip-core/domain/Quaternion.res.mjs';
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import { createCubeEventController } from './cubeEvents';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
 
-function xRotation(degrees: number): Quaternion.Quaternion {
+function xRotation(degrees: number): Quaternion.t {
   return Quaternion.fromEuler({ x: Quaternion.degreesToRadians(degrees), y: 0, z: 0 });
 }
 
@@ -89,7 +89,7 @@ describe('cube event gyro bridge', () => {
       dtSeconds: 0,
     } satisfies SessionGyroEvent);
 
-    const output = setOrientation.mock.calls.at(-1)?.[0] as Quaternion.Quaternion;
+    const output = setOrientation.mock.calls.at(-1)?.[0] as Quaternion.t;
     const expected = Quaternion.multiply(GyroOrientation.home, stabilized);
     expect(Quaternion.angle(output, expected)).toBeCloseTo(0, 7);
   });

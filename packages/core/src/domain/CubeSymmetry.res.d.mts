@@ -1,4 +1,4 @@
-import type { Quaternion } from './Quaternion.res.mjs';
+import type { t as Quaternion } from './Quaternion.gen.js';
 
 /** The 24 orientation-preserving rotations of a cube. */
 export const poses: Quaternion[];

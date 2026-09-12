@@ -4,6 +4,7 @@ import {
   initial as initialPlayerSync,
   move as playerMove,
 } from '@wstein/regrip-core/domain/PlayerSync';
+import { degreesToRadians, fromEuler } from '@wstein/regrip-core/domain/Quaternion';
 import {
   faceletsToPatternData,
   solvedFacelets,
@@ -44,6 +45,14 @@ if (
   playerEffects[0].move !== 'R'
 ) {
   throw new Error('expected generated PlayerSync wrapper to preserve tagged effects');
+}
+
+const quarterTurn = fromEuler({ x: degreesToRadians(90), y: 0, z: 0 });
+if (
+  Math.abs(quarterTurn.x - Math.SQRT1_2) > 1e-12 ||
+  Math.abs(quarterTurn.w - Math.SQRT1_2) > 1e-12
+) {
+  throw new Error('expected generated Quaternion wrapper to preserve structural records');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));
