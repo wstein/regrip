@@ -85,7 +85,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run test
+      - name: Run fast integration smoke tests without coverage
+        run: npm run test:smoke
 
   coverage:
     name: Coverage
