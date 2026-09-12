@@ -9,6 +9,7 @@ describe('VitePress documentation integration', () => {
   const docs = read('docs/site/index.md');
   const vitepress = read('docs/site/.vitepress/config.mts');
   const app = read('index.html');
+  const appStyles = read('src/app/style.css');
   const typedoc = JSON.parse(read('typedoc.json')) as Record<string, unknown>;
 
   it('links narrative documentation to the generated API route', () => {
@@ -66,6 +67,15 @@ describe('VitePress documentation integration', () => {
     expect(navigation).not.toContain('id="fullscreen"');
     expect(telemetryHeader).toContain('<h2>Cube Telemetry</h2>');
     expect(telemetryHeader).not.toContain('id="connect"');
+  });
+
+  it('groups global controls and separates them from navigation', () => {
+    expect(app).toContain(
+      'class="site-topbar-controls" role="group" aria-label="Global console controls"',
+    );
+    expect(appStyles).toMatch(/\.site-topbar-nav\s*\{[^}]*border-left:/s);
+    const deviceActionsRule = appStyles.match(/\.site-topbar-device-actions\s*\{([^}]*)\}/)?.[1];
+    expect(deviceActionsRule).not.toContain('border-left');
   });
 
   it('keeps detected-move editing actions above the algorithm editor', () => {
