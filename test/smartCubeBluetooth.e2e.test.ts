@@ -65,6 +65,13 @@ describe.skipIf(!capturesAvailable)('smart cube session over the library Bluetoo
   it('replays a MAC-salted GAN gen2 capture through the session lifecycle', async () => {
     const fixture = JSON.parse(await readFile(ganFixtureUrl, 'utf8')) as FixtureSession;
     vi.stubGlobal('navigator', {});
+    // Node 26 exposes a warning-only localStorage getter unless a backing file
+    // is configured. The GAN adapter only needs this browser cache contract.
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    });
     const { device, replayer } = installMockBluetoothFromFixture(fixture, {
       deviceId: 'regrip-gan-e2e',
       maxAutoFlushNotifies: 0,
