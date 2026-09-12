@@ -165,8 +165,11 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
     .not.toEqual(Array.from({ length: 12 }, (_, index) => index));
   await expect(page.locator('#cubieState')).not.toHaveValue('');
   await page.locator('#copy-cube-state').click();
+  await expect(page.locator('#copy-color-facelets')).toHaveText('Color facelets (WRGYOB)');
   await expect(page.locator('#copy-cubie-coordinates')).toHaveText('CP / CO / EP / EO');
   await expect(page.locator('#copy-sse-permutation')).toHaveText('SSE permutation');
+  await expect(page.locator('#copy-kpattern-json')).toHaveText('KPattern JSON');
+  await expect(page.locator('#copy-regrip-state-json')).toHaveText('Regrip state JSON');
   await expect(page.locator('.detected-moves-notation')).toContainText('Notation:');
   await expect(page.locator('#detected-notation-wca')).toHaveText('WCA');
   await expect(page.locator('#detected-notation-sign')).toHaveText('SiGN');

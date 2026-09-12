@@ -599,6 +599,9 @@ infoPanel.on('copy-compact-facelets', 'click', () =>
 infoPanel.on('copy-spaced-facelets', 'click', () =>
   copyCubeExport('spaced-facelets', 'Spaced facelets'),
 );
+infoPanel.on('copy-color-facelets', 'click', () =>
+  copyCubeExport('color-facelets', 'Color facelets'),
+);
 infoPanel.on('copy-singmaster-cycles', 'click', () =>
   copyCubeExport('singmaster-cycles', 'Singmaster cycles'),
 );
@@ -607,6 +610,10 @@ infoPanel.on('copy-sse-permutation', 'click', () =>
 );
 infoPanel.on('copy-cubie-coordinates', 'click', () =>
   copyCubeExport('cubie-coordinates', 'CP / CO / EP / EO'),
+);
+infoPanel.on('copy-kpattern-json', 'click', () => copyCubeExport('kpattern-json', 'KPattern JSON'));
+infoPanel.on('copy-regrip-state-json', 'click', () =>
+  copyCubeExport('regrip-state-json', 'Regrip state JSON'),
 );
 infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 token'));
 

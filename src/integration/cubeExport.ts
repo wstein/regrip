@@ -1,17 +1,29 @@
 import type { SmartCubeCubieState } from 'smartcube-web-bluetooth';
 
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import { formatSingmasterCycles, formatSupersetEngPermutation } from './cubeInfo';
 
 export type CubeExportFormat =
   | 'compact-facelets'
   | 'spaced-facelets'
+  | 'color-facelets'
   | 'singmaster-cycles'
   | 'sse-permutation'
   | 'cubie-coordinates'
+  | 'kpattern-json'
+  | 'regrip-state-json'
   | 'orbit64';
 export type CubeExportSource = { facelets: string; state?: SmartCubeCubieState };
 
 const base64url = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+const faceletColors: Readonly<Record<string, string>> = {
+  U: 'W',
+  R: 'R',
+  F: 'G',
+  D: 'Y',
+  L: 'O',
+  B: 'B',
+};
 
 function validPermutation(values: number[], length: number): boolean {
   return (
@@ -98,6 +110,45 @@ export function formatCubieCoordinates(state: SmartCubeCubieState): string {
   return `CP: ${state.CP.join(',')}\nCO: ${state.CO.join(',')}\nEP: ${state.EP.join(',')}\nEO: ${state.EO.join(',')}`;
 }
 
+/** Sticker colors in canonical URFDLB face order, grouped by face. */
+export function formatColorFacelets(facelets: string): string | undefined {
+  if (facelets.length !== 54) return undefined;
+  const colors = Array.from(facelets, (facelet) => faceletColors[facelet]);
+  if (colors.some((color) => color === undefined)) return undefined;
+  return colors.join('').match(/.{9}/g)?.join(' ');
+}
+
+/** cubing.js-compatible KPatternData serialized with stable indentation. */
+export function formatKPatternJson(facelets: string): string | undefined {
+  try {
+    return JSON.stringify(CubeFacelets.faceletsToPatternData(facelets), null, 2);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Versioned Regrip state document in the normalized Kociemba body frame. */
+export function formatRegripStateJson(source: CubeExportSource): string | undefined {
+  if (!source.state) return undefined;
+  return JSON.stringify(
+    {
+      format: 'regrip-state',
+      version: 1,
+      puzzle: '3x3x3',
+      faceletOrder: 'URFDLB',
+      facelets: source.facelets,
+      cubies: {
+        CP: source.state.CP,
+        CO: source.state.CO,
+        EP: source.state.EP,
+        EO: source.state.EO,
+      },
+    },
+    null,
+    2,
+  );
+}
+
 export function formatCubeExport(
   source: CubeExportSource | undefined,
   format: CubeExportFormat,
@@ -108,12 +159,18 @@ export function formatCubeExport(
       return source.facelets;
     case 'spaced-facelets':
       return source.facelets.match(/.{1,9}/g)?.join(' ');
+    case 'color-facelets':
+      return formatColorFacelets(source.facelets);
     case 'singmaster-cycles':
       return source.state ? formatSingmasterCycles(source.state) : undefined;
     case 'sse-permutation':
       return source.state ? formatSupersetEngPermutation(source.state) : undefined;
     case 'cubie-coordinates':
       return source.state ? formatCubieCoordinates(source.state) : undefined;
+    case 'kpattern-json':
+      return formatKPatternJson(source.facelets);
+    case 'regrip-state-json':
+      return formatRegripStateJson(source);
     case 'orbit64':
       return source.state ? formatOrbit64(source.state) : undefined;
   }

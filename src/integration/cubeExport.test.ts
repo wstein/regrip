@@ -51,6 +51,32 @@ describe('cube exports', () => {
     );
   });
 
+  it('formats color facelets in canonical URFDLB face order', () => {
+    expect(formatCubeExport({ facelets, state: solved }, 'color-facelets')).toBe(
+      'WWWWWWWWW RRRRRRRRR GGGGGGGGG YYYYYYYYY OOOOOOOOO BBBBBBBBB',
+    );
+  });
+
+  it('formats cubing.js-compatible KPattern data as deterministic JSON', () => {
+    const value = formatCubeExport({ facelets, state: solved }, 'kpattern-json');
+
+    expect(value).toBe(JSON.stringify(CubeFacelets.faceletsToPatternData(facelets), null, 2));
+    expect(Object.keys(JSON.parse(value!))).toEqual(['CORNERS', 'EDGES', 'CENTERS']);
+  });
+
+  it('formats a versioned Regrip state document with canonical facelets and cubies', () => {
+    const value = formatCubeExport({ facelets, state: solved }, 'regrip-state-json');
+
+    expect(JSON.parse(value!)).toEqual({
+      format: 'regrip-state',
+      version: 1,
+      puzzle: '3x3x3',
+      faceletOrder: 'URFDLB',
+      facelets,
+      cubies: solved,
+    });
+  });
+
   it('formats a CubeTwister Superset ENG permutation export', () => {
     expect(
       formatCubeExport(
