@@ -51,6 +51,18 @@ jobs:
       - run: npm run build
       - run: npm run check:replay-lazy
 
+  api-docs:
+    name: API documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run docs:check
+
   package-core:
     name: Package core
     runs-on: ubuntu-latest
