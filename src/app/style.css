@@ -899,7 +899,7 @@ body {
     'Nimbus Mono PS',
     serif;
   letter-spacing: normal;
-  word-spacing: 0.25em;
+  word-spacing: normal;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
