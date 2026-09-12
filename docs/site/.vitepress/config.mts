@@ -8,13 +8,13 @@ const apiSidebar = existsSync(apiSidebarPath)
   : [];
 
 export default defineConfig({
-  title: 'Regrip',
-  description: 'Smart-cube trace lab documentation.',
+  title: 'Regrip Console',
+  description: 'Smart-cube developer console documentation.',
   base: '/regrip/docs/',
   cleanUrls: true,
   themeConfig: {
     nav: [
-      { text: 'Lab', link: 'https://wstein.github.io/regrip/' },
+      { text: 'Console', link: 'https://wstein.github.io/regrip/' },
       { text: 'Docs', link: '/' },
       { text: 'API', link: '/api/' },
       { text: 'GitHub', link: 'https://github.com/wstein/regrip' },

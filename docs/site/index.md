@@ -2,19 +2,20 @@
 layout: doc
 ---
 
-# Regrip documentation
+# Regrip Console documentation
 
-Regrip is a browser lab for supported smart cubes. Connect over Bluetooth, inspect the live trace,
-and export the exact evidence used to update the cube view.
+Regrip Console is a browser developer console for supported smart cubes. Connect over Bluetooth,
+inspect the live trace, and export the exact evidence used to update the cube view.
 
 ## Getting started
 
-Open the [Lab](https://wstein.github.io/regrip/) in a Bluetooth-capable browser, select **Connect**, and pick a cube from
-the system pairing dialog. There is no account or installation step.
+Open the [Console](https://wstein.github.io/regrip/) in a Bluetooth-capable browser, select
+**Connect**, and pick a cube from the system pairing dialog. There is no account or installation
+step.
 
 ## Connecting a cube
 
-The lab selects the device protocol automatically. The connection panel reports its protocol,
+The console selects the device protocol automatically. The connection panel reports its protocol,
 capabilities, firmware, battery level, and gyro support. Use **Sync state** to request the next
 facelet state from the device even when it has already reported the same state.
 

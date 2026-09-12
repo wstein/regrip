@@ -15,13 +15,13 @@ describe('VitePress documentation integration', () => {
     expect(docs).toContain('](/api/)');
   });
 
-  it('uses Lab, Docs, API, and GitHub navigation across the app and docs', () => {
-    expect(vitepress).toMatch(/text: 'Lab'/);
+  it('uses Console, Docs, API, and GitHub navigation across the app and docs', () => {
+    expect(vitepress).toMatch(/text: 'Console'/);
     expect(vitepress).toMatch(/text: 'Docs'/);
     expect(vitepress).toMatch(/text: 'API'/);
     expect(vitepress).toMatch(/text: 'GitHub'/);
     expect(app).toMatch(/class="site-topbar"/);
-    expect(app).toMatch(/>Lab</);
+    expect(app).toMatch(/>Console</);
     expect(app).toMatch(/>Docs</);
     expect(app).toMatch(/>API</);
     expect(app).toMatch(/>GitHub@unknown</);
