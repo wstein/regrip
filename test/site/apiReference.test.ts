@@ -95,12 +95,12 @@ describe('VitePress documentation integration', () => {
     expect(baseButtonRule).toContain('padding: 0.45rem 0.72rem');
   });
 
-  it('keeps detected-move editing actions above the algorithm editor', () => {
+  it('keeps detected-move editing actions below the algorithm editor', () => {
     const panel = app.match(/<section class="detected-moves-panel"[\s\S]*?<\/section>/)?.[0];
 
     expect(panel).toContain('class="detected-moves-toolbar"');
-    expect(panel!.indexOf('class="detected-moves-actions"')).toBeLessThan(
-      panel!.indexOf('class="detected-moves-editor"'),
+    expect(panel!.indexOf('class="detected-moves-editor"')).toBeLessThan(
+      panel!.indexOf('class="detected-moves-actions"'),
     );
   });
 
