@@ -15,6 +15,7 @@ import {
   type CustomTriggerEvent,
   type MoveGapEvent,
   type SessionGyroEvent,
+  type ShakeTriggerEvent,
   type SmartCubeSession,
   type SmartCubeSessionDiagnostic,
   type SmartCubeSessionEvent,
@@ -207,6 +208,19 @@ function customTriggerFromRecord(
     : undefined;
 }
 
+function shakeFromRecord(
+  data: Record<string, unknown>,
+  fallbackTimestamp: number,
+): ShakeTriggerEvent | undefined {
+  const timestamp = number(data.timestamp) ?? fallbackTimestamp;
+  const steps = number(data.steps);
+  const reversals = number(data.reversals);
+  const spanMs = number(data.spanMs);
+  return steps === undefined || reversals === undefined || spanMs === undefined
+    ? undefined
+    : { type: 'SHAKE', timestamp, steps, reversals, spanMs };
+}
+
 function moveGapFromRecord(
   data: Record<string, unknown>,
   fallbackTimestamp: number,
@@ -264,6 +278,10 @@ const sessionBuilders: Record<string, ReplayItemBuilder> = {
   },
   custom_trigger: (data, fallbackTimestamp) => {
     const event = customTriggerFromRecord(data, fallbackTimestamp);
+    return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
+  },
+  shake_trigger: (data, fallbackTimestamp) => {
+    const event = shakeFromRecord(data, fallbackTimestamp);
     return event ? { payload: { event }, sourceTimestamp: event.timestamp } : undefined;
   },
   move_gap: (data, fallbackTimestamp) => {

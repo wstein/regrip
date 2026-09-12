@@ -13,6 +13,7 @@ const sessionLog = [
   header,
   '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"gyro_stabilizer","data":{"timestamp":10,"quaternion":{"x":0,"y":0,"z":0,"w":1},"relative":{"x":0,"y":0,"z":0,"w":1},"stabilized":{"x":0,"y":0,"z":0,"w":1},"velocityMagnitude":0,"dtSeconds":0}}',
   '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"virtual_regrip","data":{"timestamp":20,"notationToken":"y","sensorFrameToken":"y"}}',
+  '{"recordedAt":"2026-09-09T10:00:00.030Z","type":"shake_trigger","data":{"timestamp":30,"steps":4,"reversals":3,"spanMs":180}}',
 ].join('\n');
 const identifiedHeader =
   '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1,"session":{"device":"GoCube Edge","protocol":"gocube"}}}';
@@ -56,9 +57,9 @@ describe('replay session', () => {
     const events: string[] = [];
     replay.session.subscribeEvents((event) => events.push(event.type));
 
-    await replay.advanceTo(20);
+    await replay.advanceTo(30);
 
-    expect(events).toEqual(['GYRO', 'REGRIP']);
+    expect(events).toEqual(['GYRO', 'REGRIP', 'SHAKE']);
     expect(replay.done).toBe(true);
   });
 
@@ -160,7 +161,7 @@ describe('replay session', () => {
 
     await replay.advanceTo(Number.MAX_SAFE_INTEGER);
 
-    expect(replay.length).toBe(2);
-    expect(events).toEqual(['GYRO', 'REGRIP']);
+    expect(replay.length).toBe(3);
+    expect(events).toEqual(['GYRO', 'REGRIP', 'SHAKE']);
   });
 });

@@ -395,14 +395,17 @@ body {
   height: 0.65rem;
   transform: translateY(-50%);
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
 }
 .replay-marker {
   position: absolute;
   top: 0;
   width: 3px;
   height: 100%;
+  padding: 0;
+  border: 0;
   border-radius: 1px;
+  appearance: none;
   transform: translateX(-50%);
   pointer-events: auto;
   cursor: pointer;

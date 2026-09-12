@@ -384,7 +384,10 @@ test('navigates move keyframes and renders visual timeline markers', async ({ pa
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
 
   const markers = page.locator('#replay-markers .replay-marker');
-  await expect(markers.first()).toBeVisible();
+  await expect(markers).toHaveCount(3);
+  await expect(markers.first()).toHaveRole('button');
+  await expect(markers.first()).toHaveAttribute('aria-label', 'Frame 6: R');
+  await expect(markers.first()).toHaveAttribute('style', /left: 75%/);
 
   const nextMove = page.locator('#replay-next-move');
   const prevMove = page.locator('#replay-prev-move');
@@ -392,14 +395,62 @@ test('navigates move keyframes and renders visual timeline markers', async ({ pa
   await expect(prevMove).toBeDisabled();
   await expect(nextMove).toBeEnabled();
 
-  // Click next move to jump to the first move frame
+  // Move navigation lands after the selected event, so the turn is visible.
   await nextMove.click();
-  const posAfterNext = await page.locator('#replay-position').textContent();
-  const [current] = (posAfterNext ?? '').split(' / ').map(Number);
-  expect(current).toBeGreaterThan(0);
+  await expect(page.locator('#replay-position')).toHaveText('6 / 8');
+  await expect(page.locator('#detectedMoves')).toHaveValue('R');
+  await expect(prevMove).toBeDisabled();
 
-  // prev move should now be enabled
+  await nextMove.click();
+  await expect(page.locator('#replay-position')).toHaveText('7 / 8');
+  await expect(page.locator('#detectedMoves')).toHaveValue('R U');
   await expect(prevMove).toBeEnabled();
-  await prevMove.click();
-  await expect(page.locator('#replay-position')).toHaveText('0 / 8');
+
+  await page.locator('body').press('Shift+ArrowLeft');
+  await expect(page.locator('#replay-position')).toHaveText('6 / 8');
+  await expect(page.locator('#detectedMoves')).toHaveValue('R');
+
+  await page.locator('body').press('Shift+ArrowRight');
+  await expect(page.locator('#replay-position')).toHaveText('7 / 8');
+
+  await markers.first().click();
+  await expect(page.locator('#replay-position')).toHaveText('6 / 8');
+  await expect(page.locator('#detectedMoves')).toHaveValue('R');
+
+  await nextMove.click();
+  await nextMove.click();
+  await expect(page.locator('#replay-position')).toHaveText('8 / 8');
+  await expect(nextMove).toBeDisabled();
+});
+
+test('renders accessible markers for replay move, regrip, and gesture events', async ({ page }) => {
+  const records = [
+    replayHeader,
+    '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"cube_event","data":{"type":"MOVE","timestamp":10,"move":"R"}}',
+    '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"virtual_regrip","data":{"timestamp":20,"notationToken":"y","sensorFrameToken":"y"}}',
+    '{"recordedAt":"2026-09-09T10:00:00.030Z","type":"custom_trigger","data":{"timestamp":30,"move":"U"}}',
+    '{"recordedAt":"2026-09-09T10:00:00.040Z","type":"shake_trigger","data":{"timestamp":40,"steps":4,"reversals":3,"spanMs":180}}',
+  ].join('\n');
+  await page.goto('/test/browser/mock-app.html?replay');
+  await page.evaluate(
+    (contents) => sessionStorage.setItem('regrip.replay.jsonl', contents),
+    records,
+  );
+  await page.goto('/test/browser/mock-app.html?replay&fixture=local&feed=session');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await expect(page.locator('.replay-marker-move')).toHaveAttribute('aria-label', 'Frame 1: R');
+  await expect(page.locator('.replay-marker-regrip')).toHaveAttribute(
+    'aria-label',
+    'Frame 2: Regrip y',
+  );
+  await expect(page.locator('.replay-marker-trigger')).toHaveCount(2);
+  await expect(page.locator('.replay-marker-trigger').nth(0)).toHaveAttribute(
+    'aria-label',
+    'Frame 3: Trigger U',
+  );
+  await expect(page.locator('.replay-marker-trigger').nth(1)).toHaveAttribute(
+    'aria-label',
+    'Frame 4: Shake (4 steps)',
+  );
 });

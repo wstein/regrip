@@ -94,8 +94,12 @@
             <button id="replay-reset" type="button">Reset</button>
             <button id="replay-play" type="button">Play</button>
             <button id="replay-step" type="button">Step</button>
-            <button id="replay-prev-move" type="button" title="Previous turn">⏮ Move</button>
-            <button id="replay-next-move" type="button" title="Next turn">Move ⏭</button>
+            <button id="replay-prev-move" type="button" title="Previous turn (Shift+Left)">
+              ⏮ Move
+            </button>
+            <button id="replay-next-move" type="button" title="Next turn (Shift+Right)">
+              Move ⏭
+            </button>
             <button id="replay-load" type="button">Load JSONL</button>
             <select id="replay-speed" aria-label="Replay speed">
               <option value="0.25">0.25×</option>
@@ -104,7 +108,12 @@
               <option value="10">10×</option>
             </select>
             <div class="replay-scrubber-wrapper">
-              <div id="replay-markers" class="replay-markers" aria-hidden="true"></div>
+              <div
+                id="replay-markers"
+                class="replay-markers"
+                role="group"
+                aria-label="Replay keyframes"
+              ></div>
               <input
                 id="replay-scrubber"
                 type="range"
