@@ -31,6 +31,7 @@
     "site:build": "npm run build && npm run docs:build",
     "docs:check": "npm run core:build && typedoc --options typedoc.json --emit none --treatValidationWarningsAsErrors",
     "check:events": "node scripts/check-smartcube-events.mjs",
+    "check:replay-lazy": "node scripts/check-replay-lazy-chunks.mjs",
     "format": "run-s core:format rescript:format prettier:format",
     "format:check": "run-s core:format:check rescript:format:check prettier:format:check",
     "rescript:format": "rescript format",

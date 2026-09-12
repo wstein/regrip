@@ -220,13 +220,18 @@ input or a replacement for the generated API reference.
 The JSONL replay fixture is deliberately synthetic and redacted. Do not commit unreviewed hardware
 captures: exported logs can contain device and session data.
 
-To inspect a fixture interactively in the real lab, run `npm run dev`, then open
-`/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). The dev-only Replay
-strip supports connection-feed replay through the complete session, session-output replay for UI
-inspection (`&feed=session`), play/pause, stepping, seeking, and speed selection. Use **Load JSONL**
-to paste or drop an arbitrary local capture; it validates the replay header before retaining the text
-only in browser session storage. New JSONL exports include the captured device and protocol identity
-so replay selects the same profile as the device.
+To inspect a fixture without hardware, run `npm run dev`, open the Console, and choose **Try a mock
+cube**. Pick a bundled GoCube Edge or GAN UI12 demo, or load a local JSONL file. The file is validated
+before it is retained in browser session storage, and mock mode is selected before the session is
+created, so it uses the same transport boundary as a real cube. Replay code and bundled fixtures are
+lazy-loaded only after mock mode is requested; `npm run check:replay-lazy` enforces that production
+bundle boundary after `npm run build`.
+
+The deterministic browser-test harness remains available at
+`/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). Add `&feed=session` for
+session-output inspection or `&autoplay` to advance immediately. The Replay strip supports
+play/pause, move-keyframe navigation, stepping, seeking, speed selection, and local JSONL import.
+New exports include captured device and protocol identity so replay selects the same device profile.
 
 Vite DevTools is development-only and starts in passive mode. Use `⇧⌥D` on macOS to reveal it.
 

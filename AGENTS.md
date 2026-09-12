@@ -7,7 +7,7 @@
 - `src/app/` owns DOM, Preact Signals, controls, trace UI, and composition. `src/integration/` applies session output to app concerns; `src/adapters/` contains cubing.js and Three.js bridges.
 - Two Vite HTML entry points exist at the repo root: `index.html` (the lab app) and `landing.html`. Narrative and generated API documentation live in `docs/site/` and are built with VitePress.
 - Browser tests live in `test/browser/`; unit tests sit beside source as `*.test.ts` (files named `*.browser.test.ts` run under jsdom via a `// @vitest-environment jsdom` pragma). ReScript tests use `*_test.res`.
-- You can exercise the full app without physical hardware: `npm run dev`, then open `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`, or `local` after using **Load JSONL**) to replay a recorded fixture through the real session and UI. Add `&autoplay` to advance it immediately, or `&feed=session` to replay session-output instead of the connection feed.
+- You can exercise the full app without physical hardware: `npm run dev`, open the Console, and choose **Try a mock cube** for a bundled fixture or local JSONL file. The deterministic browser harness remains available at `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`); add `&autoplay` to advance immediately or `&feed=session` to replay session output.
 - Do not commit device captures. Local `smartcube-log-*.jsonl`, generated `dist/`, and `bun.lock` are ignored; npm and `package-lock.json` are the supported package workflow.
 
 ## Build, Test, and Development Commands
@@ -20,6 +20,7 @@
 - `npm run lint` enforces TypeScript boundaries; `npm run format:check` checks ReScript and Prettier formatting.
 - `npm run test:browser` runs Playwright. Use `npm run test:screenshots` for visual baseline checks.
 - `npm run core:pack:check` validates the packed `@wstein/regrip-core` artifact with isolated TypeScript and ReScript consumers.
+- `npm run check:replay-lazy` checks the production manifest after `npm run build` and fails if mock replay code or fixtures enter the eager app graph.
 - To run a single test, build ReScript first (`npm run res:build` — a bare `vitest` invocation does not do this for you), then target the right one of the two split Vitest configs by file path:
   `npx vitest run --config vitest.config.ts src/app/commandPanel.browser.test.ts` (app-level, `src/`) or
   `npx vitest run --config packages/core/vitest.config.ts packages/core/src/domain/RegripDetector_test.res.mjs` (core-level, `packages/core/src/`). Add `-t "<name>"` to filter by test name.
