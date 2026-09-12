@@ -36,13 +36,6 @@ function button(id: string): HTMLButtonElement {
   return element;
 }
 
-/** Count whitespace-delimited move tokens while preserving editable free-form text. */
-export function countDetectedMoves(value: string): number {
-  const trimmed = value.trim();
-  if (trimmed === '') return 0;
-  return trimmed.split(/\s+/).filter((token) => !/^[·•/|]$/.test(token)).length;
-}
-
 export type MoveCategory = {
   face: string;
   isRotation: boolean;
@@ -126,17 +119,6 @@ export function syncDetectedMovesHighlight(): void {
   }
   container.scrollTop = movesEl.scrollTop;
   container.scrollLeft = movesEl.scrollLeft;
-}
-
-export const syncDetectedMovesChips = syncDetectedMovesHighlight;
-
-export function syncDetectedMoveCount(): void {
-  const el = document.getElementById('moveCount');
-  const movesEl = document.getElementById('detectedMoves');
-  if (el && movesEl instanceof HTMLTextAreaElement) {
-    el.textContent = String(countDetectedMoves(movesEl.value));
-  }
-  syncDetectedMovesHighlight();
 }
 
 export function setDetectedMoveCount(count: number): void {
@@ -276,40 +258,13 @@ export function setConnectionStatus(status: string): void {
   connectionStatus.dataset.state = status.toLowerCase().replace(/[^a-z]+/g, '-');
 }
 
-/** Append a detected move while leaving the field editable for correction/copying. */
-export function appendDetectedMove(move: string): void {
-  const moves = textarea('detectedMoves');
-  moves.value = moves.value ? `${moves.value} ${move}` : move;
-  syncDetectedMoveCount();
-}
-
-export function clearDetectedMoves(): void {
-  textarea('detectedMoves').value = '';
-  syncDetectedMoveCount();
-}
-
-export function simplifyDetectedMoves(simplify: (moves: string) => string): void {
-  const moves = textarea('detectedMoves');
-  moves.value = simplify(moves.value);
-  syncDetectedMoveCount();
-}
-
 export function setDetectedMoves(moves: string): void {
   textarea('detectedMoves').value = moves;
-  syncDetectedMoveCount();
+  syncDetectedMovesHighlight();
 }
 
 export function getDetectedMoves(): string {
   return textarea('detectedMoves').value;
-}
-
-export async function copyDetectedMoves(): Promise<void> {
-  await copyText(textarea('detectedMoves').value);
-}
-
-/** Copy detected moves through an explicitly selected notation formatter. */
-export async function copyDetectedMovesAs(format: (moves: string) => string): Promise<void> {
-  await copyText(format(textarea('detectedMoves').value));
 }
 
 /** Copy plain text with a legacy fallback for browsers without Clipboard API support. */
@@ -347,7 +302,6 @@ export function clearInfo(): void {
   const cubiePanel = document.querySelector<HTMLElement>('.cubie-state-panel');
   if (cubiePanel) cubiePanel.hidden = true;
   clearActiveGrip();
-  clearDetectedMoves();
 }
 
 export function mountCube(element: Node): void {

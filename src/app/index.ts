@@ -10,13 +10,7 @@ import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { mountFullscreenToggle } from './fullscreen';
-import {
-  formatDetectedMoves,
-  parseDetectedMoves,
-  simplifyMovesModuloRotations,
-  simplifySseMoves,
-  type DetectedMoveNotation,
-} from './moveSimplifier';
+import { createDetectedMovesController } from './detectedMovesController';
 import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../integration/cubeEvents';
 import { connectCube } from '../integration/connection';
@@ -37,10 +31,6 @@ import { sourceRevision } from './sourceRevision';
 import { loadReplayFromUrl, mountMockDevicePicker } from './mockDevice';
 import { createDropdownMenu } from './dom';
 
-let detectedMoveNotation: DetectedMoveNotation = 'wca';
-let editableCanonicalMoves = '';
-let rawQtmMoves: string[] = [];
-
 const sourceRevisionLink = document.getElementById('source-revision');
 if (sourceRevisionLink instanceof HTMLAnchorElement) {
   const revision = sourceRevision(__REGRIP_BUILD_SHA__);
@@ -48,56 +38,30 @@ if (sourceRevisionLink instanceof HTMLAnchorElement) {
   sourceRevisionLink.textContent = revision.label;
 }
 
-function canonicalDetectedMoves(): string {
-  if (detectedMoveNotation !== 'raw-qtm') {
-    editableCanonicalMoves = parseDetectedMoves(infoPanel.getDetectedMoves(), detectedMoveNotation);
-  }
-  return editableCanonicalMoves;
-}
-
-function renderDetectedMoves(): void {
-  const raw = rawQtmMoves.join(' ');
-  const displayedMoves =
-    detectedMoveNotation === 'raw-qtm'
-      ? raw
-      : formatDetectedMoves(editableCanonicalMoves, detectedMoveNotation);
-  infoPanel.setDetectedMoves(displayedMoves);
-  infoPanel.setDetectedMoveCount(
-    infoPanel.countDetectedMoves(detectedMoveNotation === 'raw-qtm' ? raw : editableCanonicalMoves),
-  );
-  const editor = document.getElementById('detectedMoves');
-  if (editor instanceof HTMLTextAreaElement) editor.readOnly = detectedMoveNotation === 'raw-qtm';
-  const simplify = document.getElementById('simplify-detected-moves');
-  if (simplify instanceof HTMLButtonElement) simplify.disabled = detectedMoveNotation === 'raw-qtm';
-}
-
-function setDetectedMoveNotation(notation: DetectedMoveNotation): void {
-  canonicalDetectedMoves();
-  detectedMoveNotation = notation;
-  (['wca', 'sign', 'sse', 'raw-qtm'] as const).forEach((candidate) => {
-    document
-      .getElementById(`detected-notation-${candidate}`)
-      ?.setAttribute('aria-pressed', String(candidate === notation));
-  });
-  renderDetectedMoves();
-}
-
-function appendDetectedMove(move: string, rawMove?: string): void {
-  const canonicalMoves = canonicalDetectedMoves();
-  editableCanonicalMoves = canonicalMoves ? `${canonicalMoves} ${move}` : move;
-  if (rawMove) rawQtmMoves.push(rawMove);
-  renderDetectedMoves();
-}
-
-function clearDetectedMoveStreams(): void {
-  editableCanonicalMoves = '';
-  rawQtmMoves = [];
-  renderDetectedMoves();
-}
+const detectedMoves = createDetectedMovesController({
+  read: infoPanel.getDetectedMoves,
+  write: infoPanel.setDetectedMoves,
+  setCount: infoPanel.setDetectedMoveCount,
+  setReadOnly: (readOnly) => {
+    const editor = document.getElementById('detectedMoves');
+    if (editor instanceof HTMLTextAreaElement) editor.readOnly = readOnly;
+  },
+  setSimplifyEnabled: (enabled) => {
+    const simplify = document.getElementById('simplify-detected-moves');
+    if (simplify instanceof HTMLButtonElement) simplify.disabled = !enabled;
+  },
+  setNotation: (notation) => {
+    (['wca', 'sign', 'sse', 'raw-qtm'] as const).forEach((candidate) => {
+      document
+        .getElementById(`detected-notation-${candidate}`)
+        ?.setAttribute('aria-pressed', String(candidate === notation));
+    });
+  },
+});
 
 infoPanel.mountCube(twistyPlayer);
 infoPanel.clearInfo();
-clearDetectedMoveStreams();
+detectedMoves.clear();
 mountFullscreenToggle();
 
 let sceneRenderer: SceneRenderer | undefined;
@@ -126,9 +90,7 @@ const liveLog = createLiveLog({
   onReproduceMoves: (moves) => {
     const algorithm = moves.join(' ');
     playerSync.setAlgorithm(algorithm);
-    editableCanonicalMoves = algorithm;
-    rawQtmMoves = [...moves];
-    renderDetectedMoves();
+    detectedMoves.replace(algorithm, moves);
   },
 });
 eventLog.subscribe((entry) => {
@@ -260,7 +222,7 @@ const cubeEvents = createCubeEventController({
     playerSync.addMove(move);
   },
   recordMove: (move, rawMove) => {
-    appendDetectedMove(move, rawMove);
+    detectedMoves.append(move, rawMove);
   },
   setOrientation: (quaternion) => {
     if (!orientationTracking) return;
@@ -365,7 +327,7 @@ sessionSignals.state.subscribe((state) => {
     solverFrame.reset();
     syncVirtualFrameOrientation();
     infoPanel.clearInfo();
-    clearDetectedMoveStreams();
+    detectedMoves.clear();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
     infoPanel.setConnectionStatus('Connecting…');
@@ -434,7 +396,7 @@ sessionSignals.state.subscribe((state) => {
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
-    clearDetectedMoveStreams();
+    detectedMoves.clear();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
     infoPanel.setConnectionStatus('Disconnected');
@@ -454,7 +416,7 @@ sessionSignals.state.subscribe((state) => {
     syncVirtualFrameOrientation();
     cubeEvents.reset();
     infoPanel.clearInfo();
-    clearDetectedMoveStreams();
+    detectedMoves.clear();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
@@ -507,24 +469,17 @@ infoPanel.on('copy-log', 'click', () => {
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
-  clearDetectedMoveStreams();
+  detectedMoves.clear();
 });
 
 infoPanel.on('simplify-detected-moves', 'click', () => {
-  if (detectedMoveNotation === 'raw-qtm') return;
-  const simplified = simplifyMovesModuloRotations(canonicalDetectedMoves());
-  if (detectedMoveNotation === 'sse') {
-    editableCanonicalMoves = parseDetectedMoves(simplifySseMoves(simplified), 'sse');
-  } else {
-    editableCanonicalMoves = simplified;
-  }
-  renderDetectedMoves();
+  if (!detectedMoves.simplify()) return;
   infoPanel.showFeedback('Detected moves simplified.');
 });
 
 infoPanel.on('copy-detected-moves', 'click', () => {
   void infoPanel
-    .copyText(infoPanel.getDetectedMoves())
+    .copyText(detectedMoves.text())
     .then(() => infoPanel.showFeedback('Detected moves copied.'))
     .catch((error) => {
       console.error('unable to copy detected moves', error);
@@ -532,10 +487,10 @@ infoPanel.on('copy-detected-moves', 'click', () => {
     });
 });
 
-infoPanel.on('detected-notation-wca', 'click', () => setDetectedMoveNotation('wca'));
-infoPanel.on('detected-notation-sign', 'click', () => setDetectedMoveNotation('sign'));
-infoPanel.on('detected-notation-sse', 'click', () => setDetectedMoveNotation('sse'));
-infoPanel.on('detected-notation-raw-qtm', 'click', () => setDetectedMoveNotation('raw-qtm'));
+infoPanel.on('detected-notation-wca', 'click', () => detectedMoves.setNotation('wca'));
+infoPanel.on('detected-notation-sign', 'click', () => detectedMoves.setNotation('sign'));
+infoPanel.on('detected-notation-sse', 'click', () => detectedMoves.setNotation('sse'));
+infoPanel.on('detected-notation-raw-qtm', 'click', () => detectedMoves.setNotation('raw-qtm'));
 
 const cubeExportButton = document.getElementById('copy-cube-state') as HTMLButtonElement;
 const cubeExportMenu = document.getElementById('cube-export-menu') as HTMLElement;
@@ -584,9 +539,7 @@ infoPanel.on('copy-regrip-state-json', 'click', () =>
 );
 infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 token'));
 
-infoPanel.on('detectedMoves', 'input', () =>
-  infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(canonicalDetectedMoves())),
-);
+infoPanel.on('detectedMoves', 'input', () => detectedMoves.edited());
 
 // Subscribe every UI integration before the in-app mock transport publishes
 // its initial connection state. The dev harness continues to connect itself.

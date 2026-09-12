@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import {
   clearActiveGrip,
   clearInfo,
-  countDetectedMoves,
   setActiveGrip,
   setInfo,
   setOrientationTracking,
@@ -13,13 +12,6 @@ import {
   showInfo,
   syncDetectedMovesHighlight,
 } from './infoPanel';
-
-describe('countDetectedMoves', () => {
-  it('counts editable whitespace-delimited move and virtual-regrip tokens', () => {
-    expect(countDetectedMoves("  R  U'\ny  x2  ")).toBe(4);
-    expect(countDetectedMoves('   ')).toBe(0);
-  });
-});
 
 describe('orientation controls', () => {
   it('enables tracking only for gyro cubes and changes reset to the active orientation mode', () => {
