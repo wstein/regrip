@@ -261,13 +261,16 @@ export function setResetOrientationEnabled(enabled: boolean): void {
 
 /** Starting the timer requires a connected cube to detect the first move against. */
 export function setTimerActivateEnabled(enabled: boolean): void {
-  const start = button('start-timer');
-  start.disabled = !enabled;
-  start.title = enabled
-    ? 'Arm the solving timer.'
-    : 'Connect a cube or choose a replay capture first.';
-  if (!enabled)
-    byId('quick-game-status').textContent = 'Connect a cube or choose a replay capture to begin.';
+  const start = document.getElementById('start-timer');
+  if (start instanceof HTMLButtonElement) {
+    start.disabled = !enabled;
+    start.title = enabled
+      ? 'Arm the solving timer.'
+      : 'Connect a cube or choose a replay capture first.';
+  }
+  const status = document.getElementById('quick-game-status');
+  if (status && !enabled)
+    status.textContent = 'Connect a cube or choose a replay capture to begin.';
 }
 
 export type TimerButtonState = 'idle' | 'ready' | 'running' | 'stopped';

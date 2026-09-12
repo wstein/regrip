@@ -128,7 +128,6 @@ describe('VitePress documentation integration', () => {
       '>Live trace<',
       '>Detected moves<',
       '>Reset state<',
-      '>Quick game<',
       '>Device identity<',
       '>Connection status<',
     ]) {

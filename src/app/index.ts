@@ -594,9 +594,11 @@ infoPanel.on('detectedMoves', 'input', () =>
   infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(canonicalDetectedMoves())),
 );
 
-infoPanel.on('start-timer', 'click', () => {
-  timerController.dispatch('activate');
-});
+if (document.getElementById('start-timer')) {
+  infoPanel.on('start-timer', 'click', () => {
+    timerController.dispatch('activate');
+  });
+}
 
 // Subscribe every UI integration before the in-app mock transport publishes
 // its initial connection state. The dev harness continues to connect itself.
