@@ -8,7 +8,7 @@ test('selects and exits a bundled mock cube from the production app entry', asyn
   await expect(page.locator('#connect-bluetooth')).toHaveText(
     'Connect Bluetooth Cube (Web Bluetooth)',
   );
-  await expect(page.locator('#connect-menu')).toContainText('Demo Mock Cubes');
+  await expect(page.locator('#connect-menu')).toContainText('Demo mock cubes');
   await page.getByRole('button', { name: 'GoCube Edge (demo)' }).click();
 
   await expect(page).toHaveURL(/keep=yes.*replay=.*fixture=gocube-edge/);

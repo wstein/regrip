@@ -52,7 +52,7 @@ describe('VitePress documentation integration', () => {
     expect(topbar).toContain('aria-controls="connect-menu"');
     expect(topbar).toContain('id="connect-bluetooth"');
     expect(topbar).toContain('Connect Bluetooth Cube (Web Bluetooth)');
-    expect(topbar).toContain('Demo Mock Cubes');
+    expect(topbar).toContain('Demo mock cubes');
     expect(topbar).not.toContain('id="mock-device-toggle"');
     expect(topbar!.indexOf('site-topbar-brand')).toBeLessThan(
       topbar!.indexOf('site-topbar-device-actions'),
@@ -65,7 +65,7 @@ describe('VitePress documentation integration', () => {
     );
     expect(navigation).not.toContain('id="connect"');
     expect(navigation).not.toContain('id="fullscreen"');
-    expect(telemetryHeader).toContain('<h2>Cube Telemetry</h2>');
+    expect(telemetryHeader).toContain('<h2>Cube telemetry</h2>');
     expect(telemetryHeader).not.toContain('id="connect"');
   });
 
@@ -118,6 +118,19 @@ describe('VitePress documentation integration', () => {
     const gripRule = appStyles.match(/\.grip-status\s*\{([^}]*)\}/)?.[1];
     expect(gripRule).toContain('align-self: flex-start');
     expect(gripRule).toContain('border-radius: 999px');
+  });
+
+  it('uses sentence case for console headings and cube actions', () => {
+    for (const copy of [
+      '>Live trace<',
+      '>Detected moves<',
+      '>Reset state<',
+      '>Quick game<',
+      '>Device identity<',
+      '>Connection status<',
+    ]) {
+      expect(app).toContain(copy);
+    }
   });
 
   it('keeps the documentation in its single dark theme', () => {

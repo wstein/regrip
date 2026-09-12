@@ -43,14 +43,14 @@ describe('orientation controls', () => {
     setResetOrientationEnabled(true);
     expect(tracker.disabled).toBe(false);
     expect(tracker.getAttribute('aria-pressed')).toBe('true');
-    expect(resetGyro.textContent).toBe('Reset Gyro');
+    expect(resetGyro.textContent).toBe('Reset gyro');
     expect(resetGyro.disabled).toBe(false);
     expect(tracker.title).toContain('3D view');
     expect(resetGyro.title).toContain('orientation');
 
     setOrientationTracking(false);
     expect(tracker.getAttribute('aria-pressed')).toBe('false');
-    expect(resetGyro.textContent).toBe('Reset View');
+    expect(resetGyro.textContent).toBe('Reset view');
   });
 });
 

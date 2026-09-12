@@ -43,9 +43,9 @@
                     </button>
                   </li>
                   <li>
-                    <button id="disconnect-cube" type="button" hidden>Disconnect Cube</button>
+                    <button id="disconnect-cube" type="button" hidden>Disconnect cube</button>
                   </li>
-                  <li class="connect-menu-label" role="presentation">Demo Mock Cubes</li>
+                  <li class="connect-menu-label" role="presentation">Demo mock cubes</li>
                   <li>
                     <button type="button" data-mock-fixture="gocube-edge">
                       GoCube Edge (demo)
@@ -89,7 +89,7 @@
             >
               ▶
             </button>
-            <div class="trace-rail-label">Live Trace</div>
+            <div class="trace-rail-label">Live trace</div>
             <span id="trace-collapsed-badge" class="trace-collapsed-badge" title="Captured events"
               >0</span
             >
@@ -108,7 +108,7 @@
                 >
                   ◀
                 </button>
-                <h2>Live Trace</h2>
+                <h2>Live trace</h2>
               </div>
               <span id="trace-stats" aria-live="polite">0 captured events</span>
             </div>
@@ -263,7 +263,7 @@
                   <span id="grip-gesture" class="grip-gesture" hidden></span>
                 </div>
                 <div class="control-actions cube-toolbar" aria-label="Cube controls">
-                  <button id="reset-state" type="button">Reset State</button>
+                  <button id="reset-state" type="button">Reset state</button>
                   <div class="cube-export">
                     <button
                       id="copy-cube-state"
@@ -302,14 +302,14 @@
                     Track orientation
                   </button>
                   <button id="reset-gyro" type="button" title="Connect a cube first." disabled>
-                    Reset View
+                    Reset view
                   </button>
                 </div>
               </div>
 
-              <section class="detected-moves-panel" aria-label="Detected Moves">
+              <section class="detected-moves-panel" aria-label="Detected moves">
                 <div class="detected-moves-heading">
-                  <label for="detectedMoves">Detected Moves</label>
+                  <label for="detectedMoves">Detected moves</label>
                   <div class="solve-summary" aria-live="polite">
                     <span class="move-count"><strong id="moveCount">0</strong> moves</span>
                     <span id="tps-container" class="tps-count" hidden
@@ -362,7 +362,7 @@
             </div>
 
             <section class="cubie-state-panel" hidden>
-              <label for="cubieState" hidden>Singmaster Cycles</label>
+              <label for="cubieState" hidden>Singmaster cycles</label>
               <input
                 id="cubieState"
                 type="text"
@@ -376,7 +376,7 @@
             <section id="command-panel" class="command-panel" hidden></section>
             <section class="quick-game" aria-labelledby="quick-game-heading">
               <div class="quick-game-copy">
-                <h3 id="quick-game-heading">Quick Game</h3>
+                <h3 id="quick-game-heading">Quick game</h3>
                 <p id="quick-game-status">Connect a cube or choose a mock cube to begin.</p>
               </div>
               <button
@@ -393,14 +393,14 @@
 
           <aside class="device-card">
             <div class="device-card-header">
-              <h2>Cube Telemetry</h2>
+              <h2>Cube telemetry</h2>
             </div>
             <div class="info">
-              <div class="info-group-title">Device Identity</div>
-              <label for="connectionStatus">Connection Status</label>
+              <div class="info-group-title">Device identity</div>
+              <label for="connectionStatus">Connection status</label>
               <input id="connectionStatus" type="text" readonly value="Disconnected" />
 
-              <label for="deviceName">Device Name</label>
+              <label for="deviceName">Device name</label>
               <input id="deviceName" type="text" readonly value="- n/a -" />
 
               <label for="protocol">Protocol</label>
@@ -412,53 +412,53 @@
               <label for="deviceMAC">Device MAC</label>
               <input id="deviceMAC" type="text" readonly value="- n/a -" />
 
-              <label for="hardwareName">Hardware Name</label>
+              <label for="hardwareName">Hardware name</label>
               <input id="hardwareName" type="text" readonly value="- n/a -" />
 
-              <label for="hardwareVersion">Hardware Version</label>
+              <label for="hardwareVersion">Hardware version</label>
               <input id="hardwareVersion" type="text" readonly value="- n/a -" />
 
-              <label for="softwareVersion">Software Version</label>
+              <label for="softwareVersion">Software version</label>
               <input id="softwareVersion" type="text" readonly value="- n/a -" />
 
-              <label for="productDate">Product Date</label>
+              <label for="productDate">Product date</label>
               <input id="productDate" type="text" readonly value="- n/a -" />
 
-              <div class="info-group-title">Live Sensors</div>
+              <div class="info-group-title">Live sensors</div>
               <label for="batteryLevel">Battery</label>
               <input id="batteryLevel" type="text" readonly value="- n/a -" />
 
-              <label for="gyroSupported">Gyro Supported</label>
+              <label for="gyroSupported">Gyro supported</label>
               <input id="gyroSupported" type="text" readonly value="- n/a -" />
 
               <label for="quaternion">Quaternion</label>
               <input id="quaternion" type="text" readonly value="- n/a -" />
 
-              <label for="velocity">Angular Velocity</label>
+              <label for="velocity">Angular velocity</label>
               <input id="velocity" type="text" readonly value="- n/a -" />
 
-              <label for="skew">Clock Skew</label>
+              <label for="skew">Clock skew</label>
               <input id="skew" type="text" readonly value="- n/a -" />
 
               <div class="info-group-title" id="info-offline-title" hidden>
-                Hardware &amp; Offline State
+                Hardware &amp; offline state
               </div>
-              <label for="eventSerial">Event Serial</label>
+              <label for="eventSerial">Event serial</label>
               <input id="eventSerial" type="text" readonly value="- n/a -" />
 
-              <label for="centerOrientation">GoCube Center Orientation</label>
+              <label for="centerOrientation">GoCube center orientation</label>
               <input id="centerOrientation" type="text" readonly value="- n/a -" />
 
-              <label for="goCubeType">GoCube Type</label>
+              <label for="goCubeType">GoCube type</label>
               <input id="goCubeType" type="text" readonly value="- n/a -" />
 
-              <label for="offlineMoves">GoCube Offline Moves</label>
+              <label for="offlineMoves">GoCube offline moves</label>
               <input id="offlineMoves" type="text" readonly value="- n/a -" />
 
-              <label for="offlineDuration">GoCube Offline Time</label>
+              <label for="offlineDuration">GoCube offline time</label>
               <input id="offlineDuration" type="text" readonly value="- n/a -" />
 
-              <label for="offlineSolves">GoCube Offline Solves</label>
+              <label for="offlineSolves">GoCube offline solves</label>
               <input id="offlineSolves" type="text" readonly value="- n/a -" />
             </div>
           </aside>

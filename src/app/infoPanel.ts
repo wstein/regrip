@@ -253,7 +253,7 @@ export function setOrientationTrackingAvailable(available: boolean): void {
 
 export function setOrientationTracking(tracking: boolean): void {
   button('track-orientation').setAttribute('aria-pressed', String(tracking));
-  button('reset-gyro').textContent = tracking ? 'Reset Gyro' : 'Reset View';
+  button('reset-gyro').textContent = tracking ? 'Reset gyro' : 'Reset view';
 }
 
 /** Reset is disabled only while no active scene can be controlled. */
