@@ -1,4 +1,8 @@
 import { format } from '@wstein/regrip-core/domain/Time';
+import {
+  faceletsToPatternData,
+  solvedFacelets,
+} from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
 import { initial, pushRecent, recentMoves } from '@wstein/regrip-core/domain/MoveBuffer';
 import { initial as initialMoveTracker, observeMove } from '@wstein/regrip-core/domain/MoveTracker';
 import {
@@ -15,6 +19,12 @@ import { cubeTimestampCalcSkew } from '@wstein/regrip-core/bindings/Bindings_Sma
 const actual = format(61_001);
 if (actual !== '1:01.001') {
   throw new Error(`expected formatted duration 1:01.001, received ${actual}`);
+}
+
+const pattern = faceletsToPatternData(solvedFacelets);
+const patternKeys = Object.keys(pattern).sort().join(',');
+if (patternKeys !== 'CENTERS,CORNERS,EDGES') {
+  throw new Error(`expected cubing.js KPatternData keys, received ${patternKeys}`);
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));
