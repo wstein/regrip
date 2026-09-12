@@ -16,7 +16,8 @@
 - `npm run dev` starts ReScript watch and the Vite lab.
 - `npm test` builds ReScript, then runs separate core and app Vitest suites.
 - `npm run test:coverage` builds ReScript and generates separate app and core HTML coverage reports
-  under `docs/site/public/coverage/`; coverage is reported as a baseline without percentage gates.
+  under `docs/site/public/coverage/`; line coverage gates are 95% for core and 90% for the combined
+  Console unit/browser report.
 - `npm run build` runs the core/app type builds and production Vite build.
 - `npm run docs:dev` serves the VitePress guide and generated API Markdown; `npm run site:build` builds the complete Pages artifact.
 - `npm run lint` enforces TypeScript boundaries; `npm run format:check` checks ReScript and Prettier formatting.

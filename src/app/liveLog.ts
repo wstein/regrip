@@ -33,9 +33,11 @@ type LiveLogOptions = {
   now?: () => Date;
   /** Coalesces incoming trace updates; defaults to one render per animation frame. */
   scheduleRender?: (render: () => void) => void;
+  /** Test seam for exercising eviction without allocating the production-sized buffer. */
+  maxEntries?: number;
 };
 
-const maxBufferedEntries = 10_000;
+const defaultMaxBufferedEntries = 10_000;
 /** Raw packets are debug evidence, never allowed to evict state evidence. */
 const maxBufferedDiagnostics = 512;
 const maxDiagnosticBytes = 512;
@@ -370,6 +372,7 @@ export function createLiveLog({
   onFocusEntry,
   now = () => new Date(),
   scheduleRender,
+  maxEntries = defaultMaxBufferedEntries,
 }: LiveLogOptions = {}) {
   const root = byId('event-log-rows');
   const stats = byId('trace-stats');
@@ -734,7 +737,7 @@ export function createLiveLog({
       },
     ];
     let changedVisibleRows = activeFilters.value.has(category);
-    while (nextEntries.length > maxBufferedEntries) {
+    while (nextEntries.length > maxEntries) {
       const removed = nextEntries.shift()!;
       changedVisibleRows ||= activeFilters.value.has(removed.category);
       selected.delete(removed.id);

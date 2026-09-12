@@ -158,4 +158,131 @@ describe('live trace event classification', () => {
       }),
     ).toEqual(['DIAGNOSTIC', 'qiyi opcode 0xfe · 700 bytes · 55 fe (truncated)']);
   });
+
+  it('covers the complete session-event descriptor vocabulary', () => {
+    const cases = [
+      [{ type: 'BATTERY', timestamp: 1, batteryLevel: 87 }, ['EVENT', 'battery 87%']],
+      [{ type: 'DISCONNECT', timestamp: 2 }, ['STATE', 'cube disconnected']],
+      [
+        {
+          type: 'HARDWARE',
+          timestamp: 3,
+          hardwareName: 'GAN',
+          hardwareVersion: '1',
+          softwareVersion: '2',
+        },
+        ['EVENT', 'GAN · HW 1 · SW 2'],
+      ],
+      [
+        { type: 'FACELETS', timestamp: 4, facelets: 'U'.repeat(54) },
+        ['EVENT', 'facelets · 54 stickers'],
+      ],
+    ] as const;
+
+    for (const [event, expected] of cases) {
+      expect(describeSessionEvent(event as Parameters<typeof describeSessionEvent>[0])).toEqual(
+        expected,
+      );
+    }
+    expect(
+      describeSessionEvent({
+        type: 'GYRO',
+        timestamp: 5,
+        quaternion: {} as never,
+        relative: {} as never,
+        stabilized: {} as never,
+        velocityMagnitude: 0,
+        dtSeconds: 0,
+      }),
+    ).toEqual(['GYRO', 'gyro']);
+  });
+
+  it('describes recorder lifecycle entries and fallback entries', () => {
+    const at = '2026-09-09T10:00:00.000Z';
+    expect(
+      describeLogEntry({ recordedAt: at, type: 'session_status', data: { status: 'connected' } }),
+    ).toEqual(['STATE', 'connected']);
+    expect(describeLogEntry({ recordedAt: at, type: 'log_started', data: {} })).toEqual([
+      'STATE',
+      'recording started',
+    ]);
+    expect(describeLogEntry({ recordedAt: at, type: 'log_stopped', data: { entries: 9 } })).toEqual(
+      ['STATE', 'recording stopped · 9 events'],
+    );
+    expect(
+      describeLogEntry({ recordedAt: at, type: 'profile_selected', data: { id: 'gan' } }),
+    ).toEqual(['EVENT', 'profile gan']);
+    expect(describeLogEntry({ recordedAt: at, type: 'future_record' as never, data: {} })).toEqual([
+      'EVENT',
+      'future record',
+    ]);
+    expect(describeLogEntry({ recordedAt: at, type: 'cube_event', data: {} })).toEqual([
+      'UNKNOWN',
+      'unknown cube event',
+    ]);
+  });
+
+  it('extracts all available quick-glance chips', () => {
+    const log = {
+      recordedAt: '2026-09-09T10:00:00.000Z',
+      type: 'future_record',
+      data: {
+        move: 'F',
+        battery: 42,
+        hardwareName: 'Cube',
+        facelets: ['U', 'R'],
+        quaternion: { x: 0.125, y: -0.25, z: 0.5 },
+        opcode: 7,
+        bytes: [1, 2, 3],
+      },
+    } as never;
+    expect(extractTraceChips({ id: 1, category: 'MOVE', message: 'F', log })).toEqual([
+      { label: 'Move', value: 'F' },
+      { label: 'Battery', value: '42%' },
+      { label: 'Hardware', value: 'Cube' },
+      { label: 'Facelets', value: '2 stickers' },
+      { label: 'Quat', value: '[0.13, -0.25, 0.50]' },
+      { label: 'Opcode', value: '0x07' },
+      { label: 'Payload', value: '3 B' },
+    ]);
+
+    const entry = {
+      id: 2,
+      category: 'MOVE' as const,
+      message: 'R',
+      log: {
+        recordedAt: '2026-09-09T10:00:00.000Z',
+        type: 'cube_event' as const,
+        data: { type: 'MOVE', move: 'R', face: 'R', turns: 1, amount: -1, batteryLevel: 91 },
+      },
+    };
+    expect(extractTraceChips(entry)).toEqual([
+      { label: 'Move', value: 'R' },
+      { label: 'Face', value: 'R' },
+      { label: 'Turns', value: '1' },
+      { label: 'Amount', value: '-1' },
+      { label: 'Battery', value: '91%' },
+    ]);
+
+    const descriptorEntries = [
+      { type: 'REGRIP', data: { notationToken: 'y', sensorFrameToken: 'x' }, category: 'REGRIP' },
+      { type: 'CUSTOM_TRIGGER', data: { move: 'U' }, category: 'TRIGGER' },
+      { type: 'SHAKE', data: { steps: 4, reversals: 3 }, category: 'SHAKE' },
+      { type: 'cube_command', data: { name: 'Sync', status: 'sent' }, category: 'COMMAND' },
+      { type: 'FACELETS', data: { facelets: 'U'.repeat(54) }, category: 'EVENT' },
+    ] as const;
+    for (const [index, item] of descriptorEntries.entries()) {
+      const chips = extractTraceChips({
+        id: index + 3,
+        category: item.category,
+        message: item.type,
+        log: {
+          recordedAt: '2026-09-09T10:00:00.000Z',
+          type: item.type === 'cube_command' ? item.type : 'cube_event',
+          data: item.type === 'cube_command' ? item.data : { type: item.type, ...item.data },
+        } as never,
+      });
+      expect(chips.length).toBeGreaterThan(0);
+    }
+  });
 });

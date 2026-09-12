@@ -41,6 +41,68 @@ async function flushAsyncWork(): Promise<void> {
 }
 
 describe('cube event gyro bridge', () => {
+  it('publishes velocity, protocol metadata, hardware details, and disconnects', () => {
+    const setInfo = vi.fn();
+    const showInfo = vi.fn();
+    const onDisconnect = vi.fn();
+    const onHardware = vi.fn();
+    const controller = createCubeEventController({
+      solveScramble: async () => '',
+      addMove: vi.fn(),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo,
+      showInfo,
+      onDisconnect,
+      onHardware,
+    });
+
+    controller.handle({
+      type: 'GYRO',
+      timestamp: 1,
+      quaternion: Quaternion.identity,
+      relative: Quaternion.identity,
+      stabilized: Quaternion.identity,
+      velocityMagnitude: 3,
+      velocity: { x: 1, y: 2, z: 3 },
+      dtSeconds: 0.01,
+    });
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 2,
+      face: 0,
+      direction: 0,
+      move: 'U',
+      localTimestamp: 2,
+      cubeTimestamp: null,
+      serial: 7,
+      goCubeCenterOrientation: 4,
+    });
+    const hardware = {
+      type: 'HARDWARE',
+      timestamp: 3,
+      hardwareName: 'GoCube',
+      hardwareVersion: '1',
+      softwareVersion: '2',
+      productDate: '2026-01-01',
+      gyroSupported: true,
+      goCubeType: { name: 'Edge', code: 2 },
+      goCubeOfflineStats: { moves: 12, timeSeconds: 65, solves: 3 },
+    } as const;
+    controller.handle(hardware);
+    controller.handle({ type: 'BATTERY', timestamp: 4, batteryLevel: 88 });
+    controller.handle({ type: 'DISCONNECT', timestamp: 5 });
+
+    expect(setInfo).toHaveBeenCalledWith('velocity', 'x: 1, y: 2, z: 3');
+    expect(setInfo).toHaveBeenCalledWith('eventSerial', '7');
+    expect(setInfo).toHaveBeenCalledWith('centerOrientation', '4');
+    expect(setInfo).toHaveBeenCalledWith('goCubeType', 'Edge (2)');
+    expect(setInfo).toHaveBeenCalledWith('batteryLevel', '88%');
+    expect(showInfo).toHaveBeenCalledWith('offlineMoves', 0, expect.any(Array));
+    expect(onHardware).toHaveBeenCalledWith(hardware);
+    expect(onDisconnect).toHaveBeenCalledOnce();
+  });
+
   it('routes derived session events through one ordered integration boundary', () => {
     const calls: string[] = [];
     const onMoveGap = vi.fn();
@@ -322,6 +384,25 @@ describe('cube event gyro bridge', () => {
 
     expect(solveScramble).not.toHaveBeenCalled();
     expect(calls).toEqual(['move:R']);
+  });
+
+  it('publishes a facelet packet serial before reconciling it', async () => {
+    const setInfo = vi.fn();
+    const showInfo = vi.fn();
+    const controller = createCubeEventController({
+      solveScramble: async () => '',
+      shouldReconcilePlayer: async () => false,
+      addMove: vi.fn(),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo,
+      showInfo,
+      onDisconnect: vi.fn(),
+    });
+    controller.handle({ type: 'FACELETS', timestamp: 1, serial: 12, facelets: solvedFacelets });
+    await flushAsyncWork();
+    expect(showInfo).toHaveBeenCalledWith('eventSerial');
+    expect(setInfo).toHaveBeenCalledWith('eventSerial', '12');
   });
 
   it('formats GAN snapshots in Kociemba coordinates rather than cubing.js orbit order', () => {

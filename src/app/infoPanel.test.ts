@@ -1,17 +1,32 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   clearActiveGrip,
   clearInfo,
+  copyText,
+  getDetectedMoves,
+  mountCube,
+  on,
+  renderSolveAnalysis,
   setActiveGrip,
+  setConnectLabel,
+  setConnectionStatus,
+  setDetectedMoves,
+  setDetectedMoveCount,
   setInfo,
   setOrientationTracking,
   setOrientationTrackingAvailable,
   setResetOrientationEnabled,
+  showFeedback,
   showInfo,
   syncDetectedMovesHighlight,
 } from './infoPanel';
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
 describe('orientation controls', () => {
   it('enables tracking only for gyro cubes and changes reset to the active orientation mode', () => {
@@ -204,6 +219,13 @@ describe('detected moves syntax highlighting editor', () => {
     expect(tokens[9].textContent).toBe('CF');
     expect(tokens[9].dataset.face).toBe('F');
     expect(tokens[9].classList.contains('is-rotation')).toBe(true);
+
+    const textarea = document.querySelector<HTMLTextAreaElement>('#detectedMoves')!;
+    textarea.scrollTop = 12;
+    textarea.scrollLeft = 8;
+    textarea.dispatchEvent(new Event('scroll'));
+    expect(container.scrollTop).toBe(12);
+    expect(container.scrollLeft).toBe(8);
   });
 
   it('renders wide moves and trigger separators', () => {
@@ -257,5 +279,76 @@ describe('detected moves syntax highlighting editor', () => {
     const container = document.querySelector<HTMLElement>('#detected-moves-highlight')!;
     expect(container.querySelectorAll('.move-token').length).toBe(0);
     expect(container.textContent).toBe('');
+  });
+});
+
+describe('panel primitives', () => {
+  it('renders connection, move, solve, mount, and event state', () => {
+    document.body.innerHTML = `
+      <button id="connect" data-mock-active="true"></button>
+      <button id="connect-bluetooth"></button><button id="disconnect-cube"></button>
+      <input id="connectionStatus"><span id="moveCount"></span>
+      <textarea id="detectedMoves"></textarea><div id="detected-moves-highlight"></div>
+      <span id="sessionElapsed"></span><span id="solve-analysis-status"></span>
+      <span id="solve-duration"></span><span id="solve-tps"></span><span id="solve-moves"></span>
+      <span id="solve-regrips"></span><span id="solve-triggers"></span><span id="solve-longest-pause"></span>
+      <div id="cube"></div><button id="probe"></button>`;
+
+    setConnectLabel('Disconnect');
+    expect(document.querySelector('#connect')?.textContent).toBe('Replay mode ▾');
+    setConnectLabel('Connect');
+    setConnectionStatus('Connecting…');
+    expect(document.querySelector<HTMLInputElement>('#connectionStatus')?.dataset.state).toBe(
+      'connecting-',
+    );
+    setDetectedMoves('R U');
+    setDetectedMoveCount(2);
+    expect(getDetectedMoves()).toBe('R U');
+    expect(document.querySelector('#moveCount')?.textContent).toBe('2');
+    renderSolveAnalysis({
+      status: 'complete',
+      durationMs: 1500,
+      tps: 2,
+      moveCount: 3,
+      qtm: 4,
+      regrips: 1,
+      triggers: 2,
+      longestPauseMs: 500,
+    });
+    expect(document.querySelector('#solve-analysis-status')?.textContent).toBe('Complete');
+    const child = document.createElement('span');
+    mountCube(child);
+    expect(document.querySelector('#cube')?.firstChild).toBe(child);
+    const listener = vi.fn();
+    on('probe', 'click', listener);
+    document.querySelector<HTMLButtonElement>('#probe')?.click();
+    expect(listener).toHaveBeenCalledOnce();
+  });
+
+  it('times feedback and gestures and falls back when Clipboard is unavailable', async () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <div id="app-feedback" hidden></div>
+      <span id="grip-value"></span><span id="grip-gesture" hidden></span>`;
+    showFeedback('Saved');
+    setActiveGrip('Home', 'Shake');
+    vi.advanceTimersByTime(3200);
+    expect(document.querySelector<HTMLElement>('#app-feedback')?.hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>('#grip-gesture')?.hidden).toBe(true);
+
+    Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    const copy = vi.fn().mockReturnValue(true);
+    Object.defineProperty(document, 'execCommand', { value: copy, configurable: true });
+    await copyText('fallback');
+    expect(copy).toHaveBeenCalledWith('copy');
+    expect(document.querySelector('body > textarea')).toBeNull();
+  });
+
+  it('reports missing typed elements and labels', () => {
+    document.body.innerHTML =
+      '<div id="deviceName"></div><input id="detectedMoves"><input id="offlineMoves">';
+    expect(() => setInfo('deviceName', 'cube')).toThrow('Missing input #deviceName');
+    expect(() => setDetectedMoves('R')).toThrow('Missing textarea #detectedMoves');
+    expect(() => showInfo('offlineMoves')).toThrow('Missing label for #offlineMoves');
   });
 });

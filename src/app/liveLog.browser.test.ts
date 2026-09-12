@@ -374,4 +374,71 @@ describe('live trace browser interactions', () => {
     click('#close-trace-detail');
     expect(detail.hidden).toBe(true);
   });
+
+  it('supports keyboard focus, detail copy, sorting, select-all, and its public append helpers', async () => {
+    mountTrace();
+    const onFocusEntry = vi.fn();
+    const copy = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: copy },
+      configurable: true,
+    });
+    const trace = createLiveLog({ onFocusEntry });
+    trace.appendSessionEvent({ type: 'BATTERY', timestamp: 1, batteryLevel: 50 });
+    trace.appendLogEntry({
+      recordedAt: '2026-09-09T10:00:00.000Z',
+      type: 'session_status',
+      data: { status: 'connected', ready: true, error: null },
+    });
+
+    const statusRow = document.querySelector<HTMLElement>('[data-trace-id="2"]')!;
+    statusRow.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+    expect(onFocusEntry).toHaveBeenCalledOnce();
+    expect(document.querySelector('.json-boolean')?.textContent).toBe('true');
+    expect(document.querySelector('.json-null')?.textContent).toBe('null');
+    click('#copy-trace-detail');
+    await Promise.resolve();
+    expect(copy).toHaveBeenCalledWith(expect.stringContaining('session_status'));
+
+    click('#sort-trace');
+    expect(document.querySelector('#sort-trace')?.textContent).toBe('↑ Oldest');
+    click('#select-all-trace');
+    expect(trace.getSelectedEntries()).toHaveLength(2);
+
+    expect(trace.isCollapsed()).toBe(false);
+    trace.toggleCollapse();
+    expect(trace.isCollapsed()).toBe(true);
+  });
+
+  it('supports shift-Space selection from a focused row', () => {
+    mountTrace();
+    const trace = createLiveLog();
+    trace.append('MOVE', 'R');
+    const row = document.querySelector<HTMLElement>('[data-trace-id="1"]')!;
+    row.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: ' ', shiftKey: true }));
+    expect(trace.getSelectedEntries()).toHaveLength(1);
+  });
+
+  it('evicts the oldest selected and focused row when the bounded buffer fills', () => {
+    mountTrace();
+    const trace = createLiveLog({ maxEntries: 2 });
+    trace.append('MOVE', 'oldest');
+    click('[data-trace-id="1"]', { shiftKey: true });
+    click('[data-trace-id="1"]');
+    click('[data-trace-filter="MOVE"]');
+    for (let index = 0; index < 2; index += 1) trace.append('MOVE', `move ${index}`);
+
+    expect(trace.getEntries()).toHaveLength(2);
+    expect(trace.getEntries()[0]?.message).toBe('move 0');
+    expect(trace.getSelectedEntries()).toEqual([]);
+    expect(document.querySelector<HTMLElement>('#trace-detail')?.hidden).toBe(true);
+  });
+
+  it('renders synchronously when requestAnimationFrame is unavailable', () => {
+    mountTrace();
+    vi.stubGlobal('requestAnimationFrame', undefined);
+    const trace = createLiveLog();
+    trace.append('MOVE', 'R');
+    expect(document.querySelector('#event-log-rows')?.textContent).toContain('R');
+  });
 });

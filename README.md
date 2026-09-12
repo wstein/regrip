@@ -199,7 +199,7 @@ boundary stays synchronized with the source signatures.
 npm install
 npm run dev      # ReScript watch + Vite dev server
 npm test         # Compile ReScript and run Vitest specs
-npm run test:coverage # Generate app and core HTML coverage reports
+npm run test:coverage # Enforce line gates and generate app/core HTML coverage reports
 npm run test:snapshot # Refresh the deterministic JSONL session-contract snapshot
 npm run test:browser  # Run Chromium coverage for the WebGL orientation gizmo
 npm run test:screenshots # Verify disconnected, GoCube Edge, and GAN UI12 UI baselines

@@ -32,6 +32,8 @@ for (const report of reports) {
 }
 
 const coverage = {};
+let totalLines = 0;
+let coveredLines = 0;
 for (const [file, lines] of files) {
   const sourceLines = readFileSync(file, 'utf8').split('\n');
   const statementMap = {};
@@ -55,6 +57,19 @@ for (const [file, lines] of files) {
     f: {},
     b: {},
   };
+  totalLines += lines.size;
+  coveredLines += [...lines.values()].filter((count) => count > 0).length;
+}
+
+const minimumLineCoverage = 90;
+const lineCoverage = totalLines === 0 ? 100 : (coveredLines / totalLines) * 100;
+console.log(
+  `Combined app line coverage: ${lineCoverage.toFixed(2)}% (${coveredLines}/${totalLines})`,
+);
+if (lineCoverage < minimumLineCoverage) {
+  throw new Error(
+    `Combined app line coverage ${lineCoverage.toFixed(2)}% is below ${minimumLineCoverage}%`,
+  );
 }
 
 rmSync(outputDirectory, { recursive: true, force: true });

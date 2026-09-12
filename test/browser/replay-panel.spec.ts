@@ -177,6 +177,85 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
   await expect(page.locator('#detected-notation-raw-qtm')).toHaveText('Raw QTM');
 });
 
+test('executes developer toolbar actions against a replayed cube state', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: (value: string) => localStorage.setItem('copied-value', value) },
+    });
+  });
+
+  await page.locator('#track-orientation').click();
+  await expect(page.locator('#track-orientation')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('#reset-gyro').click();
+  await expect(page.locator('#app-feedback')).toHaveText('View orientation reset.');
+  await page.locator('#track-orientation').click();
+  await page.locator('#reset-gyro').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Gyro and virtual move frame reset.');
+
+  await page.locator('#copy-detected-moves').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Detected moves copied.');
+  await page.locator('#clear-detected-moves').click();
+  await expect(page.locator('#detectedMoves')).toHaveValue('');
+
+  for (const id of [
+    'copy-compact-facelets',
+    'copy-spaced-facelets',
+    'copy-color-facelets',
+    'copy-singmaster-cycles',
+    'copy-sse-permutation',
+    'copy-cubie-coordinates',
+    'copy-kpattern-json',
+    'copy-regrip-state-json',
+    'copy-orbit64',
+  ]) {
+    await page.locator('#copy-cube-state').click();
+    await page.locator(`#${id}`).click();
+  }
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('copied-value'))).not.toBe('');
+});
+
+test('reports unavailable state exports and rejected clipboard writes', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: () => Promise.reject(new Error('denied')) },
+    });
+  });
+
+  await page.locator('#copy-cube-state').click();
+  await page.locator('#copy-orbit64').click();
+  await expect(page.locator('#app-feedback')).toHaveText(
+    'No valid cube state is available for Orbit64 token.',
+  );
+  await page.locator('#copy-log').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Could not copy trace JSONL.');
+  await page.locator('#copy-detected-moves').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Could not copy detected moves.');
+});
+
+test('covers replay importer cancellation and drag-and-drop error handling', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.locator('#replay-load').click();
+  await expect(page.locator('#replay-import')).toBeVisible();
+  await page.locator('#replay-import-cancel').click();
+  await expect(page.locator('#replay-import')).toBeHidden();
+
+  const dropzone = page.locator('#replay-dropzone');
+  await dropzone.dispatchEvent('dragover');
+  await expect(dropzone).toHaveClass(/is-dragging/);
+  await dropzone.dispatchEvent('dragleave');
+  await expect(dropzone).not.toHaveClass(/is-dragging/);
+  await dropzone.dispatchEvent('drop');
+  await expect(dropzone).not.toHaveClass(/is-dragging/);
+});
+
 test('dismisses the cube-state export menu with Escape and outside click', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');

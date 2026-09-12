@@ -136,4 +136,16 @@ describe('detected-move notation views', () => {
     expect(sse).toBe("U' D B F' ML MD' MF2 CR CU' CF2 TR");
     expect(parseDetectedMoves(sse, 'sse')).toBe(canonical);
   });
+
+  it('expands every SSE opposing-slice spelling', () => {
+    expect(parseDetectedMoves("SU SU' SR2 SD SF' SB", 'sse')).toBe(
+      "U D' U' D R2 L2 D U' F' B B F'",
+    );
+  });
+
+  it('keeps malformed notation tokens visible', () => {
+    expect(simplifySseMoves('R U mystery')).toBe('R U mystery');
+    expect(parseDetectedMoves('CX 2X q', 'sse')).toBe('CX 2X q');
+    expect(simplifyMovesModuloRotations("D' U D' U")).toBe('E2');
+  });
 });

@@ -103,5 +103,7 @@ describe('cube exports', () => {
   it('rejects invalid Orbit64 coordinates and missing state exports', () => {
     expect(formatOrbit64({ ...solved, CP: [0, 0, 2, 3, 4, 5, 6, 7] })).toBeUndefined();
     expect(formatCubeExport({ facelets }, 'orbit64')).toBeUndefined();
+    expect(formatOrbit64({ ...solved, CO: [1, 0, 0, 0, 0, 0, 0, 0] })).toBeUndefined();
+    expect(formatCubeExport({ facelets: 'invalid' }, 'kpattern-json')).toBeUndefined();
   });
 });
