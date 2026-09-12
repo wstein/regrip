@@ -17,4 +17,4 @@ export function orientation(frame: VirtualCubeFrame): VirtualOrientation;
 export function solverFaceForBody(frame: VirtualCubeFrame, bodyFace: string): string;
 export function solverToken(frame: VirtualCubeFrame, bodyToken: RegripToken): RegripToken;
 export function reframeFacelets(frame: VirtualCubeFrame, facelets: string): string;
-import type { RegripToken } from './CubeNotation.res.mjs';
+import type { regripToken as RegripToken } from './CubeNotation.gen.js';

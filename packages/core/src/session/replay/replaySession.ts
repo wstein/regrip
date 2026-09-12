@@ -6,7 +6,7 @@ import type {
 } from 'smartcube-web-bluetooth';
 
 import * as ReplayCursor from '@wstein/regrip-core/domain/ReplayCursor';
-import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
+import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
 import { resolveSessionFeatures } from '@wstein/regrip-core/session/features';
 import { bundledProfiles } from '@wstein/regrip-core/session/profile/bundled';
 import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfile';

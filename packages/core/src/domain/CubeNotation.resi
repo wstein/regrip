@@ -1,5 +1,5 @@
 /** Singmaster face labels, compiled as literal strings. */
-@unboxed
+@genType @unboxed
 type face =
   | @as("U") U
   | @as("R") R
@@ -9,12 +9,12 @@ type face =
   | @as("B") B
 
 /** Whole-cube rotation axes, compiled as lowercase literal strings. */
-@unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
+@genType @unboxed type axis = | @as("x") X | @as("y") Y | @as("z") Z
 /** A clockwise, counter-clockwise, or half turn suffix. */
-@unboxed type turn = | @as("") Clockwise | @as("'") CounterClockwise | @as("2") Half
+@genType @unboxed type turn = | @as("") Clockwise | @as("'") CounterClockwise | @as("2") Half
 
 /** Complete whole-cube rotation tokens. */
-@unboxed
+@genType @unboxed
 type regripToken =
   | @as("x") XTurn
   | @as("x'") XPrime
@@ -26,7 +26,11 @@ type regripToken =
   | @as("z'") ZPrime
   | @as("z2") ZDouble
 
+@genType
 let faceFromString: string => option<face>
+@genType
 let faceToString: face => string
+@genType
 let token: (axis, turn) => regripToken
+@genType
 let regripFromString: string => option<regripToken>

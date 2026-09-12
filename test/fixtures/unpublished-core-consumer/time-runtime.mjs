@@ -5,6 +5,7 @@ import {
   move as playerMove,
 } from '@wstein/regrip-core/domain/PlayerSync';
 import { degreesToRadians, fromEuler } from '@wstein/regrip-core/domain/Quaternion';
+import { regripFromString, token } from '@wstein/regrip-core/domain/CubeNotation';
 import {
   faceletsToPatternData,
   solvedFacelets,
@@ -53,6 +54,10 @@ if (
   Math.abs(quarterTurn.w - Math.SQRT1_2) > 1e-12
 ) {
   throw new Error('expected generated Quaternion wrapper to preserve structural records');
+}
+
+if (token('y', '2') !== 'y2' || regripFromString("x'") !== "x'") {
+  throw new Error('expected generated CubeNotation wrapper to preserve literal tokens');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));

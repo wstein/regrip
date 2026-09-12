@@ -12,6 +12,7 @@ import {
   type effect as PlayerSyncEffect,
 } from '@wstein/regrip-core/domain/PlayerSync';
 import { identity, type t as Quaternion } from '@wstein/regrip-core/domain/Quaternion';
+import { token, type regripToken } from '@wstein/regrip-core/domain/CubeNotation';
 import {
   initial as initialMoveBuffer,
   pushRecent,
@@ -49,6 +50,8 @@ const [, playerEffects]: [unknown, PlayerSyncEffect[]] = playerMove(initialPlaye
 void playerEffects;
 const quaternion: Quaternion = identity;
 void quaternion;
+const regrip: regripToken = token('x', "'");
+void regrip;
 // genType currently lowers an optional labeled argument to a required nullable
 // parameter. Supplying undefined is the supported generated-boundary spelling.
 void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);

@@ -13,7 +13,7 @@ import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker';
 import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
 import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
-import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';
+import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
 import {
   disconnectConnection,
   requestInitialState,
