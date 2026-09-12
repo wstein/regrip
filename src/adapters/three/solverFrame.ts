@@ -1,4 +1,4 @@
-import * as VirtualCubeFrame from '@wstein/regrip-core/domain/VirtualCubeFrame.res.mjs';
+import * as VirtualCubeFrame from '@wstein/regrip-core/domain/VirtualCubeFrame';
 import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
 
 export type Vector = readonly [number, number, number];

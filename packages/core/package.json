@@ -93,6 +93,18 @@
       "types": "./dist/domain/GyroPipeline.gen.d.ts",
       "default": "./dist/domain/GyroPipeline.gen.js"
     },
+    "./domain/RegripDetector": {
+      "types": "./dist/domain/RegripDetector.gen.d.ts",
+      "default": "./dist/domain/RegripDetector.gen.js"
+    },
+    "./domain/VirtualCubeFrame": {
+      "types": "./dist/domain/VirtualCubeFrame.gen.d.ts",
+      "default": "./dist/domain/VirtualCubeFrame.gen.js"
+    },
+    "./domain/ShakeTrigger": {
+      "types": "./dist/domain/ShakeTrigger.gen.d.ts",
+      "default": "./dist/domain/ShakeTrigger.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",
@@ -102,9 +114,7 @@
   "files": [
     "dist",
     "src/bindings/*.res.mjs",
-    "src/bindings/*.res.d.mts",
     "src/domain/*.res.mjs",
-    "src/domain/*.res.d.mts",
     "src/session/replay/fixtures/*.jsonl",
     "!src/**/*_test.res.mjs"
   ],

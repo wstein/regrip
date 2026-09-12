@@ -185,7 +185,8 @@ The core domain logic is [ReScript](https://rescript-lang.org), compiled in-sour
 | `PlayerSync.res` / `ReplayCursor.res`                                                                           | Race-safe async-snapshot reconciliation for the 3D player, and the deterministic JSONL replay cursor     |
 | `packages/core/src/bindings/Bindings_SmartCube.res`                                                             | Typed timestamp-helper boundary to the Bluetooth library                                                 |
 
-Hand-written `*.res.d.mts` files define the TypeScript boundary for those compiled ReScript modules.
+genType derives `*.gen.ts` wrappers from those ReScript interfaces, so the published TypeScript
+boundary stays synchronized with the source signatures.
 
 ## Development
 

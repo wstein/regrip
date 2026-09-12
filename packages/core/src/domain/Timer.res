@@ -5,8 +5,7 @@
 // (index.ts) must apply to the DOM / local clock / solution buffer.
 //
 // All three variants are `@tag`-normalized with explicit lowercase wire values
-// so the compiled JS shape is stable and the hand-written Timer.res.d.mts stays
-// a plain discriminated union (see that file).
+// so the compiled JS shape remains a plain discriminated union for genType.
 
 @tag("kind")
 type state =

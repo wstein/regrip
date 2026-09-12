@@ -23,5 +23,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "packages/core/src/**/*.res.d.mts"]
+  "include": ["src", "packages/core/src/**/*.gen.ts"]
 }

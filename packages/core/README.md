@@ -23,8 +23,8 @@ host control the transport version and keeps one observable implementation in th
 | `@wstein/regrip-core/session/replay/*`         | Deterministic JSONL replay transport and fixtures             |
 | `@wstein/regrip-core/bindings/*`               | Typed BLE-library boundary; internal unless a host needs it   |
 
-The package uses in-source ReScript compilation. Every public ReScript module has a hand-maintained
-`.res.d.mts` declaration boundary; `npm run check:declarations` verifies its exports and arities.
+The package uses in-source ReScript compilation. genType derives a `*.gen.ts` wrapper for every
+public ReScript interface, so TypeScript declarations stay coupled to the ReScript source.
 
 ## Rules for consumers
 

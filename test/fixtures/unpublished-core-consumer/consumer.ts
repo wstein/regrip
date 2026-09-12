@@ -24,6 +24,18 @@ import {
 } from '@wstein/regrip-core/domain/GyroPipeline';
 import { defaults as stabilizerDefaults } from '@wstein/regrip-core/domain/OrientationStabilizer';
 import {
+  initial as initialRegripDetector,
+  type observation as RegripObservation,
+} from '@wstein/regrip-core/domain/RegripDetector';
+import {
+  make as makeVirtualCubeFrame,
+  type t as VirtualCubeFrame,
+} from '@wstein/regrip-core/domain/VirtualCubeFrame';
+import {
+  initial as initialShakeTrigger,
+  type detection as ShakeDetection,
+} from '@wstein/regrip-core/domain/ShakeTrigger';
+import {
   initial as initialMoveBuffer,
   pushRecent,
   recentMoves,
@@ -72,6 +84,14 @@ const gyroConfig = makeConfig(stabilizerDefaults);
 declare const gyroPipelineState: GyroPipelineState;
 void gyroConfig;
 void gyroPipelineState;
+const virtualFrame: VirtualCubeFrame = makeVirtualCubeFrame();
+declare const regripObservation: RegripObservation | undefined;
+declare const shakeDetection: ShakeDetection | undefined;
+void initialRegripDetector;
+void initialShakeTrigger;
+void virtualFrame;
+void regripObservation;
+void shakeDetection;
 // genType currently lowers an optional labeled argument to a required nullable
 // parameter. Supplying undefined is the supported generated-boundary spelling.
 void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);

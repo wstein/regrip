@@ -119,8 +119,7 @@
       `session/virtualMoveFrame.ts` implementation; the Three adapter consumes
       `VirtualCubeFrame` directly.
 - [x] Introduce shared, unboxed typed `axis`, `turn`, and `face` variants at
-      the domain boundary, then keep their hand-written `.res.d.mts` surface
-      covered by the declaration-drift check.
+      the domain boundary, with genType-derived TypeScript wrappers.
 - [x] Convert replay-relevant mutable domain cells (`GyroOrientation`,
       `OrientationStabilizer`, and `MoveBuffer`) to pure reducers. The session
       now owns explicit gyro-pipeline state/config and preserves calibration

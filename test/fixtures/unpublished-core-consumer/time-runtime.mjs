@@ -15,6 +15,20 @@ import {
 } from '@wstein/regrip-core/domain/GyroPipeline';
 import { defaults as stabilizerDefaults } from '@wstein/regrip-core/domain/OrientationStabilizer';
 import {
+  faceOrderForNotation,
+  initial as initialRegripDetector,
+  step as stepRegripDetector,
+} from '@wstein/regrip-core/domain/RegripDetector';
+import {
+  applyRegrip,
+  make as makeVirtualCubeFrame,
+  translate,
+} from '@wstein/regrip-core/domain/VirtualCubeFrame';
+import {
+  initial as initialShakeTrigger,
+  observe as observeShake,
+} from '@wstein/regrip-core/domain/ShakeTrigger';
+import {
   faceletsToPatternData,
   solvedFacelets,
 } from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
@@ -83,6 +97,22 @@ const [, gyroSample] = stepGyroPipeline(
 );
 if (gyroSample.dtSeconds !== 0 || gyroSample.velocityMagnitude !== 0) {
   throw new Error('expected generated GyroPipeline wrapper to preserve its composed sample');
+}
+
+const [, regrip] = stepRegripDetector(initialRegripDetector, home, undefined);
+if (regrip !== undefined || faceOrderForNotation('x') !== 'FRDBLU') {
+  throw new Error('expected generated RegripDetector wrapper to preserve literal tokens');
+}
+
+const virtualFrame = makeVirtualCubeFrame();
+applyRegrip(virtualFrame, 'y');
+if (translate(virtualFrame, "F'") !== "L'") {
+  throw new Error('expected generated VirtualCubeFrame wrapper to preserve frame translation');
+}
+
+const [, shake] = observeShake(initialShakeTrigger, 0, home, undefined);
+if (shake !== undefined) {
+  throw new Error('expected generated ShakeTrigger wrapper to preserve initial state');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));

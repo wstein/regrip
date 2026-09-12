@@ -5,7 +5,6 @@
   "tsconfig": "packages/core/tsconfig.json",
   "entryPointStrategy": "expand",
   "entryPoints": [
-    "packages/core/src/**/*.res.d.mts",
     "packages/core/src/**/*.gen.ts",
     "packages/core/src/bindings/**/*.ts",
     "packages/core/src/session/**/*.ts"

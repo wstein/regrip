@@ -1,6 +1,6 @@
 // Solve-timer state machine. `step` is pure: next state + side effects for the
 // caller to apply. Variants are @tag-normalized with explicit lowercase wire
-// values (mirrored in Timer.res.d.mts).
+// values (preserved by the generated TypeScript wrapper).
 
 @genType @tag("kind")
 type state =

@@ -11,8 +11,8 @@ import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger';
 import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker';
 import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper';
-import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
-import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
+import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector';
+import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger';
 import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
 import {
   disconnectConnection,
@@ -213,7 +213,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     return features.customTrigger.triggers.find((trigger) => trigger.kind === 'moveBack')?.windowMs;
   }
 
-  function shakeConfig(features: SessionFeatures): ShakeTrigger.ShakeTriggerConfig | undefined {
+  function shakeConfig(features: SessionFeatures): ShakeTrigger.config | undefined {
     const spec = features.customTrigger.triggers.find((trigger) => trigger.kind === 'shake');
     if (!spec) return undefined;
     const { kind: _kind, ...overrides } = spec;
@@ -255,14 +255,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   function observeShake(
     orientation: { x: number; y: number; z: number; w: number },
     timestamp: number,
-    config: ShakeTrigger.ShakeTriggerConfig,
-  ): ShakeTrigger.ShakeDetection | undefined {
+    config: ShakeTrigger.config,
+  ): ShakeTrigger.detection | undefined {
     const [nextState, detection] = ShakeTrigger.observe(shakeState, timestamp, orientation, config);
     shakeState = nextState;
     return detection;
   }
 
-  function observeShakeMove(timestamp: number, config: ShakeTrigger.ShakeTriggerConfig): void {
+  function observeShakeMove(timestamp: number, config: ShakeTrigger.config): void {
     shakeState = ShakeTrigger.observeMove(shakeState, timestamp, config);
   }
 
