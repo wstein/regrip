@@ -451,10 +451,6 @@ function currentReplayHeader() {
   };
 }
 
-function currentJsonlLog(): string {
-  return eventLog.toJsonl(currentReplayHeader());
-}
-
 function currentFilteredJsonlLog(): string {
   return serializeJsonl([
     {
@@ -467,35 +463,18 @@ function currentFilteredJsonlLog(): string {
 }
 
 infoPanel.on('download-log', 'click', () => {
-  const contents = currentJsonlLog();
   const filename = `smartcube-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
-  downloadJsonl(contents, filename);
+  downloadJsonl(currentFilteredJsonlLog(), filename);
   infoPanel.showFeedback('Trace downloaded.');
 });
 
 infoPanel.on('copy-log', 'click', () => {
   void infoPanel
-    .copyText(currentJsonlLog())
+    .copyText(currentFilteredJsonlLog())
     .then(() => infoPanel.showFeedback('Trace JSONL copied.'))
     .catch((error) => {
       console.error('unable to copy trace JSONL', error);
       infoPanel.showFeedback('Could not copy trace JSONL.');
-    });
-});
-
-infoPanel.on('download-filtered-log', 'click', () => {
-  const filename = `smartcube-filtered-log-${new Date().toISOString().replace(/:/g, '-')}.jsonl`;
-  downloadJsonl(currentFilteredJsonlLog(), filename);
-  infoPanel.showFeedback('Filtered trace downloaded.');
-});
-
-infoPanel.on('copy-filtered-log', 'click', () => {
-  void infoPanel
-    .copyText(currentFilteredJsonlLog())
-    .then(() => infoPanel.showFeedback('Filtered trace JSONL copied.'))
-    .catch((error) => {
-      console.error('unable to copy filtered trace JSONL', error);
-      infoPanel.showFeedback('Could not copy filtered trace JSONL.');
     });
 });
 

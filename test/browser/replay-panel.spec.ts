@@ -150,8 +150,12 @@ test('copies only trace categories enabled by the current filters', async ({ pag
     });
   });
 
+  const exportButtons = page.locator('[aria-label="Export trace"] button');
+  await expect(exportButtons).toHaveCount(2);
+  await expect(exportButtons).toHaveText(['Download', 'Copy']);
+
   await page.locator('[data-trace-filter="EVENT"]').click();
-  await page.locator('#copy-filtered-log').click();
+  await page.locator('#copy-log').click();
 
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('copied-filtered-jsonl')))
@@ -159,19 +163,19 @@ test('copies only trace categories enabled by the current filters', async ({ pag
   const jsonl = await page.evaluate(() => localStorage.getItem('copied-filtered-jsonl') ?? '');
   expect(jsonl).toContain('"type":"MOVE"');
   expect(jsonl).not.toContain('"type":"FACELETS"');
-  await expect(page.locator('#app-feedback')).toHaveText('Filtered trace JSONL copied.');
+  await expect(page.locator('#app-feedback')).toHaveText('Trace JSONL copied.');
 
   const downloadStarted = page.waitForEvent('download');
-  await page.locator('#download-filtered-log').click();
+  await page.locator('#download-log').click();
   const download = await downloadStarted;
-  expect(download.suggestedFilename()).toMatch(/^smartcube-filtered-log-.*\.jsonl$/);
+  expect(download.suggestedFilename()).toMatch(/^smartcube-log-.*\.jsonl$/);
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.from(chunk));
   const downloadedJsonl = Buffer.concat(chunks).toString('utf8');
   expect(downloadedJsonl).toContain('"type":"MOVE"');
   expect(downloadedJsonl).not.toContain('"type":"FACELETS"');
-  await expect(page.locator('#app-feedback')).toHaveText('Filtered trace downloaded.');
+  await expect(page.locator('#app-feedback')).toHaveText('Trace downloaded.');
 });
 
 test('renders the replayed cubie permutation, not only its algorithm text', async ({ page }) => {
@@ -270,8 +274,6 @@ test('reports unavailable state exports and rejected clipboard writes', async ({
   );
   await page.locator('#copy-log').click();
   await expect(page.locator('#app-feedback')).toHaveText('Could not copy trace JSONL.');
-  await page.locator('#copy-filtered-log').click();
-  await expect(page.locator('#app-feedback')).toHaveText('Could not copy filtered trace JSONL.');
   await page.locator('#copy-detected-moves').click();
   await expect(page.locator('#app-feedback')).toHaveText('Could not copy detected moves.');
 });
