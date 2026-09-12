@@ -74,7 +74,9 @@ describe('VitePress documentation integration', () => {
       'class="site-topbar-controls" role="group" aria-label="Global console controls"',
     );
     expect(appStyles).toMatch(/\.site-topbar-controls\s*\{[^}]*border-left:/s);
-    expect(appStyles).toMatch(/\.site-topbar-nav\s*\{[^}]*margin-left:\s*auto;/s);
+    expect(appStyles).toMatch(/\.site-topbar-controls\s*\{[^}]*flex:\s*1 1 auto;/s);
+    expect(appStyles).toMatch(/\.site-topbar-fullscreen\s*\{[^}]*margin-left:\s*auto;/s);
+    expect(appStyles).toMatch(/\.site-topbar-nav\s*\{[^}]*border-left:/s);
     const deviceActionsRule = appStyles.match(/\.site-topbar-device-actions\s*\{([^}]*)\}/)?.[1];
     expect(deviceActionsRule).not.toContain('border-left');
   });

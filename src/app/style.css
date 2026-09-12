@@ -49,6 +49,7 @@ body {
 }
 .site-topbar-controls {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   gap: 0.65rem;
   margin-left: 1.25rem;
@@ -59,7 +60,9 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-left: auto;
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid #344464;
 }
 .site-topbar-nav a {
   color: #aebbd9;
@@ -72,7 +75,7 @@ body {
   color: #8bb7ff;
 }
 .site-topbar-fullscreen {
-  margin-left: 0.15rem;
+  margin-left: auto;
   padding: 0.35rem 0.6rem;
   border-color: #3d4d70;
   background: #11192b;
