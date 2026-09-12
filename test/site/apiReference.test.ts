@@ -113,6 +113,13 @@ describe('VitePress documentation integration', () => {
     expect(cubeColumn).toMatch(/id="copy-cube-state"[\s\S]*?>\s*Copy state ▾\s*<\/button>/);
   });
 
+  it('renders grip as a compact status chip', () => {
+    expect(app).toContain('class="grip-indicator"');
+    const gripRule = appStyles.match(/\.grip-status\s*\{([^}]*)\}/)?.[1];
+    expect(gripRule).toContain('align-self: flex-start');
+    expect(gripRule).toContain('border-radius: 999px');
+  });
+
   it('keeps the documentation in its single dark theme', () => {
     expect(vitepress).toMatch(/cleanUrls: true,\s+appearance: false,/);
   });

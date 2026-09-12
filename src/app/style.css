@@ -1083,12 +1083,13 @@ body {
 .grip-status {
   display: flex;
   align-items: center;
+  align-self: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
   margin-top: 0.55rem;
-  padding: 0.38rem 0.65rem;
+  padding: 0.3rem 0.6rem;
   border: 1px solid #263554;
-  border-radius: 0.55rem;
+  border-radius: 999px;
   background: #0c1426;
   font-size: 0.72rem;
   box-sizing: border-box;
@@ -1098,6 +1099,13 @@ body {
   align-items: center;
   gap: 0.4rem;
 }
+.grip-indicator {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: #4de38b;
+  box-shadow: 0 0 0.45rem rgb(77 227 139 / 55%);
+}
 .grip-label {
   color: #7c8ea8;
   font-size: 0.62rem;
@@ -1106,7 +1114,7 @@ body {
   text-transform: uppercase;
 }
 .grip-label::after {
-  content: ':';
+  content: ' ·';
 }
 .grip-value {
   color: #c9d8f8;
