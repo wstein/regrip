@@ -261,29 +261,34 @@ export function setResetOrientationEnabled(enabled: boolean): void {
 /** Starting the timer requires a connected cube to detect the first move against. */
 export function setTimerActivateEnabled(enabled: boolean): void {
   button('start-timer').disabled = !enabled;
+  if (!enabled)
+    byId('quick-game-status').textContent = 'Connect a cube or choose a mock cube to begin.';
 }
 
 export type TimerButtonState = 'idle' | 'ready' | 'running' | 'stopped';
 
 export function setTimerButtonState(state: TimerButtonState, finalTime?: string): void {
   const btn = document.getElementById('start-timer');
+  const status = document.getElementById('quick-game-status');
   if (!(btn instanceof HTMLButtonElement)) return;
+  if (!(status instanceof HTMLElement)) return;
   btn.dataset.timerState = state;
   switch (state) {
     case 'idle':
-      btn.textContent =
-        'Scramble cube to arbitrary state, then press here to start the solving timer...';
+      btn.textContent = 'Start game';
+      status.textContent = 'Scramble the cube to any state, then start the solving timer.';
       break;
     case 'ready':
-      btn.textContent = '⚡ Ready: Turn any face to start solving timer...';
+      btn.textContent = 'Ready';
+      status.textContent = 'Turn any face to start the solving timer.';
       break;
     case 'running':
-      btn.textContent = '⏱ Solving in progress... (turn until solved)';
+      btn.textContent = 'Solving…';
+      status.textContent = 'Turn until solved; timing stops automatically.';
       break;
     case 'stopped':
-      btn.textContent = finalTime
-        ? `🎉 Solved in ${finalTime}! Press here to solve again...`
-        : '🎉 Solved! Press here to solve again...';
+      btn.textContent = 'Solve again';
+      status.textContent = finalTime ? `Solved in ${finalTime}.` : 'Solved.';
       break;
   }
 }

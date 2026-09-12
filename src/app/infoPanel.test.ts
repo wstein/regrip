@@ -151,27 +151,31 @@ describe('grip status indicator', () => {
 describe('timer button state and TPS indicator', () => {
   it('updates timer button text and dataset state through lifecycle phases', () => {
     document.body.innerHTML = `
-      <button id="start-timer" type="button" class="start-timer-cta" disabled>
-        Scramble cube to arbitrary state, then press here to start the solving timer...
-      </button>
+      <p id="quick-game-status">Connect a cube or choose a mock cube to begin.</p>
+      <button id="start-timer" type="button" class="start-timer-cta" disabled>Start game</button>
     `;
     const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;
+    const status = document.querySelector<HTMLElement>('#quick-game-status')!;
 
     setTimerButtonState('ready');
     expect(btn.dataset.timerState).toBe('ready');
-    expect(btn.textContent).toContain('Ready: Turn any face');
+    expect(btn.textContent).toBe('Ready');
+    expect(status.textContent).toContain('Turn any face');
 
     setTimerButtonState('running');
     expect(btn.dataset.timerState).toBe('running');
-    expect(btn.textContent).toContain('Solving in progress');
+    expect(btn.textContent).toBe('Solving…');
+    expect(status.textContent).toContain('Turn until solved');
 
     setTimerButtonState('stopped', '12.345');
     expect(btn.dataset.timerState).toBe('stopped');
-    expect(btn.textContent).toContain('Solved in 12.345');
+    expect(btn.textContent).toBe('Solve again');
+    expect(status.textContent).toContain('Solved in 12.345');
 
     setTimerButtonState('idle');
     expect(btn.dataset.timerState).toBe('idle');
-    expect(btn.textContent).toContain('Scramble cube to arbitrary state');
+    expect(btn.textContent).toBe('Start game');
+    expect(status.textContent).toContain('Scramble the cube');
   });
 
   it('updates TPS metric display and toggles visibility', () => {
