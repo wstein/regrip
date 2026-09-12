@@ -2,6 +2,10 @@
 
 This isolated, non-workspace package tests whether the pinned ReScript and genType toolchain can produce a typed TypeScript boundary from one annotated ReScript value — and that the result survives real compilation and execution, not just type-checking.
 
+Its custom `RegripCore` namespace deliberately mirrors `packages/core`, so this
+canary can isolate compiler-layout assumptions before they reach the published
+package.
+
 It is intentionally outside `packages/`: it is not part of the npm workspace, never enters `@wstein/regrip-core`'s packed files, and does not change production imports.
 
 Run it independently:

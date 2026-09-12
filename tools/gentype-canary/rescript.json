@@ -1,6 +1,6 @@
 {
   "name": "@wstein/gentype-canary",
-  "namespace": true,
+  "namespace": "RegripCore",
   "sources": [{ "dir": "src", "subdirs": true }],
   "package-specs": {
     "module": "esmodule",
