@@ -1584,6 +1584,38 @@ button:disabled {
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 35%);
 }
 
+@media (min-width: 78.01rem) {
+  #app {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .app-layout,
+  .dashboard {
+    min-height: 0;
+  }
+  .app-layout {
+    align-items: stretch;
+  }
+  .dashboard {
+    height: 100%;
+    align-items: stretch;
+  }
+  #event-log {
+    position: relative;
+    top: auto;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+  }
+  .workspace-card,
+  .device-card {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}
+
 @media (max-width: 78rem) {
   .app-layout {
     grid-template-columns: 1fr;

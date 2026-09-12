@@ -32,6 +32,55 @@ test('keeps cube state actions visually equal on narrow screens', async ({ page 
   expect(Math.abs(reset!.height - copy!.height)).toBeLessThanOrEqual(1);
 });
 
+test('fits the desktop workbench inside the viewport canvas', async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 740 });
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge&autoplay');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.locator('#command-panel').evaluate((panel) => {
+    panel.hidden = false;
+    panel.innerHTML = `
+      <h3>Cube commands</h3>
+      <div class="command-group">
+        <span class="command-group-label">State</span>
+        <div class="command-panel-actions">
+          <button>Sync state</button><button>Refresh battery</button>
+          <button>Refresh hardware</button><button>Reboot cube</button>
+        </div>
+      </div>
+      <div class="command-group">
+        <span class="command-group-label">Gyro</span>
+        <div class="command-panel-actions">
+          <button>Enable gyro</button><button>Disable gyro</button><button>Calibrate gyro</button>
+        </div>
+      </div>
+      <div class="command-group">
+        <span class="command-group-label">Backlight</span>
+        <div class="command-panel-actions">
+          <button>Flash light</button><button>Slow flash</button>
+          <button>Toggle animated light</button><button>Toggle light</button>
+        </div>
+      </div>`;
+  });
+
+  const viewportHeight = await page.evaluate(() => window.innerHeight);
+  const documentHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(documentHeight).toBeLessThanOrEqual(viewportHeight);
+  for (const selector of ['#event-log', '.workspace-card', '.device-card']) {
+    const box = await page.locator(selector).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(viewportHeight);
+    const overflow = await page.locator(selector).evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      overflowY: getComputedStyle(element).overflowY,
+    }));
+    expect(
+      overflow.scrollHeight <= overflow.clientHeight ||
+        ['auto', 'scroll'].includes(overflow.overflowY),
+    ).toBe(true);
+  }
+});
+
 for (const fixture of ['disconnected', 'gocube-edge', 'gan-ui12'] as const) {
   test(`captures ${fixture} UI`, async ({ page }) => {
     await page.goto(
