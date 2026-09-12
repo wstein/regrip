@@ -24,7 +24,16 @@ export default defineConfig({
       reportsDirectory: '../../docs/site/public/coverage/core',
       reporter: ['text', 'json-summary', 'html', 'lcov'],
       include: ['src/**/*.{ts,mjs}'],
-      exclude: ['src/**/*.test.ts', 'src/**/*_test.res.mjs', 'src/**/*.gen.ts', 'src/**/*.d.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*_test.res.mjs',
+        'src/**/*.gen.ts',
+        'src/**/*.d.ts',
+        // Type-only/package-marker modules have no runtime behavior to exercise.
+        'src/bindings/smartCubeTransport.ts',
+        'src/Core.res.mjs',
+        'src/index.ts',
+      ],
       thresholds: { lines: 95 },
     },
   },
