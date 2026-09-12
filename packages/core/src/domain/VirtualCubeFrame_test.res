@@ -1,10 +1,20 @@
 open Vitest
 
 describe("VirtualCubeFrame", () => {
+  test("returns new frame states without mutating earlier values", t => {
+    let home = VirtualCubeFrame.make()
+    let regripped = VirtualCubeFrame.applyRegrip(home, CubeNotation.YTurn)
+    let reset = VirtualCubeFrame.reset(regripped)
+
+    t->expect(VirtualCubeFrame.translate(home, "F"))->Expect.toBe("F")
+    t->expect(VirtualCubeFrame.translate(regripped, "F"))->Expect.toBe("L")
+    t->expect(VirtualCubeFrame.translate(reset, "F"))->Expect.toBe("F")
+  })
+
   test("translates moves and exposes R/U/F directions after y", t => {
-    let frame = VirtualCubeFrame.make()
-    t->expect(VirtualCubeFrame.translate(frame, "R'"))->Expect.toBe("R'")
-    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
+    let home = VirtualCubeFrame.make()
+    t->expect(VirtualCubeFrame.translate(home, "R'"))->Expect.toBe("R'")
+    let frame = VirtualCubeFrame.applyRegrip(home, CubeNotation.YTurn)
     t->expect(VirtualCubeFrame.translate(frame, "F'"))->Expect.toBe("L'")
     let orientation = VirtualCubeFrame.orientation(frame)
     t
@@ -14,19 +24,19 @@ describe("VirtualCubeFrame", () => {
   })
 
   test("expresses body regrip tokens in the current solver frame", t => {
-    let frame = VirtualCubeFrame.make()
+    let home = VirtualCubeFrame.make()
     t
-    ->expect(VirtualCubeFrame.solverToken(frame, CubeNotation.XTurn))
+    ->expect(VirtualCubeFrame.solverToken(home, CubeNotation.XTurn))
     ->Expect.toBe(CubeNotation.XTurn)
     t
-    ->expect(VirtualCubeFrame.solverToken(frame, CubeNotation.YPrime))
+    ->expect(VirtualCubeFrame.solverToken(home, CubeNotation.YPrime))
     ->Expect.toBe(CubeNotation.YPrime)
     t
-    ->expect(VirtualCubeFrame.solverToken(frame, CubeNotation.ZDouble))
+    ->expect(VirtualCubeFrame.solverToken(home, CubeNotation.ZDouble))
     ->Expect.toBe(CubeNotation.ZDouble)
 
     // A body x rotation is about the solver z axis after this body y regrip.
-    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
+    let frame = VirtualCubeFrame.applyRegrip(home, CubeNotation.YTurn)
     t
     ->expect(VirtualCubeFrame.solverToken(frame, CubeNotation.XTurn))
     ->Expect.toBe(CubeNotation.ZTurn)
@@ -46,18 +56,18 @@ describe("VirtualCubeFrame", () => {
       "D"->String.repeat(9) ++
       "L"->String.repeat(9) ++
       "B"->String.repeat(9)
-    let frame = VirtualCubeFrame.make()
-    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
+    let frame = VirtualCubeFrame.make()->VirtualCubeFrame.applyRegrip(CubeNotation.YTurn)
     t->expect(VirtualCubeFrame.reframeFacelets(frame, solved))->Expect.toBe(solved)
     t->expect(VirtualCubeFrame.reframeFacelets(frame, "short"))->Expect.toBe("short")
   })
 
   test("reframes a scramble across mixed axes and a half turn", t => {
     let scrambled = "FBFRULDLFUBUURDBDBFFRLFFLURDBDUDFURLDBRLLURRBLDLRBDUFB"
-    let frame = VirtualCubeFrame.make()
-    VirtualCubeFrame.applyRegrip(frame, CubeNotation.XTurn)
-    VirtualCubeFrame.applyRegrip(frame, CubeNotation.ZDouble)
-    VirtualCubeFrame.applyRegrip(frame, CubeNotation.YTurn)
+    let frame =
+      VirtualCubeFrame.make()
+      ->VirtualCubeFrame.applyRegrip(CubeNotation.XTurn)
+      ->VirtualCubeFrame.applyRegrip(CubeNotation.ZDouble)
+      ->VirtualCubeFrame.applyRegrip(CubeNotation.YTurn)
 
     let reframed = VirtualCubeFrame.reframeFacelets(frame, scrambled)
     t

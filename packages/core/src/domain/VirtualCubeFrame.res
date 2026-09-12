@@ -11,7 +11,7 @@ type orientation = {
   frontFace: string,
 }
 
-type t = {mutable solverToBody: string}
+type t = {solverToBody: string}
 
 let faceOrder = "URFDLB"
 let positions = [0, 1, 2, 3, 4, 5]
@@ -67,17 +67,18 @@ let faceForNormal = (direction: vector): string =>
   }
 
 let make = (): t => {solverToBody: faceOrder}
-let reset = (frame: t): unit => frame.solverToBody = faceOrder
+let reset = (_frame: t): t => make()
 
-let applyRegrip = (frame: t, notationToken: CubeNotation.regripToken): unit => {
+let applyRegrip = (frame: t, notationToken: CubeNotation.regripToken): t => {
   let step = RegripDetector.faceOrderForNotation(notationToken)
-  frame.solverToBody =
+  let solverToBody =
     positions
     ->Array.map(index => {
       let physicalAtLogical = charAt(frame.solverToBody, index)
       charAt(step, faceIndex(physicalAtLogical))
     })
     ->Array.join("")
+  {solverToBody: solverToBody}
 }
 
 let translate = (frame: t, move: string): string => {

@@ -28,6 +28,7 @@ import {
   type observation as RegripObservation,
 } from '@wstein/regrip-core/domain/RegripDetector';
 import {
+  applyRegrip as applyVirtualRegrip,
   make as makeVirtualCubeFrame,
   type t as VirtualCubeFrame,
 } from '@wstein/regrip-core/domain/VirtualCubeFrame';
@@ -85,11 +86,13 @@ declare const gyroPipelineState: GyroPipelineState;
 void gyroConfig;
 void gyroPipelineState;
 const virtualFrame: VirtualCubeFrame = makeVirtualCubeFrame();
+const regrippedVirtualFrame: VirtualCubeFrame = applyVirtualRegrip(virtualFrame, 'y');
 declare const regripObservation: RegripObservation | undefined;
 declare const shakeDetection: ShakeDetection | undefined;
 void initialRegripDetector;
 void initialShakeTrigger;
 void virtualFrame;
+void regrippedVirtualFrame;
 void regripObservation;
 void shakeDetection;
 // genType currently lowers an optional labeled argument to a required nullable

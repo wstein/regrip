@@ -15,9 +15,9 @@ type t
 @genType
 let make: unit => t
 @genType
-let reset: t => unit
+let reset: t => t
 @genType
-let applyRegrip: (t, CubeNotation.regripToken) => unit
+let applyRegrip: (t, CubeNotation.regripToken) => t
 @genType
 let translate: (t, string) => string
 @genType

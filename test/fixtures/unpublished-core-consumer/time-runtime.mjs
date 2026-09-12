@@ -102,8 +102,8 @@ if (regrip !== undefined || faceOrderForNotation('x') !== 'FRDBLU') {
 }
 
 const virtualFrame = makeVirtualCubeFrame();
-applyRegrip(virtualFrame, 'y');
-if (translate(virtualFrame, "F'") !== "L'") {
+const regrippedFrame = applyRegrip(virtualFrame, 'y');
+if (translate(virtualFrame, "F'") !== "F'" || translate(regrippedFrame, "F'") !== "L'") {
   throw new Error('expected generated VirtualCubeFrame wrapper to preserve frame translation');
 }
 

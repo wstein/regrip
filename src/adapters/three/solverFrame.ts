@@ -15,10 +15,13 @@ export type SolverOrientation = {
  * the body-local move stream and Twisty player remain in protocol URFDLB.
  */
 export function createSolverFrame() {
-  const frame = VirtualCubeFrame.make();
-  const reset = (): void => VirtualCubeFrame.reset(frame);
-  const applyRegrip = (notationToken: RegripToken): void =>
-    VirtualCubeFrame.applyRegrip(frame, notationToken);
+  let frame = VirtualCubeFrame.make();
+  const reset = (): void => {
+    frame = VirtualCubeFrame.reset(frame);
+  };
+  const applyRegrip = (notationToken: RegripToken): void => {
+    frame = VirtualCubeFrame.applyRegrip(frame, notationToken);
+  };
   const translate = (move: string): string => VirtualCubeFrame.translate(frame, move);
   const solverToken = (bodyToken: RegripToken): RegripToken =>
     VirtualCubeFrame.solverToken(frame, bodyToken);
