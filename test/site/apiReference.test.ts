@@ -37,6 +37,7 @@ describe('VitePress documentation integration', () => {
     expect(typedoc.docsRoot).toBe('docs/site');
     expect(typedoc.entryPoints).toEqual([
       'packages/core/src/**/*.res.d.mts',
+      'packages/core/src/**/*.gen.ts',
       'packages/core/src/bindings/**/*.ts',
       'packages/core/src/session/**/*.ts',
     ]);

@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmit": true,
+    "allowJs": true,
     "baseUrl": ".",
     "paths": {
       "@wstein/regrip-core/*": ["src/*"],

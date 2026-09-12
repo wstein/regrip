@@ -12,5 +12,11 @@
     "in-source": true
   },
   "suffix": ".res.mjs",
-  "dependencies": ["rescript-vitest"]
+  "dependencies": ["rescript-vitest"],
+  "gentypeconfig": {
+    "path": "../../node_modules/gentype/gentype.exe",
+    "module": "esmodule",
+    "moduleResolution": "bundler",
+    "generatedFileExtension": ".gen.ts"
+  }
 }

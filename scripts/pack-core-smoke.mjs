@@ -74,6 +74,8 @@ try {
   const required = [
     'package/dist/index.js',
     'package/dist/index.d.ts',
+    'package/dist/domain/Time.gen.js',
+    'package/dist/domain/Time.res.mjs',
     'package/src/domain/CubeFacelets.res.mjs',
   ];
   for (const path of required) {
@@ -107,6 +109,7 @@ try {
   run(['exec', '--', 'tsc', '--project', 'tsconfig.json'], consumer);
   run(['exec', '--', 'rescript', 'build'], consumer);
   execFileSync(process.execPath, ['src/Consumer.res.mjs'], { cwd: consumer, stdio: 'inherit' });
+  execFileSync(process.execPath, ['time-runtime.mjs'], { cwd: consumer, stdio: 'inherit' });
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

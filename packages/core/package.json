@@ -21,6 +21,10 @@
       "default": "./dist/bindings/*.js"
     },
     "./domain/*.res.mjs": "./src/domain/*.res.mjs",
+    "./domain/Time": {
+      "types": "./dist/domain/Time.gen.d.ts",
+      "default": "./dist/domain/Time.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",
@@ -44,6 +48,7 @@
     "@rescript/runtime": "^12.3.1"
   },
   "devDependencies": {
+    "gentype": "^4.5.0",
     "rescript": "^12.3.1",
     "typescript": "^5.9.3"
   }

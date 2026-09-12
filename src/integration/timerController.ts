@@ -4,7 +4,7 @@ import { now as deviceNow } from 'smartcube-web-bluetooth';
 import type { SmartCubeMoveEvent } from 'smartcube-web-bluetooth';
 import * as SmartCubeBindings from '@wstein/regrip-core/bindings/Bindings_SmartCube.res.mjs';
 import * as MoveBuffer from '@wstein/regrip-core/domain/MoveBuffer.res.mjs';
-import * as Time from '@wstein/regrip-core/domain/Time.res.mjs';
+import * as Time from '@wstein/regrip-core/domain/Time';
 import * as Timer from '@wstein/regrip-core/domain/Timer.res.mjs';
 
 export function createLocalTimer(

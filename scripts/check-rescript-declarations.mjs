@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -81,7 +81,7 @@ export function missingDeclarationStub({ name, arity }) {
   return `export function ${name}(${parameters.join(', ')}): unknown;`;
 }
 
-/** Return declaration-bridge failures for all ReScript interfaces in the repository. */
+/** Return failures for ReScript interfaces that still use a hand-written bridge. */
 export function checkRescriptDeclarations(cwd = process.cwd()) {
   const failures = [];
   const rescriptTools = join(cwd, 'node_modules', 'rescript', 'cli', 'rescript-tools.js');
@@ -90,6 +90,10 @@ export function checkRescriptDeclarations(cwd = process.cwd()) {
   for (const sourceRoot of sourceRoots) {
     for (const resiPath of resiFiles(sourceRoot)) {
       const declarationPath = resiPath.replace(/\.resi$/, '.res.d.mts');
+      const generatedPath = resiPath.replace(/\.resi$/, '.gen.ts');
+      // A generated TypeScript wrapper is derived from the interface itself, so
+      // it cannot drift independently as a hand-written declaration can.
+      if (existsSync(generatedPath)) continue;
       let declaration = '';
       try {
         declaration = readFileSync(declarationPath, 'utf8');
@@ -130,7 +134,9 @@ export function checkRescriptDeclarations(cwd = process.cwd()) {
 export function main() {
   const failures = checkRescriptDeclarations();
   if (failures.length) throw new Error(`ReScript declaration drift:\n${failures.join('\n')}`);
-  console.log('ReScript declaration exports and arities verified via rescript-tools doc.');
+  console.log(
+    'Hand-written ReScript declaration exports and arities verified via rescript-tools doc.',
+  );
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
