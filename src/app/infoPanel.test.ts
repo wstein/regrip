@@ -13,6 +13,7 @@ import {
   setTimerButtonState,
   setTps,
   showInfo,
+  syncDetectedMovesChips,
 } from './infoPanel';
 
 describe('countDetectedMoves', () => {
@@ -166,5 +167,46 @@ describe('timer button state and TPS indicator', () => {
 
     setTps(null);
     expect(container.hidden).toBe(true);
+  });
+});
+
+describe('detected moves chips', () => {
+  it('renders styled chips for each move token and categorizes by face', () => {
+    document.body.innerHTML = `
+      <textarea id="detectedMoves">R U' F2 M y</textarea>
+      <div id="detected-moves-chips"></div>
+    `;
+    syncDetectedMovesChips();
+
+    const container = document.querySelector<HTMLElement>('#detected-moves-chips')!;
+    const chips = container.querySelectorAll<HTMLElement>('.move-chip');
+    expect(chips.length).toBe(5);
+
+    expect(chips[0].textContent).toBe('R');
+    expect(chips[0].dataset.face).toBe('R');
+
+    expect(chips[1].textContent).toBe("U'");
+    expect(chips[1].dataset.face).toBe('U');
+
+    expect(chips[2].textContent).toBe('F2');
+    expect(chips[2].dataset.face).toBe('F');
+
+    expect(chips[3].textContent).toBe('M');
+    expect(chips[3].dataset.face).toBe('M');
+
+    expect(chips[4].textContent).toBe('y');
+    expect(chips[4].dataset.face).toBe('rotation');
+  });
+
+  it('renders an empty state when no moves exist', () => {
+    document.body.innerHTML = `
+      <textarea id="detectedMoves"></textarea>
+      <div id="detected-moves-chips"></div>
+    `;
+    syncDetectedMovesChips();
+
+    const container = document.querySelector<HTMLElement>('#detected-moves-chips')!;
+    expect(container.querySelectorAll('.move-chip').length).toBe(0);
+    expect(container.querySelector('.move-chips-empty')).not.toBeNull();
   });
 });

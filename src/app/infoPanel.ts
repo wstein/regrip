@@ -40,12 +40,56 @@ export function countDetectedMoves(value: string): number {
   return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
 }
 
+export function categorizeMoveToken(token: string): string {
+  const clean = token.trim();
+  if (!clean) return 'unknown';
+  if (/^[xyz]/i.test(clean) || /^C[RUFLD]/i.test(clean)) return 'rotation';
+  if (/^M/i.test(clean)) return 'M';
+  if (/^E/i.test(clean)) return 'E';
+  if (/^S/i.test(clean)) return 'S';
+  if (/[RUFLDB]/i.test(clean)) {
+    const match = clean.match(/[RUFLDB]/i);
+    return match ? match[0].toUpperCase() : 'unknown';
+  }
+  return 'unknown';
+}
+
+export function syncDetectedMovesChips(): void {
+  const container = document.getElementById('detected-moves-chips');
+  if (!container) return;
+  const movesEl = document.getElementById('detectedMoves');
+  const text = movesEl instanceof HTMLTextAreaElement ? movesEl.value.trim() : '';
+  container.innerHTML = '';
+  if (!text) {
+    const empty = document.createElement('span');
+    empty.className = 'move-chips-empty';
+    empty.textContent = 'No moves recorded';
+    container.append(empty);
+    return;
+  }
+  const tokens = text.split(/\s+/);
+  tokens.forEach((token) => {
+    const chip = document.createElement('span');
+    chip.className = 'move-chip';
+    chip.textContent = token;
+    chip.dataset.face = categorizeMoveToken(token);
+    container.append(chip);
+  });
+  container.scrollLeft = container.scrollWidth;
+}
+
 export function syncDetectedMoveCount(): void {
-  byId('moveCount').textContent = String(countDetectedMoves(textarea('detectedMoves').value));
+  const el = document.getElementById('moveCount');
+  const movesEl = document.getElementById('detectedMoves');
+  if (el && movesEl instanceof HTMLTextAreaElement) {
+    el.textContent = String(countDetectedMoves(movesEl.value));
+  }
+  syncDetectedMovesChips();
 }
 
 export function setDetectedMoveCount(count: number): void {
   byId('moveCount').textContent = String(count);
+  syncDetectedMovesChips();
 }
 
 let feedbackTimeout: number | undefined;

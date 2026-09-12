@@ -257,7 +257,7 @@ export function createLiveLog({
   };
   const updateFollowButton = (): void => {
     follow.toggleAttribute('disabled', autoFollow);
-    follow.textContent = autoFollow ? 'Following newest' : 'Newest';
+    follow.textContent = autoFollow ? 'Following' : 'Follow';
   };
   const updatePauseButton = (): void => {
     pause.setAttribute('aria-pressed', String(paused));

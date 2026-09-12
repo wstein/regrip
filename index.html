@@ -27,11 +27,9 @@
               <span id="trace-stats" aria-live="polite">0 captured events</span>
             </div>
             <div class="trace-heading-actions">
-              <div class="trace-action-group" role="group" aria-label="Export trace">
-                <button id="download-log" type="button" class="trace-download-button">
-                  Download
-                </button>
-                <button id="copy-log" type="button" class="trace-download-button">Copy</button>
+              <div class="trace-action-group" role="group" aria-label="Trace controls">
+                <button id="pause-trace" type="button" aria-pressed="false">Pause</button>
+                <button id="clear-trace" type="button">Clear</button>
               </div>
               <div class="trace-action-group" role="group" aria-label="Navigate trace">
                 <button
@@ -43,12 +41,14 @@
                   ↓ Newest
                 </button>
                 <button id="follow-trace" type="button" aria-label="Follow newest trace events">
-                  Newest
+                  Following
                 </button>
               </div>
-              <div class="trace-action-group" role="group" aria-label="Trace controls">
-                <button id="pause-trace" type="button" aria-pressed="false">Pause</button>
-                <button id="clear-trace" type="button">Clear</button>
+              <div class="trace-action-group" role="group" aria-label="Export trace">
+                <button id="download-log" type="button" class="trace-download-button">
+                  Download
+                </button>
+                <button id="copy-log" type="button" class="trace-download-button">Copy</button>
               </div>
             </div>
           </div>
@@ -171,6 +171,13 @@
                     Twizzle
                   </button>
                   <button id="detected-notation-sse" type="button" aria-pressed="false">SSE</button>
+                </div>
+                <div
+                  id="detected-moves-chips"
+                  class="detected-moves-chips"
+                  aria-label="Detected move sequence"
+                >
+                  <span class="move-chips-empty">No moves recorded</span>
                 </div>
                 <textarea
                   id="detectedMoves"
