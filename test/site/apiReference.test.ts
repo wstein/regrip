@@ -38,6 +38,8 @@ describe('generated API reference integration', () => {
     const theme = read('docs/api-theme.css');
     expect(theme).toMatch(/--color-background:/);
     expect(theme).toMatch(/--color-link:/);
+    expect(theme).toMatch(/:root\[data-theme='light'\]/);
+    expect(theme).toMatch(/\.tsd-theme-toggle/);
     expect(theme).not.toMatch(/@import|Archivo|Modernist/);
   });
 });

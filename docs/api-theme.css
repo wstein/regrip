@@ -1,6 +1,11 @@
 /* Keep generated TypeDoc pages visually aligned with the dark app shell. */
 
-:root {
+/* TypeDoc's theme toggle can select a light palette through local storage.
+   Regrip's API reference is deliberately dark-only, including OS mode. */
+:root,
+:root[data-theme='light'],
+:root[data-theme='dark'],
+:root[data-theme='os'] {
   color-scheme: dark;
 
   --color-background: #090d18;
@@ -14,6 +19,10 @@
   --color-active-menu-item: #8bb7ff;
   --color-focus-outline: #8bb7ff;
   --color-icon-background: #090d18;
+}
+
+.tsd-theme-toggle {
+  display: none;
 }
 
 body {
