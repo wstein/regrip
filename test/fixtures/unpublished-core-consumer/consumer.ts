@@ -32,6 +32,11 @@ const session: SmartCubeSession = createSmartCubeSession({
 void session;
 const formatted: string = format(61_001);
 void formatted;
+// genType currently lowers an optional labeled argument to a required nullable
+// parameter. Supplying undefined is the supported generated-boundary spelling.
+void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);
+// @ts-expect-error genType does not currently preserve omitted labeled arguments.
+void stepMoveBack(initialMoveBackTrigger, 'R', 1_000);
 const moves: number[] = recentMoves(pushRecent(initialMoveBuffer<number>(), 1));
 void moves;
 const [, gap] = observeMove(initialMoveTracker, 1);
