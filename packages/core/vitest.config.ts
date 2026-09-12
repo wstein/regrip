@@ -19,5 +19,12 @@ export default defineConfig({
     include: ['src/**/*_test.res.mjs', 'src/**/*.test.ts'],
     exclude: [...configDefaults.exclude, 'dist/**'],
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: '../../coverage/core',
+      reporter: ['text', 'json-summary', 'html', 'lcov'],
+      include: ['src/**/*.{ts,mjs}'],
+      exclude: ['src/**/*.test.ts', 'src/**/*_test.res.mjs', 'src/**/*.gen.ts', 'src/**/*.d.ts'],
+    },
   },
 });
