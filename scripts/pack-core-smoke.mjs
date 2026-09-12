@@ -76,6 +76,8 @@ try {
     'package/dist/index.d.ts',
     'package/dist/domain/Time.gen.js',
     'package/dist/domain/Time.res.mjs',
+    'package/dist/domain/MoveBuffer.gen.js',
+    'package/dist/domain/MoveBuffer.res.mjs',
     'package/src/domain/CubeFacelets.res.mjs',
   ];
   for (const path of required) {

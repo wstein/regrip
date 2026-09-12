@@ -25,6 +25,10 @@
       "types": "./dist/domain/Time.gen.d.ts",
       "default": "./dist/domain/Time.gen.js"
     },
+    "./domain/MoveBuffer": {
+      "types": "./dist/domain/MoveBuffer.gen.d.ts",
+      "default": "./dist/domain/MoveBuffer.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",
