@@ -68,27 +68,27 @@ export function mountMockDevicePicker({
   load,
   navigate = (href) => location.assign(href),
 }: MockDevicePickerOptions): void {
-  const toggle = document.getElementById('mock-device-toggle');
-  const menu = document.getElementById('mock-device-menu');
+  const toggle = document.getElementById('connect');
+  const menu = document.getElementById('connect-menu');
   const fileInput = document.getElementById('mock-device-file');
-  const badge = document.getElementById('mock-device-badge');
   const exit = document.getElementById('mock-device-exit');
+  const activeMenuItem = exit?.closest('li');
   const status = document.getElementById('mock-device-status');
   if (
     !(toggle instanceof HTMLButtonElement) ||
     !(menu instanceof HTMLElement) ||
     !(fileInput instanceof HTMLInputElement) ||
-    !(badge instanceof HTMLElement) ||
     !(exit instanceof HTMLButtonElement) ||
+    !(activeMenuItem instanceof HTMLElement) ||
     !(status instanceof HTMLElement)
   ) {
     return;
   }
 
   const active = load.requested && load.replay !== undefined;
-  toggle.hidden = active;
-  badge.hidden = !active;
-  exit.hidden = !active;
+  toggle.dataset.mockActive = String(active);
+  if (active) toggle.textContent = 'Mock cube active ▾';
+  activeMenuItem.hidden = !active;
   status.textContent = load.requested && load.error ? load.error : '';
   status.hidden = status.textContent === '';
 
@@ -109,6 +109,9 @@ export function mountMockDevicePicker({
       }
     });
   });
+  for (const id of ['connect-bluetooth', 'disconnect-cube']) {
+    document.getElementById(id)?.addEventListener('click', closeMenu);
+  }
   menu.querySelector<HTMLButtonElement>('[data-mock-load]')?.addEventListener('click', () => {
     closeMenu();
     fileInput.click();

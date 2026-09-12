@@ -48,8 +48,15 @@ describe('VitePress documentation integration', () => {
 
     expect(topbar).toContain('class="site-topbar-device-actions"');
     expect(topbar).toContain('id="connect"');
-    expect(topbar).toContain('id="mock-device-toggle"');
+    expect(topbar).toContain('aria-controls="connect-menu"');
+    expect(topbar).toContain('id="connect-bluetooth"');
+    expect(topbar).toContain('Connect Bluetooth Cube (Web Bluetooth)');
+    expect(topbar).toContain('Demo Mock Cubes');
+    expect(topbar).not.toContain('id="mock-device-toggle"');
     expect(topbar!.indexOf('site-topbar-brand')).toBeLessThan(
+      topbar!.indexOf('site-topbar-device-actions'),
+    );
+    expect(topbar!.indexOf('id="fullscreen"')).toBeLessThan(
       topbar!.indexOf('site-topbar-device-actions'),
     );
     expect(topbar!.indexOf('site-topbar-device-actions')).toBeLessThan(

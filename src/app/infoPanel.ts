@@ -227,8 +227,18 @@ export function setTimerColor(color: string): void {
 
 export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
   const connect = button('connect');
-  connect.textContent = label;
-  connect.dataset.state = label.toLowerCase();
+  const connected = label === 'Disconnect';
+  const mockActive = connect.dataset.mockActive === 'true';
+  connect.textContent = connected
+    ? mockActive
+      ? 'Mock cube active ▾'
+      : 'Connected ▾'
+    : 'Connect ▾';
+  connect.dataset.state = connected ? 'connected' : 'connect';
+  const connectBluetooth = button('connect-bluetooth');
+  const disconnect = button('disconnect-cube');
+  connectBluetooth.hidden = connected;
+  disconnect.hidden = !connected;
 }
 
 /** The tracker is meaningful only when the connected cube publishes gyro poses. */

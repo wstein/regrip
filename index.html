@@ -13,37 +13,39 @@
       <header class="site-topbar">
         <a class="site-topbar-brand" href="./index.html">Regrip Dev Console</a>
         <div class="site-topbar-controls">
+          <button id="fullscreen" class="site-topbar-fullscreen" type="button" aria-pressed="false">
+            ⛶ Fullscreen
+          </button>
           <div
             class="site-topbar-device-actions"
             role="group"
             aria-label="Cube connection controls"
           >
-            <button id="connect" type="button">Connect</button>
-            <div class="mock-device-picker">
-              <button
-                id="mock-device-toggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="mock-device-menu"
-              >
-                Mock a cube ▾
+            <div class="connect-picker">
+              <button id="connect" type="button" aria-expanded="false" aria-controls="connect-menu">
+                Connect ▾
               </button>
-              <menu id="mock-device-menu" hidden>
+              <menu id="connect-menu" hidden>
+                <li>
+                  <button id="connect-bluetooth" type="button">
+                    Connect Bluetooth Cube (Web Bluetooth)
+                  </button>
+                </li>
+                <li><button id="disconnect-cube" type="button" hidden>Disconnect Cube</button></li>
+                <li class="connect-menu-label" role="presentation">Demo Mock Cubes</li>
                 <li>
                   <button type="button" data-mock-fixture="gocube-edge">GoCube Edge (demo)</button>
                 </li>
                 <li><button type="button" data-mock-fixture="gan-ui12">GAN UI12 (demo)</button></li>
-                <li><button type="button" data-mock-load>Load JSONL file…</button></li>
+                <li><button type="button" data-mock-load>Load JSONL capture…</button></li>
+                <li class="connect-menu-active" hidden>
+                  <button id="mock-device-exit" type="button">Exit mock mode</button>
+                </li>
               </menu>
               <input id="mock-device-file" type="file" accept=".jsonl,application/json" hidden />
-              <span id="mock-device-badge" hidden>Mock cube active</span>
-              <button id="mock-device-exit" type="button" hidden>Exit mock</button>
               <span id="mock-device-status" class="mock-device-status" role="alert" hidden></span>
             </div>
           </div>
-          <button id="fullscreen" class="site-topbar-fullscreen" type="button" aria-pressed="false">
-            ⛶ Fullscreen
-          </button>
         </div>
         <nav class="site-topbar-nav" aria-label="Site navigation">
           <a href="./index.html" aria-current="page">Console</a>

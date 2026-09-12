@@ -471,11 +471,14 @@ sessionSignals.state.subscribe((state) => {
   }
 });
 
-infoPanel.on('connect', 'click', async () => {
+infoPanel.on('connect-bluetooth', 'click', async () => {
   const state = session.getState();
   if (state.status === 'connecting') return;
-  if (state.connection) await session.disconnect();
-  else await session.connect();
+  if (!state.connection) await session.connect();
+});
+
+infoPanel.on('disconnect-cube', 'click', async () => {
+  if (session.getState().connection) await session.disconnect();
 });
 
 function currentJsonlLog(): string {
