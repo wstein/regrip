@@ -256,6 +256,45 @@ describe('detected moves syntax highlighting editor', () => {
     expect(tokens[9].classList.contains('is-rotation')).toBe(true);
   });
 
+  it('renders wide moves and trigger separators', () => {
+    document.body.innerHTML = `
+      <div class="detected-moves-editor">
+        <div id="detected-moves-highlight" class="detected-moves-highlight" aria-hidden="true"></div>
+        <textarea id="detectedMoves">U2 Dw2 · R L · B2 D2</textarea>
+      </div>
+    `;
+    syncDetectedMovesHighlight();
+
+    const container = document.querySelector<HTMLElement>('#detected-moves-highlight')!;
+    const tokens = container.querySelectorAll<HTMLElement>('.move-token');
+    const separators = container.querySelectorAll<HTMLElement>('.move-separator');
+
+    expect(tokens.length).toBe(6);
+    expect(separators.length).toBe(2);
+
+    expect(tokens[0].textContent).toBe('U2');
+    expect(tokens[0].dataset.face).toBe('U');
+
+    expect(tokens[1].textContent).toBe('Dw2');
+    expect(tokens[1].dataset.face).toBe('D');
+
+    expect(separators[0].textContent).toBe('·');
+
+    expect(tokens[2].textContent).toBe('R');
+    expect(tokens[2].dataset.face).toBe('R');
+
+    expect(tokens[3].textContent).toBe('L');
+    expect(tokens[3].dataset.face).toBe('L');
+
+    expect(separators[1].textContent).toBe('·');
+
+    expect(tokens[4].textContent).toBe('B2');
+    expect(tokens[4].dataset.face).toBe('B');
+
+    expect(tokens[5].textContent).toBe('D2');
+    expect(tokens[5].dataset.face).toBe('D');
+  });
+
   it('renders an empty state when no moves exist in the editor', () => {
     document.body.innerHTML = `
       <div class="detected-moves-editor">

@@ -815,43 +815,60 @@ body {
 
 .move-token {
   display: inline;
-  padding: 0.08rem 0;
-  border-radius: 0.2rem;
+  padding: 0.12rem 0.28rem;
+  margin: 0 -0.04rem;
+  border-radius: 0.35rem;
   font-weight: 800;
   letter-spacing: normal;
+  border: 1px solid transparent;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 .move-token[data-face='R'] {
   color: #fca5a5;
-  background: rgba(239, 68, 68, 0.22);
+  background: #2e1014;
+  border-color: #ef4444;
 }
 .move-token[data-face='L'] {
   color: #fdba74;
-  background: rgba(249, 115, 22, 0.22);
+  background: #2c1409;
+  border-color: #f97316;
 }
 .move-token[data-face='U'] {
   color: #f8fafc;
-  background: rgba(203, 213, 225, 0.18);
+  background: #1e293b;
+  border-color: #cbd5e1;
 }
 .move-token[data-face='D'] {
   color: #fef08a;
-  background: rgba(234, 179, 8, 0.22);
+  background: #2d2309;
+  border-color: #eab308;
 }
 .move-token[data-face='F'] {
   color: #86efac;
-  background: rgba(34, 197, 94, 0.22);
+  background: #0d2818;
+  border-color: #22c55e;
 }
 .move-token[data-face='B'] {
   color: #93c5fd;
-  background: rgba(59, 130, 246, 0.22);
+  background: #111e38;
+  border-color: #3b82f6;
 }
 .move-token[data-face='M'],
 .move-token[data-face='E'],
 .move-token[data-face='S'] {
   color: #67e8f9;
-  background: rgba(6, 182, 212, 0.22);
+  background: #082836;
+  border-color: #06b6d4;
 }
 .move-token.is-rotation {
   font-style: italic;
+}
+.move-separator {
+  display: inline;
+  color: #64748b;
+  font-weight: 800;
+  padding: 0 0.1rem;
 }
 
 .detected-moves-actions,

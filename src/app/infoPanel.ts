@@ -37,7 +37,8 @@ function button(id: string): HTMLButtonElement {
 /** Count whitespace-delimited move tokens while preserving editable free-form text. */
 export function countDetectedMoves(value: string): number {
   const trimmed = value.trim();
-  return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+  if (trimmed === '') return 0;
+  return trimmed.split(/\s+/).filter((token) => !/^[·•/|]$/.test(token)).length;
 }
 
 export type MoveCategory = {
@@ -106,6 +107,11 @@ export function syncDetectedMovesHighlight(): void {
     if (!part) continue;
     if (/^\s+$/.test(part)) {
       container.appendChild(document.createTextNode(part));
+    } else if (/^[·•/|]$/.test(part)) {
+      const sep = document.createElement('span');
+      sep.className = 'move-separator';
+      sep.textContent = part;
+      container.appendChild(sep);
     } else {
       const span = document.createElement('span');
       span.className = 'move-token';
