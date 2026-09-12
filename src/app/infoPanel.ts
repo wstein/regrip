@@ -144,6 +144,10 @@ export function showInfo(id: string): void {
   const label = document.querySelector<HTMLLabelElement>(`label[for="${id}"]`);
   if (!label) throw new Error(`Missing label for #${id}`);
   label.hidden = false;
+  if (id === 'cubieState') {
+    const cubiePanel = document.querySelector<HTMLElement>('.cubie-state-panel');
+    if (cubiePanel) cubiePanel.hidden = false;
+  }
   if (
     [
       'eventSerial',
@@ -310,6 +314,8 @@ export function clearInfo(): void {
   });
   const offlineTitle = document.getElementById('info-offline-title');
   if (offlineTitle) offlineTitle.hidden = true;
+  const cubiePanel = document.querySelector<HTMLElement>('.cubie-state-panel');
+  if (cubiePanel) cubiePanel.hidden = true;
   clearActiveGrip();
   clearDetectedMoves();
   setTimerButtonState('idle');

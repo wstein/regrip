@@ -194,7 +194,7 @@
               </section>
             </div>
 
-            <section class="cubie-state-panel">
+            <section class="cubie-state-panel" hidden>
               <label for="cubieState" hidden>Singmaster Cycles</label>
               <input
                 id="cubieState"
@@ -204,39 +204,39 @@
                 placeholder="Solved (identity)"
                 hidden
               />
-              <div class="cube-export">
-                <button
-                  id="copy-cube-state"
-                  type="button"
-                  aria-expanded="false"
-                  aria-controls="cube-export-menu"
-                >
-                  Copy as…
-                </button>
-                <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
-                  <button id="copy-compact-facelets" type="button" role="menuitem">
-                    Compact facelets
-                  </button>
-                  <button id="copy-spaced-facelets" type="button" role="menuitem">
-                    Spaced facelets
-                  </button>
-                  <button id="copy-singmaster-cycles" type="button" role="menuitem">
-                    Singmaster cycles
-                  </button>
-                  <button id="copy-sse-permutation" type="button" role="menuitem">
-                    SSE permutation
-                  </button>
-                  <button id="copy-cubie-coordinates" type="button" role="menuitem">
-                    CP / CO / EP / EO
-                  </button>
-                  <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
-                </div>
-              </div>
             </section>
 
             <div class="controls">
               <div class="control-actions">
                 <button id="reset-state" type="button">Reset State</button>
+                <div class="cube-export">
+                  <button
+                    id="copy-cube-state"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="cube-export-menu"
+                  >
+                    Copy as…
+                  </button>
+                  <div id="cube-export-menu" class="cube-export-menu" role="menu" hidden>
+                    <button id="copy-compact-facelets" type="button" role="menuitem">
+                      Compact facelets
+                    </button>
+                    <button id="copy-spaced-facelets" type="button" role="menuitem">
+                      Spaced facelets
+                    </button>
+                    <button id="copy-singmaster-cycles" type="button" role="menuitem">
+                      Singmaster cycles
+                    </button>
+                    <button id="copy-sse-permutation" type="button" role="menuitem">
+                      SSE permutation
+                    </button>
+                    <button id="copy-cubie-coordinates" type="button" role="menuitem">
+                      CP / CO / EP / EO
+                    </button>
+                    <button id="copy-orbit64" type="button" role="menuitem">Orbit64</button>
+                  </div>
+                </div>
                 <button id="track-orientation" type="button" aria-pressed="false" disabled>
                   Track orientation
                 </button>

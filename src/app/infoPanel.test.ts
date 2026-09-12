@@ -98,6 +98,28 @@ describe('telemetry info panel', () => {
     expect(label.hidden).toBe(true);
     expect(input.dataset.na).toBe('true');
   });
+
+  it('manages cubie-state-panel visibility on showInfo and clearInfo', () => {
+    document.body.innerHTML = `
+      <section class="cubie-state-panel" hidden>
+        <label for="cubieState" hidden>Singmaster Cycles</label>
+        <input id="cubieState" type="text" readonly value="- n/a -" hidden />
+      </section>
+      <textarea id="detectedMoves"></textarea>
+      <span id="moveCount">0</span>
+    `;
+    const panel = document.querySelector<HTMLElement>('.cubie-state-panel')!;
+    const input = document.querySelector<HTMLInputElement>('#cubieState')!;
+
+    expect(panel.hidden).toBe(true);
+    showInfo('cubieState');
+    expect(panel.hidden).toBe(false);
+    expect(input.hidden).toBe(false);
+
+    clearInfo();
+    expect(panel.hidden).toBe(true);
+    expect(input.hidden).toBe(true);
+  });
 });
 
 describe('grip status indicator', () => {
