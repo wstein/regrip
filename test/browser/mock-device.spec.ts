@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('selects and exits a bundled mock cube from the production app entry', async ({ page }) => {
   await page.goto('/?keep=yes');
 
-  await page.getByRole('button', { name: 'Try a mock cube' }).click();
+  await page.locator('#mock-device-toggle').click();
   await page.getByRole('button', { name: 'GoCube Edge (demo)' }).click();
 
   await expect(page).toHaveURL(/keep=yes.*replay=.*fixture=gocube-edge/);
@@ -18,7 +18,7 @@ test('selects and exits a bundled mock cube from the production app entry', asyn
 
   await page.getByRole('button', { name: 'Exit mock' }).click();
   await expect(page).toHaveURL(/\?keep=yes$/);
-  await expect(page.getByRole('button', { name: 'Try a mock cube' })).toBeVisible();
+  await expect(page.locator('#mock-device-toggle')).toBeVisible();
   await expect(page.locator('#connect')).toHaveText('Connect');
   await expect(page.locator('#replay-panel')).toBeHidden();
 });

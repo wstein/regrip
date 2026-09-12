@@ -33,24 +33,30 @@ describe('VitePress documentation integration', () => {
     expect(docs).toContain('# Regrip Dev Console documentation');
   });
 
-  it('places the global fullscreen action in the site navigation', () => {
-    const navigation = app.match(/<nav class="site-topbar-nav"[\s\S]*?<\/nav>/)?.[0];
+  it('places the global fullscreen action in the topbar controls', () => {
+    const topbar = app.match(/<header class="site-topbar">[\s\S]*?<\/header>/)?.[0];
     const cubeActions = app.match(/<div class="control-actions">[\s\S]*?<\/div>/)?.[0];
 
-    expect(navigation).toContain('id="fullscreen"');
+    expect(topbar).toContain('id="fullscreen"');
     expect(cubeActions).not.toContain('id="fullscreen"');
   });
 
   it('keeps global device controls in the topbar and telemetry controls out of the card header', () => {
+    const topbar = app.match(/<header class="site-topbar">[\s\S]*?<\/header>/)?.[0];
     const navigation = app.match(/<nav class="site-topbar-nav"[\s\S]*?<\/nav>/)?.[0];
     const telemetryHeader = app.match(/<div class="device-card-header">[\s\S]*?<\/div>/)?.[0];
 
-    expect(navigation).toContain('class="site-topbar-device-actions"');
-    expect(navigation).toContain('id="connect"');
-    expect(navigation).toContain('id="mock-device-toggle"');
-    expect(navigation!.indexOf('id="connect"')).toBeLessThan(
-      navigation!.indexOf('id="fullscreen"'),
+    expect(topbar).toContain('class="site-topbar-device-actions"');
+    expect(topbar).toContain('id="connect"');
+    expect(topbar).toContain('id="mock-device-toggle"');
+    expect(topbar!.indexOf('site-topbar-brand')).toBeLessThan(
+      topbar!.indexOf('site-topbar-device-actions'),
     );
+    expect(topbar!.indexOf('site-topbar-device-actions')).toBeLessThan(
+      topbar!.indexOf('site-topbar-nav'),
+    );
+    expect(navigation).not.toContain('id="connect"');
+    expect(navigation).not.toContain('id="fullscreen"');
     expect(telemetryHeader).toContain('<h2>Cube Telemetry</h2>');
     expect(telemetryHeader).not.toContain('id="connect"');
   });

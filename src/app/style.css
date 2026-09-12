@@ -36,15 +36,21 @@ body {
   background: #090d18;
 }
 .site-topbar-brand {
-  margin-right: auto;
   color: #edf2ff;
   font-weight: 800;
   text-decoration: none;
+}
+.site-topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-left: auto;
 }
 .site-topbar-nav {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: 0.35rem;
 }
 .site-topbar-nav a {
   color: #aebbd9;
@@ -1600,23 +1606,26 @@ button:disabled {
     margin-right: 0;
   }
   .site-topbar-nav {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 0.65rem;
+    margin-left: 0;
   }
 }
 @media (max-width: 42rem) {
+  .site-topbar-controls {
+    width: 100%;
+    margin-left: 0;
+  }
   .site-topbar-nav {
     flex-basis: 100%;
     justify-content: flex-start;
   }
   .site-topbar-device-actions {
-    width: 100%;
+    width: auto;
     margin-left: 0;
-    padding-top: 0.5rem;
     padding-left: 0;
-    border-top: 1px solid #273653;
     border-left: 0;
   }
   .site-topbar-fullscreen {
