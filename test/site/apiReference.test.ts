@@ -39,4 +39,10 @@ describe('VitePress documentation integration', () => {
     expect(theme).toContain('.VPSidebarItem .caret::after');
     expect(theme).toContain('.VPSidebarItem.collapsed .caret::after');
   });
+
+  it('preserves TypeDoc item kinds in the API sidebar', () => {
+    expect(vitepress).toContain('decorateApiSidebar');
+    expect(vitepress).toContain("'folder' | 'module' | 'type' | 'variable' | 'function'");
+    expect(vitepress).toContain('api-sidebar-kind--${kind}');
+  });
 });

@@ -49,6 +49,55 @@ body {
   border-right: 1px solid #2b3859;
 }
 
+.api-sidebar-kind {
+  display: inline-grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-right: 0.5rem;
+  border: 2px solid currentColor;
+  border-radius: 0.38rem;
+  vertical-align: -0.25rem;
+  place-items: center;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.api-sidebar-kind--folder {
+  position: relative;
+  width: 1.5rem;
+  border-radius: 0.22rem;
+  color: #edf2ff;
+}
+
+.api-sidebar-kind--folder::before {
+  position: absolute;
+  top: -0.28rem;
+  left: 0.12rem;
+  width: 0.62rem;
+  height: 0.25rem;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 0.2rem 0.2rem 0 0;
+  content: '';
+}
+
+.api-sidebar-kind--module {
+  color: #db65ff;
+}
+
+.api-sidebar-kind--type {
+  color: #fb6d98;
+}
+
+.api-sidebar-kind--variable {
+  color: #7f9cff;
+}
+
+.api-sidebar-kind--function {
+  color: #a487ff;
+}
+
 /* VitePress' icon mask is not painted reliably by every browser/WebView. */
 .VPSidebarItem .caret-icon {
   display: none;
