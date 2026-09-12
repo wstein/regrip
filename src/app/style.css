@@ -1114,32 +1114,80 @@ body {
   white-space: nowrap;
 }
 .move-count,
-.tps-count {
+.session-elapsed {
   padding: 0.3rem 0.45rem;
   border: 1px solid #3b4b70;
   border-radius: 0.45rem;
   background: #111c35;
 }
 .move-count strong,
-.tps-count strong {
+.session-elapsed strong {
   color: #eaf0ff;
 }
-.tps-count {
-  color: #38bdf8;
-  border-color: #0284c7;
-  background: #082f49;
-}
-.solve-summary #timer {
-  padding: 0.3rem 0.55rem;
-  border: 1px solid #536c9f;
-  border-radius: 0.45rem;
-  color: #fff;
-  background: #111c35;
-  font-size: 0.88rem;
-  font-weight: 800;
+.session-elapsed {
+  color: #8291b2;
   font-variant-numeric: tabular-nums;
+}
+.solve-analysis {
+  margin-top: 0.7rem;
+  border-top: 1px solid #2b3859;
+}
+.solve-analysis summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0 0;
+  color: #cdd9f5;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.solve-analysis summary::before {
+  content: '▸';
+  margin-right: 0.35rem;
+  color: #8291b2;
+}
+.solve-analysis[open] summary::before {
+  content: '▾';
+}
+.solve-analysis summary span:first-child {
+  margin-right: auto;
+}
+#solve-analysis-status {
+  color: #8291b2;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.68rem;
+}
+#solve-analysis-status[data-state='running'] {
+  color: #67e8f9;
+}
+#solve-analysis-status[data-state='complete'] {
+  color: #6ee7a2;
+}
+.solve-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+.solve-analysis-grid span,
+.solve-analysis-grid output {
+  display: block;
+}
+.solve-analysis-grid span {
+  color: #7182a4;
+  font-size: 0.62rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  box-shadow: 0 0.4rem 1rem rgb(0 0 0 / 20%);
+  text-transform: uppercase;
+}
+.solve-analysis-grid output {
+  margin-top: 0.18rem;
+  color: #e7efff;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .detected-moves-editor {
   position: relative;

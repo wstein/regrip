@@ -316,10 +316,9 @@
                   <label for="detectedMoves">Detected moves</label>
                   <div class="solve-summary" aria-live="polite">
                     <span class="move-count"><strong id="moveCount">0</strong> moves</span>
-                    <span id="tps-container" class="tps-count" hidden
-                      ><strong id="tpsValue">0.0</strong> TPS</span
-                    >
-                    <div id="timer">0:00.000</div>
+                    <span class="session-elapsed" title="Elapsed time in this session or replay">
+                      Session <strong id="sessionElapsed">0:00.000</strong>
+                    </span>
                   </div>
                 </div>
                 <div class="detected-moves-toolbar">
@@ -362,6 +361,22 @@
                   <button id="clear-detected-moves" type="button">Clear</button>
                   <button id="copy-detected-moves" type="button">Copy</button>
                 </div>
+                <details id="solve-analysis" class="solve-analysis">
+                  <summary>
+                    <span>Solve analysis</span>
+                    <span id="solve-analysis-status">No turns</span>
+                  </summary>
+                  <div class="solve-analysis-grid">
+                    <div><span>Duration</span><output id="solve-duration">0:00.000</output></div>
+                    <div><span>TPS</span><output id="solve-tps">—</output></div>
+                    <div><span>Moves</span><output id="solve-moves">0 HTM · 0 QTM</output></div>
+                    <div><span>Regrips</span><output id="solve-regrips">0</output></div>
+                    <div><span>Triggers</span><output id="solve-triggers">0</output></div>
+                    <div>
+                      <span>Longest pause</span><output id="solve-longest-pause">0:00.000</output>
+                    </div>
+                  </div>
+                </details>
               </section>
             </div>
 

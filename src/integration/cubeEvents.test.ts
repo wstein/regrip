@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
+import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import { createCubeEventController } from './cubeEvents';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
 
@@ -11,9 +12,7 @@ function xRotation(degrees: number): Quaternion.t {
 
 function makeController() {
   const setOrientation = vi.fn();
-  const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() };
   const controller = createCubeEventController({
-    timer,
     solveScramble: async () => '',
     addMove: vi.fn(),
     setOrientation,
@@ -44,14 +43,12 @@ async function flushAsyncWork(): Promise<void> {
 describe('cube event gyro bridge', () => {
   it('reports an unknown normalized event without mutating cube state', () => {
     const onUnknownEvent = vi.fn();
-    const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() };
     const addMove = vi.fn();
     const setOrientation = vi.fn();
     const setPlayerAlgorithm = vi.fn();
     const setInfo = vi.fn();
     const showInfo = vi.fn();
     const controller = createCubeEventController({
-      timer,
       solveScramble: async () => '',
       addMove,
       setOrientation,
@@ -67,7 +64,6 @@ describe('cube event gyro bridge', () => {
     controller.handle(event as unknown as Parameters<typeof controller.handle>[0]);
 
     expect(onUnknownEvent).toHaveBeenCalledWith(event);
-    expect(timer.onMove).not.toHaveBeenCalled();
     expect(addMove).not.toHaveBeenCalled();
     expect(setOrientation).not.toHaveBeenCalled();
     expect(setPlayerAlgorithm).not.toHaveBeenCalled();
@@ -98,7 +94,6 @@ describe('cube event gyro bridge', () => {
     const { controller } = makeController();
     const moves: string[] = [];
     const moveController = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: async () => '',
       addMove: (move) => moves.push(move),
       setOrientation: vi.fn(),
@@ -135,7 +130,6 @@ describe('cube event gyro bridge', () => {
     const solving = deferred<string>();
     const calls: string[] = [];
     const controller = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: () => solving.promise,
       addMove: (move) => calls.push(`move:${move}`),
       setOrientation: vi.fn(),
@@ -170,7 +164,6 @@ describe('cube event gyro bridge', () => {
     const solves = [first, second];
     const calls: string[] = [];
     const controller = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: () => solves.shift()!.promise,
       addMove: (move) => calls.push(`move:${move}`),
       setOrientation: vi.fn(),
@@ -206,7 +199,6 @@ describe('cube event gyro bridge', () => {
     const calls: string[] = [];
     const solveScramble = vi.fn(async () => 'unneeded');
     const controller = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble,
       shouldReconcilePlayer: async () => false,
       addMove: (move) => calls.push(`move:${move}`),
@@ -239,7 +231,6 @@ describe('cube event gyro bridge', () => {
     const cubieStates: string[] = [];
     const exports: Array<{ facelets: string; state?: { CP: number[]; CO: number[] } }> = [];
     const controller = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: async () => '',
       shouldReconcilePlayer: async () => false,
       addMove: vi.fn(),
@@ -278,7 +269,6 @@ describe('cube event gyro bridge', () => {
     const detectedMoves: string[] = [];
     const invalidate = vi.fn();
     const controller = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: async () => '',
       addMove: (move) => playerMoves.push(move),
       recordMove: (move) => detectedMoves.push(move),
@@ -311,7 +301,6 @@ describe('cube event gyro bridge', () => {
     const cubieStates: string[] = [];
     const exports: string[] = [];
     const controller = createCubeEventController({
-      timer: { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() },
       solveScramble: async () => '',
       shouldReconcilePlayer: async () => false,
       projectMove: () => 'R',
@@ -341,5 +330,38 @@ describe('cube event gyro bridge', () => {
     expect(cubieStates).toEqual(['', '(UBR,ULB,UFL,URF) (UB,UL,UF,UR)']);
     expect(exports).toHaveLength(2);
     expect(exports[1]).not.toBe(solvedFacelets);
+  });
+
+  it('reports a solve reached through normalized move tracking without another facelet packet', () => {
+    const decoded = CubeFacelets.decodeFacelets(solvedFacelets);
+    if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
+    const oneTurnAway = CubeFacelets.patternDataToFacelets(
+      CubeFacelets.applyMove(decoded._0!, "U'")!,
+    );
+    const onSolved = vi.fn();
+    const controller = createCubeEventController({
+      solveScramble: async () => '',
+      shouldReconcilePlayer: async () => false,
+      addMove: vi.fn(),
+      setOrientation: vi.fn(),
+      setPlayerAlgorithm: vi.fn(),
+      setInfo: vi.fn(),
+      showInfo: vi.fn(),
+      onDisconnect: vi.fn(),
+      onSolved,
+    });
+
+    controller.handle({ type: 'FACELETS', timestamp: 1, facelets: oneTurnAway });
+    controller.handle({
+      type: 'MOVE',
+      timestamp: 2,
+      face: 0,
+      direction: 0,
+      move: 'U',
+      localTimestamp: 2,
+      cubeTimestamp: null,
+    });
+
+    expect(onSolved).toHaveBeenCalledOnce();
   });
 });

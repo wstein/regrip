@@ -1,4 +1,6 @@
 import { byId } from './dom';
+import * as Time from '@wstein/regrip-core/domain/Time';
+import type { SolveAnalysisSnapshot } from '../integration/solveAnalysis';
 
 const notAvailable = '- n/a -';
 const optionalInfoIds = [
@@ -213,16 +215,25 @@ export function showInfo(id: string): void {
   }
 }
 
-export function setTimer(value: string): void {
-  byId('timer').textContent = value;
+export function setSessionElapsed(milliseconds: number): void {
+  byId('sessionElapsed').textContent = Time.format(milliseconds);
 }
 
-export function showTimer(show: boolean): void {
-  byId('timer').style.display = show ? 'block' : 'none';
-}
-
-export function setTimerColor(color: string): void {
-  byId('timer').style.color = color;
+export function renderSolveAnalysis(snapshot: SolveAnalysisSnapshot): void {
+  const status = byId('solve-analysis-status');
+  status.dataset.state = snapshot.status;
+  status.textContent =
+    snapshot.status === 'complete'
+      ? 'Complete'
+      : snapshot.status === 'running'
+        ? 'In progress'
+        : 'No turns';
+  byId('solve-duration').textContent = Time.format(snapshot.durationMs);
+  byId('solve-tps').textContent = snapshot.tps === null ? '—' : snapshot.tps.toFixed(2);
+  byId('solve-moves').textContent = `${snapshot.moveCount} HTM · ${snapshot.qtm} QTM`;
+  byId('solve-regrips').textContent = String(snapshot.regrips);
+  byId('solve-triggers').textContent = String(snapshot.triggers);
+  byId('solve-longest-pause').textContent = Time.format(snapshot.longestPauseMs);
 }
 
 export function setConnectLabel(label: 'Connect' | 'Disconnect'): void {
@@ -257,60 +268,6 @@ export function setResetOrientationEnabled(enabled: boolean): void {
   const reset = button('reset-gyro');
   reset.disabled = !enabled;
   reset.title = enabled ? 'Reset the 3D view orientation.' : 'Connect a cube first.';
-}
-
-/** Starting the timer requires a connected cube to detect the first move against. */
-export function setTimerActivateEnabled(enabled: boolean): void {
-  const start = document.getElementById('start-timer');
-  if (start instanceof HTMLButtonElement) {
-    start.disabled = !enabled;
-    start.title = enabled
-      ? 'Arm the solving timer.'
-      : 'Connect a cube or choose a replay capture first.';
-  }
-  const status = document.getElementById('quick-game-status');
-  if (status && !enabled)
-    status.textContent = 'Connect a cube or choose a replay capture to begin.';
-}
-
-export type TimerButtonState = 'idle' | 'ready' | 'running' | 'stopped';
-
-export function setTimerButtonState(state: TimerButtonState, finalTime?: string): void {
-  const btn = document.getElementById('start-timer');
-  const status = document.getElementById('quick-game-status');
-  if (!(btn instanceof HTMLButtonElement)) return;
-  if (!(status instanceof HTMLElement)) return;
-  btn.dataset.timerState = state;
-  switch (state) {
-    case 'idle':
-      btn.textContent = 'Start game';
-      status.textContent = 'Scramble the cube to any state, then start the solving timer.';
-      break;
-    case 'ready':
-      btn.textContent = 'Ready';
-      status.textContent = 'Turn any face to start the solving timer.';
-      break;
-    case 'running':
-      btn.textContent = 'Solving…';
-      status.textContent = 'Turn until solved; timing stops automatically.';
-      break;
-    case 'stopped':
-      btn.textContent = 'Solve again';
-      status.textContent = finalTime ? `Solved in ${finalTime}.` : 'Solved.';
-      break;
-  }
-}
-
-export function setTps(tps: number | null): void {
-  const container = document.getElementById('tps-container');
-  const value = document.getElementById('tpsValue');
-  if (!container || !value) return;
-  if (tps !== null && Number.isFinite(tps) && tps >= 0) {
-    value.textContent = tps.toFixed(1);
-    container.hidden = false;
-  } else {
-    container.hidden = true;
-  }
 }
 
 export function setConnectionStatus(status: string): void {
@@ -391,8 +348,6 @@ export function clearInfo(): void {
   if (cubiePanel) cubiePanel.hidden = true;
   clearActiveGrip();
   clearDetectedMoves();
-  setTimerButtonState('idle');
-  setTps(null);
 }
 
 export function mountCube(element: Node): void {

@@ -27,7 +27,6 @@ describe('future transport event handling', () => {
         disconnect: vi.fn(async () => {}),
       }),
     });
-    const timer = { dispatch: vi.fn(), onMove: vi.fn(), reset: vi.fn(), refresh: vi.fn() };
     const addMove = vi.fn();
     const setOrientation = vi.fn();
     const setPlayerAlgorithm = vi.fn();
@@ -35,7 +34,6 @@ describe('future transport event handling', () => {
     const showInfo = vi.fn();
     const onUnknownEvent = vi.fn();
     const cubeEvents = createCubeEventController({
-      timer,
       solveScramble: async () => '',
       addMove,
       setOrientation,
@@ -67,7 +65,6 @@ describe('future transport event handling', () => {
     ]);
     expect(describeLogEntry(captured[0]!)).toEqual(['UNKNOWN', 'unknown event · FUTURE_EVENT']);
     expect(onUnknownEvent).toHaveBeenCalledWith(future);
-    expect(timer.onMove).not.toHaveBeenCalled();
     expect(addMove).not.toHaveBeenCalled();
     expect(setOrientation).not.toHaveBeenCalled();
     expect(setPlayerAlgorithm).not.toHaveBeenCalled();

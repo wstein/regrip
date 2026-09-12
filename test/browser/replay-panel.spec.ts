@@ -4,6 +4,77 @@ import { faceletsToPattern, kpuzzleReady } from '../../src/adapters/cubing/utils
 const replayHeader =
   '{"recordedAt":"2026-09-09T10:00:00.000Z","type":"trace_header","data":{"format":"regrip","version":1}}';
 
+test('drives elapsed time and expandable solve analysis from replay timestamps', async ({
+  page,
+}) => {
+  const entries = [
+    {
+      at: '2026-09-09T10:00:00.000Z',
+      type: 'cube_event',
+      data: {
+        type: 'FACELETS',
+        timestamp: 100,
+        facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+      },
+    },
+    { at: '2026-09-09T10:00:00.100Z', type: 'cube_event', data: moveData(200, 'R') },
+    {
+      at: '2026-09-09T10:00:00.300Z',
+      type: 'virtual_regrip',
+      data: { timestamp: 400, notationToken: 'x', sensorFrameToken: 'x' },
+    },
+    { at: '2026-09-09T10:00:00.600Z', type: 'cube_event', data: moveData(700, 'U2') },
+    {
+      at: '2026-09-09T10:00:00.700Z',
+      type: 'custom_trigger',
+      data: { timestamp: 800, move: "R U R'" },
+    },
+    { at: '2026-09-09T10:00:01.300Z', type: 'cube_event', data: moveData(1_400, "F'") },
+    {
+      at: '2026-09-09T10:00:01.500Z',
+      type: 'cube_event',
+      data: {
+        type: 'FACELETS',
+        timestamp: 1_600,
+        facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+      },
+    },
+  ].map(({ at, type, data }) => JSON.stringify({ recordedAt: at, type, data }));
+  await page.goto('/test/browser/mock-app.html?replay');
+  await page.evaluate(
+    (contents) => sessionStorage.setItem('regrip.replay.jsonl', contents),
+    [replayHeader, ...entries].join('\n'),
+  );
+  await page.goto('/test/browser/mock-app.html?replay&fixture=local&feed=session');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+
+  await expect(page.locator('#sessionElapsed')).toHaveText('0:01.500');
+  await page.locator('#solve-analysis').evaluate((details: HTMLDetailsElement) => {
+    details.open = true;
+  });
+  await expect(page.locator('#solve-analysis-status')).toHaveText('Complete');
+  await expect(page.locator('#solve-duration')).toHaveText('0:01.200');
+  await expect(page.locator('#solve-tps')).toHaveText('2.50');
+  await expect(page.locator('#solve-moves')).toHaveText('3 HTM · 4 QTM');
+  await expect(page.locator('#solve-regrips')).toHaveText('1');
+  await expect(page.locator('#solve-triggers')).toHaveText('1');
+  await expect(page.locator('#solve-longest-pause')).toHaveText('0:00.700');
+});
+
+function moveData(timestamp: number, move: string) {
+  return {
+    type: 'MOVE',
+    timestamp,
+    localTimestamp: timestamp,
+    cubeTimestamp: timestamp,
+    face: 0,
+    direction: 0,
+    move,
+  };
+}
+
 test('serializes a burst of real TwistyPlayer moves from the replay stream', async ({ page }) => {
   const events = [
     {

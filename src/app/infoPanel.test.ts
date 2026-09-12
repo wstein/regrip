@@ -10,9 +10,6 @@ import {
   setOrientationTracking,
   setOrientationTrackingAvailable,
   setResetOrientationEnabled,
-  setTimerActivateEnabled,
-  setTimerButtonState,
-  setTps,
   showInfo,
   syncDetectedMovesHighlight,
 } from './infoPanel';
@@ -150,68 +147,6 @@ describe('grip status indicator', () => {
     clearActiveGrip();
     expect(value.textContent).toBe('Home');
     expect(gesture.hidden).toBe(true);
-  });
-});
-
-describe('timer button state and TPS indicator', () => {
-  it('explains why the game action is unavailable', () => {
-    document.body.innerHTML = `
-      <p id="quick-game-status"></p>
-      <button id="start-timer" type="button"></button>
-    `;
-    const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;
-
-    setTimerActivateEnabled(false);
-    expect(btn.title).toContain('replay capture');
-
-    setTimerActivateEnabled(true);
-    expect(btn.title).toContain('solving timer');
-  });
-
-  it('updates timer button text and dataset state through lifecycle phases', () => {
-    document.body.innerHTML = `
-      <p id="quick-game-status">Connect a cube or choose a replay capture to begin.</p>
-      <button id="start-timer" type="button" class="start-timer-cta" disabled>Start game</button>
-    `;
-    const btn = document.querySelector<HTMLButtonElement>('#start-timer')!;
-    const status = document.querySelector<HTMLElement>('#quick-game-status')!;
-
-    setTimerButtonState('ready');
-    expect(btn.dataset.timerState).toBe('ready');
-    expect(btn.textContent).toBe('Ready');
-    expect(status.textContent).toContain('Turn any face');
-
-    setTimerButtonState('running');
-    expect(btn.dataset.timerState).toBe('running');
-    expect(btn.textContent).toBe('Solving…');
-    expect(status.textContent).toContain('Turn until solved');
-
-    setTimerButtonState('stopped', '12.345');
-    expect(btn.dataset.timerState).toBe('stopped');
-    expect(btn.textContent).toBe('Solve again');
-    expect(status.textContent).toContain('Solved in 12.345');
-
-    setTimerButtonState('idle');
-    expect(btn.dataset.timerState).toBe('idle');
-    expect(btn.textContent).toBe('Start game');
-    expect(status.textContent).toContain('Scramble the cube');
-  });
-
-  it('updates TPS metric display and toggles visibility', () => {
-    document.body.innerHTML = `
-      <span id="tps-container" class="tps-count" hidden>
-        <strong id="tpsValue">0.0</strong> TPS
-      </span>
-    `;
-    const container = document.querySelector<HTMLElement>('#tps-container')!;
-    const value = document.querySelector<HTMLElement>('#tpsValue')!;
-
-    setTps(4.25);
-    expect(container.hidden).toBe(false);
-    expect(value.textContent).toBe('4.3');
-
-    setTps(null);
-    expect(container.hidden).toBe(true);
   });
 });
 

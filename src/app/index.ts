@@ -24,7 +24,9 @@ import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../integration/cubeEvents';
 import { connectCube } from '../integration/connection';
 import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '@wstein/regrip-core/session/jsonlFormat';
-import { createTimerController } from '../integration/timerController';
+import { createTimingDiagnostics } from '../integration/timingDiagnostics';
+import { createSessionElapsedClock } from '../integration/sessionElapsed';
+import { createSolveAnalysis } from '../integration/solveAnalysis';
 import { formatCapabilities } from '../integration/cubeInfo';
 import {
   formatCubeExport,
@@ -234,21 +236,30 @@ infoPanel.on('track-orientation', 'click', () => {
   }
 });
 
-const timerController = createTimerController({
-  isConnected: () => session.getState().status === 'connected',
-  now: replay ? () => replay.virtualNowMs : undefined,
-  setTimer: infoPanel.setTimer,
-  showTimer: infoPanel.showTimer,
-  setTimerColor: infoPanel.setTimerColor,
+const timingDiagnostics = createTimingDiagnostics({
   setSkew: (value) => infoPanel.setInfo('skew', value),
-  setPhase: (phase, finalTime) => infoPanel.setTimerButtonState(phase, finalTime),
-  setTps: infoPanel.setTps,
 });
-replay?.subscribeRebuild(() => timerController.reset());
-replay?.subscribeCursor(() => timerController.refresh());
+const elapsedClock = createSessionElapsedClock({
+  now: () => performance.now(),
+  setElapsed: infoPanel.setSessionElapsed,
+});
+const solveAnalysis = createSolveAnalysis(infoPanel.renderSolveAnalysis);
+const replayStartedAt = replay?.items[0]?.timestamp ?? 0;
+const refreshReplayElapsed = (): void => {
+  if (!replay) return;
+  const currentTimestamp = replay.items[Math.max(0, replay.position - 1)]?.timestamp;
+  elapsedClock.setReplayElapsed(
+    currentTimestamp === undefined ? 0 : currentTimestamp - replayStartedAt,
+  );
+};
+replay?.subscribeRebuild(() => {
+  timingDiagnostics.reset();
+  solveAnalysis.reset();
+  elapsedClock.reset();
+});
+replay?.subscribeCursor(refreshReplayElapsed);
 
 const cubeEvents = createCubeEventController({
-  timer: timerController,
   solveScramble: createCubingScrambleSolver(),
   shouldReconcilePlayer: (facelets) => playerPatterns.observeSnapshot(facelets),
   trackPlayerMove: (move) => playerPatterns.applyMove(move),
@@ -271,9 +282,7 @@ const cubeEvents = createCubeEventController({
   },
   setInfo: infoPanel.setInfo,
   showInfo: infoPanel.showInfo,
-  onSolved: () => {
-    timerController.dispatch('solved');
-  },
+  onSolved: solveAnalysis.complete,
   onDisconnect: () => {
     // The session owns teardown and publishes the resulting disconnected state.
   },
@@ -302,6 +311,8 @@ const cubeEvents = createCubeEventController({
 
 sessionSignals.event.subscribe((event) => {
   if (!event) return;
+  solveAnalysis.onEvent(event);
+  if (event.type === 'MOVE') timingDiagnostics.onMove(event);
   if (event.type === 'GYRO') {
     cubeEvents.handleGyro(event);
     return;
@@ -369,6 +380,9 @@ sessionSignals.state.subscribe((state) => {
   eventLog.record('session_status', { status: state.status, error: state.error });
 
   if (state.status === 'connecting') {
+    timingDiagnostics.reset();
+    solveAnalysis.reset();
+    elapsedClock.reset();
     sceneRenderer?.setActive(false);
     setOrientationTracking(false);
     cubeExportSource = undefined;
@@ -378,11 +392,12 @@ sessionSignals.state.subscribe((state) => {
     clearDetectedMoveStreams();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
-    infoPanel.setTimerActivateEnabled(false);
     infoPanel.setConnectionStatus('Connecting…');
     return;
   }
   if (state.status === 'connected' && state.connection) {
+    if (replay) refreshReplayElapsed();
+    else elapsedClock.start();
     const connection = state.connection;
     if (!sceneRenderer) {
       sceneRenderer = startSceneRenderLoop(
@@ -406,7 +421,6 @@ sessionSignals.state.subscribe((state) => {
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
     infoPanel.setInfo('capabilities', formatCapabilities(connection.capabilities));
     infoPanel.setResetOrientationEnabled(true);
-    infoPanel.setTimerActivateEnabled(true);
     infoPanel.setConnectionStatus('Connected');
     infoPanel.setConnectLabel('Disconnect');
     if (replay) commandPanel.clear();
@@ -438,6 +452,10 @@ sessionSignals.state.subscribe((state) => {
     return;
   }
   if (state.status === 'disconnected') {
+    if (!replay) {
+      elapsedClock.refresh();
+      elapsedClock.stop();
+    }
     sceneRenderer?.setActive(false);
     setOrientationTracking(false);
     cubeExportSource = undefined;
@@ -449,12 +467,15 @@ sessionSignals.state.subscribe((state) => {
     clearDetectedMoveStreams();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
-    infoPanel.setTimerActivateEnabled(false);
     infoPanel.setConnectionStatus('Disconnected');
     infoPanel.setConnectLabel('Connect');
     return;
   }
   if (state.status === 'error') {
+    if (!replay) {
+      elapsedClock.refresh();
+      elapsedClock.stop();
+    }
     sceneRenderer?.setActive(false);
     setOrientationTracking(false);
     cubeExportSource = undefined;
@@ -466,7 +487,6 @@ sessionSignals.state.subscribe((state) => {
     clearDetectedMoveStreams();
     infoPanel.setOrientationTrackingAvailable(false);
     infoPanel.setResetOrientationEnabled(false);
-    infoPanel.setTimerActivateEnabled(false);
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
     infoPanel.setConnectLabel('Connect');
     alert(`Unable to connect to smart cube: ${state.error}`);
@@ -593,12 +613,6 @@ infoPanel.on('copy-orbit64', 'click', () => copyCubeExport('orbit64', 'Orbit64 t
 infoPanel.on('detectedMoves', 'input', () =>
   infoPanel.setDetectedMoveCount(infoPanel.countDetectedMoves(canonicalDetectedMoves())),
 );
-
-if (document.getElementById('start-timer')) {
-  infoPanel.on('start-timer', 'click', () => {
-    timerController.dispatch('activate');
-  });
-}
 
 // Subscribe every UI integration before the in-app mock transport publishes
 // its initial connection state. The dev harness continues to connect itself.

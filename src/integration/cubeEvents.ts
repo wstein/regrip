@@ -6,7 +6,6 @@ import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import { formatOfflineStats, formatSingmasterCycles } from './cubeInfo';
 import type { SessionGyroEvent } from '@wstein/regrip-core/session/smartCubeSession';
-import type { TimerController } from './timerController';
 
 export type ScrambleSolver = (facelets: string) => Promise<string>;
 export type SolveDetector = (facelets: string) => boolean;
@@ -25,7 +24,6 @@ function patternFromFacelets(facelets: string): CubeFacelets.patternData | undef
 
 type CubeEventControllerOptions = {
   homeOrientation?: Quaternion.t;
-  timer: TimerController;
   solveScramble: ScrambleSolver;
   /** Adapter-owned body-frame permutation reconciliation for the 3D player. */
   shouldReconcilePlayer?: (facelets: string) => Promise<boolean>;
@@ -42,7 +40,7 @@ type CubeEventControllerOptions = {
   setInfo: (id: string, value: string) => void;
   showInfo: (id: string) => void;
   onDisconnect: () => void;
-  onSolved: () => void;
+  onSolved?: () => void;
   onGyro?: (sample: { event: SessionGyroEvent }) => void;
   onHardware?: (event: Extract<SmartCubeEvent, { type: 'HARDWARE' }>) => void;
   /** The canonical solver-frame state available for copy/export controls. */
@@ -78,7 +76,6 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     playerSyncState = nextState;
     playerUntrusted = false;
     normalizedPattern = undefined;
-    options.timer.reset();
     options.resetPlayerTracking?.();
     applyPlayerEffects(effects);
   }
@@ -101,19 +98,20 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
   }
 
   function handleMove(event: Extract<SmartCubeEvent, { type: 'MOVE' }>): void {
-    options.timer.onMove(event);
     const displayedMove = options.projectMove?.(event.move) ?? event.move;
     options.recordMove?.(displayedMove, event.move);
     const nextPattern = normalizedPattern && CubeFacelets.applyMove(normalizedPattern, event.move);
     if (nextPattern) {
       normalizedPattern = nextPattern;
       const state = cubieStateFromPattern(nextPattern);
+      const facelets = CubeFacelets.patternDataToFacelets(nextPattern);
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatSingmasterCycles(state));
       options.onFacelets?.({
-        facelets: CubeFacelets.patternDataToFacelets(nextPattern),
+        facelets,
         state,
       });
+      if ((options.solveDetector ?? defaultSolveDetector)(facelets)) options.onSolved?.();
     }
     if (!playerUntrusted) {
       options.trackPlayerMove?.(event.move);
@@ -152,7 +150,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     playerUntrusted = false;
 
     const solved = (options.solveDetector ?? defaultSolveDetector)(event.facelets);
-    if (solved) options.onSolved();
+    if (solved) options.onSolved?.();
     const needsReconcile = await (options.shouldReconcilePlayer?.(event.facelets) ?? true);
     if (!needsReconcile) {
       const [confirmedState, effects] = PlayerSync.confirm(playerSyncState, syncGeneration);

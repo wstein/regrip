@@ -23,7 +23,7 @@ flowchart LR
   end
 
   subgraph Integration ["src/integration/ — browser-lab glue"]
-    TC["timerController.ts\ntimer effects · skew"]
+    TA["timingDiagnostics / sessionElapsed / solveAnalysis"]
     CE["cubeEvents.ts\nrouter · formatters"]
   end
 
@@ -47,9 +47,8 @@ flowchart LR
   JSONL -->|"same typed events\n(timestamps injected)"| SC
   SC -->|"(state, action) → state"| Domain
   Domain -->|"new immutable state"| SC
-  SC --> TC & CE
-  TC -->|"(state, action) → state"| Domain
-  Domain -->|"new immutable state"| TC
+  SC --> TA & CE
+  TA --> IP
   CE --> IP & LL & SV
 ```
 
@@ -58,7 +57,8 @@ stabilization state all live inside the session); `cubeEvents.ts` applies the se
 output to the player, cube-state export, and trace — it does not call the reducers itself.
 
 > **JSONL replay** feeds the exact same event types with recorded timestamps through the session and
-> integration pipeline, so the pure reducers reach the same decisions, state, regrips, and timer values
+> integration pipeline, so the pure reducers reach the same decisions, state, regrips, elapsed time,
+> and solve metrics
 > as the original live session — deterministic, not merely similar. UI/log rendering built from that
 > state is not held to the same guarantee.
 > See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design rationale.
@@ -66,7 +66,7 @@ output to the player, cube-state export, and trace — it does not call the redu
 A single-page [Vite](https://vite.dev) example for the
 [Generic Smart Cube API](https://github.com/wstein/smartcube-web-bluetooth). It uses Web Bluetooth
 to auto-detect supported GAN, Giiker, GoCube, MoYu, and QiYi cubes, displays a cubing.js
-`TwistyPlayer`, and provides a basic solve timer with gyro orientation.
+`TwistyPlayer`, and provides session/replay timing, solve analysis, and gyro orientation.
 
 ## Highlights
 
@@ -99,7 +99,8 @@ integer Body↔Solver mapping, updated only by detected `x/y/z` regrips.
 
 - A 300 ms returned-face custom trigger (`R R'`, for example), detected independently of the gyro
   magnet layer.
-- Editable detected moves, cube state, solve timer, JSONL recording, and a local live event trace.
+- Editable detected moves, cube state, session/replay elapsed time, expandable solve analysis,
+  JSONL recording, and a local live event trace.
   The trace supports filters, sort direction, fixed JSON detail, selection, copy/export, and replay
   of selected moves. Its default-off **Diagnostic** filter shows opt-in decoder evidence without
   entering the cube-state session, reducers, or replay capture.
