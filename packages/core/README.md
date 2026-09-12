@@ -28,10 +28,9 @@ public ReScript interface, so TypeScript declarations stay coupled to the ReScri
 
 ### ReScript-derived names
 
-Generated exports preserve the lower-case names from ReScript interfaces. For example, use
-`t` from `domain/Quaternion`, `state` from `domain/Timer`, and `regripToken` from
-`domain/CubeNotation`. TypeScript consumers can alias them at import time when a PascalCase local
-name reads better:
+Generated exports preserve the lower-case names from ReScript interfaces. For example, use `t`
+from `domain/Quaternion` and `regripToken` from `domain/CubeNotation`. TypeScript consumers can
+alias them at import time when a PascalCase local name reads better:
 
 ```ts
 import { identity, type t as Quaternion } from '@wstein/regrip-core/domain/Quaternion';

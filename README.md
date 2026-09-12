@@ -33,7 +33,6 @@ flowchart LR
     RD["RegripDetector"]
     MBT["MoveBackTrigger"]
     VCF["VirtualCubeFrame"]
-    TM["Timer"]
   end
 
   subgraph App ["src/app/ + src/adapters/ — presentation"]
@@ -183,7 +182,7 @@ The core domain logic is [ReScript](https://rescript-lang.org), compiled in-sour
 | Module                                                                                                          | Responsibility                                                                                           |
 | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `CubeFacelets.res` / `CubeNotation.res`                                                                         | Pure solved-state detection, facelet conversion, and shared move/orientation types                       |
-| `Timer.res` / `Time.res` / `MoveBuffer.res`                                                                     | Solve-timer state machine, formatting, and recent-move buffers                                           |
+| `Time.res` / `MoveBuffer.res`                                                                                   | Duration formatting and recent-move buffers                                                              |
 | `Quaternion.res` / `CubeSymmetry.res`                                                                           | Quaternion math and the 24 cube orientations                                                             |
 | `MagneticDetent.res` / `OrientationStabilizer.res` / `GyroOrientation.res` / `GyroPipeline.res`                 | Detents, hysteresis, velocity gating, drift, calibrated poses, and the composed per-packet gyro pipeline |
 | `SensorToBody.res` / `RegripDetector.res` / `VirtualCubeFrame.res` / `MoveBackTrigger.res` / `ShakeTrigger.res` | Sensor axes, virtual rotations, Body↔Solver remapping, and returned-face/shake triggers                  |

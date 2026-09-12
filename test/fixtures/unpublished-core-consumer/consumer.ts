@@ -5,7 +5,6 @@ import {
   type SmartCubeTransportConnection,
 } from '@wstein/regrip-core';
 import { format } from '@wstein/regrip-core/domain/Time';
-import { step as stepTimer, type effect as TimerEffect } from '@wstein/regrip-core/domain/Timer';
 import {
   initial as initialPlayerSync,
   move as playerMove,
@@ -63,12 +62,6 @@ const session: SmartCubeSession = createSmartCubeSession({
 void session;
 const formatted: string = format(61_001);
 void formatted;
-const [, timerEffects]: ['idle' | 'ready' | 'running' | 'stopped', TimerEffect[]] = stepTimer(
-  'idle',
-  'activate',
-  true,
-);
-void timerEffects;
 const [, playerEffects]: [unknown, PlayerSyncEffect[]] = playerMove(initialPlayerSync, 'R');
 void playerEffects;
 const quaternion: Quaternion = identity;

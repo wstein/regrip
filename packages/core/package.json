@@ -51,10 +51,6 @@
       "types": "./dist/domain/CubeFacelets.gen.d.ts",
       "default": "./dist/domain/CubeFacelets.gen.js"
     },
-    "./domain/Timer": {
-      "types": "./dist/domain/Timer.gen.d.ts",
-      "default": "./dist/domain/Timer.gen.js"
-    },
     "./domain/PlayerSync": {
       "types": "./dist/domain/PlayerSync.gen.d.ts",
       "default": "./dist/domain/PlayerSync.gen.js"

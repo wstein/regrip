@@ -86,8 +86,6 @@ try {
     'package/dist/domain/Time.res.mjs',
     'package/dist/domain/MoveBuffer.gen.js',
     'package/dist/domain/MoveBuffer.res.mjs',
-    'package/dist/domain/Timer.gen.js',
-    'package/dist/domain/Timer.res.mjs',
     'package/dist/domain/PlayerSync.gen.js',
     'package/dist/domain/PlayerSync.res.mjs',
     'package/dist/domain/Quaternion.gen.js',
@@ -128,6 +126,9 @@ try {
   }
   if (packedFiles.some((path) => path.includes('_test.'))) {
     throw new Error('npm pack must not include test modules.');
+  }
+  if (packedFiles.some((path) => path.includes('/Timer.'))) {
+    throw new Error('npm pack must not include the retired Timer module.');
   }
 
   const consumer = join(temp, 'consumer');

@@ -96,7 +96,7 @@ the solver frame for display.
 
 ## Reducer pattern
 
-Core state machines follow the `Timer.res` / `PlayerSync.res` shape:
+Core state machines follow the `PlayerSync.res` / `GyroPipeline.res` shape:
 
 ```
 (state, input) -> (nextState, effects)
@@ -110,7 +110,7 @@ and replay fixtures small, isolated tests.
 
 - [packages/core/README.md](packages/core/README.md) — core consumer surface
 - [README.md](README.md) — lab setup and event-pipeline overview
-- `packages/core/src/domain/Timer.res` — canonical reducer style
+- `packages/core/src/domain/PlayerSync.res` — canonical reducer-plus-effects style
 - `packages/core/src/session/jsonlMock.e2e.test.ts` — JSONL replay at the connection boundary
 - `eslint.config.js` — checked TypeScript import boundaries
 - [David Singmaster's cycle-notation discussion (PDF)](https://maths-people.anu.edu.au/~burkej/cube/singmaster.pdf) —
