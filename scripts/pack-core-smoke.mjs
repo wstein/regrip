@@ -35,7 +35,15 @@ const writeTransportPeerStub = (directory) => {
       2,
     )}\n`,
   );
-  writeFileSync(join(directory, 'index.js'), 'export {};\n');
+  writeFileSync(
+    join(directory, 'index.js'),
+    // Minimal runtime bodies so the generated Bindings_SmartCube wrapper has
+    // something real to call through to, proving the FFI boundary resolves
+    // and executes rather than only type-checking.
+    `export const cubeTimestampCalcSkew = () => 0;
+export const cubeTimestampLinearFit = (moves) => moves;
+`,
+  );
   writeFileSync(
     join(directory, 'index.d.ts'),
     `export type SmartCubeCapabilities = unknown;
@@ -78,6 +86,14 @@ try {
     'package/dist/domain/Time.res.mjs',
     'package/dist/domain/MoveBuffer.gen.js',
     'package/dist/domain/MoveBuffer.res.mjs',
+    'package/dist/domain/MoveTracker.gen.js',
+    'package/dist/domain/MoveTracker.res.mjs',
+    'package/dist/domain/SnapshotDeduper.gen.js',
+    'package/dist/domain/SnapshotDeduper.res.mjs',
+    'package/dist/domain/MoveBackTrigger.gen.js',
+    'package/dist/domain/MoveBackTrigger.res.mjs',
+    'package/dist/bindings/Bindings_SmartCube.gen.js',
+    'package/dist/bindings/Bindings_SmartCube.res.mjs',
     'package/src/domain/CubeFacelets.res.mjs',
   ];
   for (const path of required) {

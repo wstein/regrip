@@ -8,9 +8,9 @@ import type {
 } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
-import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger.res.mjs';
-import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker.res.mjs';
-import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper.res.mjs';
+import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger';
+import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker';
+import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper';
 import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector.res.mjs';
 import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger.res.mjs';
 import type { RegripToken } from '@wstein/regrip-core/domain/CubeNotation.res.mjs';

@@ -2,7 +2,7 @@ import { interval } from 'rxjs';
 import type { Subscription } from 'rxjs';
 import { now as deviceNow } from 'smartcube-web-bluetooth';
 import type { SmartCubeMoveEvent } from 'smartcube-web-bluetooth';
-import * as SmartCubeBindings from '@wstein/regrip-core/bindings/Bindings_SmartCube.res.mjs';
+import * as SmartCubeBindings from '@wstein/regrip-core/bindings/Bindings_SmartCube';
 import * as MoveBuffer from '@wstein/regrip-core/domain/MoveBuffer';
 import * as Time from '@wstein/regrip-core/domain/Time';
 import * as Timer from '@wstein/regrip-core/domain/Timer.res.mjs';
