@@ -68,6 +68,15 @@ describe('VitePress documentation integration', () => {
     expect(telemetryHeader).not.toContain('id="connect"');
   });
 
+  it('keeps detected-move editing actions above the algorithm editor', () => {
+    const panel = app.match(/<section class="detected-moves-panel"[\s\S]*?<\/section>/)?.[0];
+
+    expect(panel).toContain('class="detected-moves-toolbar"');
+    expect(panel!.indexOf('class="detected-moves-actions"')).toBeLessThan(
+      panel!.indexOf('class="detected-moves-editor"'),
+    );
+  });
+
   it('keeps the documentation in its single dark theme', () => {
     expect(vitepress).toMatch(/cleanUrls: true,\s+appearance: false,/);
   });

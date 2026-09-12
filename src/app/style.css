@@ -1263,14 +1263,26 @@ body {
   color: #e7efff;
   background: #263f70;
 }
-.detected-moves-actions {
-  margin-top: 0.65rem;
+.detected-moves-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  margin: 0 0 0.55rem;
 }
 .detected-moves-notation {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  margin: 0 0 0.55rem;
+  margin: 0;
+}
+.detected-moves-actions {
+  gap: 0.35rem;
+}
+.detected-moves-actions button {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.72rem;
 }
 .detected-moves-notation-label {
   align-self: center;

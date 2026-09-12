@@ -256,20 +256,31 @@
                     <div id="timer">0:00.000</div>
                   </div>
                 </div>
-                <div
-                  class="detected-moves-notation"
-                  role="group"
-                  aria-label="Detected move notation"
-                >
-                  <span class="detected-moves-notation-label">Notation:</span>
-                  <button id="detected-notation-wca" type="button" aria-pressed="true">WCA</button>
-                  <button id="detected-notation-sign" type="button" aria-pressed="false">
-                    SiGN
-                  </button>
-                  <button id="detected-notation-sse" type="button" aria-pressed="false">SSE</button>
-                  <button id="detected-notation-raw-qtm" type="button" aria-pressed="false">
-                    Raw QTM
-                  </button>
+                <div class="detected-moves-toolbar">
+                  <div
+                    class="detected-moves-notation"
+                    role="group"
+                    aria-label="Detected move notation"
+                  >
+                    <span class="detected-moves-notation-label">Notation:</span>
+                    <button id="detected-notation-wca" type="button" aria-pressed="true">
+                      WCA
+                    </button>
+                    <button id="detected-notation-sign" type="button" aria-pressed="false">
+                      SiGN
+                    </button>
+                    <button id="detected-notation-sse" type="button" aria-pressed="false">
+                      SSE
+                    </button>
+                    <button id="detected-notation-raw-qtm" type="button" aria-pressed="false">
+                      Raw QTM
+                    </button>
+                  </div>
+                  <div class="detected-moves-actions">
+                    <button id="simplify-detected-moves" type="button">Simplify</button>
+                    <button id="clear-detected-moves" type="button">Clear</button>
+                    <button id="copy-detected-moves" type="button">Copy</button>
+                  </div>
                 </div>
                 <div class="detected-moves-editor">
                   <div
@@ -284,11 +295,6 @@
                     autocomplete="off"
                     spellcheck="false"
                   ></textarea>
-                </div>
-                <div class="detected-moves-actions">
-                  <button id="simplify-detected-moves" type="button">Simplify</button>
-                  <button id="clear-detected-moves" type="button">Clear</button>
-                  <button id="copy-detected-moves" type="button">Copy</button>
                 </div>
               </section>
             </div>
