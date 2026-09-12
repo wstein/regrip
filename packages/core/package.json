@@ -77,6 +77,22 @@
       "types": "./dist/domain/GyroOrientation.gen.d.ts",
       "default": "./dist/domain/GyroOrientation.gen.js"
     },
+    "./domain/CubeSymmetry": {
+      "types": "./dist/domain/CubeSymmetry.gen.d.ts",
+      "default": "./dist/domain/CubeSymmetry.gen.js"
+    },
+    "./domain/MagneticDetent": {
+      "types": "./dist/domain/MagneticDetent.gen.d.ts",
+      "default": "./dist/domain/MagneticDetent.gen.js"
+    },
+    "./domain/OrientationStabilizer": {
+      "types": "./dist/domain/OrientationStabilizer.gen.d.ts",
+      "default": "./dist/domain/OrientationStabilizer.gen.js"
+    },
+    "./domain/GyroPipeline": {
+      "types": "./dist/domain/GyroPipeline.gen.d.ts",
+      "default": "./dist/domain/GyroPipeline.gen.js"
+    },
     "./session/replay/fixtures/*.jsonl": "./src/session/replay/fixtures/*.jsonl",
     "./session/*": {
       "types": "./dist/session/*.d.ts",

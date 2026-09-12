@@ -7,7 +7,7 @@ import type {
   SmartCubeVendorCommand,
 } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
-import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline.res.mjs';
+import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger';
 import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker';
 import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper';

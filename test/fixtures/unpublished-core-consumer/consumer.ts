@@ -19,6 +19,11 @@ import {
   type state as GyroOrientationState,
 } from '@wstein/regrip-core/domain/GyroOrientation';
 import {
+  makeConfig,
+  type state as GyroPipelineState,
+} from '@wstein/regrip-core/domain/GyroPipeline';
+import { defaults as stabilizerDefaults } from '@wstein/regrip-core/domain/OrientationStabilizer';
+import {
   initial as initialMoveBuffer,
   pushRecent,
   recentMoves,
@@ -63,6 +68,10 @@ const gyroHome: Quaternion = home;
 declare const gyroState: GyroOrientationState;
 void gyroHome;
 void gyroState;
+const gyroConfig = makeConfig(stabilizerDefaults);
+declare const gyroPipelineState: GyroPipelineState;
+void gyroConfig;
+void gyroPipelineState;
 // genType currently lowers an optional labeled argument to a required nullable
 // parameter. Supplying undefined is the supported generated-boundary spelling.
 void stepMoveBack(initialMoveBackTrigger, 'R', 1_000, undefined);

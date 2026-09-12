@@ -9,6 +9,12 @@ import { regripFromString, token } from '@wstein/regrip-core/domain/CubeNotation
 import sensorToBody, { apply as applySensorMap } from '@wstein/regrip-core/domain/SensorToBody';
 import { home } from '@wstein/regrip-core/domain/GyroOrientation';
 import {
+  initial as initialGyroPipeline,
+  makeConfig,
+  step as stepGyroPipeline,
+} from '@wstein/regrip-core/domain/GyroPipeline';
+import { defaults as stabilizerDefaults } from '@wstein/regrip-core/domain/OrientationStabilizer';
+import {
   faceletsToPatternData,
   solvedFacelets,
 } from '@wstein/regrip-core/domain/CubeFacelets.res.mjs';
@@ -65,6 +71,18 @@ if (token('y', '2') !== 'y2' || regripFromString("x'") !== "x'") {
 const mappedHome = applySensorMap(sensorToBody, home);
 if (Math.abs(mappedHome.w - home.w) > 1e-12) {
   throw new Error('expected generated SensorToBody and GyroOrientation wrappers to compose');
+}
+
+const [, gyroSample] = stepGyroPipeline(
+  initialGyroPipeline,
+  home,
+  0,
+  undefined,
+  makeConfig(stabilizerDefaults),
+  true,
+);
+if (gyroSample.dtSeconds !== 0 || gyroSample.velocityMagnitude !== 0) {
+  throw new Error('expected generated GyroPipeline wrapper to preserve its composed sample');
 }
 
 const moves = recentMoves(pushRecent(initial(), 'R'));
