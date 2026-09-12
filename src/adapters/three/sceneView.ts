@@ -17,6 +17,12 @@ type ScenePlayer = Pick<TwistyPlayer, 'experimentalCurrentVantages'>;
 export type SceneRenderer = {
   /** Queue a single frame. Repeated calls before it runs are coalesced. */
   requestRender(): void;
+  /** Apply an absolute physical-cube orientation from a transport quaternion. */
+  setCubeOrientation(orientation: QuaternionComponents): void;
+  /** Restore the cube's presentation-only resting pose. */
+  resetCubeOrientation(): void;
+  /** Apply the solver-frame basis and axis colors used by the orientation gizmo. */
+  setVirtualFrameOrientation(orientation: VirtualFrameOrientation): void;
   /** Stop or resume rendering while the smart-cube session is inactive. */
   setActive(active: boolean): void;
   /** Let mouse/touch drag rotate the scene when a cube has no gyro. */
@@ -30,6 +36,23 @@ export type SceneRenderOptions = {
   onContextRestored?: () => void;
 };
 
+export type QuaternionComponents = Readonly<{ x: number; y: number; z: number; w: number }>;
+
+type SceneVector = readonly [number, number, number];
+
+export type VirtualFrameOrientation = Readonly<{
+  right: SceneVector;
+  up: SceneVector;
+  front: SceneVector;
+  colors: OrientationIndicatorColors;
+}>;
+
+const HOME_FRAME_COLORS: OrientationIndicatorColors = {
+  x: 0xff3131,
+  y: 0xffffff,
+  z: 0x78ed3e,
+};
+
 /**
  * Attach the regrip gizmo to cubing.js' existing WebGL scene.
  *
@@ -39,11 +62,14 @@ export type SceneRenderOptions = {
  */
 export function startSceneRenderLoop(
   player: ScenePlayer,
-  cubeQuaternion: THREE.Quaternion,
-  virtualFrameQuaternion: THREE.Quaternion,
-  virtualFrameColors: OrientationIndicatorColors,
   { onContextLost, onContextRestored }: SceneRenderOptions = {},
 ): SceneRenderer {
+  const restingCubeQuaternion = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
+  );
+  const cubeQuaternion = restingCubeQuaternion.clone();
+  const virtualFrameQuaternion = new THREE.Quaternion();
+  const virtualFrameColors = { ...HOME_FRAME_COLORS };
   let scene: THREE.Scene | undefined;
   let vantage: Vantage | undefined;
   let canvas: HTMLCanvasElement | undefined;
@@ -248,6 +274,30 @@ export function startSceneRenderLoop(
 
   return {
     requestRender: () => {
+      dirty = true;
+      schedule();
+    },
+    setCubeOrientation: ({ x, y, z, w }) => {
+      cubeQuaternion.set(x, y, z, w);
+      dirty = true;
+      schedule();
+    },
+    resetCubeOrientation: () => {
+      cubeQuaternion.copy(restingCubeQuaternion);
+      dirty = true;
+      schedule();
+    },
+    setVirtualFrameOrientation: ({ right, up, front, colors }) => {
+      virtualFrameQuaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(
+          new THREE.Vector3(...right),
+          new THREE.Vector3(...up),
+          new THREE.Vector3(...front),
+        ),
+      );
+      virtualFrameColors.x = colors.x;
+      virtualFrameColors.y = colors.y;
+      virtualFrameColors.z = colors.z;
       dirty = true;
       schedule();
     },

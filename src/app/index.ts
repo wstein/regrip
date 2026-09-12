@@ -1,13 +1,10 @@
 import './style.css';
 
-import * as THREE from 'three';
-
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { createPatternReconciler } from '../adapters/cubing/patternReconciler';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { createTwistyPlayerSync } from '../adapters/cubing/twistyPlayerSync';
 import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
-import type { OrientationIndicatorColors } from '../adapters/three/orientationIndicator';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
@@ -103,12 +100,6 @@ infoPanel.clearInfo();
 clearDetectedMoveStreams();
 mountFullscreenToggle();
 
-// Resting pose shown before any gyro data; the cube settles to
-// GyroOrientation.home once GYRO events start arriving.
-const cubeQuaternion = new THREE.Quaternion().setFromEuler(
-  new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
-);
-const restingViewQuaternion = cubeQuaternion.clone();
 let sceneRenderer: SceneRenderer | undefined;
 let orientationTracking = false;
 const playerSync = createTwistyPlayerSync(twistyPlayer, () => sceneRenderer?.requestRender());
@@ -148,8 +139,6 @@ eventLog.subscribe((entry) => {
 session.subscribeDiagnostics((diagnostic) => liveLog.appendDiagnostic(diagnostic));
 const solverFrame = createSolverFrame();
 let cubeExportSource: CubeExportSource | undefined;
-const virtualFrameQuaternion = new THREE.Quaternion();
-const virtualFrameColors: OrientationIndicatorColors = { x: 0xff3131, y: 0xffffff, z: 0x78ed3e };
 const faceColors: Record<string, number> = {
   U: 0xffffff,
   R: 0xff3131,
@@ -166,17 +155,16 @@ function formatGripDescription(faces: { front: string; up: string; right: string
 
 function syncVirtualFrameOrientation(gesture?: string): void {
   const { right, up, front, faces } = solverFrame.orientation();
-  virtualFrameQuaternion.setFromRotationMatrix(
-    new THREE.Matrix4().makeBasis(
-      new THREE.Vector3(...right),
-      new THREE.Vector3(...up),
-      new THREE.Vector3(...front),
-    ),
-  );
-  virtualFrameColors.x = faceColors[faces.right]!;
-  virtualFrameColors.y = faceColors[faces.up]!;
-  virtualFrameColors.z = faceColors[faces.front]!;
-  sceneRenderer?.requestRender();
+  sceneRenderer?.setVirtualFrameOrientation({
+    right,
+    up,
+    front,
+    colors: {
+      x: faceColors[faces.right]!,
+      y: faceColors[faces.up]!,
+      z: faceColors[faces.front]!,
+    },
+  });
   infoPanel.setActiveGrip(formatGripDescription(faces), gesture);
 }
 
@@ -187,8 +175,7 @@ function setOrientationTracking(tracking: boolean): void {
 }
 
 function resetViewOrientation(): void {
-  cubeQuaternion.copy(restingViewQuaternion);
-  sceneRenderer?.requestRender();
+  sceneRenderer?.resetCubeOrientation();
 }
 
 infoPanel.on('reset-state', 'click', async () => {
@@ -275,8 +262,7 @@ const cubeEvents = createCubeEventController({
   },
   setOrientation: (quaternion) => {
     if (!orientationTracking) return;
-    cubeQuaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-    sceneRenderer?.requestRender();
+    sceneRenderer?.setCubeOrientation(quaternion);
   },
   setPlayerAlgorithm: (algorithm) => {
     playerSync.setAlgorithm(algorithm);
@@ -403,19 +389,13 @@ sessionSignals.state.subscribe((state) => {
     else elapsedClock.start();
     const connection = state.connection;
     if (!sceneRenderer) {
-      sceneRenderer = startSceneRenderLoop(
-        twistyPlayer,
-        cubeQuaternion,
-        virtualFrameQuaternion,
-        virtualFrameColors,
-        {
-          onContextLost: () =>
-            infoPanel.showFeedback(
-              '3D preview paused after a GPU reset. Waiting for WebGL recovery…',
-            ),
-          onContextRestored: () => infoPanel.showFeedback('3D preview restored.'),
-        },
-      );
+      sceneRenderer = startSceneRenderLoop(twistyPlayer, {
+        onContextLost: () =>
+          infoPanel.showFeedback(
+            '3D preview paused after a GPU reset. Waiting for WebGL recovery…',
+          ),
+        onContextRestored: () => infoPanel.showFeedback('3D preview restored.'),
+      });
     } else sceneRenderer.setActive(true);
     infoPanel.setOrientationTrackingAvailable(connection.capabilities.gyroscope);
     setOrientationTracking(connection.capabilities.gyroscope);

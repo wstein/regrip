@@ -78,6 +78,23 @@ export default [
       ],
     },
   },
+  {
+    files: ['src/app/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'three',
+              message:
+                'Three.js objects belong in src/adapters/three; expose plain data to the app.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Keep ESLint focused on correctness and architecture, not presentation.
   prettierConfig,
 ];

@@ -68,13 +68,7 @@ describe('scene renderer lifecycle', () => {
       ],
     };
 
-    const renderer = startSceneRenderLoop(
-      player as never,
-      new THREE.Quaternion(),
-      new THREE.Quaternion(),
-      { x: 0xff0000, y: 0xffffff, z: 0x00ff00 },
-      { onContextLost, onContextRestored },
-    );
+    const renderer = startSceneRenderLoop(player as never, { onContextLost, onContextRestored });
 
     await animation.flush();
     expect(render).toHaveBeenCalledTimes(1);
@@ -123,12 +117,7 @@ describe('tab visibility', () => {
       ],
     };
 
-    const renderer = startSceneRenderLoop(
-      player as never,
-      new THREE.Quaternion(),
-      new THREE.Quaternion(),
-      { x: 0xff0000, y: 0xffffff, z: 0x00ff00 },
-    );
+    const renderer = startSceneRenderLoop(player as never);
     await animation.flush();
     expect(render).toHaveBeenCalledTimes(1);
 
@@ -149,7 +138,6 @@ describe('manual scene orientation', () => {
     const canvas = new EventTarget() as HTMLCanvasElement;
     const scene = new THREE.Scene();
     const initialOrientation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, -0.3, 0));
-    const cubeQuaternion = initialOrientation.clone();
     const player = {
       experimentalCurrentVantages: async () => [
         {
@@ -159,11 +147,8 @@ describe('manual scene orientation', () => {
         },
       ],
     };
-    const renderer = startSceneRenderLoop(player as never, cubeQuaternion, new THREE.Quaternion(), {
-      x: 0xff0000,
-      y: 0xffffff,
-      z: 0x00ff00,
-    });
+    const renderer = startSceneRenderLoop(player as never);
+    renderer.setCubeOrientation(initialOrientation);
     await animation.flush();
 
     renderer.setManualOrientationEnabled(true);
@@ -174,13 +159,65 @@ describe('manual scene orientation', () => {
       .clone()
       .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 40 * 0.008))
       .premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 20 * 0.008));
-    expect(cubeQuaternion.angleTo(expected)).toBeLessThan(1e-12);
-    expect(cubeQuaternion.x).toBeGreaterThan(0);
+    await animation.flush();
+    expect(scene.quaternion.angleTo(expected)).toBeLessThan(1e-12);
+    expect(scene.quaternion.x).toBeGreaterThan(0);
 
     renderer.setManualOrientationEnabled(false);
-    const orientation = cubeQuaternion.clone();
+    const orientation = scene.quaternion.clone();
     canvas.dispatchEvent(pointer('pointermove', 1, 100, 20));
-    expect(cubeQuaternion.equals(orientation)).toBe(true);
+    await animation.flush();
+    expect(scene.quaternion.equals(orientation)).toBe(true);
+    renderer.dispose();
+  });
+
+  it('owns cube and virtual-frame orientation behind plain-data methods', async () => {
+    const animation = installAnimationFrames();
+    const canvas = new EventTarget() as HTMLCanvasElement;
+    const scene = new THREE.Scene();
+    const player = {
+      experimentalCurrentVantages: async () => [
+        {
+          scene: { scene: async () => scene },
+          canvasInfo: async () => ({ canvas }),
+          render: vi.fn(),
+        },
+      ],
+    };
+    const renderer = startSceneRenderLoop(player as never);
+    const cubeOrientation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.1, 0.2, 0.3));
+
+    renderer.setCubeOrientation({
+      x: cubeOrientation.x,
+      y: cubeOrientation.y,
+      z: cubeOrientation.z,
+      w: cubeOrientation.w,
+    });
+    renderer.setVirtualFrameOrientation({
+      right: [0, 1, 0],
+      up: [0, 0, 1],
+      front: [1, 0, 0],
+      colors: { x: 0x00ff00, y: 0x0000ff, z: 0xff0000 },
+    });
+    await animation.flush();
+
+    expect(scene.quaternion.angleTo(cubeOrientation)).toBeLessThan(1e-6);
+    const indicator = scene.getObjectByName('orientation-indicator');
+    const expectedFrame = new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().makeBasis(
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(1, 0, 0),
+      ),
+    );
+    expect(indicator?.quaternion.angleTo(expectedFrame)).toBeLessThan(1e-6);
+
+    renderer.resetCubeOrientation();
+    await animation.flush();
+    const resting = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
+    );
+    expect(scene.quaternion.angleTo(resting)).toBeLessThan(1e-6);
     renderer.dispose();
   });
 });
