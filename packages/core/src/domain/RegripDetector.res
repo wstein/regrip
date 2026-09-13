@@ -135,18 +135,29 @@ let step = (state: state, current: Quaternion.t, ~config=defaults): (
     let (axis, positive) = axisAndPolarity(cardinal)
 
     // A threshold crossing alone is not enough: the 24 cube orientations
-    // have dead zones farther than the threshold from every cardinal pose.
-    // Commit only when this exact quarter both improves the residual and puts
-    // it back inside the same threshold band. This prevents a held, diagonal
-    // pose from alternately ratcheting between two unrelated axes.
+    // have regions farther than the threshold from every cardinal pose. A
+    // held pose in one of those regions must not make the detector hunt, but
+    // a settled compound cube orientation must still be decomposed into
+    // quarters or a fast diagonal regrip would be ignored forever.
     let residualAngle = Quaternion.angle(cardinal, delta)
-    if residualAngle >= deltaAngle || residualAngle >= threshold {
+    let nearestCubePose = CubeSymmetry.nearest(delta, None, 0.)
+    let cubePoseResidualAngle = Quaternion.angle(nearestCubePose, delta)
+    let isAmbiguousHalfTurn = Math.abs(deltaAngle -. Quaternion.degreesToRadians(180.)) < 0.00000001
+    let recoversSettledCompound = !isAmbiguousHalfTurn && cubePoseResidualAngle < threshold
+    if residualAngle >= deltaAngle || (residualAngle >= threshold && !recoversSettledCompound) {
       (state, None)
     } else {
       // Advance one exact quarter around the measured axis rather than using
       // the threshold packet. This counts continuous turns in 90° steps while
-      // retaining bounded off-axis sensor drift in the rolling baseline.
-      let nextState = Quaternion.multiply(state, projectedQuarter(delta))
+      // retaining bounded off-axis sensor drift in the rolling baseline. A
+      // compound recovery instead uses the exact cardinal generator so the
+      // remaining held-pose residual is another discrete cube rotation.
+      let step = if residualAngle < threshold {
+        projectedQuarter(delta)
+      } else {
+        cardinal
+      }
+      let nextState = Quaternion.multiply(state, step)
       (
         nextState,
         Some({

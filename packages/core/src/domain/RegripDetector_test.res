@@ -66,6 +66,17 @@ describe("RegripDetector", () => {
     )
   })
 
+  test("decomposes a settled compound cube orientation without a dead spot", t => {
+    let target = rotation(~x=90., ~y=90.)
+    let (afterFirst, first) = RegripDetector.step(RegripDetector.initial, target)
+    let (afterSecond, second) = RegripDetector.step(afterFirst, target)
+    let (_, settled) = RegripDetector.step(afterSecond, target)
+
+    t->expect(Option.isSome(first))->Expect.toBe(true)
+    t->expect(Option.isSome(second))->Expect.toBe(true)
+    t->expect(settled)->Expect.toBe(None)
+  })
+
   test("commits one settled quarter during a slow continuous turn", t => {
     let detector = make()
     let results = [0., 30., 66., 75., 90.]->Array.map(
