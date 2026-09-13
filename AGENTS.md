@@ -41,4 +41,4 @@ Add a colocated test for behavior changes. Use deterministic timestamps and fixt
 
 ## Commit & Pull Request Guidelines
 
-Use Conventional Commits, e.g. `fix(trace): preserve requested snapshots`; headers must be at most 100 characters. Keep commits focused. PRs need a user-facing summary, verification commands, linked context where applicable, and screenshots for UI/rendering changes. Never include MAC addresses, credentials, or unredacted captures.
+Use Conventional Commits, e.g. `fix(trace): preserve requested snapshots`; headers must be at most 100 characters. Keep commits focused. After each coherent implementation step passes its relevant verification, create a focused Conventional Commit before starting the next step; do not bundle multiple completed steps into a later catch-all commit. Preserve unrelated user changes and never commit known-failing work. PRs need a user-facing summary, verification commands, linked context where applicable, and screenshots for UI/rendering changes. Never include MAC addresses, credentials, or unredacted captures.
