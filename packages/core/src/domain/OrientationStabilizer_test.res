@@ -93,4 +93,27 @@ describe("OrientationStabilizer reducer", () => {
     let (_, second) = OrientationStabilizer.step(OrientationStabilizer.initial, raw)
     expectSamePose(t, first, second)
   })
+
+  test("reset clears the accumulated drift correction and cardinal lock", t => {
+    let config: OrientationStabilizer.config = {
+      radiusDeg: 0.,
+      snapDeg: 0.,
+      hysteresisDeg: 0.,
+      velocityMax: 2.5,
+      driftDegPerSec: 2.,
+    }
+    let (drifted, _) = OrientationStabilizer.step(
+      OrientationStabilizer.initial,
+      xRotation(10.),
+      ~dtSeconds=1.,
+      ~config,
+    )
+    let reset = OrientationStabilizer.reset(drifted)
+    let (_, sample) = OrientationStabilizer.stepSample(reset, xRotation(10.), ~config)
+
+    t->expect(OrientationStabilizer.lockedPose(reset))->Expect.toBe(None)
+    t
+    ->expect(angleToIdentity(sample.driftCorrected))
+    ->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(10.), 8)
+  })
 })
