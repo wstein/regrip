@@ -14,6 +14,7 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, 'lib/**'],
     environment: 'node',
     coverage: {
+      // Istanbul output shares nyc's format so unit and Playwright browser coverage can be merged.
       provider: 'istanbul',
       reportsDirectory: 'docs/site/public/coverage/app-unit',
       reporter: ['text', 'json', 'json-summary', 'html', 'lcov'],

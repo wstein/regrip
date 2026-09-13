@@ -20,6 +20,7 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, 'dist/**'],
     environment: 'node',
     coverage: {
+      // Core coverage is standalone, so V8 gives faster and more direct instrumentation here.
       provider: 'v8',
       reportsDirectory: '../../docs/site/public/coverage/core',
       reporter: ['text', 'json-summary', 'html', 'lcov'],
