@@ -8,7 +8,7 @@ const header =
 const rawLog = [
   header,
   '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"cube_event","data":{"type":"BATTERY","timestamp":10,"batteryLevel":98}}',
-  '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"cube_event","data":{"type":"MOVE","timestamp":20,"move":"R"}}',
+  '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"cube_event","data":{"type":"MOVE","timestamp":20,"move":"R","face":1,"direction":0,"localTimestamp":20,"cubeTimestamp":20}}',
 ].join('\n');
 const sessionLog = [
   header,

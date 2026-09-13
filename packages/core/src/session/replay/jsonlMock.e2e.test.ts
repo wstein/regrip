@@ -158,4 +158,21 @@ describe('JSONL session replay contract', () => {
       ),
     ).toThrow('line 1: cube_event data requires string type and numeric timestamp');
   });
+
+  it.each([
+    [{ type: 'MOVE', timestamp: 1 }, 'invalid MOVE event'],
+    [{ type: 'FACELETS', timestamp: 1 }, 'invalid FACELETS event'],
+    [{ type: 'BATTERY', timestamp: 1, batteryLevel: 'full' }, 'invalid BATTERY event'],
+    [{ type: 'WHATEVER', timestamp: 1 }, 'unsupported cube event type WHATEVER'],
+  ])('rejects semantically invalid replay event %j', (data, message) => {
+    expect(() =>
+      validateJsonlReplay(
+        JSON.stringify({
+          recordedAt: '2026-09-09T10:00:00.000Z',
+          type: 'cube_event',
+          data,
+        }),
+      ),
+    ).toThrow(`line 1: ${message}`);
+  });
 });

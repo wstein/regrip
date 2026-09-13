@@ -67,11 +67,97 @@ function readHeader(entry: ValidatedJsonlEntry, lineNumber: number): JsonlReplay
   return { format, version };
 }
 
-/** Narrow an unknown JSONL payload to the minimum smart-cube event shape. */
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isNullableNumber(value: unknown): value is number | null {
+  return value === null || isNumber(value);
+}
+
+function isVector(value: unknown, keys: readonly string[]): boolean {
+  return isRecord(value) && keys.every((key) => isNumber(value[key]));
+}
+
+function optional(value: unknown, predicate: (value: unknown) => boolean): boolean {
+  return value === undefined || predicate(value);
+}
+
+function isNumberArray(value: unknown): boolean {
+  return Array.isArray(value) && value.every(isNumber);
+}
+
+function isCubieState(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isNumberArray(value.CP) &&
+    isNumberArray(value.CO) &&
+    isNumberArray(value.EP) &&
+    isNumberArray(value.EO)
+  );
+}
+
+function isGoCubeType(value: unknown): boolean {
+  return isRecord(value) && isNumber(value.code) && typeof value.name === 'string';
+}
+
+function isGoCubeOfflineStats(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isNumber(value.moves) &&
+    isNumber(value.timeSeconds) &&
+    isNumber(value.solves)
+  );
+}
+
+function smartCubeEventError(value: unknown): string | undefined {
+  if (!isRecord(value) || typeof value.type !== 'string' || !isNumber(value.timestamp)) {
+    return 'cube_event data requires string type and numeric timestamp';
+  }
+  switch (value.type) {
+    case 'MOVE':
+      return typeof value.move === 'string' &&
+        isNumber(value.face) &&
+        isNumber(value.direction) &&
+        isNullableNumber(value.localTimestamp) &&
+        isNullableNumber(value.cubeTimestamp) &&
+        optional(value.serial, isNumber) &&
+        optional(value.goCubeCenterOrientation, isNumber)
+        ? undefined
+        : 'invalid MOVE event';
+    case 'FACELETS':
+      return typeof value.facelets === 'string' &&
+        optional(value.serial, isNumber) &&
+        optional(value.state, isCubieState)
+        ? undefined
+        : 'invalid FACELETS event';
+    case 'GYRO':
+      return isVector(value.quaternion, ['x', 'y', 'z', 'w']) &&
+        optional(value.velocity, (velocity) => isVector(velocity, ['x', 'y', 'z']))
+        ? undefined
+        : 'invalid GYRO event';
+    case 'BATTERY':
+      return isNumber(value.batteryLevel) ? undefined : 'invalid BATTERY event';
+    case 'HARDWARE':
+      return optional(value.hardwareName, (field) => typeof field === 'string') &&
+        optional(value.softwareVersion, (field) => typeof field === 'string') &&
+        optional(value.hardwareVersion, (field) => typeof field === 'string') &&
+        optional(value.productDate, (field) => typeof field === 'string') &&
+        optional(value.gyroSupported, (field) => typeof field === 'boolean') &&
+        optional(value.goCubeType, isGoCubeType) &&
+        optional(value.goCubeOfflineStats, isGoCubeOfflineStats)
+        ? undefined
+        : 'invalid HARDWARE event';
+    case 'DISCONNECT':
+      return undefined;
+    default:
+      return `unsupported cube event type ${value.type}`;
+  }
+}
+
+/** Narrow an unknown JSONL payload to a supported smart-cube event. */
 export function isSmartCubeEvent(value: unknown): value is SmartCubeEvent {
-  if (!value || typeof value !== 'object') return false;
-  const event = value as { type?: unknown; timestamp?: unknown };
-  return typeof event.type === 'string' && typeof event.timestamp === 'number';
+  return smartCubeEventError(value) === undefined;
 }
 
 /**
@@ -96,8 +182,9 @@ export function validateJsonlReplay(contents: string): {
     }
     if (!isJsonlEntry(value)) fail(lineNumber, 'expected { recordedAt, type, data } record');
     if (entries.length === 0) header = readHeader(value, lineNumber);
-    if (value.type === 'cube_event' && !isSmartCubeEvent(value.data)) {
-      fail(lineNumber, 'cube_event data requires string type and numeric timestamp');
+    if (value.type === 'cube_event') {
+      const error = smartCubeEventError(value.data);
+      if (error) fail(lineNumber, error);
     }
     entries.push(value);
   }
