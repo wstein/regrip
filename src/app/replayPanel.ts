@@ -9,26 +9,45 @@ import {
 } from '@wstein/regrip-core/session/replay/jsonlMock';
 import { byId } from './dom';
 
+type ReplayPanelOptions = {
+  navigate?: (search: string) => void;
+  storage?: Pick<Storage, 'setItem'>;
+  requestFrame?: (callback: FrameRequestCallback) => number;
+  cancelFrame?: (handle: number) => void;
+  now?: () => number;
+};
+
 /** Dev-only virtual transport UI for a JSONL replay controller. */
-export function mountReplayPanel(replay: ReplaySessionController): void {
+export function mountReplayPanel(
+  replay: ReplaySessionController,
+  {
+    navigate = (search) => {
+      location.search = search;
+    },
+    storage = sessionStorage,
+    requestFrame = requestAnimationFrame,
+    cancelFrame = cancelAnimationFrame,
+    now = () => performance.now(),
+  }: ReplayPanelOptions = {},
+): void {
   const panel = byId('replay-panel');
-  const reset = byId<HTMLButtonElement>('replay-reset');
-  const play = byId<HTMLButtonElement>('replay-play');
-  const step = byId<HTMLButtonElement>('replay-step');
-  const scrubber = byId<HTMLInputElement>('replay-scrubber');
+  const reset = byId('replay-reset', HTMLButtonElement);
+  const play = byId('replay-play', HTMLButtonElement);
+  const step = byId('replay-step', HTMLButtonElement);
+  const scrubber = byId('replay-scrubber', HTMLInputElement);
   const position = byId('replay-position');
-  const speed = byId<HTMLSelectElement>('replay-speed');
-  const feed = byId<HTMLSelectElement>('replay-feed');
-  const load = byId<HTMLButtonElement>('replay-load');
+  const speed = byId('replay-speed', HTMLSelectElement);
+  const feed = byId('replay-feed', HTMLSelectElement);
+  const load = byId('replay-load', HTMLButtonElement);
   const prevMove = document.getElementById('replay-prev-move') as HTMLButtonElement | null;
   const nextMove = document.getElementById('replay-next-move') as HTMLButtonElement | null;
   const markersContainer = document.getElementById('replay-markers');
   const identity = byId('replay-identity');
   const importer = byId('replay-import');
-  const jsonl = byId<HTMLTextAreaElement>('replay-jsonl');
+  const jsonl = byId('replay-jsonl', HTMLTextAreaElement);
   const dropzone = byId('replay-dropzone');
-  const submit = byId<HTMLButtonElement>('replay-import-submit');
-  const cancel = byId<HTMLButtonElement>('replay-import-cancel');
+  const submit = byId('replay-import-submit', HTMLButtonElement);
+  const cancel = byId('replay-import-cancel', HTMLButtonElement);
   const importStatus = byId('replay-import-status');
   panel.hidden = false;
   feed.value = replay.feed;
@@ -90,7 +109,7 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
 
   let playing = false;
   let frame: number | undefined;
-  let previousNow = performance.now();
+  let previousNow = now();
 
   const render = (): void => {
     scrubber.value = String(replay.position);
@@ -103,7 +122,7 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
   };
   const pause = (): void => {
     playing = false;
-    if (frame !== undefined) cancelAnimationFrame(frame);
+    if (frame !== undefined) cancelFrame(frame);
     frame = undefined;
     render();
   };
@@ -114,13 +133,13 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     await replay.advanceTo(replay.virtualNowMs + delta * Number(speed.value));
     if (!playing) return;
     if (replay.done) pause();
-    else frame = requestAnimationFrame((next) => void tick(next));
+    else frame = requestFrame((next) => void tick(next));
   };
   const start = (): void => {
     if (replay.done) return;
     playing = true;
-    previousNow = performance.now();
-    frame = requestAnimationFrame((now) => void tick(now));
+    previousNow = now();
+    frame = requestFrame((frameNow) => void tick(frameNow));
     render();
   };
 
@@ -172,7 +191,7 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     const params = new URLSearchParams(location.search);
     const nextFeed: ReplayFeed = feed.value === 'session' ? 'session' : 'connection';
     params.set('feed', nextFeed);
-    location.search = params.toString();
+    navigate(params.toString());
   });
   const setImportStatus = (message = '', error = false): void => {
     importStatus.textContent = message;
@@ -187,13 +206,13 @@ export function mountReplayPanel(replay: ReplaySessionController): void {
     try {
       validateJsonlReplay(contents);
       const importedIdentity = readJsonlMockIdentity(contents);
-      sessionStorage.setItem(REPLAY_STORAGE_KEY, contents);
+      storage.setItem(REPLAY_STORAGE_KEY, contents);
       setImportStatus(`Loaded ${importedIdentity.deviceName} · ${importedIdentity.protocol.id}`);
       const params = new URLSearchParams(location.search);
       params.set('replay', '');
       params.set('fixture', 'local');
       params.set('feed', 'session');
-      location.search = params.toString();
+      navigate(params.toString());
     } catch (error) {
       setImportStatus(error instanceof Error ? error.message : 'Unable to load JSONL.', true);
     }
