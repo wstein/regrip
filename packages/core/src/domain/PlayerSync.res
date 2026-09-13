@@ -43,6 +43,17 @@ let finish = (state: state, effects: array<effect>): (state, array<effect>) => (
   effects,
 )
 
+/** Flush queued moves into `AddMove` effects, optionally preceded by a prefix
+ * effect (e.g. installing a newly computed algorithm), then clear the queue. */
+let flushEffects = (state: state, moves: array<string>, ~prefix: array<effect>=[]): (
+  state,
+  array<effect>,
+) => {
+  let effects = prefix
+  moves->Array.forEach(move => effects->Array.push(AddMove({move: move})))
+  finish(state, effects)
+}
+
 /**
  * Install the algorithm computed for a snapshot and replay its queued moves.
  * A result from an older snapshot is intentionally ignored.
@@ -51,9 +62,7 @@ let resolve = (state: state, generation: int, algorithm: string): (state, array<
   if generation != state.generation {
     (state, [])
   } else {
-    let effects: array<effect> = [SetAlgorithm({algorithm: algorithm})]
-    state.pendingMoves->Array.forEach(move => effects->Array.push(AddMove({move: move})))
-    finish(state, effects)
+    flushEffects(state, state.pendingMoves, ~prefix=[SetAlgorithm({algorithm: algorithm})])
   }
 
 /** Accept a matching snapshot without resetting the adapter's algorithm. */
@@ -61,11 +70,7 @@ let confirm = (state: state, generation: int): (state, array<effect>) =>
   if generation != state.generation {
     (state, [])
   } else {
-    let effects: array<effect> = []
-    Array.concat(state.coveredMoves, state.pendingMoves)->Array.forEach(move =>
-      effects->Array.push(AddMove({move: move}))
-    )
-    finish(state, effects)
+    flushEffects(state, Array.concat(state.coveredMoves, state.pendingMoves))
   }
 
 /** Drop pending work and clear the adapter's player state. */
