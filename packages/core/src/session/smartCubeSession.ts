@@ -30,6 +30,7 @@ import { resolveProfile } from '@wstein/regrip-core/session/profile/resolveProfi
 import { parseSensorToBodyAxisMap } from '@wstein/regrip-core/session/profile/axisMap';
 import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody';
 import type { ProfileOverrides, ResolvedProfile } from '@wstein/regrip-core/session/profile/types';
+import { structuralEqual } from '../internal/structuralEqual.js';
 
 /** A whole-cube rotation inferred from calibrated gyro orientation. */
 export type VirtualRegripEvent = {
@@ -287,7 +288,20 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     publish();
   };
   const sameProfile = (left: ResolvedProfile, right: ResolvedProfile): boolean =>
-    left.id === right.id && JSON.stringify(left.value) === JSON.stringify(right.value);
+    left.id === right.id && structuralEqual(left.value, right.value);
+
+  function reprofile(
+    context: Parameters<typeof resolveSessionProfile>[0],
+    force = false,
+  ): ResolvedProfile {
+    const profile = resolveSessionProfile(context);
+    if (!force && sameProfile(state.profile, profile)) return state.profile;
+    const features = runtimeFeatures ?? resolveSessionFeatures(profile.value.features);
+    applyProfileAxisMap(profile);
+    setState({ profile });
+    applyFeatures(features);
+    return profile;
+  }
 
   const processEvent = (event: SmartCubeEvent): void => {
     const sessionEvent: SmartCubeSessionEvent = (() => {
@@ -335,19 +349,13 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     if (shakeCfg && event.type === 'MOVE') observeShakeMove(event.timestamp, shakeCfg);
     setState({ lastEvent: sessionEvent });
     if (event.type === 'HARDWARE' && state.connection) {
-      const profile = resolveSessionProfile({
+      reprofile({
         protocol: state.connection.protocol.id,
         deviceName: state.connection.deviceName,
         deviceMAC: state.connection.deviceMAC,
         hardwareName: event.hardwareName,
         goCubeType: event.goCubeType?.name,
       });
-      if (!sameProfile(state.profile, profile)) {
-        const features = runtimeFeatures ?? resolveSessionFeatures(profile.value.features);
-        applyProfileAxisMap(profile);
-        setState({ profile });
-        applyFeatures(features);
-      }
     }
     if (moveGap) {
       eventListeners.forEach((listener) =>
@@ -453,18 +461,17 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     let connection: SmartCubeTransportConnection | null = null;
     try {
       connection = await options.connect();
-      const profile = resolveSessionProfile({
-        protocol: connection.protocol.id,
-        deviceName: connection.deviceName,
-        deviceMAC: connection.deviceMAC,
-      });
-      const features = runtimeFeatures ?? resolveSessionFeatures(profile.value.features);
-      applyProfileAxisMap(profile);
-      applyFeatures(features);
+      const profile = reprofile(
+        {
+          protocol: connection.protocol.id,
+          deviceName: connection.deviceName,
+          deviceMAC: connection.deviceMAC,
+        },
+        true,
+      );
       setState({
         connection,
         profile,
-        features,
       });
       subscription = connection.events$.subscribe(onEvent);
       diagnosticSubscription =

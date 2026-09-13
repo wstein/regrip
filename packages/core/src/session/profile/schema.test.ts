@@ -9,4 +9,30 @@ describe('bundled profile schema', () => {
     for (const profile of bundledProfiles)
       expect(validate(profile), JSON.stringify(validate.errors)).toBe(true);
   });
+
+  it('accepts every supported shake trigger field', () => {
+    const validate = new Ajv2020().compile(schema);
+    const profile = {
+      id: 'shake-test',
+      features: {
+        customTrigger: {
+          enabled: true,
+          triggers: [
+            {
+              kind: 'shake',
+              minStepAngleDeg: 12,
+              minSteps: 4,
+              minReversals: 2,
+              maxSampleGapMs: 80,
+              burstWindowMs: 500,
+              faceGuardMs: 150,
+              cooldownMs: 1_000,
+            },
+          ],
+        },
+      },
+    };
+
+    expect(validate(profile), JSON.stringify(validate.errors)).toBe(true);
+  });
 });

@@ -101,5 +101,5 @@ const [, isNew] = observeSnapshot(initialSnapshotDeduper, { serial: 1, facelets:
 void isNew;
 const [, triggered] = stepMoveBack(initialMoveBackTrigger, 'R', 0, moveBackDefaults);
 void triggered;
-const skew: number = cubeTimestampCalcSkew<number>([]);
+const skew: number = cubeTimestampCalcSkew([]);
 void skew;

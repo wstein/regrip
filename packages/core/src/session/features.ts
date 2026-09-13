@@ -1,3 +1,5 @@
+import { deepMergeRecord } from '../internal/deepMergeRecord.js';
+
 /** Runtime-configurable session features. Nested objects deliberately mirror
  * the profile JSON so the normal profile merge and provenance rules apply. */
 export type MoveBackTriggerSpec = {
@@ -119,4 +121,3 @@ export function stabilizerConfig(features: SessionFeatures): {
     driftDegPerSec: stabilizer.drift.enabled ? stabilizer.drift.degPerSec : 0,
   };
 }
-import { deepMergeRecord } from '../internal/deepMergeRecord.js';

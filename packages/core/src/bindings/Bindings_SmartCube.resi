@@ -3,6 +3,15 @@
  * This module lives outside domain so domain stays dependency-free and reusable.
  */
 @genType
-let cubeTimestampCalcSkew: array<'move> => float
+type timestampedMove = {
+  face: int,
+  direction: int,
+  move: string,
+  localTimestamp: Nullable.t<float>,
+  cubeTimestamp: Nullable.t<float>,
+}
+
 @genType
-let cubeTimestampLinearFit: array<'move> => array<'move>
+let cubeTimestampCalcSkew: array<timestampedMove> => float
+@genType
+let cubeTimestampLinearFit: array<timestampedMove> => array<timestampedMove>

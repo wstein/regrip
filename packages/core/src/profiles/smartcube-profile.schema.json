@@ -82,13 +82,32 @@
             "triggers": {
               "type": "array",
               "items": {
-                "type": "object",
-                "required": ["kind"],
-                "properties": {
-                  "kind": { "const": "moveBack" },
-                  "windowMs": { "type": "number" }
-                },
-                "additionalProperties": false
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": ["kind", "windowMs"],
+                    "properties": {
+                      "kind": { "const": "moveBack" },
+                      "windowMs": { "type": "number" }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "required": ["kind"],
+                    "properties": {
+                      "kind": { "const": "shake" },
+                      "minStepAngleDeg": { "type": "number" },
+                      "minSteps": { "type": "number" },
+                      "minReversals": { "type": "number" },
+                      "maxSampleGapMs": { "type": "number" },
+                      "burstWindowMs": { "type": "number" },
+                      "faceGuardMs": { "type": "number" },
+                      "cooldownMs": { "type": "number" }
+                    },
+                    "additionalProperties": false
+                  }
+                ]
               }
             }
           },
