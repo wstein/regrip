@@ -242,6 +242,14 @@ export function setResetOrientationEnabled(enabled: boolean): void {
   reset.title = enabled ? 'Reset the 3D view orientation.' : 'Connect a cube first.';
 }
 
+export function setSyncStateAvailable(available: boolean): void {
+  const sync = button('sync-state');
+  sync.disabled = !available;
+  sync.title = available
+    ? 'Request the authoritative state from the connected cube.'
+    : 'Connect a cube with state synchronization support first.';
+}
+
 export function setConnectionStatus(status: string): void {
   const connectionStatus = input('connectionStatus');
   connectionStatus.value = status;

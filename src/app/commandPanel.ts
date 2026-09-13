@@ -7,8 +7,6 @@ import { byId } from './dom';
 
 type CommandPanelOptions = {
   sendCommand: (command: SmartCubeCommand) => Promise<void>;
-  /** Request state and wait until the cube provides the authoritative snapshot. */
-  syncState?: () => Promise<unknown>;
   sendVendorCommand: (command: SmartCubeVendorCommand) => Promise<void>;
   /** Runs before a supported command is sent, while its button is disabled. */
   onBeforeSend?: (command: SmartCubeCommand | SmartCubeVendorCommand) => void;
@@ -59,11 +57,12 @@ export function createCommandPanel() {
 
   const render = (capabilities: SmartCubeCapabilities, options: CommandPanelOptions): void => {
     const actions: Action[] = [
-      ...(capabilities.facelets
+      ...(capabilities.reset
         ? [
             {
-              name: 'Sync state',
-              command: { type: 'REQUEST_FACELETS' } as SmartCubeCommand,
+              name: 'Reset state',
+              command: { type: 'REQUEST_RESET' } as SmartCubeCommand,
+              confirm: "Reset the cube state? This clears the cube's stored state.",
               group: 'State' as const,
             },
           ]
@@ -137,13 +136,7 @@ export function createCommandPanel() {
           try {
             options.onBeforeSend?.(action.command);
             options.onSend?.(action.name, action.command);
-            if (
-              'type' in action.command &&
-              action.command.type === 'REQUEST_FACELETS' &&
-              options.syncState
-            )
-              await options.syncState();
-            else if ('vendor' in action.command) await options.sendVendorCommand(action.command);
+            if ('vendor' in action.command) await options.sendVendorCommand(action.command);
             else await options.sendCommand(action.command);
             options.onResult(action.name);
           } catch (error) {

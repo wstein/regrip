@@ -24,12 +24,12 @@ test('keeps cube state actions visually equal on narrow screens', async ({ page 
   await page.setViewportSize({ width: 700, height: 900 });
   await page.goto('/test/browser/mock-app.html');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
-  const reset = await page.locator('#reset-state').boundingBox();
+  const sync = await page.locator('#sync-state').boundingBox();
   const copy = await page.locator('#copy-cube-state').boundingBox();
-  expect(reset).not.toBeNull();
+  expect(sync).not.toBeNull();
   expect(copy).not.toBeNull();
-  expect(Math.abs(reset!.width - copy!.width)).toBeLessThanOrEqual(1);
-  expect(Math.abs(reset!.height - copy!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(sync!.width - copy!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(sync!.height - copy!.height)).toBeLessThanOrEqual(1);
 });
 
 test('fits the desktop workbench inside the viewport canvas', async ({ page }) => {
@@ -43,7 +43,7 @@ test('fits the desktop workbench inside the viewport canvas', async ({ page }) =
       <div class="command-group">
         <span class="command-group-label">State</span>
         <div class="command-panel-actions">
-          <button>Sync state</button><button>Refresh battery</button>
+          <button>Reset state</button><button>Refresh battery</button>
           <button>Refresh hardware</button><button>Reboot cube</button>
         </div>
       </div>

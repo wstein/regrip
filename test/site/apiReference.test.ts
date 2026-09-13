@@ -113,6 +113,7 @@ describe('VitePress documentation integration', () => {
     expect(cubeColumn!.indexOf('id="grip-status"')).toBeLessThan(
       cubeColumn!.indexOf('class="control-actions cube-toolbar"'),
     );
+    expect(cubeColumn).toMatch(/id="sync-state"[\s\S]*?>\s*Sync state\s*<\/button>/);
     expect(cubeColumn).toMatch(/id="copy-cube-state"[\s\S]*?>\s*Copy state ▾\s*<\/button>/);
   });
 
@@ -138,12 +139,12 @@ describe('VitePress documentation integration', () => {
     for (const copy of [
       '>Live trace<',
       '>Detected moves<',
-      '>Reset state<',
       '>Device identity<',
       '>Connection status<',
     ]) {
       expect(app).toContain(copy);
     }
+    expect(app).toMatch(/>\s*Sync state\s*<\/button>/);
   });
 
   it('keeps the documentation in its single dark theme', () => {

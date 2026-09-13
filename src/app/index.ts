@@ -109,20 +109,26 @@ const orientationUi = createOrientationUi({
   setTrackingStatus: infoPanel.setOrientationTracking,
 });
 
-infoPanel.on('reset-state', 'click', async () => {
-  if (!window.confirm("Reset the cube state? This clears the cube's stored state.")) return;
+infoPanel.on('sync-state', 'click', async () => {
   const conn = session.getState().connection;
-  if (!conn?.capabilities.reset) {
-    infoPanel.showFeedback('This cube does not support resetting its stored state.');
+  if (!conn?.capabilities.facelets) {
+    infoPanel.showFeedback('This cube does not support state synchronization.');
     return;
   }
   try {
-    await session.sendCommand({ type: 'REQUEST_RESET' });
-    playerSync.setAlgorithm('');
-    infoPanel.showFeedback('Cube state reset requested.');
+    cubeEvents.invalidatePlayerState();
+    playerPatterns.reset();
+    eventLog.record('cube_command', { name: 'Sync state', status: 'sent', error: null });
+    await session.syncFacelets();
+    infoPanel.showFeedback('Cube state synchronized.');
   } catch (error) {
+    eventLog.record('cube_command', {
+      name: 'Sync state',
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     infoPanel.showFeedback(
-      `Could not reset cube state: ${error instanceof Error ? error.message : String(error)}`,
+      `Could not synchronize cube state: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
   }
 });
@@ -284,6 +290,7 @@ function resetSessionUi(): void {
   detectedMoves.clear();
   infoPanel.setOrientationTrackingAvailable(false);
   infoPanel.setResetOrientationEnabled(false);
+  infoPanel.setSyncStateAvailable(false);
   liveLog.setDiagnosticsAvailable(false);
 }
 
@@ -324,6 +331,7 @@ sessionSignals.state.subscribe((state) => {
     } else sceneRenderer.setActive(true);
     infoPanel.setOrientationTrackingAvailable(connection.capabilities.gyroscope);
     orientationUi.setTracking(connection.capabilities.gyroscope);
+    infoPanel.setSyncStateAvailable(!replay && connection.capabilities.facelets);
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
@@ -335,26 +343,27 @@ sessionSignals.state.subscribe((state) => {
     else
       commandPanel.render(connection.capabilities, {
         sendCommand: session.sendCommand,
-        syncState: session.syncFacelets,
         sendVendorCommand: session.sendVendorCommand,
-        onBeforeSend: (command) => {
-          if ('type' in command && command.type === 'REQUEST_FACELETS') {
-            // A user-requested Sync State is an explicit reconciliation point.
-            // Do not let a stale local tracker suppress its authoritative player update.
-            cubeEvents.invalidatePlayerState();
-            playerPatterns.reset();
-          }
-        },
         onSend: (name) => {
           eventLog.record('cube_command', { name, status: 'sent', error: null });
         },
         onResult: (name, error) => {
-          if (!error) return;
+          if (!error) {
+            if (name === 'Reset state') {
+              playerSync.setAlgorithm('');
+              infoPanel.showFeedback('Cube state reset requested.');
+            }
+            return;
+          }
           eventLog.record('cube_command', {
             name,
             status: 'failed',
             error: error instanceof Error ? error.message : 'Unknown error',
           });
+          if (name === 'Reset state')
+            infoPanel.showFeedback(
+              `Could not reset cube state: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
         },
       });
     return;
