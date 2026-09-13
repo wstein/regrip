@@ -73,3 +73,30 @@ let regripFromString = (value: string): option<regripToken> =>
   | "z2" => Some(ZDouble)
   | _ => None
   }
+
+// Body face at each world URFDLB position after a Singmaster whole-cube turn.
+let faceOrderForTurn = token =>
+  switch token {
+  | XTurn => "FRDBLU"
+  | XPrime => "BRUFLD"
+  | XDouble => "DRBULF"
+  | YTurn => "UBRDFL"
+  | YPrime => "UFLDBR"
+  | YDouble => "ULBDRF"
+  | ZTurn => "LUFRDB"
+  | ZPrime => "RDFLUB"
+  | ZDouble => "DLFURB"
+  }
+
+let faceAt = (order: string, face: string): string =>
+  switch face {
+  | "U" => String.substring(order, ~start=0, ~end=1)
+  | "R" => String.substring(order, ~start=1, ~end=2)
+  | "F" => String.substring(order, ~start=2, ~end=3)
+  | "D" => String.substring(order, ~start=3, ~end=4)
+  | "L" => String.substring(order, ~start=4, ~end=5)
+  | _ => String.substring(order, ~start=5, ~end=6)
+  }
+
+let permuteFaceOrder = (order: string, permutation: string): string =>
+  permutation->String.split("")->Array.map(face => faceAt(order, face))->Array.join("")

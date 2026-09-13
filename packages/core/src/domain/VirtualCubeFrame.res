@@ -70,7 +70,7 @@ let make = (): t => {solverToBody: faceOrder}
 let reset = (_frame: t): t => make()
 
 let applyRegrip = (frame: t, notationToken: CubeNotation.regripToken): t => {
-  let step = RegripDetector.faceOrderForNotation(notationToken)
+  let step = CubeNotation.faceOrderForTurn(notationToken)
   let solverToBody =
     positions
     ->Array.map(index => {

@@ -36,3 +36,9 @@ let faceToString: face => string
 let token: (axis, turn) => regripToken
 @genType
 let regripFromString: string => option<regripToken>
+/** Body face at each world URFDLB position after a Singmaster whole-cube turn. */
+@genType
+let faceOrderForTurn: regripToken => string
+/** Apply a URFDLB permutation to any six-character face/color order. */
+@genType
+let permuteFaceOrder: (string, string) => string

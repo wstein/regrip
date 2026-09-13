@@ -37,4 +37,38 @@ describe("CubeNotation", () => {
     )
     t->expect(CubeNotation.regripFromString("q"))->Expect.toBe(None)
   })
+
+  test("maps notation turns onto canonical URFDLB face orders", t => {
+    [
+      (CubeNotation.XTurn, "FRDBLU"),
+      (CubeNotation.XPrime, "BRUFLD"),
+      // X² = (U D)(F B), R/L fixed.
+      (CubeNotation.XDouble, "DRBULF"),
+      (CubeNotation.YTurn, "UBRDFL"),
+      (CubeNotation.YPrime, "UFLDBR"),
+      // Y² = (R L)(F B), U/D fixed.
+      (CubeNotation.YDouble, "ULBDRF"),
+      (CubeNotation.ZTurn, "LUFRDB"),
+      (CubeNotation.ZPrime, "RDFLUB"),
+      // Z² = (U D)(R L), F/B fixed.
+      (CubeNotation.ZDouble, "DLFURB"),
+    ]->Array.forEach(
+      ((token, order)) => t->expect(CubeNotation.faceOrderForTurn(token))->Expect.toBe(order),
+    )
+  })
+
+  test("derives every half-turn face order by composing its quarter-turn twice", t => {
+    [
+      (CubeNotation.XTurn, CubeNotation.XDouble),
+      (CubeNotation.YTurn, CubeNotation.YDouble),
+      (CubeNotation.ZTurn, CubeNotation.ZDouble),
+    ]->Array.forEach(
+      ((quarter, half)) => {
+        let quarterOrder = CubeNotation.faceOrderForTurn(quarter)
+        t
+        ->expect(CubeNotation.faceOrderForTurn(half))
+        ->Expect.toBe(CubeNotation.permuteFaceOrder(quarterOrder, quarterOrder))
+      },
+    )
+  })
 })
