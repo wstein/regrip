@@ -22,6 +22,8 @@ type LiveLogOptions = {
   scheduleRender?: (render: () => void) => void;
   /** Test seam for exercising eviction without allocating the production-sized buffer. */
   maxEntries?: number;
+  /** Whether the active transport exposes the optional decoder diagnostic stream. */
+  diagnosticsAvailable?: boolean;
 };
 
 const defaultMaxBufferedEntries = 10_000;
@@ -43,6 +45,7 @@ export function createLiveLog({
   now = () => new Date(),
   scheduleRender,
   maxEntries = defaultMaxBufferedEntries,
+  diagnosticsAvailable: initialDiagnosticsAvailable = true,
 }: LiveLogOptions = {}) {
   const root = byId('event-log-rows');
   const stats = byId('trace-stats');
@@ -161,6 +164,7 @@ export function createLiveLog({
   const rows = new Map<number, HTMLElement>();
   let renderPending = false;
   let lastRenderedEntries: readonly TraceEntry[] = [];
+  let diagnosticsAvailable = initialDiagnosticsAvailable;
 
   const displayedEntries = (): readonly TraceEntry[] =>
     pausedEntries === undefined
@@ -473,7 +477,12 @@ export function createLiveLog({
   document.querySelectorAll<HTMLButtonElement>('[data-trace-filter]').forEach((button) => {
     const category = button.dataset.traceFilter as TraceCategory;
     button.classList.toggle('is-active', activeFilters.value.has(category));
+    if (category === 'DIAGNOSTIC') {
+      button.toggleAttribute('disabled', !diagnosticsAvailable);
+      button.title = diagnosticsAvailable ? '' : 'Diagnostics unavailable for this transport';
+    }
     button.addEventListener('click', () => {
+      if (button.disabled) return;
       const next = new Set(activeFilters.value);
       if (next.has(category)) next.delete(category);
       else next.add(category);
@@ -582,5 +591,20 @@ export function createLiveLog({
       return collapsed;
     },
     setCollapsed,
+    setDiagnosticsAvailable(available: boolean): void {
+      diagnosticsAvailable = available;
+      const button = document.querySelector<HTMLButtonElement>('[data-trace-filter="DIAGNOSTIC"]');
+      if (!button) return;
+      button.toggleAttribute('disabled', !available);
+      button.title = available ? '' : 'Diagnostics unavailable for this transport';
+      if (!available && activeFilters.value.has('DIAGNOSTIC')) {
+        const next = new Set(activeFilters.value);
+        next.delete('DIAGNOSTIC');
+        activeFilters.value = next;
+        button.classList.remove('is-active');
+        button.setAttribute('aria-pressed', 'false');
+        render();
+      }
+    },
   };
 }

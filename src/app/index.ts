@@ -81,6 +81,7 @@ const sessionSignals = createSessionSignals(session);
 const eventLog = createJsonlLog();
 const commandPanel = createCommandPanel();
 const liveLog = createLiveLog({
+  diagnosticsAvailable: false,
   onClear: () => eventLog.clear(),
   onFocusEntry: (entry) => {
     if (!replay) return;
@@ -283,6 +284,7 @@ function resetSessionUi(): void {
   detectedMoves.clear();
   infoPanel.setOrientationTrackingAvailable(false);
   infoPanel.setResetOrientationEnabled(false);
+  liveLog.setDiagnosticsAvailable(false);
 }
 
 sessionSignals.state.subscribe((state) => {
@@ -310,6 +312,7 @@ sessionSignals.state.subscribe((state) => {
     if (replay) refreshReplayElapsed();
     else elapsedClock.start();
     const connection = state.connection;
+    liveLog.setDiagnosticsAvailable(connection.diagnostics$ !== undefined);
     if (!sceneRenderer) {
       sceneRenderer = startSceneRenderLoop(twistyPlayer, {
         onContextLost: () =>

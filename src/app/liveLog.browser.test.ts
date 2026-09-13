@@ -64,6 +64,21 @@ afterEach(() => {
 });
 
 describe('live trace browser interactions', () => {
+  it('disables diagnostics when the active transport has no diagnostic stream', () => {
+    mountTrace();
+    const trace = createLiveLog({ diagnosticsAvailable: false });
+    const diagnosticFilter = document.querySelector<HTMLButtonElement>(
+      '[data-trace-filter="DIAGNOSTIC"]',
+    )!;
+
+    expect(diagnosticFilter.disabled).toBe(true);
+    expect(diagnosticFilter.title).toBe('Diagnostics unavailable for this transport');
+
+    trace.setDiagnosticsAvailable(true);
+    expect(diagnosticFilter.disabled).toBe(false);
+    expect(diagnosticFilter.title).toBe('');
+  });
+
   it('keeps filtered events in the trace and shows a clicked event in the fixed detail pane', () => {
     mountTrace();
     const trace = createLiveLog({ now: () => new Date('2026-09-09T10:00:00.000Z') });
