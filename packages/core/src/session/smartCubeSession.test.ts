@@ -22,7 +22,7 @@ function connection(
     hardware: false,
     reset: false,
   },
-): SmartCubeConnection {
+): SmartCubeTransportConnection {
   return {
     deviceName: 'GoCube',
     deviceMAC: '',
@@ -518,10 +518,10 @@ describe('smart cube session', () => {
   it('closes a transport that resolves after disconnecting a pending connection attempt', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const conn = connection(events$);
-    let finishConnect: ((connection: SmartCubeConnection) => void) | undefined;
+    let finishConnect: ((connection: SmartCubeTransportConnection) => void) | undefined;
     const session = createSmartCubeSession({
       connect: () =>
-        new Promise<SmartCubeConnection>((resolve) => {
+        new Promise<SmartCubeTransportConnection>((resolve) => {
           finishConnect = resolve;
         }),
     });

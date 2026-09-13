@@ -37,12 +37,12 @@ describe('bundled profile schema', () => {
   });
 
   it.each([
-    [{ kind: 'moveBack', windowMs: -1 }, 'negative move-back window'],
-    [{ kind: 'shake', minStepAngleDeg: 0 }, 'zero shake angle'],
-    [{ kind: 'shake', minSteps: 2.5 }, 'fractional step count'],
-    [{ kind: 'shake', minReversals: -1 }, 'negative reversal count'],
-    [{ kind: 'shake', cooldownMs: -1 }, 'negative cooldown'],
-  ])('rejects %s', (trigger) => {
+    { trigger: { kind: 'moveBack', windowMs: -1 }, description: 'negative move-back window' },
+    { trigger: { kind: 'shake', minStepAngleDeg: 0 }, description: 'zero shake angle' },
+    { trigger: { kind: 'shake', minSteps: 2.5 }, description: 'fractional step count' },
+    { trigger: { kind: 'shake', minReversals: -1 }, description: 'negative reversal count' },
+    { trigger: { kind: 'shake', cooldownMs: -1 }, description: 'negative cooldown' },
+  ])('rejects $description', ({ trigger }) => {
     const validate = new Ajv2020().compile(schema);
     expect(
       validate({
