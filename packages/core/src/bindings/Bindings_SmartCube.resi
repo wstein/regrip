@@ -13,5 +13,7 @@ type timestampedMove = {
 
 @genType
 let cubeTimestampCalcSkew: array<timestampedMove> => float
+/** Public for consumers repairing recovered GAN move timestamps, even though
+ * the Regrip app currently needs only its skew-calculation sibling above. */
 @genType
 let cubeTimestampLinearFit: array<timestampedMove> => array<timestampedMove>
