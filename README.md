@@ -41,10 +41,10 @@ and records the same typed event stream it can replay later without a cube.
 
 Supported protocol families currently include GAN, Giiker, GoCube, MoYu, and QiYi through the
 [`smartcube-web-bluetooth`](https://github.com/poliva/smartcube-web-bluetooth) v4 API. This app pins
-stock v4; compatible enhanced transports may additionally provide packet diagnostics, serial gap
-detection, cubie coordinates, GoCube model/offline statistics, and vendor controls. Regrip and the
-standard move, facelet, battery, hardware, reset, and disconnect paths do not require those
-extensions.
+the enhanced [`wstein` fork](https://github.com/wstein/smartcube-web-bluetooth/tree/develop) for
+packet diagnostics, serial gap detection, cubie coordinates, GoCube model/offline statistics, and
+vendor controls. Regrip and the standard move, facelet, battery, hardware, reset, and disconnect
+paths remain compatible with stock v4.
 
 ## Quick start
 
