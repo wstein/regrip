@@ -461,6 +461,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     let connection: SmartCubeTransportConnection | null = null;
     try {
       connection = await options.connect();
+      if (generation !== connectionGeneration) {
+        await disconnectConnection(connection);
+        return;
+      }
       const profile = reprofile(
         {
           protocol: connection.protocol.id,

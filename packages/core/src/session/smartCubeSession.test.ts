@@ -515,6 +515,29 @@ describe('smart cube session', () => {
     expect(session.getState().connection).toBeNull();
   });
 
+  it('closes a transport that resolves after disconnecting a pending connection attempt', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const conn = connection(events$);
+    let finishConnect: ((connection: SmartCubeConnection) => void) | undefined;
+    const session = createSmartCubeSession({
+      connect: () =>
+        new Promise<SmartCubeConnection>((resolve) => {
+          finishConnect = resolve;
+        }),
+    });
+
+    const connecting = session.connect();
+    await vi.waitFor(() => expect(session.getState().status).toBe('connecting'));
+    await session.disconnect();
+    finishConnect?.(conn);
+    await connecting;
+
+    expect(conn.disconnect).toHaveBeenCalledOnce();
+    expect(session.getState().status).toBe('disconnected');
+    expect(session.getState().connection).toBeNull();
+    expect(events$.observed).toBe(false);
+  });
+
   it('publishes a custom trigger after an inverse move pair within 300ms', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({ connect: async () => connection(events$) });
