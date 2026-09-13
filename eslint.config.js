@@ -118,6 +118,18 @@ export default [
       ],
     },
   },
+  {
+    files: testFiles,
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: { projectService: true },
+    },
+    plugins: { '@typescript-eslint': tseslint.plugin },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+    },
+  },
   // Keep ESLint focused on correctness and architecture, not presentation.
   prettierConfig,
 ];
