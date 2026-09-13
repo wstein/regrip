@@ -26,6 +26,10 @@ type regripToken =
   | @as("z'") ZPrime
   | @as("z2") ZDouble
 
+// faceFromString/faceToString/regripFromString have no production caller
+// yet; kept public because they guard the `@as` string-literal mappings
+// above from silently drifting if a variant is ever added or renamed
+// without updating its round-trip conversion.
 let faceFromString: string => option<face>
 let faceToString: face => string
 @genType

@@ -22,7 +22,11 @@ let initial: state
 @genType
 let step: (state, Quaternion.t, ~config: config=?) => (state, option<observation>)
 
-/** Body face at each world URFDLB position after a sensor-frame quarter turn. */
+/** Body face at each world URFDLB position after a sensor-frame quarter turn.
+ * No production caller yet (only `faceOrderForNotation` is consumed today,
+ * by `VirtualCubeFrame`) — kept public because it, and `permuteFaceOrder`
+ * below, back the composed-quarter-turns invariant test that guards the
+ * half-turn cases against silently regressing to identity again. */
 @genType
 let faceOrderForSensor: CubeNotation.regripToken => string
 /** Body face at each world URFDLB position after a Singmaster x/y/z turn. */
