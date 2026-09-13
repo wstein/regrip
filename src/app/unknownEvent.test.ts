@@ -1,6 +1,9 @@
 import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
-import type { SmartCubeDiagnosticEvent, SmartCubeEvent } from 'smartcube-web-bluetooth';
+import type {
+  SmartCubeDiagnosticEvent,
+  SmartCubeEvent,
+} from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import { createCubeEventController } from '../integration/cubeEvents';
 import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';

@@ -1,4 +1,4 @@
-import type { SmartCubeCubieState } from 'smartcube-web-bluetooth';
+import type { SmartCubeCubieState } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import { formatSingmasterCycles, formatSupersetEngPermutation } from './cubeInfo';

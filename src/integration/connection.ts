@@ -1,4 +1,5 @@
 import { connectSmartCube } from 'smartcube-web-bluetooth';
+import type { ConnectSmartCubeOptions } from 'smartcube-web-bluetooth';
 import type { SmartCubeTransportConnection } from '@wstein/regrip-core/bindings/smartCubeTransport';
 export {
   disconnectConnection,
@@ -22,5 +23,11 @@ export const macAddressProvider = async (
 };
 
 export async function connectCube(): Promise<SmartCubeTransportConnection> {
-  return connectSmartCube({ macAddressProvider, diagnostics: true });
+  const options: ConnectSmartCubeOptions & { diagnostics?: boolean } = {
+    macAddressProvider,
+    // Enhanced transports expose rejected decoder packets; stock v4 safely
+    // ignores this forward-compatible option.
+    diagnostics: true,
+  };
+  return connectSmartCube(options);
 }

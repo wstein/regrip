@@ -1,10 +1,10 @@
 import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import type {
-  SmartCubeConnection,
   SmartCubeDiagnosticEvent,
   SmartCubeEvent,
-} from 'smartcube-web-bluetooth';
+  SmartCubeTransportConnection,
+} from '../bindings/smartCubeTransport';
 
 import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import {
@@ -15,7 +15,7 @@ import {
 
 function connection(
   events$: Subject<SmartCubeEvent>,
-  capabilities: SmartCubeConnection['capabilities'] = {
+  capabilities: SmartCubeTransportConnection['capabilities'] = {
     gyroscope: true,
     battery: false,
     facelets: false,

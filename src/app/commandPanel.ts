@@ -2,7 +2,7 @@ import type {
   SmartCubeCapabilities,
   SmartCubeCommand,
   SmartCubeVendorCommand,
-} from 'smartcube-web-bluetooth';
+} from '@wstein/regrip-core/bindings/smartCubeTransport';
 import { byId } from './dom';
 
 type CommandPanelOptions = {

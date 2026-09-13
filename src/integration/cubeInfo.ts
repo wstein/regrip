@@ -2,7 +2,7 @@ import type {
   GoCubeOfflineStats,
   SmartCubeCapabilities,
   SmartCubeCubieState,
-} from 'smartcube-web-bluetooth';
+} from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 export function formatCapabilities(capabilities: SmartCubeCapabilities): string {
   const supported = [

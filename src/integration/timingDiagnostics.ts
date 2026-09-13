@@ -1,4 +1,4 @@
-import type { SmartCubeMoveEvent } from 'smartcube-web-bluetooth';
+import type { SmartCubeMoveEvent } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as SmartCubeBindings from '@wstein/regrip-core/bindings/Bindings_SmartCube';
 import * as MoveBuffer from '@wstein/regrip-core/domain/MoveBuffer';

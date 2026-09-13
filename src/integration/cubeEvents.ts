@@ -1,4 +1,7 @@
-import type { SmartCubeCubieState, SmartCubeEvent } from 'smartcube-web-bluetooth';
+import type {
+  SmartCubeCubieState,
+  SmartCubeEvent,
+} from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as GyroOrientation from '@wstein/regrip-core/domain/GyroOrientation';
 import * as PlayerSync from '@wstein/regrip-core/domain/PlayerSync';

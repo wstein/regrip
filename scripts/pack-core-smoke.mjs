@@ -54,12 +54,62 @@ export const cubeTimestampLinearFit = (moves) => moves;
   );
   writeFileSync(
     join(directory, 'index.d.ts'),
-    `export type SmartCubeCapabilities = unknown;
-export type SmartCubeCommand = unknown;
-export type SmartCubeDiagnosticEvent = unknown;
-export type SmartCubeEvent = unknown;
-export type SmartCubeProtocolInfo = unknown;
-export type SmartCubeVendorCommand = unknown;
+    `import type { Observable } from 'rxjs';
+
+export type SmartCubeMoveEvent = {
+  type: 'MOVE';
+  face: number;
+  direction: number;
+  move: string;
+  localTimestamp: number | null;
+  cubeTimestamp: number | null;
+};
+export type SmartCubeFaceletsEvent = { type: 'FACELETS'; facelets: string };
+export type SmartCubeGyroEvent = {
+  type: 'GYRO';
+  quaternion: { x: number; y: number; z: number; w: number };
+  velocity?: { x: number; y: number; z: number };
+};
+export type SmartCubeBatteryEvent = { type: 'BATTERY'; batteryLevel: number };
+export type SmartCubeHardwareEvent = {
+  type: 'HARDWARE';
+  hardwareName?: string;
+  softwareVersion?: string;
+  hardwareVersion?: string;
+  productDate?: string;
+  gyroSupported?: boolean;
+};
+export type SmartCubeDisconnectEvent = { type: 'DISCONNECT' };
+export type SmartCubeEventMessage =
+  | SmartCubeMoveEvent
+  | SmartCubeFaceletsEvent
+  | SmartCubeGyroEvent
+  | SmartCubeBatteryEvent
+  | SmartCubeHardwareEvent
+  | SmartCubeDisconnectEvent;
+export type SmartCubeEvent = { timestamp: number } & SmartCubeEventMessage;
+export type SmartCubeCommand =
+  | { type: 'REQUEST_FACELETS' }
+  | { type: 'REQUEST_BATTERY' }
+  | { type: 'REQUEST_HARDWARE' }
+  | { type: 'REQUEST_RESET' };
+export type SmartCubeProtocolInfo = { id: string; name: string };
+export interface SmartCubeCapabilities {
+  gyroscope: boolean;
+  battery: boolean;
+  facelets: boolean;
+  hardware: boolean;
+  reset: boolean;
+}
+export interface SmartCubeConnection {
+  readonly deviceName: string;
+  readonly deviceMAC: string;
+  readonly protocol: SmartCubeProtocolInfo;
+  readonly capabilities: SmartCubeCapabilities;
+  events$: Observable<SmartCubeEvent>;
+  sendCommand(command: SmartCubeCommand): Promise<void>;
+  disconnect(): Promise<void>;
+}
 `,
   );
 };
