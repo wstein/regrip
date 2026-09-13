@@ -49,7 +49,7 @@
     "preview": "vite preview",
     "test": "npm run res:build && run-s test:core test:app",
     "test:smoke": "npm run res:build && run-s test:smoke:core test:smoke:app",
-    "test:smoke:core": "vitest run --config packages/core/vitest.config.ts packages/core/src/session/jsonlMock.e2e.test.ts",
+    "test:smoke:core": "vitest run --config packages/core/vitest.config.ts packages/core/src/session/replay/jsonlMock.e2e.test.ts",
     "test:smoke:app": "vitest run --config vitest.config.ts src/integration/cubeEvents.test.ts test/smartCubeBluetooth.e2e.test.ts",
     "test:app": "vitest run --config vitest.config.ts",
     "test:core": "vitest run --config packages/core/vitest.config.ts",
@@ -62,7 +62,7 @@
     "test:browser": "playwright test",
     "test:screenshots": "playwright test test/browser/ui-screenshots.spec.ts",
     "test:screenshots:update": "playwright test test/browser/ui-screenshots.spec.ts --update-snapshots",
-    "test:snapshot": "npm run res:build && vitest run --config packages/core/vitest.config.ts packages/core/src/session/jsonlMock.e2e.test.ts --update",
+    "test:snapshot": "npm run res:build && vitest run --config packages/core/vitest.config.ts packages/core/src/session/replay/jsonlMock.e2e.test.ts --update",
     "test:watch": "run-p res:watch test:vitest",
     "test:vitest": "vitest"
   },

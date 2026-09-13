@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it, vi } from 'vitest';
 
-import { createSmartCubeSession } from './smartCubeSession';
+import { createSmartCubeSession } from '../smartCubeSession';
 import {
   createJsonlMockConnection,
   JSONL_REPLAY_FORMAT,
@@ -9,14 +9,14 @@ import {
   parseJsonlCubeEvents,
   readJsonlMockIdentity,
   validateJsonlReplay,
-} from './replay/jsonlMock';
+} from './jsonlMock';
 
-const fixtureUrl = new URL('./replay/fixtures/session-contract.jsonl', import.meta.url);
+const fixtureUrl = new URL('./fixtures/session-contract.jsonl', import.meta.url);
 const uiFixtures = [
-  new URL('./replay/fixtures/gocube-edge-ui.jsonl', import.meta.url),
-  new URL('./replay/fixtures/gan-ui12-ui.jsonl', import.meta.url),
+  new URL('./fixtures/gocube-edge-ui.jsonl', import.meta.url),
+  new URL('./fixtures/gan-ui12-ui.jsonl', import.meta.url),
 ];
-const ganGen4ProfileFixture = new URL('./replay/fixtures/gan-gen4-profile.jsonl', import.meta.url);
+const ganGen4ProfileFixture = new URL('./fixtures/gan-gen4-profile.jsonl', import.meta.url);
 
 describe('JSONL session replay contract', () => {
   it('replays initial state, regrip, custom trigger, and disconnect deterministically', async () => {
