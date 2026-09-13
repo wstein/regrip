@@ -506,11 +506,6 @@ function simplifyMoveStream(
   return result.map((entry) => (typeof entry === 'string' ? entry : formatMove(entry))).join(' ');
 }
 
-/** Preserve the exact cube transformation, retaining any final regrip. */
-export function simplifyMoves(value: string): string {
-  return simplifyMoveStream(value, { foldOpposingPairs: false, retainFinalOrientation: true });
-}
-
 /**
  * Simplify the move record in its current cube frame. Opposing outer-face
  * turns become middle slices and a remaining whole-cube rotation is omitted.

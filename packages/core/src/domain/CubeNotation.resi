@@ -1,5 +1,5 @@
 /** Singmaster face labels, compiled as literal strings. */
-@genType @unboxed
+@unboxed
 type face =
   | @as("U") U
   | @as("R") R
@@ -26,9 +26,7 @@ type regripToken =
   | @as("z'") ZPrime
   | @as("z2") ZDouble
 
-@genType
 let faceFromString: string => option<face>
-@genType
 let faceToString: face => string
 @genType
 let token: (axis, turn) => regripToken
