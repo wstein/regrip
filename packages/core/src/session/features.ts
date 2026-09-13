@@ -79,7 +79,7 @@ export const defaultSessionFeatures: SessionFeatures = {
 export const featurePresets: Record<'all' | 'minimal' | 'none', SessionFeatures> = {
   all: {
     ...defaultSessionFeatures,
-    regrip: { ...defaultSessionFeatures.regrip, enabled: true },
+    regrip: { ...defaultSessionFeatures.regrip, enabled: true, detector: 'absolute' },
     customTrigger: {
       enabled: true,
       triggers: [{ kind: 'moveBack', windowMs: 300 }, { kind: 'shake' }],

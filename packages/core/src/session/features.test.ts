@@ -46,6 +46,7 @@ describe('session features', () => {
 
   it('enables every optional feature in the all preset', () => {
     expect(featurePresets.all.regrip.enabled).toBe(true);
+    expect(featurePresets.all.regrip.detector).toBe('absolute');
     expect(featurePresets.all.customTrigger.enabled).toBe(true);
   });
 
