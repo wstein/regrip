@@ -20,7 +20,9 @@ export type SolveDetector = (facelets: string) => boolean;
 export const defaultSolveDetector: SolveDetector = CubeFacelets.isSolvedFacelets;
 
 function cubieStateFromPattern(pattern: CubeFacelets.patternData): SmartCubeCubieState {
-  const decoded = CubeFacelets.faceletsToKociembaState(CubeFacelets.patternDataToFacelets(pattern));
+  const decoded = CubeFacelets.faceletsToKociembaState(
+    CubeFacelets.patternDataToFaceletsExn(pattern),
+  );
   if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
   return decoded._0;
 }
@@ -121,7 +123,7 @@ export function createCubeEventController(options: CubeEventControllerOptions) {
     if (nextPattern) {
       normalizedPattern = nextPattern;
       const state = cubieStateFromPattern(nextPattern);
-      const facelets = CubeFacelets.patternDataToFacelets(nextPattern);
+      const facelets = CubeFacelets.patternDataToFaceletsExn(nextPattern);
       options.showInfo('cubieState');
       options.setInfo('cubieState', formatSingmasterCycles(state));
       options.onFacelets?.({

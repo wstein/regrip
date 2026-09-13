@@ -27,7 +27,7 @@ const kpuzzleReady: Promise<void> = cube3x3x3.kpuzzle().then((v) => {
  * @returns String representing cube facelets in the Kociemba notation
  */
 function patternToFacelets(pattern: KPattern): string {
-  return CubeFacelets.patternDataToFacelets(asCorePatternData(pattern.patternData));
+  return CubeFacelets.patternDataToFaceletsExn(asCorePatternData(pattern.patternData));
 }
 
 /**
@@ -39,7 +39,7 @@ function patternToFacelets(pattern: KPattern): string {
 function faceletsToPattern(facelets: string): KPattern {
   return new KPattern(
     KPUZZLE_333,
-    asCubingPatternData(CubeFacelets.faceletsToPatternData(facelets)),
+    asCubingPatternData(CubeFacelets.faceletsToPatternDataExn(facelets)),
   );
 }
 

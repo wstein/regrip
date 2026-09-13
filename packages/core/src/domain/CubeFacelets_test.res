@@ -53,7 +53,7 @@ let orbits = f =>
 
 describe("patternDataToFacelets", () => {
   test("solved pattern -> solved facelets", t => {
-    t->expect(CubeFacelets.patternDataToFacelets(solvedPatternData))->Expect.toBe(solved)
+    t->expect(CubeFacelets.patternDataToFacelets(solvedPatternData))->Expect.toEqual(Ok(solved))
   })
 
   test("scrambled pattern -> scrambled facelets", t => {
@@ -62,7 +62,7 @@ describe("patternDataToFacelets", () => {
       edges: {pieces: scrambledEdgePieces, orientation: scrambledEdgeOri},
       centers: {pieces: [0, 1, 2, 3, 4, 5], orientation: Array.make(~length=6, 0)},
     }
-    t->expect(CubeFacelets.patternDataToFacelets(pd))->Expect.toBe(scrambled)
+    t->expect(CubeFacelets.patternDataToFacelets(pd))->Expect.toEqual(Ok(scrambled))
   })
 
   test("rejects non-oriented centers", t => {
@@ -70,7 +70,7 @@ describe("patternDataToFacelets", () => {
       ...solvedPatternData,
       centers: {pieces: [1, 0, 2, 3, 4, 5], orientation: Array.make(~length=6, 0)},
     }
-    t->expect(() => CubeFacelets.patternDataToFacelets(pd))->Expect.toThrow
+    t->expect(CubeFacelets.patternDataToFacelets(pd)->Result.isError)->Expect.toBe(true)
   })
 })
 
@@ -134,7 +134,7 @@ describe("decodeFacelets", () => {
   test("round-trips solved, scrambled, superflip, Sune and slices", t => {
     let roundtrip = f =>
       switch CubeFacelets.decodeFacelets(f) {
-      | Ok(pd) => CubeFacelets.patternDataToFacelets(pd)
+      | Ok(pd) => pd->CubeFacelets.patternDataToFacelets->Result.getOr("ERR:encode")
       | Error(msg) => "ERR:" ++ msg
       }
     [solved, scrambled, superflip, sune, slices]->Array.forEach(
@@ -180,33 +180,35 @@ describe("decodeFacelets", () => {
 
 describe("faceletsToPatternData", () => {
   test("returns the decoded pattern for valid input", t => {
-    let pd = CubeFacelets.faceletsToPatternData(scrambled)
-    t->expect(pd.corners.pieces)->Expect.toEqual(scrambledCornerPieces)
+    switch CubeFacelets.faceletsToPatternData(scrambled) {
+    | Ok(pd) => t->expect(pd.corners.pieces)->Expect.toEqual(scrambledCornerPieces)
+    | Error(msg) => t->expect("ok")->Expect.toBe("Error: " ++ msg)
+    }
   })
 
-  test("raises for invalid input", t => {
-    t->expect(() => CubeFacelets.faceletsToPatternData("nonsense"))->Expect.toThrow
+  test("returns an error for invalid input", t => {
+    t->expect(CubeFacelets.faceletsToPatternData("nonsense")->Result.isError)->Expect.toBe(true)
   })
 })
 
 describe("applyMove", () => {
   test("advances a decoded state and composes inverse turns", t => {
-    let initial = CubeFacelets.faceletsToPatternData(scrambled)
+    let initial = CubeFacelets.faceletsToPatternDataExn(scrambled)
     let afterL = initial->CubeFacelets.applyMove("L")->Option.getUnsafe
     let restored = afterL->CubeFacelets.applyMove("L'")->Option.getUnsafe
-    t->expect(restored->CubeFacelets.patternDataToFacelets)->Expect.toBe(scrambled)
+    t->expect(restored->CubeFacelets.patternDataToFacelets)->Expect.toEqual(Ok(scrambled))
   })
 
   test("supports quarter, half, and inverse turns", t => {
-    let initial = CubeFacelets.faceletsToPatternData(solved)
+    let initial = CubeFacelets.faceletsToPatternDataExn(solved)
     let d2 = initial->CubeFacelets.applyMove("D2")->Option.getUnsafe
     t
     ->expect(d2->CubeFacelets.patternDataToFacelets)
-    ->Expect.toBe("UUUUUUUUURRRRRRLLLFFFFFFBBBDDDDDDDDDLLLLLLRRRBBBBBBFFF")
+    ->Expect.toEqual(Ok("UUUUUUUUURRRRRRLLLFFFFFFBBBDDDDDDDDDLLLLLLRRRBBBBBBFFF"))
   })
 
   test("recognizes every outer-face turn and suffix", t => {
-    let initial = CubeFacelets.faceletsToPatternData(solved)
+    let initial = CubeFacelets.faceletsToPatternDataExn(solved)
     [
       "U",
       "U'",
@@ -233,7 +235,7 @@ describe("applyMove", () => {
 
   test("does not claim to apply unsupported notation", t =>
     t
-    ->expect(solved->CubeFacelets.faceletsToPatternData->CubeFacelets.applyMove("Rw"))
+    ->expect(solved->CubeFacelets.faceletsToPatternDataExn->CubeFacelets.applyMove("Rw"))
     ->Expect.toBe(None)
   )
 })

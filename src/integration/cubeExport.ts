@@ -124,11 +124,8 @@ export function formatColorFacelets(facelets: string): string | undefined {
 
 /** cubing.js-compatible KPatternData serialized with stable indentation. */
 export function formatKPatternJson(facelets: string): string | undefined {
-  try {
-    return JSON.stringify(CubeFacelets.faceletsToPatternData(facelets), null, 2);
-  } catch {
-    return undefined;
-  }
+  const decoded = CubeFacelets.faceletsToPatternData(facelets);
+  return decoded.TAG === 'Ok' ? JSON.stringify(decoded._0, null, 2) : undefined;
 }
 
 /** Versioned Regrip state document in the normalized Kociemba body frame. */

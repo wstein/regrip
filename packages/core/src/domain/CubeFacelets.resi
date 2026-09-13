@@ -33,17 +33,25 @@ let solvedFacelets: string
 @genType
 let isSolvedFacelets: string => bool
 
-/** Throws if the pattern has non-oriented centers. */
+/** Encode pattern data, rejecting non-oriented centers. */
 @genType
-let patternDataToFacelets: patternData => string
+let patternDataToFacelets: patternData => result<string, string>
+
+/** `patternDataToFacelets` that throws on invalid input (JS boundary). */
+@genType
+let patternDataToFaceletsExn: patternData => string
 
 /** Validates length / alphabet / sticker counts / piece legality. */
 @genType
 let decodeFacelets: string => result<patternData, string>
 
-/** `decodeFacelets` that throws on invalid input (JS boundary). */
+/** Alias of `decodeFacelets` for the inverse conversion API. */
 @genType
-let faceletsToPatternData: string => patternData
+let faceletsToPatternData: string => result<patternData, string>
+
+/** `faceletsToPatternData` that throws on invalid input (JS boundary). */
+@genType
+let faceletsToPatternDataExn: string => patternData
 
 /** Decode canonical `URFDLB` facelets into Kociemba / smart-cube coordinates. */
 @genType

@@ -513,7 +513,7 @@ describe('cube event gyro bridge', () => {
   it('reports a solve reached through normalized move tracking without another facelet packet', () => {
     const decoded = CubeFacelets.decodeFacelets(solvedFacelets);
     if (decoded.TAG !== 'Ok') throw new Error(decoded._0);
-    const oneTurnAway = CubeFacelets.patternDataToFacelets(
+    const oneTurnAway = CubeFacelets.patternDataToFaceletsExn(
       CubeFacelets.applyMove(decoded._0!, "U'")!,
     );
     const onSolved = vi.fn();

@@ -100,8 +100,6 @@ describe('virtual move frame', () => {
     const frame = createSolverFrame();
     (['x', "y'", 'z', 'x'] as const).forEach((token) => frame.applyRegrip(token));
 
-    expect(() =>
-      CubeFacelets.faceletsToPatternData(frame.reframeFacelets(scrambled)),
-    ).not.toThrow();
+    expect(CubeFacelets.faceletsToPatternData(frame.reframeFacelets(scrambled)).TAG).toBe('Ok');
   });
 });

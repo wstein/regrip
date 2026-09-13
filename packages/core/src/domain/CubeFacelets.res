@@ -154,16 +154,11 @@ let isSolvedFacelets = (facelets: string): bool => facelets == solvedFacelets
 let rotateLeft = (s, i) => String.slice(s, ~start=i) ++ String.slice(s, ~start=0, ~end=i)
 
 // Piece name (in any rotation) -> (piece index, orientation).
-let pieceMap = {
+let pieceMap = (names, orientations) => {
   let m = Dict.make()
-  reidEdgeOrder->Array.forEachWithIndex((edge, idx) =>
-    for i in 0 to 1 {
-      m->Dict.set(rotateLeft(edge, i), (idx, i))
-    }
-  )
-  reidCornerOrder->Array.forEachWithIndex((corner, idx) =>
-    for i in 0 to 2 {
-      m->Dict.set(rotateLeft(corner, i), (idx, i))
+  names->Array.forEachWithIndex((name, idx) =>
+    for orientation in 0 to orientations - 1 {
+      m->Dict.set(rotateLeft(name, orientation), (idx, orientation))
     }
   )
   m
@@ -194,9 +189,9 @@ let toReid333Struct = (pd: patternData): result<
     Ok((edges, corners, reidCenterOrder))
   }
 
-let patternDataToFacelets = (pd: patternData): string =>
+let patternDataToFacelets = (pd: patternData): result<string, string> =>
   switch toReid333Struct(pd) {
-  | Error(msg) => JsError.throwWithMessage(msg)
+  | Error(msg) => Error(msg)
   | Ok((edges, corners, centers)) =>
     reidToFaceletsMap
     ->Array.map(((orbit, perm, ori)) => {
@@ -208,6 +203,13 @@ let patternDataToFacelets = (pd: patternData): string =>
       String.getUnsafe(arr->Array.getUnsafe(perm), ori)
     })
     ->Array.join("")
+    ->Ok
+  }
+
+let patternDataToFaceletsExn = pd =>
+  switch patternDataToFacelets(pd) {
+  | Ok(facelets) => facelets
+  | Error(msg) => JsError.throwWithMessage(msg)
   }
 
 // 48 sticker letters (centers dropped), in the order utils.ts produced them:
@@ -228,19 +230,29 @@ let toStickers = (facelets: string): array<string> => {
   stickers
 }
 
-let decodeOrbit = (mapping: array<array<int>>, stickers: array<string>): result<
-  (array<int>, array<int>),
-  string,
-> => {
+let decodeOrbit = (
+  mapping: array<array<int>>,
+  names: array<string>,
+  orientations: int,
+  stickers: array<string>,
+  invertOrientation: bool,
+): result<(array<int>, array<int>), string> => {
+  let map = pieceMap(names, orientations)
   let pieces = []
   let orientation = []
   let error = ref(None)
   mapping->Array.forEach(indices => {
     let key = indices->Array.map(i => stickers->Array.getUnsafe(i))->Array.join("")
-    switch pieceMap->Dict.get(key) {
-    | Some((p, o)) => {
-        pieces->Array.push(p)
-        orientation->Array.push(o)
+    switch map->Dict.get(key) {
+    | Some((piece, rotation)) => {
+        pieces->Array.push(piece)
+        orientation->Array.push(
+          if invertOrientation {
+            (orientations - rotation) % orientations
+          } else {
+            rotation
+          },
+        )
       }
     | None => error := Some(`unknown cubie "${key}"`)
     }
@@ -262,7 +274,10 @@ let decodeFacelets = (facelets: string): result<patternData, string> => {
     Error("facelets must contain exactly 9 of each face letter")
   } else {
     let stickers = toStickers(facelets)
-    switch (decodeOrbit(cornerMapping, stickers), decodeOrbit(edgeMapping, stickers)) {
+    switch (
+      decodeOrbit(cornerMapping, reidCornerOrder, 3, stickers, false),
+      decodeOrbit(edgeMapping, reidEdgeOrder, 2, stickers, false),
+    ) {
     | (Ok((cornerPieces, cornerOri)), Ok((edgePieces, edgeOri))) =>
       Ok({
         corners: {pieces: cornerPieces, orientation: cornerOri},
@@ -278,54 +293,23 @@ let decodeFacelets = (facelets: string): result<patternData, string> => {
   }
 }
 
-let kociembaPieceMap = (names, orientations) => {
-  let m = Dict.make()
-  names->Array.forEachWithIndex((name, idx) =>
-    for orientation in 0 to orientations - 1 {
-      m->Dict.set(rotateLeft(name, orientation), (idx, orientation))
-    }
-  )
-  m
-}
-
-let decodeKociembaOrbit = (mapping, names, orientations, facelets) => {
-  let map = kociembaPieceMap(names, orientations)
-  let pieces = []
-  let orientation = []
-  let error = ref(None)
-  mapping->Array.forEach(indices => {
-    let key = indices->Array.map(i => String.getUnsafe(facelets, i))->Array.join("")
-    switch map->Dict.get(key) {
-    | Some((piece, rotation)) => {
-        pieces->Array.push(piece)
-        // Encoding writes piece sticker p at slot p + orientation, so decoding
-        // sees the inverse (right) rotation.
-        orientation->Array.push((orientations - rotation) % orientations)
-      }
-    | None => error := Some(`unknown cubie "${key}"`)
-    }
-  })
-  switch error.contents {
-  | Some(msg) => Error(msg)
-  | None => Ok((pieces, orientation))
-  }
-}
-
 let faceletsToKociembaState = (facelets: string): result<kociembaState, string> =>
   switch decodeFacelets(facelets) {
   | Error(msg) => Error(msg)
   | Ok(_) =>
     switch (
-      decodeKociembaOrbit(kociembaCornerMapping, kociembaCornerOrder, 3, facelets),
-      decodeKociembaOrbit(kociembaEdgeMapping, kociembaEdgeOrder, 2, facelets),
+      decodeOrbit(kociembaCornerMapping, kociembaCornerOrder, 3, facelets->String.split(""), true),
+      decodeOrbit(kociembaEdgeMapping, kociembaEdgeOrder, 2, facelets->String.split(""), true),
     ) {
     | (Ok((cp, co)), Ok((ep, eo))) => Ok({cp, co, ep, eo})
     | (Error(msg), _) | (_, Error(msg)) => Error(msg)
     }
   }
 
-let faceletsToPatternData = (facelets: string): patternData =>
-  switch decodeFacelets(facelets) {
+let faceletsToPatternData = decodeFacelets
+
+let faceletsToPatternDataExn = facelets =>
+  switch faceletsToPatternData(facelets) {
   | Ok(pd) => pd
   | Error(msg) => JsError.throwWithMessage(msg)
   }

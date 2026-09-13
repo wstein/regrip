@@ -27,7 +27,7 @@ import {
   initial as initialShakeTrigger,
   observe as observeShake,
 } from '@wstein/regrip-core/domain/ShakeTrigger';
-import { faceletsToPatternData, solvedFacelets } from '@wstein/regrip-core/domain/CubeFacelets';
+import { faceletsToPatternDataExn, solvedFacelets } from '@wstein/regrip-core/domain/CubeFacelets';
 import { initial, pushRecent, recentMoves } from '@wstein/regrip-core/domain/MoveBuffer';
 import { initial as initialMoveTracker, observeMove } from '@wstein/regrip-core/domain/MoveTracker';
 import {
@@ -46,7 +46,7 @@ if (actual !== '1:01.001') {
   throw new Error(`expected formatted duration 1:01.001, received ${actual}`);
 }
 
-const pattern = faceletsToPatternData(solvedFacelets);
+const pattern = faceletsToPatternDataExn(solvedFacelets);
 const patternKeys = Object.keys(pattern).sort().join(',');
 if (patternKeys !== 'CENTERS,CORNERS,EDGES') {
   throw new Error(`expected cubing.js KPatternData keys, received ${patternKeys}`);

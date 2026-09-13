@@ -9,7 +9,7 @@ const solvedFacelets = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
 describe('Cubing pattern reconciler', () => {
   it('agrees with cubing.js for every standard face-turn token', async () => {
     await kpuzzleReady;
-    const initial = CubeFacelets.faceletsToPatternData(solvedFacelets);
+    const initial = CubeFacelets.faceletsToPatternDataExn(solvedFacelets);
     for (const move of [
       'U',
       "U'",
@@ -32,7 +32,7 @@ describe('Cubing pattern reconciler', () => {
     ]) {
       const moved = CubeFacelets.applyMove(initial, move);
       expect(moved).toBeDefined();
-      expect(CubeFacelets.patternDataToFacelets(moved!)).toBe(
+      expect(CubeFacelets.patternDataToFaceletsExn(moved!)).toBe(
         patternToFacelets(faceletsToPattern(solvedFacelets).applyMove(move)),
       );
     }

@@ -60,7 +60,7 @@ describe('cube exports', () => {
   it('formats cubing.js-compatible KPattern data as deterministic JSON', () => {
     const value = formatCubeExport({ facelets, state: solved }, 'kpattern-json');
 
-    expect(value).toBe(JSON.stringify(CubeFacelets.faceletsToPatternData(facelets), null, 2));
+    expect(value).toBe(JSON.stringify(CubeFacelets.faceletsToPatternDataExn(facelets), null, 2));
     expect(Object.keys(JSON.parse(value!))).toEqual(['CORNERS', 'EDGES', 'CENTERS']);
   });
 
