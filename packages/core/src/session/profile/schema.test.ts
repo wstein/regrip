@@ -35,4 +35,21 @@ describe('bundled profile schema', () => {
 
     expect(validate(profile), JSON.stringify(validate.errors)).toBe(true);
   });
+
+  it.each([
+    [{ kind: 'moveBack', windowMs: -1 }, 'negative move-back window'],
+    [{ kind: 'shake', minStepAngleDeg: 0 }, 'zero shake angle'],
+    [{ kind: 'shake', minSteps: 2.5 }, 'fractional step count'],
+    [{ kind: 'shake', minReversals: -1 }, 'negative reversal count'],
+    [{ kind: 'shake', cooldownMs: -1 }, 'negative cooldown'],
+  ])('rejects %s', (trigger) => {
+    const validate = new Ajv2020().compile(schema);
+    expect(
+      validate({
+        id: 'invalid-trigger',
+        features: { customTrigger: { enabled: true, triggers: [trigger] } },
+      }),
+      JSON.stringify(validate.errors),
+    ).toBe(false);
+  });
 });

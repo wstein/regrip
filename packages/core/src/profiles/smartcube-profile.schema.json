@@ -88,7 +88,7 @@
                     "required": ["kind", "windowMs"],
                     "properties": {
                       "kind": { "const": "moveBack" },
-                      "windowMs": { "type": "number" }
+                      "windowMs": { "type": "number", "minimum": 0 }
                     },
                     "additionalProperties": false
                   },
@@ -97,13 +97,17 @@
                     "required": ["kind"],
                     "properties": {
                       "kind": { "const": "shake" },
-                      "minStepAngleDeg": { "type": "number" },
-                      "minSteps": { "type": "number" },
-                      "minReversals": { "type": "number" },
-                      "maxSampleGapMs": { "type": "number" },
-                      "burstWindowMs": { "type": "number" },
-                      "faceGuardMs": { "type": "number" },
-                      "cooldownMs": { "type": "number" }
+                      "minStepAngleDeg": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 180
+                      },
+                      "minSteps": { "type": "integer", "minimum": 1 },
+                      "minReversals": { "type": "integer", "minimum": 1 },
+                      "maxSampleGapMs": { "type": "number", "minimum": 0 },
+                      "burstWindowMs": { "type": "number", "minimum": 0 },
+                      "faceGuardMs": { "type": "number", "minimum": 0 },
+                      "cooldownMs": { "type": "number", "minimum": 0 }
                     },
                     "additionalProperties": false
                   }
