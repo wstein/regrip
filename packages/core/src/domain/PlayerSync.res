@@ -38,6 +38,11 @@ let move = (state: state, token: string): (state, array<effect>) =>
     (state, [AddMove({move: token})])
   }
 
+let finish = (state: state, effects: array<effect>): (state, array<effect>) => (
+  {...state, syncing: false, coveredMoves: [], pendingMoves: []},
+  effects,
+)
+
 /**
  * Install the algorithm computed for a snapshot and replay its queued moves.
  * A result from an older snapshot is intentionally ignored.
@@ -48,7 +53,7 @@ let resolve = (state: state, generation: int, algorithm: string): (state, array<
   } else {
     let effects: array<effect> = [SetAlgorithm({algorithm: algorithm})]
     state.pendingMoves->Array.forEach(move => effects->Array.push(AddMove({move: move})))
-    ({...state, syncing: false, coveredMoves: [], pendingMoves: []}, effects)
+    finish(state, effects)
   }
 
 /** Accept a matching snapshot without resetting the adapter's algorithm. */
@@ -57,9 +62,10 @@ let confirm = (state: state, generation: int): (state, array<effect>) =>
     (state, [])
   } else {
     let effects: array<effect> = []
-    state.coveredMoves->Array.forEach(move => effects->Array.push(AddMove({move: move})))
-    state.pendingMoves->Array.forEach(move => effects->Array.push(AddMove({move: move})))
-    ({...state, syncing: false, coveredMoves: [], pendingMoves: []}, effects)
+    Array.concat(state.coveredMoves, state.pendingMoves)->Array.forEach(move =>
+      effects->Array.push(AddMove({move: move}))
+    )
+    finish(state, effects)
   }
 
 /** Drop pending work and clear the adapter's player state. */
