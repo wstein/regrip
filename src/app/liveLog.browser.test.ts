@@ -371,7 +371,11 @@ describe('live trace browser interactions', () => {
       configurable: true,
     });
     const trace = createLiveLog({ onFocusEntry });
-    trace.appendSessionEvent({ type: 'BATTERY', timestamp: 1, batteryLevel: 50 });
+    trace.appendLogEntry({
+      recordedAt: '1970-01-01T00:00:00.001Z',
+      type: 'cube_event',
+      data: { type: 'BATTERY', timestamp: 1, batteryLevel: 50 },
+    });
     trace.appendLogEntry({
       recordedAt: '2026-09-09T10:00:00.000Z',
       type: 'session_status',

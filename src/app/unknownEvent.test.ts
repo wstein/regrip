@@ -5,7 +5,7 @@ import type { SmartCubeDiagnosticEvent, SmartCubeEvent } from 'smartcube-web-blu
 import { createCubeEventController } from '../integration/cubeEvents';
 import { createSmartCubeSession } from '@wstein/regrip-core/session/smartCubeSession';
 import { createJsonlLog, type LogEntry } from './jsonlLog';
-import { describeLogEntry } from './liveLog';
+import { describeLogEntry } from './traceDescriptors';
 
 describe('future transport event handling', () => {
   it('captures and exposes a future event without changing cube state', async () => {

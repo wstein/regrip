@@ -1,28 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  describeDiagnostic,
-  describeLogEntry,
-  describeSessionEvent,
-  extractTraceChips,
-} from './liveLog';
+import { describeDiagnostic, describeLogEntry, extractTraceChips } from './traceDescriptors';
+import type { SmartCubeSessionEvent } from '@wstein/regrip-core/session/smartCubeSession';
+
+const describeEvent = (event: SmartCubeSessionEvent) =>
+  describeLogEntry({
+    recordedAt: '2026-09-09T10:00:00.000Z',
+    type: 'cube_event',
+    data: event,
+  });
 
 describe('live trace event classification', () => {
   it('uses concise, filterable categories for session-only events', () => {
     expect(
-      describeSessionEvent({
+      describeEvent({
         type: 'REGRIP',
         timestamp: 1,
         notationToken: "y'",
         sensorFrameToken: 'y',
       }),
     ).toEqual(['REGRIP', "y' (y)"]);
-    expect(describeSessionEvent({ type: 'CUSTOM_TRIGGER', timestamp: 1, move: 'R' })).toEqual([
+    expect(describeEvent({ type: 'CUSTOM_TRIGGER', timestamp: 1, move: 'R' })).toEqual([
       'TRIGGER',
       'R',
     ]);
     expect(
-      describeSessionEvent({ type: 'SHAKE', timestamp: 240, steps: 4, reversals: 3, spanMs: 180 }),
+      describeEvent({ type: 'SHAKE', timestamp: 240, steps: 4, reversals: 3, spanMs: 180 }),
     ).toEqual(['SHAKE', '4 steps, 3 reversals']);
   });
 
@@ -40,8 +43,8 @@ describe('live trace event classification', () => {
       data: event,
     } as const;
 
-    expect(describeSessionEvent(event)).toEqual(['STATE', '2 missed moves']);
-    expect(describeLogEntry(log)).toEqual(describeSessionEvent(event));
+    expect(describeEvent(event)).toEqual(['STATE', '2 missed moves']);
+    expect(describeLogEntry(log)).toEqual(describeEvent(event));
     expect(extractTraceChips({ id: 1, category: 'STATE', message: '2 missed moves', log })).toEqual(
       [{ label: 'State', value: '2 missed moves' }],
     );
@@ -49,7 +52,7 @@ describe('live trace event classification', () => {
 
   it('summarizes high-rate gyro data without flooding the line', () => {
     expect(
-      describeSessionEvent({
+      describeEvent({
         type: 'GYRO',
         timestamp: 1,
         quaternion: { x: 0.1234, y: -0.5678, z: 0.9, w: 0 },
@@ -180,12 +183,10 @@ describe('live trace event classification', () => {
     ] as const;
 
     for (const [event, expected] of cases) {
-      expect(describeSessionEvent(event as Parameters<typeof describeSessionEvent>[0])).toEqual(
-        expected,
-      );
+      expect(describeEvent(event as SmartCubeSessionEvent)).toEqual(expected);
     }
     expect(
-      describeSessionEvent({
+      describeEvent({
         type: 'GYRO',
         timestamp: 5,
         quaternion: {} as never,
