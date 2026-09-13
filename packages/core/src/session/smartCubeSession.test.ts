@@ -161,6 +161,59 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('uses the absolute detector only when explicitly selected', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: { regrip: { enabled: true, detector: 'absolute' } },
+    });
+    const regrips: string[] = [];
+    session.on('REGRIP', (event) => regrips.push(event.notationToken));
+    const toRawSensorFrame = (body: Quaternion.t): Quaternion.t => ({
+      x: body.x,
+      y: -body.z,
+      z: body.y,
+      w: body.w,
+    });
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 1, quaternion: Quaternion.identity });
+    const invalidDiagonal = Quaternion.fromEuler({
+      x: 0,
+      y: Quaternion.degreesToRadians(45),
+      z: Quaternion.degreesToRadians(45),
+    });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 2,
+      quaternion: toRawSensorFrame(invalidDiagonal),
+    });
+    expect(regrips).toEqual([]);
+
+    // The legacy threshold detector deliberately refuses an exact 180° pose
+    // because its direction is ambiguous. The absolute detector has a
+    // deterministic shortest path through the cube-orientation graph.
+    const validAbsolutePose = Quaternion.fromEuler({
+      x: Quaternion.degreesToRadians(180),
+      y: 0,
+      z: 0,
+    });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 3,
+      quaternion: toRawSensorFrame(validAbsolutePose),
+    });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 4,
+      quaternion: toRawSensorFrame(validAbsolutePose),
+    });
+
+    expect(regrips).toEqual(["x'", "x'"]);
+    expect(session.getState().features.regrip.detector).toBe('absolute');
+    await session.disconnect();
+  });
+
   it('publishes a stabilized gyro pose from the session-owned magnet', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({ connect: async () => connection(events$) });

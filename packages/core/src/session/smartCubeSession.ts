@@ -8,6 +8,7 @@ import type {
 } from '@wstein/regrip-core/bindings/smartCubeTransport';
 
 import * as GyroPipeline from '@wstein/regrip-core/domain/GyroPipeline';
+import * as AbsoluteRegripDetector from '@wstein/regrip-core/domain/AbsoluteRegripDetector';
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger';
 import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker';
 import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper';
@@ -205,6 +206,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     );
   };
   let regripState = RegripDetector.initial;
+  let absoluteRegripState = AbsoluteRegripDetector.initial;
   let moveBackState = MoveBackTrigger.initial;
   let shakeState = ShakeTrigger.initial;
   let moveTrackerState = MoveTracker.initial;
@@ -223,6 +225,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
 
   function resetFeatureDetectors(): void {
     regripState = RegripDetector.initial;
+    absoluteRegripState = AbsoluteRegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
   }
@@ -268,6 +271,15 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   }
 
   function observeRegrip(orientation: { x: number; y: number; z: number; w: number }) {
+    if (state.features.regrip.detector === 'absolute') {
+      const [nextState, observation] = AbsoluteRegripDetector.step(
+        absoluteRegripState,
+        orientation,
+        undefined,
+      );
+      absoluteRegripState = nextState;
+      return observation;
+    }
     const [nextState, observation] = RegripDetector.step(regripState, orientation, {
       thresholdDeg: state.features.regrip.thresholdDeg,
     });
@@ -447,6 +459,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     hasCalibratedGyro = false;
     gyroState = GyroPipeline.reset(gyroState);
     regripState = RegripDetector.initial;
+    absoluteRegripState = AbsoluteRegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
     resetMoveTracker();

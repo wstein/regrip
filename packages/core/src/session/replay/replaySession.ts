@@ -150,6 +150,9 @@ function capturedFeatures(entries: JsonlReplay['entries']): SessionFeatures | un
     typeof drift?.enabled !== 'boolean' ||
     number(drift.degPerSec) === undefined ||
     typeof regrip?.enabled !== 'boolean' ||
+    (regrip.detector !== undefined &&
+      regrip.detector !== 'threshold' &&
+      regrip.detector !== 'absolute') ||
     number(regrip.thresholdDeg) === undefined ||
     typeof customTrigger?.enabled !== 'boolean' ||
     !Array.isArray(triggers)
@@ -197,7 +200,14 @@ function capturedFeatures(entries: JsonlReplay['entries']): SessionFeatures | un
       hysteresis: { enabled: hysteresis.enabled, marginDeg: hysteresis.marginDeg as number },
       drift: { enabled: drift.enabled, degPerSec: drift.degPerSec as number },
     },
-    regrip: { enabled: regrip.enabled, thresholdDeg: regrip.thresholdDeg as number },
+    regrip: {
+      enabled: regrip.enabled,
+      detector:
+        regrip.detector === 'absolute' || regrip.detector === 'threshold'
+          ? regrip.detector
+          : 'threshold',
+      thresholdDeg: regrip.thresholdDeg as number,
+    },
     customTrigger: { enabled: customTrigger.enabled, triggers: parsedTriggers },
   };
 }

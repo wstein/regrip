@@ -100,6 +100,10 @@
       "types": "./dist/domain/RegripDetector.gen.d.ts",
       "default": "./dist/domain/RegripDetector.gen.js"
     },
+    "./domain/AbsoluteRegripDetector": {
+      "types": "./dist/domain/AbsoluteRegripDetector.gen.d.ts",
+      "default": "./dist/domain/AbsoluteRegripDetector.gen.js"
+    },
     "./domain/VirtualCubeFrame": {
       "types": "./dist/domain/VirtualCubeFrame.gen.d.ts",
       "default": "./dist/domain/VirtualCubeFrame.gen.js"

@@ -4,6 +4,18 @@ import schema from '../../profiles/smartcube-profile.schema.json';
 import { bundledProfiles } from './bundled';
 
 describe('bundled profile schema', () => {
+  it('accepts only supported regrip detector modes', () => {
+    const validate = new Ajv2020().compile(schema);
+    expect(
+      validate({ id: 'absolute-regrip', features: { regrip: { detector: 'absolute' } } }),
+      JSON.stringify(validate.errors),
+    ).toBe(true);
+    expect(
+      validate({ id: 'invalid-regrip', features: { regrip: { detector: 'guessing' } } }),
+      JSON.stringify(validate.errors),
+    ).toBe(false);
+  });
+
   it('validates every bundled profile', () => {
     const validate = new Ajv2020().compile(schema);
     for (const profile of bundledProfiles)

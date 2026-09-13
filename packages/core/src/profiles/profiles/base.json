@@ -18,7 +18,7 @@
       "hysteresis": { "enabled": true, "marginDeg": 6 },
       "drift": { "enabled": true, "degPerSec": 2 }
     },
-    "regrip": { "enabled": false, "thresholdDeg": 60 },
+    "regrip": { "enabled": false, "detector": "threshold", "thresholdDeg": 60 },
     "customTrigger": {
       "enabled": true,
       "triggers": [{ "kind": "moveBack", "windowMs": 300 }]

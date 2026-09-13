@@ -8,6 +8,15 @@ import {
 } from './features';
 
 describe('session features', () => {
+  it('keeps threshold regrip detection as the default and allows an absolute opt-in', () => {
+    expect(defaultSessionFeatures.regrip.detector).toBe('threshold');
+    expect(resolveSessionFeatures({ regrip: { detector: 'absolute' } }).regrip).toEqual({
+      enabled: false,
+      detector: 'absolute',
+      thresholdDeg: 60,
+    });
+  });
+
   it('preserves the legacy always-on move-back trigger by default', () => {
     expect(defaultSessionFeatures.customTrigger).toEqual({
       enabled: true,
