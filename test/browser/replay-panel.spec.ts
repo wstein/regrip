@@ -154,9 +154,10 @@ test('exports all, filtered, or selected trace events', async ({ page }) => {
   await expect(exportButtons).toHaveCount(2);
   await expect(exportButtons).toHaveText(['Download', 'Copy']);
   const exportScope = page.locator('#trace-export-scope');
-  await expect(exportScope).toHaveValue('filtered');
+  await expect(exportScope).toHaveValue('all');
   await expect(exportScope.locator('option')).toHaveText(['Filtered', 'All', 'Selected']);
 
+  await exportScope.selectOption('filtered');
   await page.locator('[data-trace-filter="EVENT"]').click();
   await page.locator('#copy-log').click();
 
