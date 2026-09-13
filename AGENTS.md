@@ -1,5 +1,10 @@
 # Repository Guidelines
 
+## Core Principles
+
+- **Always make focused, atomic, conventional commits.** Headers must be at most 100 characters (e.g. `fix(trace): preserve requested snapshots`). After each coherent step passes verification, create a focused Conventional Commit before starting the next step; never bundle multiple completed steps into a later catch-all commit.
+- **Always follow TDD.** Prove the test before trusting the fix. Never commit unverified or speculative fixes without an accompanying failing-then-passing test.
+
 ## Project Structure & Module Organization
 
 - `packages/core/src/domain/` contains pure ReScript reducers and cube math. Keep it deterministic: no DOM, renderer, Bluetooth effects, clocks, or Signals.
@@ -12,6 +17,7 @@
 
 ## Build, Test, and Development Commands
 
+- Requires Node `>=22.12.0`. npm and `package-lock.json` are the supported package workflow.
 - `npm install` installs the workspace dependencies.
 - `npm run dev` starts ReScript watch and the Vite lab.
 - `npm test` builds ReScript, then runs separate core and app Vitest suites.
@@ -31,14 +37,14 @@
 
 ## Coding Style & Naming Conventions
 
-Use TypeScript with strict types and ReScript for domain reducers. Let Prettier and `rescript format` decide whitespace; do not hand-format generated `*.res.mjs` files. Prefer descriptive camelCase functions, PascalCase types, and focused modules. Reducers should follow `(state, input) -> (nextState, effects)`; keep renderer and transport effects at the outer layers.
+Use TypeScript with strict types and ReScript for domain reducers. Let Prettier and `rescript format` decide whitespace; do not hand-format generated `*.res.mjs` files. Prefer descriptive camelCase functions, PascalCase types, and focused modules. Reducers should follow `(state, input) -> (nextState, effects)`; keep renderer and transport effects at the outer layers. For UI styling, use vanilla CSS conforming to established design tokens, button densities, and dark theme variables in `src/app/style.css`; avoid inline styles or ad-hoc utilities.
 
 ## Testing Guidelines
 
 Add a colocated test for behavior changes. Use deterministic timestamps and fixtures for session/replay work; test hardware-specific behavior through mock transports before real-cube validation. Update Playwright screenshots intentionally with `npm run test:screenshots:update` only after reviewing the visual difference.
 
-**TDD method — prove the test before trusting the fix.** For a bug fix: write (or extend) the test to express the correct behavior, confirm it actually fails against the current code, then implement the fix and confirm it now passes. A test that was only ever run against passing code hasn't verified anything. Concretely: apply the fix, run the test, then temporarily revert just the fix (not the test) and rerun it — it must fail before you restore the fix and commit both together. For a new ReScript module, write `*_test.res` against the not-yet-implemented API first and watch it fail to compile/run before implementing. Ship the test and the change in the same commit; don't split "add test" and "make it pass" across separate commits unless the change is a large, multi-commit module port.
+**TDD method — prove the test before trusting the fix.** Always follow TDD. For a bug fix: write (or extend) the test to express the correct behavior, confirm it actually fails against the current code, then implement the fix and confirm it now passes. A test that was only ever run against passing code hasn't verified anything. Concretely: apply the fix, run the test, then temporarily revert just the fix (not the test) and rerun it — it must fail before you restore the fix and commit both together. For a new ReScript module, write `*_test.res` against the not-yet-implemented API first and watch it fail to compile/run before implementing. Ship the test and the change in the same commit; don't split "add test" and "make it pass" across separate commits unless the change is a large, multi-commit module port.
 
 ## Commit & Pull Request Guidelines
 
-Use Conventional Commits, e.g. `fix(trace): preserve requested snapshots`; headers must be at most 100 characters. Keep commits focused. After each coherent implementation step passes its relevant verification, create a focused Conventional Commit before starting the next step; do not bundle multiple completed steps into a later catch-all commit. Preserve unrelated user changes and never commit known-failing work. PRs need a user-facing summary, verification commands, linked context where applicable, and screenshots for UI/rendering changes. Never include MAC addresses, credentials, or unredacted captures.
+Always make focused, atomic, conventional commits (e.g. `fix(trace): preserve requested snapshots`); headers must be at most 100 characters. Keep commits focused on a single concern. After each coherent implementation step passes its relevant verification, create a focused Conventional Commit before starting the next step; do not bundle multiple completed steps into a later catch-all commit. Preserve unrelated user changes and never commit known-failing work. PRs need a user-facing summary, verification commands, linked context where applicable, and screenshots for UI/rendering changes. Never include MAC addresses, credentials, or unredacted captures.
