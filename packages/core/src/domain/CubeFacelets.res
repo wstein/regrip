@@ -263,6 +263,44 @@ let decodeOrbit = (
   }
 }
 
+let centersCanonical = facelets =>
+  faceOrder
+  ->String.split("")
+  ->Array.everyWithIndex((face, index) => String.getUnsafe(facelets, index * 9 + 4) == face)
+
+let isPermutation = (pieces: array<int>, size: int) =>
+  pieces->Array.length == size &&
+    Array.fromInitializer(~length=size, piece =>
+      pieces->Array.filter(candidate => candidate == piece)->Array.length == 1
+    )->Array.every(valid => valid)
+
+let orientationSum = orientations => orientations->Array.reduce(0, (sum, value) => sum + value)
+
+let permutationParity = pieces => {
+  let inversions = ref(0)
+  pieces->Array.forEachWithIndex((piece, index) =>
+    pieces->Array.forEachWithIndex((candidate, candidateIndex) =>
+      if candidateIndex > index && candidate < piece {
+        inversions := inversions.contents + 1
+      }
+    )
+  )
+  inversions.contents % 2
+}
+
+let validateCubieState = (cornerPieces, cornerOri, edgePieces, edgeOri): result<unit, string> =>
+  if !isPermutation(cornerPieces, 8) || !isPermutation(edgePieces, 12) {
+    Error("facelets must contain every corner and edge exactly once")
+  } else if orientationSum(cornerOri) % 3 != 0 {
+    Error("corner orientation sum must be divisible by 3")
+  } else if orientationSum(edgeOri) % 2 != 0 {
+    Error("edge orientation sum must be even")
+  } else if permutationParity(cornerPieces) != permutationParity(edgePieces) {
+    Error("corner and edge permutation parity must agree")
+  } else {
+    Ok()
+  }
+
 let decodeFacelets = (facelets: string): result<patternData, string> => {
   let chars = facelets->String.split("")
   let count = c => chars->Array.filter(x => x == c)->Array.length
@@ -272,6 +310,8 @@ let decodeFacelets = (facelets: string): result<patternData, string> => {
     Error(`facelets contains characters outside "${faceOrder}"`)
   } else if !(faceOrder->String.split("")->Array.every(c => count(c) == 9)) {
     Error("facelets must contain exactly 9 of each face letter")
+  } else if !centersCanonical(facelets) {
+    Error("facelet centers must be in canonical URFDLB order")
   } else {
     let stickers = toStickers(facelets)
     switch (
@@ -279,15 +319,19 @@ let decodeFacelets = (facelets: string): result<patternData, string> => {
       decodeOrbit(edgeMapping, reidEdgeOrder, 2, stickers, false),
     ) {
     | (Ok((cornerPieces, cornerOri)), Ok((edgePieces, edgeOri))) =>
-      Ok({
-        corners: {pieces: cornerPieces, orientation: cornerOri},
-        edges: {pieces: edgePieces, orientation: edgeOri},
-        centers: {
-          pieces: [0, 1, 2, 3, 4, 5],
-          orientation: Array.make(~length=6, 0),
-          orientationMod: Array.make(~length=6, 1),
-        },
-      })
+      switch validateCubieState(cornerPieces, cornerOri, edgePieces, edgeOri) {
+      | Error(msg) => Error(msg)
+      | Ok() =>
+        Ok({
+          corners: {pieces: cornerPieces, orientation: cornerOri},
+          edges: {pieces: edgePieces, orientation: edgeOri},
+          centers: {
+            pieces: [0, 1, 2, 3, 4, 5],
+            orientation: Array.make(~length=6, 0),
+            orientationMod: Array.make(~length=6, 1),
+          },
+        })
+      }
     | (Error(msg), _) | (_, Error(msg)) => Error(msg)
     }
   }

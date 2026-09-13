@@ -41,7 +41,7 @@ let patternDataToFacelets: patternData => result<string, string>
 @genType
 let patternDataToFaceletsExn: patternData => string
 
-/** Validates length / alphabet / sticker counts / piece legality. */
+/** Validates syntax, canonical centers, cubie uniqueness, orientation sums, and parity. */
 @genType
 let decodeFacelets: string => result<patternData, string>
 

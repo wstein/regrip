@@ -162,6 +162,21 @@ describe("decodeFacelets", () => {
     t->expect(CubeFacelets.decodeFacelets(bad)->Result.isError)->Expect.toBe(true)
   })
 
+  test("rejects impossible orientation and permutation invariants", t => {
+    let singleEdgeFlip = "UUUUUUUFURRRRRRRRRFUFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+    let singleCornerTwist = "UUUUUUUUFURRRRRRRRFFRFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+    let oddEdgeSwap = "UUUUUUUUURFRRRRRRRFRFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+    [singleEdgeFlip, singleCornerTwist, oddEdgeSwap]->Array.forEach(
+      facelets =>
+        t->expect(CubeFacelets.decodeFacelets(facelets)->Result.isError)->Expect.toBe(true),
+    )
+  })
+
+  test("rejects facelets whose center stickers are not canonical", t => {
+    let swappedCenters = "UUUURUUUURRRRURRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+    t->expect(CubeFacelets.decodeFacelets(swappedCenters)->Result.isError)->Expect.toBe(true)
+  })
+
   test("rejects wrong length", t => {
     t->expect(CubeFacelets.decodeFacelets("UUU")->Result.isError)->Expect.toBe(true)
   })
