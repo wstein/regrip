@@ -1,4 +1,4 @@
-import type { SmartCubeTransportConnection } from '../bindings/smartCubeTransport';
+import type { SmartCubeTransportConnection } from '../bindings/smartCubeTransport.js';
 
 /** Request the common state snapshots supported by a connected cube. */
 export async function requestInitialState(connection: SmartCubeTransportConnection): Promise<void> {

@@ -7,7 +7,7 @@ import moyu from '../../profiles/profiles/moyu-ai.json';
 import qiyi from '../../profiles/profiles/qiyi.json';
 import giiker from '../../profiles/profiles/giiker.json';
 import unknown from '../../profiles/profiles/unknown.json';
-import type { SmartCubeProfile } from './types';
+import type { SmartCubeProfile } from './types.js';
 
 /** Built-in cube profiles selected from the connected device identity. */
 export const bundledProfiles: SmartCubeProfile[] = [

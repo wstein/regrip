@@ -162,6 +162,18 @@ try {
   run(['exec', '--', 'rescript', 'build'], consumer);
   execFileSync(process.execPath, ['src/Consumer.res.mjs'], { cwd: consumer, stdio: 'inherit' });
   execFileSync(process.execPath, ['time-runtime.mjs'], { cwd: consumer, stdio: 'inherit' });
+  execFileSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `const core = await import('@wstein/regrip-core');
+if (typeof core.createSmartCubeSession !== 'function') {
+  throw new Error('Packed JavaScript session entry point did not load.');
+}`,
+    ],
+    { cwd: consumer, stdio: 'inherit' },
+  );
 
   if (outputDirectory) {
     mkdirSync(outputDirectory, { recursive: true });

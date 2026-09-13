@@ -5,7 +5,11 @@ export {
   type SmartCubeSessionEvent,
   type SmartCubeSessionOptions,
   type SmartCubeSessionState,
-} from './session/smartCubeSession';
-export { defaultSessionFeatures, featurePresets, resolveSessionFeatures } from './session/features';
-export { bundledProfiles } from './session/profile/bundled';
-export type { SmartCubeTransportConnection } from './bindings/smartCubeTransport';
+} from './session/smartCubeSession.js';
+export {
+  defaultSessionFeatures,
+  featurePresets,
+  resolveSessionFeatures,
+} from './session/features.js';
+export { bundledProfiles } from './session/profile/bundled.js';
+export type { SmartCubeTransportConnection } from './bindings/smartCubeTransport.js';

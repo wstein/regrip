@@ -1,6 +1,6 @@
 {
   "name": "@wstein/regrip-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MIT smart-cube session core for Regrip and CubeLab",
   "license": "MIT",
   "repository": {
@@ -16,7 +16,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rescript && tsc --project tsconfig.build.json",
+    "build": "rescript && tsc --project tsconfig.build.json && node scripts/finalize-dist.mjs",
     "prepack": "npm run build"
   },
   "exports": {

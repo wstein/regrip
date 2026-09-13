@@ -3,7 +3,7 @@ import type {
   SmartCubeEvent,
   SmartCubeTransportConnection,
   SmartCubeVendorCommand,
-} from '../../bindings/smartCubeTransport';
+} from '../../bindings/smartCubeTransport.js';
 
 import * as ReplayCursor from '@wstein/regrip-core/domain/ReplayCursor';
 import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
@@ -21,14 +21,14 @@ import {
   type SmartCubeSessionEvent,
   type SmartCubeSessionState,
   type VirtualRegripEvent,
-} from '../smartCubeSession';
+} from '../smartCubeSession.js';
 import {
   createJsonlReplay,
   createJsonlMockConnection,
   isSmartCubeEvent,
   type JsonlMockIdentity,
   type JsonlReplay,
-} from './jsonlMock';
+} from './jsonlMock.js';
 
 /** Choose raw transport replay or recorded session-output replay. */
 export type ReplayFeed = 'connection' | 'session';

@@ -119,4 +119,4 @@ export function stabilizerConfig(features: SessionFeatures): {
     driftDegPerSec: stabilizer.drift.enabled ? stabilizer.drift.degPerSec : 0,
   };
 }
-import { deepMergeRecord } from '../internal/deepMergeRecord';
+import { deepMergeRecord } from '../internal/deepMergeRecord.js';

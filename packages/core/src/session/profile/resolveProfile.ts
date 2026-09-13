@@ -4,8 +4,8 @@ import type {
   ResolvedProfile,
   SmartCubeProfile,
   SmartCubeProfilePatch,
-} from './types';
-import { mergeProfiles } from './mergeProfiles';
+} from './types.js';
+import { mergeProfiles } from './mergeProfiles.js';
 
 const keys = ['protocol', 'deviceName', 'deviceMAC', 'hardwareName', 'goCubeType'] as const;
 

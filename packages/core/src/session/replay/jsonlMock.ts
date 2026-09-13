@@ -3,9 +3,9 @@ import type {
   SmartCubeCommand,
   SmartCubeEvent,
   SmartCubeTransportConnection,
-} from '../../bindings/smartCubeTransport';
+} from '../../bindings/smartCubeTransport.js';
 
-import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../jsonlFormat';
+import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '../jsonlFormat.js';
 
 type JsonlEntry = { type: string; data: unknown };
 type ReplayOptions = {

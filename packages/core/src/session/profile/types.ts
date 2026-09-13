@@ -1,4 +1,4 @@
-import type { SessionFeaturesPatch } from '../features';
+import type { SessionFeaturesPatch } from '../features.js';
 
 /** Identity fields available when selecting a smart-cube profile. */
 export type DeviceContext = {
