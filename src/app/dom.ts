@@ -1,8 +1,19 @@
-/** Resolve a required app element with one consistent failure message. */
-export function byId<T extends HTMLElement = HTMLElement>(id: string): T {
+type ElementConstructor<T extends HTMLElement> = abstract new () => T;
+
+function elementLabel(expected: ElementConstructor<HTMLElement>): string {
+  return expected === HTMLElement
+    ? 'element'
+    : expected.name.replace(/^HTML|Element$/g, '').toLowerCase();
+}
+
+/** Resolve and runtime-check a required app element with one failure convention. */
+export function byId<T extends HTMLElement = HTMLElement>(
+  id: string,
+  expected: ElementConstructor<T> = HTMLElement as unknown as ElementConstructor<T>,
+): T {
   const element = document.getElementById(id);
-  if (!(element instanceof HTMLElement)) throw new Error(`Missing element #${id}`);
-  return element as T;
+  if (!(element instanceof expected)) throw new Error(`Missing ${elementLabel(expected)} #${id}`);
+  return element;
 }
 
 type DropdownMenuOptions = {

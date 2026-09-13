@@ -6,7 +6,7 @@ import { byId } from './dom';
  * (for example a jsdom test or a sandboxed frame without `allow="fullscreen"`).
  */
 export function mountFullscreenToggle(id = 'fullscreen'): void {
-  const button = byId<HTMLButtonElement>(id);
+  const button = byId(id, HTMLButtonElement);
   if (!document.fullscreenEnabled) {
     button.remove();
     return;

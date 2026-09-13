@@ -3,6 +3,7 @@ import type {
   SmartCubeCommand,
   SmartCubeVendorCommand,
 } from 'smartcube-web-bluetooth';
+import { byId } from './dom';
 
 type CommandPanelOptions = {
   sendCommand: (command: SmartCubeCommand) => Promise<void>;
@@ -48,14 +49,8 @@ const vendorGroups: Record<SmartCubeVendorCommand['type'], Group> = {
   TOGGLE_BACKLIGHT: 'Backlight',
 };
 
-function root(): HTMLElement {
-  const element = document.getElementById('command-panel');
-  if (!element) throw new Error('Missing command panel');
-  return element;
-}
-
 export function createCommandPanel() {
-  const panel = root();
+  const panel = byId('command-panel');
 
   const clear = (): void => {
     panel.hidden = true;

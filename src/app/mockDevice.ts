@@ -1,5 +1,5 @@
 import type { ReplaySessionController } from '@wstein/regrip-core/session/replay/replaySession';
-import { createDropdownMenu } from './dom';
+import { byId, createDropdownMenu } from './dom';
 
 type MockFixture = 'gocube-edge' | 'gan-ui12' | 'local';
 
@@ -77,22 +77,13 @@ export function mountMockDevicePicker({
   load,
   navigate = (href) => location.assign(href),
 }: MockDevicePickerOptions): void {
-  const toggle = document.getElementById('connect');
-  const menu = document.getElementById('connect-menu');
-  const fileInput = document.getElementById('mock-device-file');
-  const exit = document.getElementById('mock-device-exit');
+  const toggle = byId('connect', HTMLButtonElement);
+  const menu = byId('connect-menu');
+  const fileInput = byId('mock-device-file', HTMLInputElement);
+  const exit = byId('mock-device-exit', HTMLButtonElement);
   const activeMenuItem = exit?.closest('li');
-  const status = document.getElementById('mock-device-status');
-  if (
-    !(toggle instanceof HTMLButtonElement) ||
-    !(menu instanceof HTMLElement) ||
-    !(fileInput instanceof HTMLInputElement) ||
-    !(exit instanceof HTMLButtonElement) ||
-    !(activeMenuItem instanceof HTMLElement) ||
-    !(status instanceof HTMLElement)
-  ) {
-    return;
-  }
+  const status = byId('mock-device-status');
+  if (!(activeMenuItem instanceof HTMLElement)) throw new Error('Missing element for replay exit');
 
   const active = load.requested && load.replay !== undefined;
   toggle.dataset.mockActive = String(active);

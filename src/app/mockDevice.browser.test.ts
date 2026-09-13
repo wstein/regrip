@@ -109,9 +109,11 @@ describe('mock device replay selection', () => {
     expect(buildMockDeviceUrl(current)).toBe('https://example.test/regrip/?keep=yes');
   });
 
-  it('does not mount against incomplete markup', () => {
+  it('reports incomplete required markup', () => {
     document.body.innerHTML = '<button id="connect"></button>';
-    expect(() => mountMockDevicePicker({ load: { requested: false } })).not.toThrow();
+    expect(() => mountMockDevicePicker({ load: { requested: false } })).toThrow(
+      'Missing element #connect-menu',
+    );
   });
 
   it('navigates among bundled fixtures and exits active replay mode', () => {
