@@ -33,7 +33,7 @@ let solvedFacelets: string
 @genType
 let isSolvedFacelets: string => bool
 
-/** Encode pattern data, rejecting non-oriented centers. */
+/** Encode validated pattern data, returning `Error` for malformed or impossible orbit data. */
 @genType
 let patternDataToFacelets: patternData => result<string, string>
 

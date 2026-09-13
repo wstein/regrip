@@ -72,6 +72,15 @@ describe("patternDataToFacelets", () => {
     }
     t->expect(CubeFacelets.patternDataToFacelets(pd)->Result.isError)->Expect.toBe(true)
   })
+
+  test("returns an error instead of throwing for malformed orbit arrays", t => {
+    let malformed: CubeFacelets.patternData = {
+      corners: {pieces: [], orientation: []},
+      edges: {pieces: [], orientation: []},
+      centers: {pieces: [0, 1, 2, 3, 4, 5], orientation: Array.make(~length=6, 0)},
+    }
+    t->expect(CubeFacelets.patternDataToFacelets(malformed)->Result.isError)->Expect.toBe(true)
+  })
 })
 
 describe("decodeFacelets", () => {

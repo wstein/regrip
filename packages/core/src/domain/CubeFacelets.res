@@ -164,7 +164,49 @@ let pieceMap = (names, orientations) => {
   m
 }
 
-let centersOriented = (pd: patternData) => pd.centers.pieces->Array.everyWithIndex((p, i) => p == i)
+let isPermutation = (pieces: array<int>, size: int) =>
+  pieces->Array.length == size &&
+    Array.fromInitializer(~length=size, piece =>
+      pieces->Array.filter(candidate => candidate == piece)->Array.length == 1
+    )->Array.every(valid => valid)
+
+let orientationSum = orientations => orientations->Array.reduce(0, (sum, value) => sum + value)
+
+let orientationsValid = (orientations, size, modulus) =>
+  orientations->Array.length == size &&
+    orientations->Array.every(value => value >= 0 && value < modulus)
+
+let permutationParity = pieces => {
+  let inversions = ref(0)
+  pieces->Array.forEachWithIndex((piece, index) =>
+    pieces->Array.forEachWithIndex((candidate, candidateIndex) =>
+      if candidateIndex > index && candidate < piece {
+        inversions := inversions.contents + 1
+      }
+    )
+  )
+  inversions.contents % 2
+}
+
+let validateCubieState = (cornerPieces, cornerOri, edgePieces, edgeOri): result<unit, string> =>
+  if !isPermutation(cornerPieces, 8) || !isPermutation(edgePieces, 12) {
+    Error("cube state must contain every corner and edge exactly once")
+  } else if !orientationsValid(cornerOri, 8, 3) || !orientationsValid(edgeOri, 12, 2) {
+    Error("cube state contains an invalid orientation")
+  } else if orientationSum(cornerOri) % 3 != 0 {
+    Error("corner orientation sum must be divisible by 3")
+  } else if orientationSum(edgeOri) % 2 != 0 {
+    Error("edge orientation sum must be even")
+  } else if permutationParity(cornerPieces) != permutationParity(edgePieces) {
+    Error("corner and edge permutation parity must agree")
+  } else {
+    Ok()
+  }
+
+let centersOriented = (pd: patternData) =>
+  pd.centers.pieces->Array.length == 6 &&
+  pd.centers.orientation->Array.length == 6 &&
+  pd.centers.pieces->Array.everyWithIndex((p, i) => p == i)
 
 // (edges, corners, centers) as Reid piece-name arrays.
 let toReid333Struct = (pd: patternData): result<
@@ -174,19 +216,28 @@ let toReid333Struct = (pd: patternData): result<
   if !centersOriented(pd) {
     Error("non-oriented puzzles are not supported")
   } else {
-    let edges = Array.fromInitializer(~length=12, i =>
-      rotateLeft(
-        reidEdgeOrder->Array.getUnsafe(pd.edges.pieces->Array.getUnsafe(i)),
-        pd.edges.orientation->Array.getUnsafe(i),
+    switch validateCubieState(
+      pd.corners.pieces,
+      pd.corners.orientation,
+      pd.edges.pieces,
+      pd.edges.orientation,
+    ) {
+    | Error(msg) => Error(msg)
+    | Ok() =>
+      let edges = Array.fromInitializer(~length=12, i =>
+        rotateLeft(
+          reidEdgeOrder->Array.getUnsafe(pd.edges.pieces->Array.getUnsafe(i)),
+          pd.edges.orientation->Array.getUnsafe(i),
+        )
       )
-    )
-    let corners = Array.fromInitializer(~length=8, i =>
-      rotateLeft(
-        reidCornerOrder->Array.getUnsafe(pd.corners.pieces->Array.getUnsafe(i)),
-        pd.corners.orientation->Array.getUnsafe(i),
+      let corners = Array.fromInitializer(~length=8, i =>
+        rotateLeft(
+          reidCornerOrder->Array.getUnsafe(pd.corners.pieces->Array.getUnsafe(i)),
+          pd.corners.orientation->Array.getUnsafe(i),
+        )
       )
-    )
-    Ok((edges, corners, reidCenterOrder))
+      Ok((edges, corners, reidCenterOrder))
+    }
   }
 
 let patternDataToFacelets = (pd: patternData): result<string, string> =>
@@ -267,39 +318,6 @@ let centersCanonical = facelets =>
   faceOrder
   ->String.split("")
   ->Array.everyWithIndex((face, index) => String.getUnsafe(facelets, index * 9 + 4) == face)
-
-let isPermutation = (pieces: array<int>, size: int) =>
-  pieces->Array.length == size &&
-    Array.fromInitializer(~length=size, piece =>
-      pieces->Array.filter(candidate => candidate == piece)->Array.length == 1
-    )->Array.every(valid => valid)
-
-let orientationSum = orientations => orientations->Array.reduce(0, (sum, value) => sum + value)
-
-let permutationParity = pieces => {
-  let inversions = ref(0)
-  pieces->Array.forEachWithIndex((piece, index) =>
-    pieces->Array.forEachWithIndex((candidate, candidateIndex) =>
-      if candidateIndex > index && candidate < piece {
-        inversions := inversions.contents + 1
-      }
-    )
-  )
-  inversions.contents % 2
-}
-
-let validateCubieState = (cornerPieces, cornerOri, edgePieces, edgeOri): result<unit, string> =>
-  if !isPermutation(cornerPieces, 8) || !isPermutation(edgePieces, 12) {
-    Error("facelets must contain every corner and edge exactly once")
-  } else if orientationSum(cornerOri) % 3 != 0 {
-    Error("corner orientation sum must be divisible by 3")
-  } else if orientationSum(edgeOri) % 2 != 0 {
-    Error("edge orientation sum must be even")
-  } else if permutationParity(cornerPieces) != permutationParity(edgePieces) {
-    Error("corner and edge permutation parity must agree")
-  } else {
-    Ok()
-  }
 
 let decodeFacelets = (facelets: string): result<patternData, string> => {
   let chars = facelets->String.split("")
