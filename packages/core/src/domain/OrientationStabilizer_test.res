@@ -69,6 +69,24 @@ describe("OrientationStabilizer reducer", () => {
     ->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(6.), 8)
   })
 
+  test("exposes drift correction before applying the magnetic detent", t => {
+    let config: OrientationStabilizer.config = {
+      ...OrientationStabilizer.defaults,
+      driftDegPerSec: 2.,
+    }
+    let (_, sample) = OrientationStabilizer.stepSample(
+      OrientationStabilizer.initial,
+      xRotation(10.),
+      ~dtSeconds=1.,
+      ~config,
+    )
+
+    t
+    ->expect(angleToIdentity(sample.driftCorrected))
+    ->Expect.Float.toBeCloseTo(Quaternion.degreesToRadians(8.), 8)
+    t->expect(Quaternion.angle(sample.driftCorrected, sample.stabilized) > 0.)->Expect.toBe(true)
+  })
+
   test("is deterministic from the same state and input", t => {
     let raw = xRotation(20.)
     let (_, first) = OrientationStabilizer.step(OrientationStabilizer.initial, raw)

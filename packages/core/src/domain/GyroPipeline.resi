@@ -5,6 +5,7 @@ type config
 @genType
 type sample = {
   relative: Quaternion.t,
+  driftCorrected: Quaternion.t,
   stabilized: Quaternion.t,
   velocityMagnitude: float,
   dtSeconds: float,

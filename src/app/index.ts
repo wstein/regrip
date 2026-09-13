@@ -220,6 +220,7 @@ const cubeEvents = createCubeEventController({
       velocityMagnitude: event.velocityMagnitude,
       dtSeconds: event.dtSeconds,
       relative: event.relative,
+      driftCorrected: event.driftCorrected,
       stabilized: event.stabilized,
     });
   },

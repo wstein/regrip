@@ -214,6 +214,39 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('feeds drift-corrected orientation to the absolute regrip detector', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => connection(events$),
+      features: {
+        regrip: { enabled: true, detector: 'absolute' },
+        stabilizer: { drift: { enabled: true, degPerSec: 20 } },
+      },
+    });
+    const regrips: string[] = [];
+    session.on('REGRIP', (event) => regrips.push(event.notationToken));
+    const toRawSensorFrame = (body: Quaternion.t): Quaternion.t => ({
+      x: body.x,
+      y: -body.z,
+      z: body.y,
+      w: body.w,
+    });
+
+    await session.connect();
+    events$.next({ type: 'GYRO', timestamp: 0, quaternion: Quaternion.identity });
+    events$.next({
+      type: 'GYRO',
+      timestamp: 1000,
+      quaternion: toRawSensorFrame(
+        Quaternion.fromEuler({ x: Quaternion.degreesToRadians(50), y: 0, z: 0 }),
+      ),
+      velocity: { x: 0, y: 0, z: 0 },
+    });
+
+    expect(regrips).toEqual(["x'"]);
+    await session.disconnect();
+  });
+
   it('publishes a stabilized gyro pose from the session-owned magnet', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({ connect: async () => connection(events$) });

@@ -17,6 +17,7 @@ let defaults = {
 }
 
 type state = {lockedPose: option<Quaternion.t>, driftOffset: Quaternion.t}
+type sample = {driftCorrected: Quaternion.t, stabilized: Quaternion.t}
 let initial: state = {lockedPose: None, driftOffset: Quaternion.identity}
 
 let reset = (_: state): state => initial
@@ -28,9 +29,9 @@ let detentConfig = (config: config): MagneticDetent.config => {
   velocityMax: config.velocityMax,
 }
 
-let step = (state: state, raw: Quaternion.t, ~velocity=0., ~dtSeconds=0., ~config=defaults): (
+let stepSample = (state: state, raw: Quaternion.t, ~velocity=0., ~dtSeconds=0., ~config=defaults): (
   state,
-  Quaternion.t,
+  sample,
 ) => {
   let corrected = Quaternion.multiply(state.driftOffset, raw)
   let target = CubeSymmetry.nearest(
@@ -58,6 +59,17 @@ let step = (state: state, raw: Quaternion.t, ~velocity=0., ~dtSeconds=0., ~confi
   let adjusted = Quaternion.multiply(driftOffset, raw)
   (
     {lockedPose: Some(target), driftOffset},
-    MagneticDetent.apply(adjusted, target, ~velocity, ~config=detentConfig(config)),
+    {
+      driftCorrected: adjusted,
+      stabilized: MagneticDetent.apply(adjusted, target, ~velocity, ~config=detentConfig(config)),
+    },
   )
+}
+
+let step = (state: state, raw: Quaternion.t, ~velocity=0., ~dtSeconds=0., ~config=defaults): (
+  state,
+  Quaternion.t,
+) => {
+  let (state, sample) = stepSample(state, raw, ~velocity, ~dtSeconds, ~config)
+  (state, sample.stabilized)
 }

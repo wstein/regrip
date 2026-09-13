@@ -4,6 +4,7 @@ type velocity = {x: float, y: float, z: float}
 type config = {stabilizer: OrientationStabilizer.config, sensorToBody: SensorToBody.t}
 type sample = {
   relative: Quaternion.t,
+  driftCorrected: Quaternion.t,
   stabilized: Quaternion.t,
   velocityMagnitude: float,
   dtSeconds: float,
@@ -57,8 +58,8 @@ let step = (
   | Some(previous) => Math.max(0., (timestamp -. previous) /. 1000.)
   | None => 0.
   }
-  let (stabilizer, stabilized) = if stabilizerEnabled {
-    OrientationStabilizer.step(
+  let (stabilizer, stabilizerSample) = if stabilizerEnabled {
+    OrientationStabilizer.stepSample(
       state.stabilizer,
       relative,
       ~velocity=velocityMagnitude,
@@ -66,10 +67,19 @@ let step = (
       ~config=config.stabilizer,
     )
   } else {
-    (state.stabilizer, relative)
+    (
+      state.stabilizer,
+      ({driftCorrected: relative, stabilized: relative}: OrientationStabilizer.sample),
+    )
   }
   (
     {gyro, stabilizer, previousTimestamp: Some(timestamp)},
-    {relative, stabilized, velocityMagnitude, dtSeconds},
+    {
+      relative,
+      driftCorrected: stabilizerSample.driftCorrected,
+      stabilized: stabilizerSample.stabilized,
+      velocityMagnitude,
+      dtSeconds,
+    },
   )
 }

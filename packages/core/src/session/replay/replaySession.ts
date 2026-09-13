@@ -91,6 +91,7 @@ function isSmartCubeSessionEvent(
   return (
     value.type !== 'GYRO' ||
     ('relative' in value &&
+      'driftCorrected' in value &&
       'stabilized' in value &&
       'velocityMagnitude' in value &&
       'dtSeconds' in value)
@@ -238,6 +239,7 @@ function sessionGyroFromRecord(
   const timestamp = number(data.timestamp) ?? fallbackTimestamp;
   const quaternionValue = quaternion(data.quaternion);
   const relative = quaternion(data.relative);
+  const recordedDriftCorrected = quaternion(data.driftCorrected);
   const stabilized = quaternion(data.stabilized);
   const velocityMagnitude = number(data.velocityMagnitude);
   const dtSeconds = number(data.dtSeconds);
@@ -257,6 +259,7 @@ function sessionGyroFromRecord(
     quaternion: quaternionValue,
     ...(velocity ? { velocity } : {}),
     relative,
+    driftCorrected: recordedDriftCorrected ?? relative,
     stabilized,
     velocityMagnitude,
     dtSeconds,

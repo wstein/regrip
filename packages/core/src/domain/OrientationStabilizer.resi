@@ -10,6 +10,8 @@ type config = {
 @genType
 type state
 @genType
+type sample = {driftCorrected: Quaternion.t, stabilized: Quaternion.t}
+@genType
 let defaults: config
 @genType
 let initial: state
@@ -17,6 +19,14 @@ let initial: state
 let reset: state => state
 @genType
 let lockedPose: state => option<Quaternion.t>
+@genType
+let stepSample: (
+  state,
+  Quaternion.t,
+  ~velocity: float=?,
+  ~dtSeconds: float=?,
+  ~config: config=?,
+) => (state, sample)
 @genType
 let step: (
   state,

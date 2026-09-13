@@ -55,6 +55,9 @@ describe("GyroPipeline", () => {
     t->expect(first.dtSeconds)->Expect.Float.toBeCloseTo(0., 8)
     t->expect(second.dtSeconds)->Expect.Float.toBeCloseTo(0.25, 8)
     t->expect(second.velocityMagnitude)->Expect.Float.toBeCloseTo(5., 8)
+    t
+    ->expect(Quaternion.angle(second.relative, second.driftCorrected))
+    ->Expect.Float.toBeCloseTo(0., 8)
     t->expect(Quaternion.angle(second.relative, second.stabilized))->Expect.Float.toBeCloseTo(0., 8)
   })
 
@@ -95,6 +98,7 @@ describe("GyroPipeline", () => {
 
     expectSamePose(t, first.stabilized, directFirst)
     expectSamePose(t, second.relative, raw)
+    t->expect(Quaternion.angle(second.relative, second.driftCorrected) > 0.)->Expect.toBe(true)
     expectSamePose(t, second.stabilized, directSecond)
     t->expect(second.dtSeconds)->Expect.Float.toBeCloseTo(0.1, 8)
   })

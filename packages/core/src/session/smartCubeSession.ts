@@ -74,7 +74,9 @@ export type MoveGapEvent = {
 export type SessionGyroEvent = Extract<SmartCubeEvent, { type: 'GYRO' }> & {
   /** One session-owned, basis-normalized pose for every gyro consumer. */
   relative: { x: number; y: number; z: number; w: number };
-  /** Magnet/drift-adjusted relative pose; equals `relative` when disabled. */
+  /** Drift-compensated pose before magnetic detent; equals `relative` when disabled. */
+  driftCorrected: { x: number; y: number; z: number; w: number };
+  /** Drift-compensated pose after magnetic detent; equals `relative` when disabled. */
   stabilized: { x: number; y: number; z: number; w: number };
   velocityMagnitude: number;
   dtSeconds: number;
@@ -347,8 +349,14 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
         : [moveTrackerState, undefined];
     moveTrackerState = nextMoveTrackerState;
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
+    const regripOrientation =
+      sessionEvent.type === 'GYRO' && state.features.regrip.detector === 'absolute'
+        ? sessionEvent.driftCorrected
+        : calibrated;
     const regrip =
-      calibrated && state.features.regrip.enabled ? observeRegrip(calibrated) : undefined;
+      regripOrientation && state.features.regrip.enabled
+        ? observeRegrip(regripOrientation)
+        : undefined;
     const customTrigger =
       event.type === 'MOVE' &&
       state.features.customTrigger.enabled &&
