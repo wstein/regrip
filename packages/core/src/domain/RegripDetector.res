@@ -42,6 +42,32 @@ let axisAndPolarity = (q: Quaternion.t): (axis, bool) => {
   (axis, value >= 0.)
 }
 
+// Preserve the measured rotation axis while advancing the baseline by one
+// exact quarter. Real IMUs rarely travel around a mathematically pure axis;
+// dropping that small component on every step accumulates frame error and can
+// eventually make a long single-axis turn look closer to another axis.
+let projectedQuarter = (delta: Quaternion.t): Quaternion.t => {
+  let directed: Quaternion.t = if delta.w < 0. {
+    {x: -.delta.x, y: -.delta.y, z: -.delta.z, w: -.delta.w}
+  } else {
+    delta
+  }
+  let magnitude = Math.sqrt(
+    directed.x *. directed.x +. directed.y *. directed.y +. directed.z *. directed.z,
+  )
+  if magnitude < 0.00000001 {
+    Quaternion.identity
+  } else {
+    let scale = Math.sqrt(0.5) /. magnitude
+    Quaternion.normalize({
+      Quaternion.x: directed.x *. scale,
+      y: directed.y *. scale,
+      z: directed.z *. scale,
+      w: Math.sqrt(0.5),
+    })
+  }
+}
+
 let sensorToken = (axis: axis, positive: bool): sensorFrameToken =>
   CubeNotation.token(
     axis,
@@ -126,9 +152,10 @@ let step = (state: state, current: Quaternion.t, ~config=defaults): (
     if residualAngle >= deltaAngle || residualAngle >= threshold {
       (state, None)
     } else {
-      // Project to one exact cardinal quarter rather than using the threshold
-      // packet, so a continuous rotation yields four steps.
-      let nextState = Quaternion.multiply(state, quarter(axis, positive))
+      // Advance one exact quarter around the measured axis rather than using
+      // the threshold packet. This counts continuous turns in 90° steps while
+      // retaining bounded off-axis sensor drift in the rolling baseline.
+      let nextState = Quaternion.multiply(state, projectedQuarter(delta))
       (
         nextState,
         Some({

@@ -42,6 +42,7 @@ if (!fixturePath) {
   let gyroState = GyroOrientation.initial;
   let regripState = RegripDetector.initial;
   const tokens = [];
+  const observations = [];
   for (const event of gyroEvents) {
     // The historical fixture stores GoCube wire coordinates. Mirror the
     // transport decoder before handing each sample to the core profile map.
@@ -57,12 +58,15 @@ if (!fixturePath) {
       thresholdDeg: oracle.thresholdDeg,
     });
     regripState = nextRegripState;
-    if (observation) tokens.push(observation.notationToken);
+    if (observation) {
+      tokens.push(observation.notationToken);
+      observations.push({ t: event.t, relative, token: observation.notationToken });
+    }
   }
 
   if (JSON.stringify(tokens) !== JSON.stringify(oracle.tokens)) {
     throw new Error(
-      `GoCube parity mismatch\nexpected ${oracle.tokens.join(' ')}\nreceived ${tokens.join(' ')}`,
+      `GoCube parity mismatch\nexpected ${oracle.tokens.join(' ')}\nreceived ${tokens.join(' ')}\nobserved ${JSON.stringify(observations)}`,
     );
   }
   console.log(`GoCube parity OK: ${tokens.length} tokens (${tokens.join(' ')})`);

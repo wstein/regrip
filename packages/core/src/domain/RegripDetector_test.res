@@ -128,6 +128,28 @@ describe("RegripDetector", () => {
     ])
   })
 
+  test("retains a slightly tilted sensor axis across a long turn", t => {
+    let detector = make()
+    let tilted = degrees =>
+      Quaternion.fromEuler({
+        x: Quaternion.degreesToRadians(8.),
+        y: Quaternion.degreesToRadians(-5.),
+        z: Quaternion.degreesToRadians(degrees),
+      })
+    let tokens =
+      [66., 156., 246., 336.]->Array.map(
+        degrees => observe(detector, tilted(degrees)).notationToken,
+      )
+    t
+    ->expect(tokens)
+    ->Expect.toEqual([
+      CubeNotation.ZPrime,
+      CubeNotation.ZPrime,
+      CubeNotation.ZPrime,
+      CubeNotation.ZPrime,
+    ])
+  })
+
   test("preserves local mixed-axis order", t => {
     let detector = make()
     let x = rotation(~x=90.)
