@@ -20,7 +20,7 @@ and records the same typed event stream it can replay later without a cube.
 > and does not upload Bluetooth telemetry, replay files, move history, analysis, or exports. Data
 > leaves the browser only when you explicitly copy, download, or share it.
 
-![Regrip main panel showing the virtual cube, detected moves, solve analysis, and state export](docs/assets/regrip-console-main.png)
+<img src="docs/assets/regrip-console-main.png" width="50%" alt="Regrip main panel showing the virtual cube, detected moves, solve analysis, and state export">
 
 ## Highlights
 
@@ -67,7 +67,7 @@ modes:
 - **Re-detect sensor data** runs captured transport samples through a fresh session using the
   recorded feature configuration.
 
-![Full Live Trace replay panel with playback controls and the latest battery event selected in the JSON details inspector](docs/assets/regrip-replay-panel.png)
+<img src="docs/assets/regrip-replay-panel.png" width="50%" alt="Full Live Trace replay panel with playback controls and the latest battery event selected in the JSON details inspector">
 
 The deterministic browser harness is also available at
 `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`). Add `&autoplay` or
