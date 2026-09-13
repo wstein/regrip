@@ -22,21 +22,20 @@
 - [x] Cover the opt-in core manager with deterministic GAN and GoCube transport
       tests, including initial requests, stabilized viewport pose, one regrip
       decision, and post-regrip solver-frame move/facelet projection.
-- [ ] Establish GAN parity: Gen1–4, including Gen2/UI12 and Gen4/i4 MAC recovery;
-      compare lifecycle, initial state, moves, facelets, battery/hardware, gyro,
-      and disconnect behavior.
+- [x] Establish an executable GAN Gen1–4 session parity matrix covering profile
+      resolution, capability-gated initial state, normalized events, and disconnect.
+- [ ] Add representative Gen1 and Gen3 hardware captures and finish transport-level
+      parity for Gen4/i4 MAC recovery, gyro, moves, facelets, and hardware metadata.
 - [ ] Establish GoCube/Rubik’s Connected parity, including direct Nordic-UART
       connection readiness/latency, initial requests, gyro, and vendor commands.
-      The CubeLab `gocube-yxz` capture is the current frame gate: core emits 25
-      mixed tokens at its 60° default, while the legacy expectation is 29
-      axis-grouped steps. A 55° threshold reaches 29 but remains mixed, so tune
-      the GoCube sensor/profile mapping before changing the default path.
+      The external `gocube-yxz` frame gate is now hash-locked and green at the
+      audited legacy contract: 23 axis-grouped steps at 65° (`7y 8z 8x'`).
 - [ ] Switch CubeLab GAN first, then GoCube, retaining legacy fallback per device
       during rollout. Migrate MoYu and GiiKER only after both cutovers are stable.
 - [ ] Keep the core MIT and unpublished while its API settles; CubeLab consumes a
       local or Git-pinned source dependency rather than a public npm release.
-- [ ] Add a reproducible unpublished-consumer fixture before CubeLab depends on
-      the package: verify `npm pack` contents and ReScript/TypeScript imports.
+- [x] Add a reproducible unpublished-consumer fixture that verifies `npm pack`
+      contents plus isolated ReScript and TypeScript imports without publishing.
 
 ## Validate on real cubes
 
@@ -130,8 +129,8 @@
       the artifact before compiling an isolated TypeScript/ReScript consumer.
 - [x] Add a CI snapshot/check of handled smartcube event types so dependency
       upgrades expose new protocol events deliberately.
-- [x] Refresh README with the four-layer architecture, profiles, virtual
-      regrips, magnetic stabilization, JSONL, trace sidebar, commands, and custom triggers.
+- [x] Keep README focused on the browser-local 101 workflow and move the detailed
+      four-layer design to `ARCHITECTURE.md`.
 
 ## Upstream/community
 
