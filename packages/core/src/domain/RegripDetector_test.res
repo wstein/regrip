@@ -184,8 +184,11 @@ describe("RegripDetector", () => {
       (CubeNotation.XPrime, "FRDBLU", "BRUFLD"),
       (CubeNotation.YPrime, "UBRDFL", "UFLDBR"),
       (CubeNotation.ZPrime, "LUFRDB", "RDFLUB"),
+      // X² = (U D)(F B), R/L fixed.
       (CubeNotation.XDouble, "DRBULF", "DRBULF"),
+      // Y² = (R L)(F B), U/D fixed.
       (CubeNotation.YDouble, "ULBDRF", "ULBDRF"),
+      // Z² = (U D)(R L), F/B fixed.
       (CubeNotation.ZDouble, "DLFURB", "DLFURB"),
     ]->Array.forEach(
       ((token, sensor, notation)) => {
