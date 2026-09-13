@@ -345,6 +345,17 @@ describe('panel primitives', () => {
     expect(document.querySelector('body > textarea')).toBeNull();
   });
 
+  it('rejects and cleans up when the legacy clipboard fallback reports failure', async () => {
+    Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    Object.defineProperty(document, 'execCommand', {
+      value: vi.fn().mockReturnValue(false),
+      configurable: true,
+    });
+
+    await expect(copyText('fallback')).rejects.toThrow('Clipboard copy was rejected');
+    expect(document.querySelector('body > textarea')).toBeNull();
+  });
+
   it('reports copy success and failure through the shared feedback helper', async () => {
     document.body.innerHTML = '<div id="app-feedback" hidden></div>';
     const writeText = vi.fn().mockResolvedValue(undefined);

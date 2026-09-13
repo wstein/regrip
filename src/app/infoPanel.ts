@@ -269,8 +269,11 @@ export async function copyText(value: string): Promise<void> {
   fallback.style.opacity = '0';
   document.body.append(fallback);
   fallback.select();
-  document.execCommand('copy');
-  fallback.remove();
+  try {
+    if (!document.execCommand('copy')) throw new Error('Clipboard copy was rejected');
+  } finally {
+    fallback.remove();
+  }
 }
 
 /** Copy text and keep success/error feedback consistent across app actions. */
