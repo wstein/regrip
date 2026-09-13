@@ -5,6 +5,7 @@ import {
   setOrientationIndicatorColors,
   type OrientationIndicatorColors,
 } from './orientationIndicator';
+import { HOME_FRAME_COLORS } from './faceColors';
 
 type Vantage = {
   scene: { scene(): Promise<THREE.Scene> } | null;
@@ -46,12 +47,6 @@ export type VirtualFrameOrientation = Readonly<{
   front: SceneVector;
   colors: OrientationIndicatorColors;
 }>;
-
-const HOME_FRAME_COLORS: OrientationIndicatorColors = {
-  x: 0xff3131,
-  y: 0xffffff,
-  z: 0x78ed3e,
-};
 
 /**
  * Attach the regrip gizmo to cubing.js' existing WebGL scene.

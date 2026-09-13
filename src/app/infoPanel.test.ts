@@ -5,6 +5,7 @@ import {
   clearActiveGrip,
   clearInfo,
   copyText,
+  copyWithFeedback,
   getDetectedMoves,
   mountCube,
   on,
@@ -342,6 +343,23 @@ describe('panel primitives', () => {
     await copyText('fallback');
     expect(copy).toHaveBeenCalledWith('copy');
     expect(document.querySelector('body > textarea')).toBeNull();
+  });
+
+  it('reports copy success and failure through the shared feedback helper', async () => {
+    document.body.innerHTML = '<div id="app-feedback" hidden></div>';
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+    await copyWithFeedback('trace', 'Trace JSONL');
+    expect(writeText).toHaveBeenCalledWith('trace');
+    expect(document.querySelector('#app-feedback')?.textContent).toBe('Trace JSONL copied.');
+
+    writeText.mockRejectedValueOnce(new Error('denied'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await copyWithFeedback('trace', 'Trace JSONL');
+    expect(document.querySelector('#app-feedback')?.textContent).toBe(
+      'Could not copy trace JSONL.',
+    );
   });
 
   it('reports missing typed elements and labels', () => {

@@ -7,14 +7,13 @@ import { createTwistyPlayerSync } from '../adapters/cubing/twistyPlayerSync';
 import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
-import { createJsonlLog, downloadJsonl, serializeJsonl } from './jsonlLog';
+import { createJsonlLog, downloadJsonl } from './jsonlLog';
 import { createLiveLog } from './liveLog';
 import { mountFullscreenToggle } from './fullscreen';
 import { createDetectedMovesController } from './detectedMovesController';
 import { createSessionSignals } from './sessionSignals';
 import { createCubeEventController } from '../integration/cubeEvents';
 import { connectCube } from '../integration/connection';
-import { JSONL_REPLAY_FORMAT, JSONL_REPLAY_VERSION } from '@wstein/regrip-core/session/jsonlFormat';
 import { createTimingDiagnostics } from '../integration/timingDiagnostics';
 import { createSessionElapsedClock } from '../integration/sessionElapsed';
 import { createSolveAnalysis } from '../integration/solveAnalysis';
@@ -30,6 +29,8 @@ import { createSolverFrame } from '../adapters/three/solverFrame';
 import { sourceRevision } from './sourceRevision';
 import { loadReplayFromUrl, mountMockDevicePicker } from './mockDevice';
 import { createDropdownMenu } from './dom';
+import { createOrientationUi, formatGripDescription } from './orientationUi';
+import { replayHeaderForState, scopedTraceJsonl } from './traceExport';
 
 const sourceRevisionLink = document.getElementById('source-revision');
 if (sourceRevisionLink instanceof HTMLAnchorElement) {
@@ -65,7 +66,6 @@ detectedMoves.clear();
 mountFullscreenToggle();
 
 let sceneRenderer: SceneRenderer | undefined;
-let orientationTracking = false;
 const playerSync = createTwistyPlayerSync(twistyPlayer, () => sceneRenderer?.requestRender());
 const playerPatterns = createPatternReconciler();
 const preseededReplay = import.meta.env.DEV ? window.__smartcubeReplay : undefined;
@@ -101,44 +101,12 @@ eventLog.subscribe((entry) => {
 session.subscribeDiagnostics((diagnostic) => liveLog.appendDiagnostic(diagnostic));
 const solverFrame = createSolverFrame();
 let cubeExportSource: CubeExportSource | undefined;
-const faceColors: Record<string, number> = {
-  U: 0xffffff,
-  R: 0xff3131,
-  F: 0x78ed3e,
-  D: 0xfff34a,
-  L: 0xff8a2a,
-  B: 0x3568ff,
-};
-
-function formatGripDescription(faces: { front: string; up: string; right: string }): string {
-  const isHome = faces.front === 'F' && faces.up === 'U' && faces.right === 'R';
-  return isHome ? 'Home' : `F:${faces.front} U:${faces.up} R:${faces.right}`;
-}
-
-function syncVirtualFrameOrientation(gesture?: string): void {
-  const { right, up, front, faces } = solverFrame.orientation();
-  sceneRenderer?.setVirtualFrameOrientation({
-    right,
-    up,
-    front,
-    colors: {
-      x: faceColors[faces.right]!,
-      y: faceColors[faces.up]!,
-      z: faceColors[faces.front]!,
-    },
-  });
-  infoPanel.setActiveGrip(formatGripDescription(faces), gesture);
-}
-
-function setOrientationTracking(tracking: boolean): void {
-  orientationTracking = tracking;
-  sceneRenderer?.setManualOrientationEnabled(!tracking);
-  infoPanel.setOrientationTracking(tracking);
-}
-
-function resetViewOrientation(): void {
-  sceneRenderer?.resetCubeOrientation();
-}
+const orientationUi = createOrientationUi({
+  orientation: solverFrame.orientation,
+  renderer: () => sceneRenderer,
+  setActiveGrip: infoPanel.setActiveGrip,
+  setTrackingStatus: infoPanel.setOrientationTracking,
+});
 
 infoPanel.on('reset-state', 'click', async () => {
   if (!window.confirm("Reset the cube state? This clears the cube's stored state.")) return;
@@ -159,8 +127,8 @@ infoPanel.on('reset-state', 'click', async () => {
 });
 
 infoPanel.on('reset-gyro', 'click', async () => {
-  if (!orientationTracking) {
-    resetViewOrientation();
+  if (!orientationUi.isTracking()) {
+    orientationUi.resetView();
     infoPanel.showFeedback('View orientation reset.');
     return;
   }
@@ -170,14 +138,14 @@ infoPanel.on('reset-gyro', 'click', async () => {
   }
   session.resetGyro();
   solverFrame.reset();
-  syncVirtualFrameOrientation();
+  orientationUi.syncVirtualFrame();
   infoPanel.showFeedback('Gyro and virtual move frame reset.');
 });
 
 infoPanel.on('track-orientation', 'click', () => {
   if (!session.getState().connection?.capabilities.gyroscope) return;
-  const nextTracking = !orientationTracking;
-  setOrientationTracking(nextTracking);
+  const nextTracking = !orientationUi.isTracking();
+  orientationUi.setTracking(nextTracking);
   if (nextTracking) {
     session.resetGyro();
     infoPanel.showFeedback('Gyro orientation tracking enabled.');
@@ -225,7 +193,7 @@ const cubeEvents = createCubeEventController({
     detectedMoves.append(move, rawMove);
   },
   setOrientation: (quaternion) => {
-    if (!orientationTracking) return;
+    if (!orientationUi.isTracking()) return;
     sceneRenderer?.setCubeOrientation(quaternion);
   },
   setPlayerAlgorithm: (algorithm) => {
@@ -251,7 +219,7 @@ const cubeEvents = createCubeEventController({
   onProtocolEvent: (event) => eventLog.record('cube_event', event),
   onRegrip: (event, solverToken) => {
     eventLog.record('virtual_regrip', { ...event, solverToken });
-    syncVirtualFrameOrientation(`⟳ ${solverToken}`);
+    orientationUi.syncVirtualFrame(`⟳ ${solverToken}`);
   },
   onCustomTrigger: (event, solverMove) => {
     eventLog.record('custom_trigger', { ...event, solverMove });
@@ -304,6 +272,19 @@ sessionSignals.event.subscribe((event) => {
 
 let previousStatus = session.getState().status;
 let appliedProfile = session.getState().profile;
+
+function resetSessionUi(): void {
+  sceneRenderer?.setActive(false);
+  orientationUi.setTracking(false);
+  cubeExportSource = undefined;
+  solverFrame.reset();
+  orientationUi.syncVirtualFrame();
+  infoPanel.clearInfo();
+  detectedMoves.clear();
+  infoPanel.setOrientationTrackingAvailable(false);
+  infoPanel.setResetOrientationEnabled(false);
+}
+
 sessionSignals.state.subscribe((state) => {
   if (state.profile !== appliedProfile) {
     appliedProfile = state.profile;
@@ -321,15 +302,7 @@ sessionSignals.state.subscribe((state) => {
     timingDiagnostics.reset();
     solveAnalysis.reset();
     elapsedClock.reset();
-    sceneRenderer?.setActive(false);
-    setOrientationTracking(false);
-    cubeExportSource = undefined;
-    solverFrame.reset();
-    syncVirtualFrameOrientation();
-    infoPanel.clearInfo();
-    detectedMoves.clear();
-    infoPanel.setOrientationTrackingAvailable(false);
-    infoPanel.setResetOrientationEnabled(false);
+    resetSessionUi();
     infoPanel.setConnectionStatus('Connecting…');
     return;
   }
@@ -347,7 +320,7 @@ sessionSignals.state.subscribe((state) => {
       });
     } else sceneRenderer.setActive(true);
     infoPanel.setOrientationTrackingAvailable(connection.capabilities.gyroscope);
-    setOrientationTracking(connection.capabilities.gyroscope);
+    orientationUi.setTracking(connection.capabilities.gyroscope);
     infoPanel.setInfo('deviceName', connection.deviceName);
     infoPanel.setInfo('deviceMAC', connection.deviceMAC || '- n/a -');
     infoPanel.setInfo('protocol', `${connection.protocol.name} (${connection.protocol.id})`);
@@ -388,17 +361,9 @@ sessionSignals.state.subscribe((state) => {
       elapsedClock.refresh();
       elapsedClock.stop();
     }
-    sceneRenderer?.setActive(false);
-    setOrientationTracking(false);
-    cubeExportSource = undefined;
     commandPanel.clear();
-    solverFrame.reset();
-    syncVirtualFrameOrientation();
     cubeEvents.reset();
-    infoPanel.clearInfo();
-    detectedMoves.clear();
-    infoPanel.setOrientationTrackingAvailable(false);
-    infoPanel.setResetOrientationEnabled(false);
+    resetSessionUi();
     infoPanel.setConnectionStatus('Disconnected');
     infoPanel.setConnectLabel('Connect');
     return;
@@ -408,17 +373,9 @@ sessionSignals.state.subscribe((state) => {
       elapsedClock.refresh();
       elapsedClock.stop();
     }
-    sceneRenderer?.setActive(false);
-    setOrientationTracking(false);
-    cubeExportSource = undefined;
     commandPanel.clear();
-    solverFrame.reset();
-    syncVirtualFrameOrientation();
     cubeEvents.reset();
-    infoPanel.clearInfo();
-    detectedMoves.clear();
-    infoPanel.setOrientationTrackingAvailable(false);
-    infoPanel.setResetOrientationEnabled(false);
+    resetSessionUi();
     infoPanel.setConnectionStatus(`Failed: ${state.error}`);
     infoPanel.setConnectLabel('Connect');
     alert(`Unable to connect to smart cube: ${state.error}`);
@@ -436,45 +393,25 @@ infoPanel.on('disconnect-cube', 'click', async () => {
 });
 
 function currentReplayHeader() {
-  const state = session.getState();
-  return {
-    format: JSONL_REPLAY_FORMAT,
-    version: JSONL_REPLAY_VERSION,
-    session: {
-      status: state.status,
-      device: state.connection?.deviceName ?? null,
-      deviceMAC: state.connection?.deviceMAC ?? null,
-      protocol: state.connection?.protocol ?? null,
-      profile: state.profile.id,
-      profileValue: state.profile.value,
-    },
-  };
-}
-
-function currentTraceEntriesJsonlLog(entries: ReturnType<typeof liveLog.getEntries>): string {
-  return serializeJsonl([
-    {
-      recordedAt: new Date().toISOString(),
-      type: 'trace_header',
-      data: currentReplayHeader(),
-    },
-    ...entries.map((entry) => entry.log),
-  ]);
+  return replayHeaderForState(session.getState());
 }
 
 const traceExportScope = document.getElementById('trace-export-scope') as HTMLSelectElement;
 
 function currentScopedJsonlLog(): string | undefined {
-  if (traceExportScope.value === 'all') return eventLog.toJsonl(currentReplayHeader());
-  const entries =
-    traceExportScope.value === 'selected'
-      ? liveLog.getSelectedEntries()
-      : liveLog.getFilteredEntries();
-  if (traceExportScope.value === 'selected' && entries.length === 0) {
-    infoPanel.showFeedback('Select trace events first.');
+  const header = currentReplayHeader();
+  const result = scopedTraceJsonl({
+    scope: traceExportScope.value,
+    header,
+    all: () => eventLog.toJsonl(header),
+    filtered: liveLog.getFilteredEntries().map((entry) => entry.log),
+    selected: liveLog.getSelectedEntries().map((entry) => entry.log),
+  });
+  if (result.error) {
+    infoPanel.showFeedback(result.error);
     return undefined;
   }
-  return currentTraceEntriesJsonlLog(entries);
+  return result.contents;
 }
 
 infoPanel.on('download-log', 'click', () => {
@@ -488,13 +425,7 @@ infoPanel.on('download-log', 'click', () => {
 infoPanel.on('copy-log', 'click', () => {
   const contents = currentScopedJsonlLog();
   if (contents === undefined) return;
-  void infoPanel
-    .copyText(contents)
-    .then(() => infoPanel.showFeedback('Trace JSONL copied.'))
-    .catch((error) => {
-      console.error('unable to copy trace JSONL', error);
-      infoPanel.showFeedback('Could not copy trace JSONL.');
-    });
+  void infoPanel.copyWithFeedback(contents, 'Trace JSONL');
 });
 
 infoPanel.on('clear-detected-moves', 'click', () => {
@@ -507,13 +438,7 @@ infoPanel.on('simplify-detected-moves', 'click', () => {
 });
 
 infoPanel.on('copy-detected-moves', 'click', () => {
-  void infoPanel
-    .copyText(detectedMoves.text())
-    .then(() => infoPanel.showFeedback('Detected moves copied.'))
-    .catch((error) => {
-      console.error('unable to copy detected moves', error);
-      infoPanel.showFeedback('Could not copy detected moves.');
-    });
+  void infoPanel.copyWithFeedback(detectedMoves.text(), 'Detected moves');
 });
 
 infoPanel.on('detected-notation-wca', 'click', () => detectedMoves.setNotation('wca'));
@@ -535,13 +460,7 @@ function copyCubeExport(format: CubeExportFormat, label: string): void {
     infoPanel.showFeedback(`No valid cube state is available for ${label}.`);
     return;
   }
-  void infoPanel
-    .copyText(value)
-    .then(() => infoPanel.showFeedback(`${label} copied.`))
-    .catch((error) => {
-      console.error(`unable to copy ${label}`, error);
-      infoPanel.showFeedback(`Could not copy ${label}.`);
-    });
+  void infoPanel.copyWithFeedback(value, label);
 }
 
 infoPanel.on('copy-compact-facelets', 'click', () =>

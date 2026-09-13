@@ -1,10 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createJsonlLog, downloadJsonl } from './jsonlLog';
+import { buildJsonlWithHeader, createJsonlLog, downloadJsonl } from './jsonlLog';
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('JSONL log', () => {
+  it('builds arbitrary entry subsets with the shared replay header format', () => {
+    expect(
+      buildJsonlWithHeader(
+        { format: 'regrip', version: 1 },
+        [{ recordedAt: 'event-time', type: 'cube_event', data: { type: 'MOVE' } }],
+        () => 'header-time',
+      ),
+    ).toBe(
+      '{"recordedAt":"header-time","type":"trace_header","data":{"format":"regrip","version":1}}\n' +
+        '{"recordedAt":"event-time","type":"cube_event","data":{"type":"MOVE"}}\n',
+    );
+  });
   it('keeps a local buffer and exports its current entries with a replay header', () => {
     const log = createJsonlLog(() => '2026-09-08T12:00:00.000Z');
     log.record('session_status', { status: 'connected' });

@@ -12,6 +12,14 @@ export function serializeJsonl(entries: readonly LogEntry[]): string {
   );
 }
 
+export function buildJsonlWithHeader(
+  header: JsonValue,
+  entries: readonly LogEntry[],
+  now: () => string = () => new Date().toISOString(),
+): string {
+  return serializeJsonl([{ recordedAt: now(), type: 'trace_header', data: header }, ...entries]);
+}
+
 type LogListener = (entry: LogEntry) => void;
 const maxEntries = 10_000;
 
@@ -39,10 +47,7 @@ export function createJsonlLog(now: () => string = () => new Date().toISOString(
       entries = [];
     },
     toJsonl(header: JsonValue): string {
-      return serializeJsonl([
-        { recordedAt: now(), type: 'trace_header', data: header },
-        ...entries,
-      ]);
+      return buildJsonlWithHeader(header, entries, now);
     },
     subscribe(listener: LogListener): () => void {
       listeners.add(listener);

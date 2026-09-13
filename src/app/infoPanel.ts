@@ -15,25 +15,15 @@ const optionalInfoIds = [
 ];
 
 function input(id: string): HTMLInputElement {
-  const element = byId(id);
-  if (!(element instanceof HTMLInputElement)) {
-    throw new Error(`Missing input #${id}`);
-  }
-  return element;
+  return byId(id, HTMLInputElement);
 }
 
 function textarea(id: string): HTMLTextAreaElement {
-  const element = byId(id);
-  if (!(element instanceof HTMLTextAreaElement)) {
-    throw new Error(`Missing textarea #${id}`);
-  }
-  return element;
+  return byId(id, HTMLTextAreaElement);
 }
 
 function button(id: string): HTMLButtonElement {
-  const element = byId(id);
-  if (!(element instanceof HTMLButtonElement)) throw new Error(`Missing button #${id}`);
-  return element;
+  return byId(id, HTMLButtonElement);
 }
 
 export type MoveCategory = {
@@ -281,6 +271,18 @@ export async function copyText(value: string): Promise<void> {
   fallback.select();
   document.execCommand('copy');
   fallback.remove();
+}
+
+/** Copy text and keep success/error feedback consistent across app actions. */
+export async function copyWithFeedback(value: string, label: string): Promise<void> {
+  try {
+    await copyText(value);
+    showFeedback(`${label} copied.`);
+  } catch (error) {
+    console.error(`unable to copy ${label}`, error);
+    const sentenceLabel = label.charAt(0).toLowerCase() + label.slice(1);
+    showFeedback(`Could not copy ${sentenceLabel}.`);
+  }
 }
 
 export function clearInfo(): void {
