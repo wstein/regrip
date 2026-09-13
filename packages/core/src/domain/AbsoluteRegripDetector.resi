@@ -1,5 +1,5 @@
-// Detects regrips by locking calibrated gyro input to one of the 24 absolute
-// cube orientations and emitting a deterministic shortest quarter-turn path.
+// Detects regrips by locking drift-corrected gyro input to one of the 24
+// absolute cube orientations and emitting a deterministic shortest path.
 
 @genType
 type config = {snapDeg: float, hysteresisDeg: float}

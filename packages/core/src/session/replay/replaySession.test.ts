@@ -32,24 +32,6 @@ const featureHeader = JSON.stringify({
     },
   },
 });
-const absoluteFeatureHeader = JSON.stringify({
-  recordedAt: '2026-09-09T10:00:00.000Z',
-  type: 'trace_header',
-  data: {
-    format: 'regrip',
-    version: 1,
-    session: {
-      device: 'GoCube Edge',
-      protocol: 'gocube',
-      profileValue: {
-        features: {
-          ...featurePresets.all,
-          regrip: { ...featurePresets.all.regrip, detector: 'absolute' },
-        },
-      },
-    },
-  },
-});
 const lifecycleLog = [
   header,
   '{"recordedAt":"2026-09-09T10:00:00.001Z","type":"session_status","data":{"status":"connecting"}}',
@@ -132,7 +114,7 @@ describe('replay session', () => {
     await replay.session.connect();
 
     expect(replay.session.getState().features).toMatchObject({
-      regrip: { enabled: true, thresholdDeg: 60 },
+      regrip: { enabled: true },
       customTrigger: {
         enabled: true,
         triggers: [{ kind: 'moveBack', windowMs: 300 }, { kind: 'shake' }],
@@ -140,7 +122,7 @@ describe('replay session', () => {
     });
   });
 
-  it('defaults legacy captured regrip features to threshold detection', async () => {
+  it('ignores legacy detector settings while restoring captured regrip enablement', async () => {
     const legacyHeader = JSON.stringify({
       recordedAt: '2026-09-13T20:27:33.031Z',
       type: 'trace_header',
@@ -163,7 +145,7 @@ describe('replay session', () => {
 
     await replay.session.connect();
 
-    expect(replay.session.getState().features.regrip.detector).toBe('threshold');
+    expect(replay.session.getState().features.regrip).toEqual({ enabled: true });
   });
 
   it('re-detects a diagonal orientation jump with the absolute detector', async () => {
@@ -185,7 +167,7 @@ describe('replay session', () => {
     });
     const replay = createReplaySession(
       [
-        absoluteFeatureHeader,
+        featureHeader,
         gyroRecord('2026-09-09T10:00:00.010Z', 0, Quaternion.identity),
         gyroRecord('2026-09-09T10:00:00.020Z', 10, toRawSensorFrame(invalidDiagonal)),
         gyroRecord('2026-09-09T10:00:00.030Z', 20, toRawSensorFrame(validDiagonal)),
@@ -198,7 +180,6 @@ describe('replay session', () => {
 
     await replay.advanceTo(Number.MAX_SAFE_INTEGER);
 
-    expect(replay.session.getState().features.regrip.detector).toBe('absolute');
     expect(regrips).toEqual(["x'", "y'"]);
   });
 

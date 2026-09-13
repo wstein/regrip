@@ -131,10 +131,10 @@ Per-device profiles define sensor axes, stabilization, battery presentation, pro
 feature overrides. The gyro pipeline combines cube-symmetry magnetic detents, hysteresis, velocity
 gating, drift adjustment, display-rate coalescing, and a configurable microjitter threshold.
 
-`RegripDetector` emits body-frame `x`, `y`, or `z` only when an unambiguous cardinal quarter turn
-strictly improves the residual and falls inside the acceptance region. Diagonal calibration dead
-zones and ambiguous half turns leave the ratchet unchanged. Accepted body tokens are projected into
-the solver frame for display.
+`AbsoluteRegripDetector` locks the drift-corrected pose to one of the 24 valid cube orientations and
+emits a deterministic shortest sequence of body-frame quarter turns. Invalid diagonal poses leave
+its state unchanged; once the cube reaches a valid orientation, compound and half-turn regrips are
+decomposed without dead zones. Accepted body tokens are projected into the solver frame for display.
 
 Custom gestures are independent typed session events:
 
@@ -184,20 +184,20 @@ Core state machines follow this pattern:
 (state, input) -> (nextState, effects)
 ```
 
-| Module or directory                                 | Responsibility                                                     |
-| --------------------------------------------------- | ------------------------------------------------------------------ |
-| `packages/core/src/session/smartCubeSession.ts`     | Lifecycle, ordered events, calibration, regrips, and triggers      |
-| `packages/core/src/session/profile/`                | Profile inheritance, matching, overrides, and per-field provenance |
-| `packages/core/src/session/replay/replaySession.ts` | Virtual-clock replay at transport or session-output level          |
-| `CubeFacelets.res` / `CubeNotation.res`             | Solved-state detection, facelet conversion, and notation types     |
-| `Quaternion.res` / `CubeSymmetry.res`               | Quaternion math and the 24 cube orientations                       |
-| `GyroPipeline.res` and its component reducers       | Detents, hysteresis, velocity gating, drift, and calibrated poses  |
-| `RegripDetector.res` / `VirtualCubeFrame.res`       | Virtual rotations and exact Body↔Solver mapping                    |
-| `MoveBackTrigger.res` / `ShakeTrigger.res`          | Returned-face and calibrated-orientation gesture detection         |
-| `MoveTracker.res` / `SnapshotDeduper.res`           | Serial-gap detection and duplicate/unsolicited snapshot policy     |
-| `PlayerSync.res` / `ReplayCursor.res`               | Race-safe player reconciliation and deterministic replay cursor    |
-| `src/integration/`                                  | Browser event routing, timing, exports, and metadata               |
-| `src/adapters/cubing/` / `src/adapters/three/`      | Solver/player and renderer boundaries                              |
+| Module or directory                                   | Responsibility                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------ |
+| `packages/core/src/session/smartCubeSession.ts`       | Lifecycle, ordered events, calibration, regrips, and triggers      |
+| `packages/core/src/session/profile/`                  | Profile inheritance, matching, overrides, and per-field provenance |
+| `packages/core/src/session/replay/replaySession.ts`   | Virtual-clock replay at transport or session-output level          |
+| `CubeFacelets.res` / `CubeNotation.res`               | Solved-state detection, facelet conversion, and notation types     |
+| `Quaternion.res` / `CubeSymmetry.res`                 | Quaternion math and the 24 cube orientations                       |
+| `GyroPipeline.res` and its component reducers         | Detents, hysteresis, velocity gating, drift, and calibrated poses  |
+| `AbsoluteRegripDetector.res` / `VirtualCubeFrame.res` | Absolute regrips and exact Body↔Solver mapping                     |
+| `MoveBackTrigger.res` / `ShakeTrigger.res`            | Returned-face and calibrated-orientation gesture detection         |
+| `MoveTracker.res` / `SnapshotDeduper.res`             | Serial-gap detection and duplicate/unsolicited snapshot policy     |
+| `PlayerSync.res` / `ReplayCursor.res`                 | Race-safe player reconciliation and deterministic replay cursor    |
+| `src/integration/`                                    | Browser event routing, timing, exports, and metadata               |
+| `src/adapters/cubing/` / `src/adapters/three/`        | Solver/player and renderer boundaries                              |
 
 The ReScript compiler produces `*.res.mjs`; genType derives typed `*.gen.ts` wrappers from public
 interfaces. The release check packs the core and compiles isolated TypeScript and ReScript

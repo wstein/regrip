@@ -23,9 +23,9 @@ import {
 } from '@wstein/regrip-core/domain/GyroPipeline';
 import { defaults as stabilizerDefaults } from '@wstein/regrip-core/domain/OrientationStabilizer';
 import {
-  initial as initialRegripDetector,
-  type observation as RegripObservation,
-} from '@wstein/regrip-core/domain/RegripDetector';
+  initial as initialAbsoluteRegripDetector,
+  type observation as AbsoluteRegripObservation,
+} from '@wstein/regrip-core/domain/AbsoluteRegripDetector';
 import {
   applyRegrip as applyVirtualRegrip,
   make as makeVirtualCubeFrame,
@@ -80,9 +80,9 @@ void gyroConfig;
 void gyroPipelineState;
 const virtualFrame: VirtualCubeFrame = makeVirtualCubeFrame();
 const regrippedVirtualFrame: VirtualCubeFrame = applyVirtualRegrip(virtualFrame, 'y');
-declare const regripObservation: RegripObservation | undefined;
+declare const regripObservation: AbsoluteRegripObservation | undefined;
 declare const shakeDetection: ShakeDetection | undefined;
-void initialRegripDetector;
+void initialAbsoluteRegripDetector;
 void initialShakeTrigger;
 void virtualFrame;
 void regrippedVirtualFrame;

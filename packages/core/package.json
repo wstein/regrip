@@ -16,7 +16,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rescript && tsc --project tsconfig.build.json && node scripts/finalize-dist.mjs",
+    "build": "node scripts/clean-dist.mjs && rescript && tsc --project tsconfig.build.json && node scripts/finalize-dist.mjs",
     "prepack": "npm run build"
   },
   "exports": {
@@ -95,10 +95,6 @@
     "./domain/GyroPipeline": {
       "types": "./dist/domain/GyroPipeline.gen.d.ts",
       "default": "./dist/domain/GyroPipeline.gen.js"
-    },
-    "./domain/RegripDetector": {
-      "types": "./dist/domain/RegripDetector.gen.d.ts",
-      "default": "./dist/domain/RegripDetector.gen.js"
     },
     "./domain/AbsoluteRegripDetector": {
       "types": "./dist/domain/AbsoluteRegripDetector.gen.d.ts",

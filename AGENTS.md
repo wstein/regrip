@@ -33,7 +33,7 @@
 - `npm run check:three-singleton` fails if the lockfile would install multiple Three.js runtimes.
 - To run a single test, build ReScript first (`npm run res:build` — a bare `vitest` invocation does not do this for you), then target the right one of the two split Vitest configs by file path:
   `npx vitest run --config vitest.config.ts src/app/commandPanel.browser.test.ts` (app-level, `src/`) or
-  `npx vitest run --config packages/core/vitest.config.ts packages/core/src/domain/RegripDetector_test.res.mjs` (core-level, `packages/core/src/`). Add `-t "<name>"` to filter by test name.
+  `npx vitest run --config packages/core/vitest.config.ts packages/core/src/domain/AbsoluteRegripDetector_test.res.mjs` (core-level, `packages/core/src/`). Add `-t "<name>"` to filter by test name.
 
 ## Coding Style & Naming Conventions
 

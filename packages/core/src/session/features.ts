@@ -35,8 +35,6 @@ export type SessionFeatures = {
   };
   regrip: {
     enabled: boolean;
-    detector: 'threshold' | 'absolute';
-    thresholdDeg: number;
   };
   customTrigger: { enabled: boolean; triggers: CustomTriggerSpec[] };
 };
@@ -53,8 +51,6 @@ export type SessionFeaturesPatch = {
   };
   regrip?: {
     enabled?: boolean;
-    detector?: 'threshold' | 'absolute';
-    thresholdDeg?: number;
   };
   customTrigger?: { enabled?: boolean; triggers?: CustomTriggerSpec[] };
 };
@@ -70,7 +66,7 @@ export const defaultSessionFeatures: SessionFeatures = {
     drift: { enabled: true, degPerSec: 2 },
   },
   // Virtual regrips were opt-in before the feature model.
-  regrip: { enabled: false, detector: 'threshold', thresholdDeg: 60 },
+  regrip: { enabled: false },
   // Move-back gestures were always enabled before the feature model.
   customTrigger: { enabled: true, triggers: [{ kind: 'moveBack', windowMs: 300 }] },
 };
@@ -79,7 +75,7 @@ export const defaultSessionFeatures: SessionFeatures = {
 export const featurePresets: Record<'all' | 'minimal' | 'none', SessionFeatures> = {
   all: {
     ...defaultSessionFeatures,
-    regrip: { ...defaultSessionFeatures.regrip, enabled: true, detector: 'absolute' },
+    regrip: { enabled: true },
     customTrigger: {
       enabled: true,
       triggers: [{ kind: 'moveBack', windowMs: 300 }, { kind: 'shake' }],

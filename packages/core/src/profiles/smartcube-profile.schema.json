@@ -70,9 +70,7 @@
         "regrip": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
-            "detector": { "enum": ["threshold", "absolute"] },
-            "thresholdDeg": { "type": "number" }
+            "enabled": { "type": "boolean" }
           },
           "additionalProperties": false
         },

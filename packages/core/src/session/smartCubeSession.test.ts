@@ -161,11 +161,11 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
-  it('uses the absolute detector only when explicitly selected', async () => {
+  it('ignores diagonal dead spots and decomposes the next valid absolute pose', async () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({
       connect: async () => connection(events$),
-      features: { regrip: { enabled: true, detector: 'absolute' } },
+      features: { regrip: { enabled: true } },
     });
     const regrips: string[] = [];
     session.on('REGRIP', (event) => regrips.push(event.notationToken));
@@ -210,7 +210,7 @@ describe('smart cube session', () => {
     });
 
     expect(regrips).toEqual(["x'", "x'"]);
-    expect(session.getState().features.regrip.detector).toBe('absolute');
+    expect(session.getState().features.regrip).toEqual({ enabled: true });
     await session.disconnect();
   });
 
@@ -219,7 +219,7 @@ describe('smart cube session', () => {
     const session = createSmartCubeSession({
       connect: async () => connection(events$),
       features: {
-        regrip: { enabled: true, detector: 'absolute' },
+        regrip: { enabled: true },
         stabilizer: { drift: { enabled: true, degPerSec: 20 } },
       },
     });
@@ -392,7 +392,7 @@ describe('smart cube session', () => {
     const events$ = new Subject<SmartCubeEvent>();
     const session = createSmartCubeSession({
       connect: async () => connection(events$),
-      features: { regrip: { enabled: true, thresholdDeg: 70 } },
+      features: { regrip: { enabled: true } },
     });
     const regrips: string[] = [];
     session.on('REGRIP', (event) => regrips.push(event.notationToken));
@@ -527,7 +527,7 @@ describe('smart cube session', () => {
     session.on('REGRIP', (event) => regrips.push(event));
 
     await session.connect();
-    session.configureFeatures({ regrip: { enabled: true, thresholdDeg: 60 } });
+    session.configureFeatures({ regrip: { enabled: true } });
     expect(session.getState().features.regrip.enabled).toBe(true);
     events$.next({ type: 'GYRO', timestamp: 0, quaternion: Quaternion.identity });
     events$.next({

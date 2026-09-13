@@ -12,7 +12,6 @@ import * as AbsoluteRegripDetector from '@wstein/regrip-core/domain/AbsoluteRegr
 import * as MoveBackTrigger from '@wstein/regrip-core/domain/MoveBackTrigger';
 import * as MoveTracker from '@wstein/regrip-core/domain/MoveTracker';
 import * as SnapshotDeduper from '@wstein/regrip-core/domain/SnapshotDeduper';
-import * as RegripDetector from '@wstein/regrip-core/domain/RegripDetector';
 import * as ShakeTrigger from '@wstein/regrip-core/domain/ShakeTrigger';
 import type { regripToken as RegripToken } from '@wstein/regrip-core/domain/CubeNotation';
 import {
@@ -207,8 +206,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
       parseSensorToBodyAxisMap(profile.value.gyro?.axisMap) ?? SensorToBody.default,
     );
   };
-  let regripState = RegripDetector.initial;
-  let absoluteRegripState = AbsoluteRegripDetector.initial;
+  let regripState = AbsoluteRegripDetector.initial;
   let moveBackState = MoveBackTrigger.initial;
   let shakeState = ShakeTrigger.initial;
   let moveTrackerState = MoveTracker.initial;
@@ -226,8 +224,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   }
 
   function resetFeatureDetectors(): void {
-    regripState = RegripDetector.initial;
-    absoluteRegripState = AbsoluteRegripDetector.initial;
+    regripState = AbsoluteRegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
   }
@@ -273,18 +270,11 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   }
 
   function observeRegrip(orientation: { x: number; y: number; z: number; w: number }) {
-    if (state.features.regrip.detector === 'absolute') {
-      const [nextState, observation] = AbsoluteRegripDetector.step(
-        absoluteRegripState,
-        orientation,
-        undefined,
-      );
-      absoluteRegripState = nextState;
-      return observation;
-    }
-    const [nextState, observation] = RegripDetector.step(regripState, orientation, {
-      thresholdDeg: state.features.regrip.thresholdDeg,
-    });
+    const [nextState, observation] = AbsoluteRegripDetector.step(
+      regripState,
+      orientation,
+      undefined,
+    );
     regripState = nextState;
     return observation;
   }
@@ -350,9 +340,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     moveTrackerState = nextMoveTrackerState;
     const calibrated = sessionEvent.type === 'GYRO' ? sessionEvent.relative : undefined;
     const regripOrientation =
-      sessionEvent.type === 'GYRO' && state.features.regrip.detector === 'absolute'
-        ? sessionEvent.driftCorrected
-        : calibrated;
+      sessionEvent.type === 'GYRO' ? sessionEvent.driftCorrected : undefined;
     const regrip =
       regripOrientation && state.features.regrip.enabled
         ? observeRegrip(regripOrientation)
@@ -466,8 +454,7 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     pendingGyroFrame = undefined;
     hasCalibratedGyro = false;
     gyroState = GyroPipeline.reset(gyroState);
-    regripState = RegripDetector.initial;
-    absoluteRegripState = AbsoluteRegripDetector.initial;
+    regripState = AbsoluteRegripDetector.initial;
     moveBackState = MoveBackTrigger.initial;
     shakeState = ShakeTrigger.initial;
     resetMoveTracker();

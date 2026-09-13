@@ -154,7 +154,7 @@ function capturedFeatures(entries: JsonlReplay['entries']): SessionFeatures | un
     (regrip.detector !== undefined &&
       regrip.detector !== 'threshold' &&
       regrip.detector !== 'absolute') ||
-    number(regrip.thresholdDeg) === undefined ||
+    (regrip.thresholdDeg !== undefined && number(regrip.thresholdDeg) === undefined) ||
     typeof customTrigger?.enabled !== 'boolean' ||
     !Array.isArray(triggers)
   ) {
@@ -201,14 +201,8 @@ function capturedFeatures(entries: JsonlReplay['entries']): SessionFeatures | un
       hysteresis: { enabled: hysteresis.enabled, marginDeg: hysteresis.marginDeg as number },
       drift: { enabled: drift.enabled, degPerSec: drift.degPerSec as number },
     },
-    regrip: {
-      enabled: regrip.enabled,
-      detector:
-        regrip.detector === 'absolute' || regrip.detector === 'threshold'
-          ? regrip.detector
-          : 'threshold',
-      thresholdDeg: regrip.thresholdDeg as number,
-    },
+    // Detector-specific fields from older captures are intentionally ignored.
+    regrip: { enabled: regrip.enabled },
     customTrigger: { enabled: customTrigger.enabled, triggers: parsedTriggers },
   };
 }

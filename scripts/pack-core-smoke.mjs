@@ -162,8 +162,8 @@ try {
     'package/dist/domain/OrientationStabilizer.res.mjs',
     'package/dist/domain/GyroPipeline.gen.js',
     'package/dist/domain/GyroPipeline.res.mjs',
-    'package/dist/domain/RegripDetector.gen.js',
-    'package/dist/domain/RegripDetector.res.mjs',
+    'package/dist/domain/AbsoluteRegripDetector.gen.js',
+    'package/dist/domain/AbsoluteRegripDetector.res.mjs',
     'package/dist/domain/VirtualCubeFrame.gen.js',
     'package/dist/domain/VirtualCubeFrame.res.mjs',
     'package/dist/domain/ShakeTrigger.gen.js',
@@ -187,6 +187,9 @@ try {
   }
   if (packedFiles.some((path) => path.includes('/Timer.'))) {
     throw new Error('npm pack must not include the retired Timer module.');
+  }
+  if (packedFiles.some((path) => path.includes('/domain/RegripDetector.'))) {
+    throw new Error('npm pack must not include the retired threshold regrip detector.');
   }
 
   const consumer = join(temp, 'consumer');

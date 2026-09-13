@@ -28,8 +28,8 @@
       parity for Gen4/i4 MAC recovery, gyro, moves, facelets, and hardware metadata.
 - [ ] Establish GoCube/Rubik’s Connected parity, including direct Nordic-UART
       connection readiness/latency, initial requests, gyro, and vendor commands.
-      The external `gocube-yxz` frame gate is now hash-locked and green at the
-      audited legacy contract: 23 axis-grouped steps at 65° (`7y 8z 8x'`).
+      Absolute regrip detection is validated against a local diagonal-regrip
+      trace and stays aligned with the drift-corrected 24-state orientation.
 - [ ] Switch CubeLab GAN first, then GoCube, retaining legacy fallback per device
       during rollout. Migrate MoYu and GiiKER only after both cutovers are stable.
 - [ ] Keep the core MIT and unpublished while its API settles; CubeLab consumes a
@@ -86,7 +86,7 @@
       request/reconcile an authoritative `FACELETS` snapshot instead of
       resetting optimistically on `onSolved`.
 - [x] Make JSONL replay deterministic end-to-end: thread the pure
-      `MoveBackTrigger` and `RegripDetector` reducer states through recorded
+      `MoveBackTrigger` and absolute regrip detector states through recorded
       streams, including feature changes during a replay.
 - [x] Add an in-lab, virtual-clock JSONL replay transport with connection and
       session-output feeds, step/seek/speed controls, fixture-derived device

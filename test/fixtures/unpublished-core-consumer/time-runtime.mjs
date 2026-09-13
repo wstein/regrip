@@ -4,7 +4,7 @@ import {
   move as playerMove,
 } from '@wstein/regrip-core/domain/PlayerSync';
 import { degreesToRadians, fromEuler } from '@wstein/regrip-core/domain/Quaternion';
-import { regripFromString, token } from '@wstein/regrip-core/domain/CubeNotation';
+import { faceOrderForTurn, regripFromString, token } from '@wstein/regrip-core/domain/CubeNotation';
 import sensorToBody, { apply as applySensorMap } from '@wstein/regrip-core/domain/SensorToBody';
 import { home } from '@wstein/regrip-core/domain/GyroOrientation';
 import {
@@ -14,10 +14,9 @@ import {
 } from '@wstein/regrip-core/domain/GyroPipeline';
 import { defaults as stabilizerDefaults } from '@wstein/regrip-core/domain/OrientationStabilizer';
 import {
-  faceOrderForNotation,
-  initial as initialRegripDetector,
-  step as stepRegripDetector,
-} from '@wstein/regrip-core/domain/RegripDetector';
+  initial as initialAbsoluteRegripDetector,
+  step as stepAbsoluteRegripDetector,
+} from '@wstein/regrip-core/domain/AbsoluteRegripDetector';
 import {
   applyRegrip,
   make as makeVirtualCubeFrame,
@@ -90,9 +89,9 @@ if (gyroSample.dtSeconds !== 0 || gyroSample.velocityMagnitude !== 0) {
   throw new Error('expected generated GyroPipeline wrapper to preserve its composed sample');
 }
 
-const [, regrip] = stepRegripDetector(initialRegripDetector, home, undefined);
-if (regrip !== undefined || faceOrderForNotation('x') !== 'FRDBLU') {
-  throw new Error('expected generated RegripDetector wrapper to preserve literal tokens');
+const [, regrip] = stepAbsoluteRegripDetector(initialAbsoluteRegripDetector, home, undefined);
+if (regrip !== undefined || faceOrderForTurn('x') !== 'FRDBLU') {
+  throw new Error('expected generated absolute detector and notation wrappers to compose');
 }
 
 const virtualFrame = makeVirtualCubeFrame();
