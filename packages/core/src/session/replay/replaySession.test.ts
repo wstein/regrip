@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import * as Quaternion from '@wstein/regrip-core/domain/Quaternion';
 import { featurePresets } from '@wstein/regrip-core/session/features';
 import { createReplaySession } from './replaySession';
 
@@ -28,6 +29,24 @@ const featureHeader = JSON.stringify({
       device: 'GoCube Edge',
       protocol: 'gocube',
       profileValue: { features: featurePresets.all },
+    },
+  },
+});
+const absoluteFeatureHeader = JSON.stringify({
+  recordedAt: '2026-09-09T10:00:00.000Z',
+  type: 'trace_header',
+  data: {
+    format: 'regrip',
+    version: 1,
+    session: {
+      device: 'GoCube Edge',
+      protocol: 'gocube',
+      profileValue: {
+        features: {
+          ...featurePresets.all,
+          regrip: { ...featurePresets.all.regrip, detector: 'absolute' },
+        },
+      },
     },
   },
 });
@@ -119,6 +138,68 @@ describe('replay session', () => {
         triggers: [{ kind: 'moveBack', windowMs: 300 }, { kind: 'shake' }],
       },
     });
+  });
+
+  it('defaults legacy captured regrip features to threshold detection', async () => {
+    const legacyHeader = JSON.stringify({
+      recordedAt: '2026-09-13T20:27:33.031Z',
+      type: 'trace_header',
+      data: {
+        format: 'regrip',
+        version: 1,
+        session: {
+          device: 'GoCube',
+          protocol: { id: 'gocube', name: 'GoCube' },
+          profileValue: {
+            features: {
+              ...featurePresets.all,
+              regrip: { enabled: true, thresholdDeg: 60 },
+            },
+          },
+        },
+      },
+    });
+    const replay = createReplaySession([legacyHeader, ...rawLog.split('\n').slice(1)].join('\n'));
+
+    await replay.session.connect();
+
+    expect(replay.session.getState().features.regrip.detector).toBe('threshold');
+  });
+
+  it('re-detects a diagonal orientation jump with the absolute detector', async () => {
+    const toRawSensorFrame = (body: Quaternion.t): Quaternion.t => ({
+      x: body.x,
+      y: -body.z,
+      z: body.y,
+      w: body.w,
+    });
+    const invalidDiagonal = Quaternion.fromEuler({
+      x: 0,
+      y: Quaternion.degreesToRadians(45),
+      z: Quaternion.degreesToRadians(45),
+    });
+    const validDiagonal = Quaternion.fromEuler({
+      x: Quaternion.degreesToRadians(90),
+      y: Quaternion.degreesToRadians(90),
+      z: 0,
+    });
+    const replay = createReplaySession(
+      [
+        absoluteFeatureHeader,
+        gyroRecord('2026-09-09T10:00:00.010Z', 0, Quaternion.identity),
+        gyroRecord('2026-09-09T10:00:00.020Z', 10, toRawSensorFrame(invalidDiagonal)),
+        gyroRecord('2026-09-09T10:00:00.030Z', 20, toRawSensorFrame(validDiagonal)),
+        gyroRecord('2026-09-09T10:00:00.040Z', 30, toRawSensorFrame(validDiagonal)),
+      ].join('\n'),
+      'connection',
+    );
+    const regrips: string[] = [];
+    replay.session.on('REGRIP', (event) => regrips.push(event.notationToken));
+
+    await replay.advanceTo(Number.MAX_SAFE_INTEGER);
+
+    expect(replay.session.getState().features.regrip.detector).toBe('absolute');
+    expect(regrips).toEqual(["x'", "y'"]);
   });
 
   it('re-runs enabled regrip and shake detectors from captured gyro samples', async () => {
