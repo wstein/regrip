@@ -40,7 +40,11 @@ and records the same typed event stream it can replay later without a cube.
   independently validated `@wstein/regrip-core` artifact.
 
 Supported protocol families currently include GAN, Giiker, GoCube, MoYu, and QiYi through the
-pin-tested [`smartcube-web-bluetooth`](https://github.com/wstein/smartcube-web-bluetooth) transport.
+[`smartcube-web-bluetooth`](https://github.com/poliva/smartcube-web-bluetooth) v4 API. This app pins
+an enhanced compatible fork for packet diagnostics, serial gap detection, cubie coordinates,
+GoCube model/offline statistics, and vendor controls. With stock v4, gyro-based regrips and the
+standard move, facelet, battery, hardware, reset, and disconnect paths still work; the enhanced
+features are simply unavailable.
 
 ## Quick start
 

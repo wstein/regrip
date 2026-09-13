@@ -11,6 +11,9 @@ npm install @wstein/regrip-core rxjs smartcube-web-bluetooth
 
 `rxjs` and `smartcube-web-bluetooth` are peer dependencies. Installing them explicitly lets the
 host control the transport version and keeps one observable implementation in the application.
+The transport boundary accepts stock `smartcube-web-bluetooth` v4. Compatible enhanced transports
+may additionally provide packet diagnostics, event serials, cubie coordinates, GoCube metadata,
+and vendor commands; consumers must treat those extensions as optional.
 
 ## Consumer surface
 
