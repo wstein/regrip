@@ -680,7 +680,7 @@ test('navigates move keyframes and renders visual timeline markers', async ({ pa
 test('renders accessible markers for replay move, regrip, and gesture events', async ({ page }) => {
   const records = [
     replayHeader,
-    '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"cube_event","data":{"type":"MOVE","timestamp":10,"move":"R"}}',
+    '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"cube_event","data":{"type":"MOVE","timestamp":10,"move":"R","face":1,"direction":0,"localTimestamp":10,"cubeTimestamp":10}}',
     '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"virtual_regrip","data":{"timestamp":20,"notationToken":"y","sensorFrameToken":"y"}}',
     '{"recordedAt":"2026-09-09T10:00:00.030Z","type":"custom_trigger","data":{"timestamp":30,"move":"U"}}',
     '{"recordedAt":"2026-09-09T10:00:00.040Z","type":"shake_trigger","data":{"timestamp":40,"steps":4,"reversals":3,"spanMs":180}}',

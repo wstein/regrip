@@ -21,7 +21,15 @@ const localReplay = [
   JSON.stringify({
     recordedAt: '2026-09-12T10:00:00.010Z',
     type: 'cube_event',
-    data: { type: 'MOVE', timestamp: 10, move: 'R' },
+    data: {
+      type: 'MOVE',
+      timestamp: 10,
+      move: 'R',
+      face: 1,
+      direction: 0,
+      localTimestamp: 10,
+      cubeTimestamp: 10,
+    },
   }),
 ].join('\n');
 
