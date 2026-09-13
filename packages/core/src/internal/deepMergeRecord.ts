@@ -9,6 +9,7 @@ export function deepMergeRecord(
 ): Record<string, unknown> {
   const merged = { ...base };
   for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
     merged[key] =
       isRecord(base[key]) && isRecord(value) ? deepMergeRecord(base[key], value) : value;
   }

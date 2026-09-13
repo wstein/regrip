@@ -184,11 +184,32 @@ describe("RegripDetector", () => {
       (CubeNotation.XPrime, "FRDBLU", "BRUFLD"),
       (CubeNotation.YPrime, "UBRDFL", "UFLDBR"),
       (CubeNotation.ZPrime, "LUFRDB", "RDFLUB"),
-      (CubeNotation.XDouble, "URFDLB", "URFDLB"),
+      (CubeNotation.XDouble, "DRBULF", "DRBULF"),
+      (CubeNotation.YDouble, "ULBDRF", "ULBDRF"),
+      (CubeNotation.ZDouble, "DLFURB", "DLFURB"),
     ]->Array.forEach(
       ((token, sensor, notation)) => {
         t->expect(RegripDetector.faceOrderForSensor(token))->Expect.toBe(sensor)
         t->expect(RegripDetector.faceOrderForNotation(token))->Expect.toBe(notation)
+      },
+    )
+  })
+
+  test("derives each half-turn face order by composing its quarter-turn twice", t => {
+    [
+      (CubeNotation.XTurn, CubeNotation.XDouble),
+      (CubeNotation.YTurn, CubeNotation.YDouble),
+      (CubeNotation.ZTurn, CubeNotation.ZDouble),
+    ]->Array.forEach(
+      ((quarter, half)) => {
+        let sensorQuarter = RegripDetector.faceOrderForSensor(quarter)
+        let notationQuarter = RegripDetector.faceOrderForNotation(quarter)
+        t
+        ->expect(RegripDetector.faceOrderForSensor(half))
+        ->Expect.toBe(RegripDetector.permuteFaceOrder(sensorQuarter, sensorQuarter))
+        t
+        ->expect(RegripDetector.faceOrderForNotation(half))
+        ->Expect.toBe(RegripDetector.permuteFaceOrder(notationQuarter, notationQuarter))
       },
     )
   })

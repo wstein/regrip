@@ -12,21 +12,6 @@ let defaults = {thresholdDeg: 60.}
 type state = Quaternion.t
 let initial: state = Quaternion.identity
 
-let quarter = (axis: axis, positive: bool): Quaternion.t => {
-  let angle = Quaternion.degreesToRadians(
-    if positive {
-      90.
-    } else {
-      -90.
-    },
-  )
-  switch axis {
-  | CubeNotation.X => Quaternion.fromEuler({x: angle, y: 0., z: 0.})
-  | CubeNotation.Y => Quaternion.fromEuler({x: 0., y: angle, z: 0.})
-  | CubeNotation.Z => Quaternion.fromEuler({x: 0., y: 0., z: angle})
-  }
-}
-
 let axisAndPolarity = (q: Quaternion.t): (axis, bool) => {
   let values = [(CubeNotation.X, q.x), (CubeNotation.Y, q.y), (CubeNotation.Z, q.z)]
   let (axis, value) = values->Array.reduce((CubeNotation.X, 0.), (
@@ -90,26 +75,32 @@ let notationToken = (axis: axis, positive: bool): notationToken =>
     },
   )
 
+@genType
 let faceOrderForSensor = token =>
   switch token {
   | CubeNotation.XTurn => "BRUFLD"
   | CubeNotation.XPrime => "FRDBLU"
+  | CubeNotation.XDouble => "DRBULF"
   | CubeNotation.YTurn => "UFLDBR"
   | CubeNotation.YPrime => "UBRDFL"
+  | CubeNotation.YDouble => "ULBDRF"
   | CubeNotation.ZTurn => "RDFLUB"
   | CubeNotation.ZPrime => "LUFRDB"
-  | _ => "URFDLB"
+  | CubeNotation.ZDouble => "DLFURB"
   }
 
+@genType
 let faceOrderForNotation = token =>
   switch token {
   | CubeNotation.XTurn => "FRDBLU"
   | CubeNotation.XPrime => "BRUFLD"
+  | CubeNotation.XDouble => "DRBULF"
   | CubeNotation.YTurn => "UBRDFL"
   | CubeNotation.YPrime => "UFLDBR"
+  | CubeNotation.YDouble => "ULBDRF"
   | CubeNotation.ZTurn => "LUFRDB"
   | CubeNotation.ZPrime => "RDFLUB"
-  | _ => "URFDLB"
+  | CubeNotation.ZDouble => "DLFURB"
   }
 
 let faceAt = (order: string, face: string): string =>
