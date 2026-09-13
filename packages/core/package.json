@@ -1,6 +1,6 @@
 {
   "name": "@wstein/regrip-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MIT smart-cube session core for Regrip and CubeLab",
   "license": "MIT",
   "repository": {

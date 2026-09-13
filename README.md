@@ -106,7 +106,7 @@ command reference.
 ## Core release artifacts
 
 `@wstein/regrip-core` is not published to npm yet. A tag matching its package version, such as
-`core-v0.1.0`, runs tests, builds one tarball, validates that exact archive with isolated TypeScript
+`core-v0.1.1`, runs tests, builds one tarball, validates that exact archive with isolated TypeScript
 and ReScript consumers, and retains it as a downloadable GitHub Actions artifact.
 
 ## Documentation and community
