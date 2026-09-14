@@ -16,13 +16,6 @@ export type SmartCubeProfile = {
   match?: Partial<
     Record<'protocol' | 'deviceName' | 'deviceMAC' | 'hardwareName' | 'goCubeType', string>
   >;
-  stabilizer?: {
-    radiusDeg?: number;
-    snapDeg?: number;
-    hysteresisDeg?: number;
-    velocityMax?: number;
-    driftDegPerSec?: number;
-  };
   battery?: { curve?: string };
   gyro?: { axisMap?: string };
   features?: SessionFeaturesPatch;
@@ -43,6 +36,6 @@ export type ProfileOverrides = {
 export type ResolvedProfile = {
   id: string;
   value: SmartCubeProfile;
-  /** Source by dot-separated leaf path, e.g. `stabilizer.snapDeg`. */
+  /** Source by dot-separated leaf path, e.g. `features.stabilizer.snapDeg`. */
   sources: Record<string, string>;
 };

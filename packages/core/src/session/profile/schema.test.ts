@@ -4,6 +4,14 @@ import schema from '../../profiles/smartcube-profile.schema.json';
 import { bundledProfiles } from './bundled';
 
 describe('bundled profile schema', () => {
+  it('rejects the retired top-level stabilizer configuration', () => {
+    const validate = new Ajv2020().compile(schema);
+    expect(
+      validate({ id: 'legacy-stabilizer', stabilizer: { driftDegPerSec: 2 } }),
+      JSON.stringify(validate.errors),
+    ).toBe(false);
+  });
+
   it('rejects removed regrip detector configuration', () => {
     const validate = new Ajv2020().compile(schema);
     expect(

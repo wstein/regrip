@@ -7,11 +7,9 @@ describe('resolveProfile', () => {
   it('selects the most specific matching profile and retains base defaults', () => {
     const profile = resolveProfile({ protocol: 'gan', deviceName: 'GAN i4' }, bundledProfiles);
     expect(profile.id).toBe('gan-i4');
-    expect(profile.value.stabilizer?.snapDeg).toBe(4);
-    expect(profile.value.stabilizer?.driftDegPerSec).toBe(1);
+    expect(profile.value.features?.stabilizer?.snapDeg).toBe(4);
     expect(profile.value.features?.stabilizer?.drift.degPerSec).toBe(1);
-    expect(profile.sources['stabilizer.snapDeg']).toBe('base');
-    expect(profile.sources['stabilizer.driftDegPerSec']).toBe('gan-i4');
+    expect(profile.sources['features.stabilizer.snapDeg']).toBe('base');
     expect(profile.sources['features.stabilizer.drift.degPerSec']).toBe('gan-i4');
   });
 
@@ -32,15 +30,19 @@ describe('resolveProfile', () => {
 
   it('preserves per-field provenance across app, user, and runtime layers', () => {
     const profile = resolveProfile({ protocol: 'gocube' }, bundledProfiles, {
-      app: { stabilizer: { snapDeg: 5 } },
-      user: { stabilizer: { radiusDeg: 40 } },
+      app: { features: { stabilizer: { snapDeg: 5 } } },
+      user: { features: { stabilizer: { radiusDeg: 40 } } },
       runtime: { quirks: { clockless: false } },
     });
-    expect(profile.value.stabilizer).toMatchObject({ radiusDeg: 40, snapDeg: 5, hysteresisDeg: 6 });
+    expect(profile.value.features?.stabilizer).toMatchObject({
+      radiusDeg: 40,
+      snapDeg: 5,
+      hysteresis: { marginDeg: 6 },
+    });
     expect(profile.value.quirks?.clockless).toBe(false);
-    expect(profile.sources['stabilizer.hysteresisDeg']).toBe('base');
-    expect(profile.sources['stabilizer.snapDeg']).toBe('app');
-    expect(profile.sources['stabilizer.radiusDeg']).toBe('user');
+    expect(profile.sources['features.stabilizer.hysteresis.marginDeg']).toBe('base');
+    expect(profile.sources['features.stabilizer.snapDeg']).toBe('app');
+    expect(profile.sources['features.stabilizer.radiusDeg']).toBe('user');
     expect(profile.sources['quirks.clockless']).toBe('runtime');
   });
 

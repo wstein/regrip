@@ -17,17 +17,6 @@
       },
       "additionalProperties": false
     },
-    "stabilizer": {
-      "type": "object",
-      "properties": {
-        "radiusDeg": { "type": "number" },
-        "snapDeg": { "type": "number" },
-        "hysteresisDeg": { "type": "number" },
-        "velocityMax": { "type": "number" },
-        "driftDegPerSec": { "type": "number" }
-      },
-      "additionalProperties": false
-    },
     "battery": {
       "type": "object",
       "properties": { "curve": { "type": "string" } },
