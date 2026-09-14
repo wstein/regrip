@@ -26,6 +26,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - run: npm run res:build
       - run: npx playwright install --with-deps chromium
       - name: Set requested viewport
         env:
