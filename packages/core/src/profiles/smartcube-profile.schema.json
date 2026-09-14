@@ -5,7 +5,7 @@
   "required": ["id"],
   "properties": {
     "$schema": {
-      "const": "https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json"
+      "const": "https://wstein.github.io/regrip/smartcube-profile.schema.json"
     },
     "id": { "type": "string", "minLength": 1 },
     "extends": { "type": "string" },

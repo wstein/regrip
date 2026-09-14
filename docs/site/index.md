@@ -53,5 +53,5 @@ The [API reference](/api/) is generated from the TypeScript boundary of
 ## Smart-cube profiles
 
 Bundled device profiles use the published
-[Smart-cube profile JSON Schema](/schema/smartcube-profile.schema.json) for editor validation and
+[Smart-cube profile JSON Schema](https://wstein.github.io/regrip/smartcube-profile.schema.json) for editor validation and
 autocomplete. The schema is copied directly from the core package during the Pages build.

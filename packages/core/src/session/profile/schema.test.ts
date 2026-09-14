@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest';
 import schema from '../../profiles/smartcube-profile.schema.json';
 import { bundledProfiles } from './bundled';
 
-const publishedSchemaUrl =
-  'https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json';
+const publishedSchemaUrl = 'https://wstein.github.io/regrip/smartcube-profile.schema.json';
 
 describe('bundled profile schema', () => {
   it('points every bundled profile at the published schema', () => {

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json",
+  "$schema": "https://wstein.github.io/regrip/smartcube-profile.schema.json",
   "id": "moyu-ai",
   "extends": "base",
   "match": { "protocol": "moyu" }
