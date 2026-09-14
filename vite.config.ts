@@ -24,12 +24,14 @@ function sourceReleaseTag(sha: string): string {
   if (configuredTag && coreReleaseTagRE.test(configuredTag)) return configuredTag;
 
   try {
-    return execFileSync('git', ['tag', '--points-at', sha, '--list', 'core-v*'], {
-      encoding: 'utf8',
-    })
-      .split('\n')
-      .map((tag) => tag.trim())
-      .find((tag) => coreReleaseTagRE.test(tag)) ?? '';
+    return (
+      execFileSync('git', ['tag', '--points-at', sha, '--list', 'core-v*'], {
+        encoding: 'utf8',
+      })
+        .split('\n')
+        .map((tag) => tag.trim())
+        .find((tag) => coreReleaseTagRE.test(tag)) ?? ''
+    );
   } catch {
     return '';
   }
