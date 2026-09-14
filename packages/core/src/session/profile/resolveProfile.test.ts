@@ -8,7 +8,7 @@ describe('resolveProfile', () => {
     const profile = resolveProfile({ protocol: 'gan', deviceName: 'GAN i4' }, bundledProfiles);
     expect(profile.id).toBe('gan-i4');
     expect(profile.value.features?.stabilizer?.snapDeg).toBe(4);
-    expect(profile.value.features?.stabilizer?.drift.degPerSec).toBe(1);
+    expect(profile.value.features?.stabilizer?.drift?.degPerSec).toBe(1);
     expect(profile.sources['features.stabilizer.snapDeg']).toBe('base');
     expect(profile.sources['features.stabilizer.drift.degPerSec']).toBe('gan-i4');
   });

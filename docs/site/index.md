@@ -49,3 +49,9 @@ comparable with protocol snapshots, solvers, and external tools.
 
 The [API reference](/api/) is generated from the TypeScript boundary of
 `@wstein/regrip-core` and lives inside this same documentation site.
+
+## Smart-cube profiles
+
+Bundled device profiles use the published
+[Smart-cube profile JSON Schema](/schema/smartcube-profile.schema.json) for editor validation and
+autocomplete. The schema is copied directly from the core package during the Pages build.

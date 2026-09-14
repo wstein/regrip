@@ -3,7 +3,15 @@ import { describe, expect, it } from 'vitest';
 import schema from '../../profiles/smartcube-profile.schema.json';
 import { bundledProfiles } from './bundled';
 
+const publishedSchemaUrl =
+  'https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json';
+
 describe('bundled profile schema', () => {
+  it('points every bundled profile at the published schema', () => {
+    for (const profile of bundledProfiles)
+      expect((profile as Record<string, unknown>).$schema).toBe(publishedSchemaUrl);
+  });
+
   it('rejects the retired top-level stabilizer configuration', () => {
     const validate = new Ajv2020().compile(schema);
     expect(

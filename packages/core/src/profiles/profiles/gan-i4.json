@@ -1,4 +1,5 @@
 {
+  "$schema": "https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json",
   "id": "gan-i4",
   "extends": "gan-gen2",
   "match": { "protocol": "gan", "deviceName": ".*i4.*" },

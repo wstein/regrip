@@ -1,4 +1,5 @@
 {
+  "$schema": "https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json",
   "id": "gan-gen2",
   "extends": "base",
   "match": { "protocol": "gan|gan-gen[123]" }

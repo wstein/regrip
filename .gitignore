@@ -24,6 +24,7 @@ blob-report/
 .playwright/
 /coverage/
 docs/site/public/coverage/
+docs/site/public/schema/
 .nyc_output/
 .nyc_output_combined/
 

@@ -1,1 +1,6 @@
-{ "id": "moyu-ai", "extends": "base", "match": { "protocol": "moyu" } }
+{
+  "$schema": "https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json",
+  "id": "moyu-ai",
+  "extends": "base",
+  "match": { "protocol": "moyu" }
+}

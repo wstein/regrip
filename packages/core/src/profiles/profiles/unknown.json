@@ -1,1 +1,5 @@
-{ "id": "unknown", "extends": "base" }
+{
+  "$schema": "https://wstein.github.io/regrip/docs/schema/smartcube-profile.schema.json",
+  "id": "unknown",
+  "extends": "base"
+}
