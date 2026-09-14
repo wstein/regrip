@@ -8,7 +8,7 @@
 ## Project Structure & Module Organization
 
 - `packages/core/src/domain/` contains pure ReScript reducers and cube math. Keep it deterministic: no DOM, renderer, Bluetooth effects, clocks, or Signals.
-- `packages/core/src/session/` owns the portable smart-cube lifecycle, profiles, replay, and typed transport boundary. `packages/core/src/bindings/` is the typed boundary to `smartcube-web-bluetooth` itself; `packages/core/src/profiles/` holds the per-device JSON profiles and their schema.
+- `packages/core/src/session/` owns the portable smart-cube lifecycle, profiles, replay, and typed transport boundary. `packages/core/src/bindings/` is the typed boundary to `smartcube-web-bluetooth` itself; `packages/core/src/profiles/` holds the per-device JSON profiles and their schema. Every bundled profile must reference the published, versioned schema URL. Treat that URL as a compatibility contract: publish a new version and retain the old one for incompatible format changes.
 - `src/app/` owns DOM, Preact Signals, controls, trace UI, and composition. `src/integration/` applies session output to app concerns; `src/adapters/` contains cubing.js and Three.js bridges.
 - Two Vite HTML entry points exist at the repo root: `index.html` (the lab app) and `landing.html`. Narrative and generated API documentation live in `docs/site/` and are built with VitePress.
 - Browser tests live in `test/browser/`; unit tests sit beside source as `*.test.ts` (files named `*.browser.test.ts` run under jsdom via a `// @vitest-environment jsdom` pragma). ReScript tests use `*_test.res`.

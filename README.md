@@ -61,6 +61,16 @@ from **Replay captures** to explore the complete Console without hardware.
 Web Bluetooth works in compatible Chromium-based browsers. Some encrypted protocols need a MAC
 address; when advertisement watching is unavailable, the Console prompts for it.
 
+## Smart-cube profile schema
+
+Bundled profiles are validated by the versioned JSON Schema at
+[`https://wstein.github.io/regrip/smartcube-profile.v1.schema.json`](https://wstein.github.io/regrip/smartcube-profile.v1.schema.json).
+Profile JSON files include this URL in `$schema`, enabling editor validation and autocomplete.
+
+The version is part of the public profile-format contract. Compatible additions may remain on v1;
+breaking changes require a new, separately published schema URL while retaining the old version for
+existing profiles.
+
 ## Replay without hardware
 
 The Console includes redacted GoCube Edge and GAN UI12 captures and accepts local Regrip JSONL files.

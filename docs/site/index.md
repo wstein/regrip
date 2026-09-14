@@ -54,4 +54,6 @@ The [API reference](/api/) is generated from the TypeScript boundary of
 
 Bundled device profiles use the published
 [Smart-cube profile JSON Schema](https://wstein.github.io/regrip/smartcube-profile.v1.schema.json) for editor validation and
-autocomplete. The schema is copied directly from the core package during the Pages build.
+autocomplete. The schema is copied directly from the core package during the Pages build. Its v1 URL
+is a public compatibility contract: compatible additions stay on v1, while incompatible profile
+format changes require a new URL and must retain the old schema for existing profiles.
