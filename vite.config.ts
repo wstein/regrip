@@ -6,6 +6,7 @@ import IstanbulPlugin from 'vite-plugin-istanbul';
 
 const workerImportMetaUrlRE =
   /\bnew\s+(?:Worker|SharedWorker)\s*\(\s*(new\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*\))/g;
+const coreReleaseTagRE = /^core-v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function sourceCommitSha(): string {
   const configuredSha = process.env.VITE_REGRIP_GIT_SHA?.trim();
@@ -18,7 +19,25 @@ function sourceCommitSha(): string {
   }
 }
 
+function sourceReleaseTag(sha: string): string {
+  const configuredTag = process.env.VITE_REGRIP_RELEASE_TAG?.trim();
+  if (configuredTag && coreReleaseTagRE.test(configuredTag)) return configuredTag;
+
+  try {
+    return execFileSync('git', ['tag', '--points-at', sha, '--list', 'core-v*'], {
+      encoding: 'utf8',
+    })
+      .split('\n')
+      .map((tag) => tag.trim())
+      .find((tag) => coreReleaseTagRE.test(tag)) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export default defineConfig(async ({ command }) => {
+  const buildSha = sourceCommitSha();
+  const buildReleaseTag = sourceReleaseTag(buildSha);
   const plugins: Plugin[] = [];
   if (command === 'serve') plugins.push(await DevTools({ embeddedVisibility: 'passive' }));
   if (process.env.VITE_COVERAGE === 'true') {
@@ -34,7 +53,8 @@ export default defineConfig(async ({ command }) => {
 
   return {
     define: {
-      __REGRIP_BUILD_SHA__: JSON.stringify(sourceCommitSha()),
+      __REGRIP_BUILD_SHA__: JSON.stringify(buildSha),
+      __REGRIP_BUILD_RELEASE_TAG__: JSON.stringify(buildReleaseTag),
     },
     // GitHub Pages serves the built site below the repository name; Vite's
     // development server should remain available at localhost:5173/.

@@ -34,7 +34,7 @@ import { replayHeaderForState, scopedTraceJsonl } from './traceExport';
 
 const sourceRevisionLink = document.getElementById('source-revision');
 if (sourceRevisionLink instanceof HTMLAnchorElement) {
-  const revision = sourceRevision(__REGRIP_BUILD_SHA__);
+  const revision = sourceRevision(__REGRIP_BUILD_SHA__, __REGRIP_BUILD_RELEASE_TAG__);
   sourceRevisionLink.href = revision.href;
   sourceRevisionLink.textContent = revision.label;
 }
