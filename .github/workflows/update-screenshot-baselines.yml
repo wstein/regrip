@@ -1,0 +1,44 @@
+name: Update screenshot baselines
+
+on:
+  workflow_dispatch:
+    inputs:
+      viewport_width:
+        description: Screenshot viewport width in pixels
+        required: true
+        default: '1408'
+      viewport_height:
+        description: Screenshot viewport height in pixels
+        required: true
+        default: '1024'
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: Render Linux baselines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Set requested viewport
+        env:
+          VIEWPORT_WIDTH: ${{ inputs.viewport_width }}
+          VIEWPORT_HEIGHT: ${{ inputs.viewport_height }}
+        run: |
+          sed -i \
+            "s/viewport: { width: 1408, height: 1600 }/viewport: { width: ${VIEWPORT_WIDTH}, height: ${VIEWPORT_HEIGHT} }/" \
+            test/browser/ui-screenshots.spec.ts
+      - run: npm run test:screenshots:update
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenshot-baselines-linux
+          path: test/browser/ui-screenshots.spec.ts-snapshots/*-linux.png
+          if-no-files-found: error
+          retention-days: 7
