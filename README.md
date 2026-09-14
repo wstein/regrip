@@ -123,6 +123,12 @@ command reference.
 `core-v0.3.1`, runs tests, builds one tarball, validates that exact archive with isolated TypeScript
 and ReScript consumers, and retains it as a downloadable GitHub Actions artifact.
 
+Core release notes are the corresponding section of
+[packages/core/CHANGELOG.md](packages/core/CHANGELOG.md). Product releases use independent
+`regrip-v<version>` tags, validate the full Console build, and take their notes from
+[CHANGELOG.md](CHANGELOG.md). Use the [release-notes template](.github/RELEASE_NOTES_TEMPLATE.md)
+for the GitHub Release body.
+
 ## Documentation and community
 
 - [Architecture and invariants](ARCHITECTURE.md)

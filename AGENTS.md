@@ -29,6 +29,9 @@
 - `npm run lint` enforces TypeScript boundaries; `npm run format:check` checks ReScript and Prettier formatting.
 - `npm run test:browser` runs Playwright. Use `npm run test:screenshots` for visual baseline checks.
 - `npm run core:pack:check` validates the packed `@wstein/regrip-core` artifact with isolated TypeScript and ReScript consumers.
+- Core releases use version-matched `core-v<version>` tags; product releases use independent
+  `regrip-v<version>` tags. Before publishing either GitHub Release, use the matching
+  source-controlled changelog section as its notes and the release-notes template for structure.
 - `npm run check:replay-lazy` checks the production manifest after `npm run build` and fails if mock replay code or fixtures enter the eager app graph.
 - `npm run check:three-singleton` fails if the lockfile would install multiple Three.js runtimes.
 - To run a single test, build ReScript first (`npm run res:build` — a bare `vitest` invocation does not do this for you), then target the right one of the two split Vitest configs by file path:

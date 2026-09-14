@@ -6,7 +6,7 @@ import IstanbulPlugin from 'vite-plugin-istanbul';
 
 const workerImportMetaUrlRE =
   /\bnew\s+(?:Worker|SharedWorker)\s*\(\s*(new\s+URL\s*\(\s*('[^']+'|"[^"]+"|`[^`]+`)\s*,\s*import\.meta\.url\s*\))/g;
-const coreReleaseTagRE = /^core-v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const releaseTagRE = /^(?:core|regrip)-v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function sourceCommitSha(): string {
   const configuredSha = process.env.VITE_REGRIP_GIT_SHA?.trim();
@@ -21,16 +21,17 @@ function sourceCommitSha(): string {
 
 function sourceReleaseTag(sha: string): string {
   const configuredTag = process.env.VITE_REGRIP_RELEASE_TAG?.trim();
-  if (configuredTag && coreReleaseTagRE.test(configuredTag)) return configuredTag;
+  if (configuredTag && releaseTagRE.test(configuredTag)) return configuredTag;
 
   try {
+    const tags = execFileSync('git', ['tag', '--points-at', sha], { encoding: 'utf8' })
+      .split('\n')
+      .map((tag) => tag.trim())
+      .filter((tag) => releaseTagRE.test(tag));
     return (
-      execFileSync('git', ['tag', '--points-at', sha, '--list', 'core-v*'], {
-        encoding: 'utf8',
-      })
-        .split('\n')
-        .map((tag) => tag.trim())
-        .find((tag) => coreReleaseTagRE.test(tag)) ?? ''
+      tags.find((tag) => tag.startsWith('regrip-v')) ??
+      tags.find((tag) => tag.startsWith('core-v')) ??
+      ''
     );
   } catch {
     return '';

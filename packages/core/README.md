@@ -57,4 +57,5 @@ imports from an unpacked tarball consumer fixture.
 
 Push a package-specific tag matching the version in `package.json`, such as `core-v0.1.0`. The
 release workflow tests the core, builds and smoke-tests one tarball, retains it as a workflow
-artifact for download, and does not publish it to a package registry.
+artifact for download, and does not publish it to a package registry. Use the matching section of
+[CHANGELOG.md](CHANGELOG.md) for the GitHub Release body.

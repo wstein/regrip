@@ -17,6 +17,13 @@ describe('sourceRevision', () => {
     });
   });
 
+  it('prefers a released product tag over the matching build SHA', () => {
+    expect(sourceRevision('1de35d3a5d9d2e4c6f7289a0b1c2d3e4f5a6b7c8', 'regrip-v1.2.3')).toEqual({
+      href: `${SOURCE_REPOSITORY_URL}/releases/tag/regrip-v1.2.3`,
+      label: 'GitHub@regrip-v1.2.3',
+    });
+  });
+
   it('falls back to the build SHA for a non-release tag', () => {
     expect(sourceRevision('1de35d3a5d9d2e4c6f7289a0b1c2d3e4f5a6b7c8', 'preview')).toEqual({
       href: `${SOURCE_REPOSITORY_URL}/tree/1de35d3a5d9d2e4c6f7289a0b1c2d3e4f5a6b7c8`,

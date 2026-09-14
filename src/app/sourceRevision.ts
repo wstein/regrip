@@ -5,12 +5,12 @@ export type SourceRevision = Readonly<{
   label: string;
 }>;
 
-const CORE_RELEASE_TAG = /^core-v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const RELEASE_TAG = /^(?:core|regrip)-v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 /** Returns the GitHub release or exact source link for a build revision. */
 export function sourceRevision(sha: string, releaseTag?: string): SourceRevision {
   const normalizedTag = releaseTag?.trim();
-  if (normalizedTag && CORE_RELEASE_TAG.test(normalizedTag)) {
+  if (normalizedTag && RELEASE_TAG.test(normalizedTag)) {
     return {
       href: `${SOURCE_REPOSITORY_URL}/releases/tag/${normalizedTag}`,
       label: `GitHub@${normalizedTag}`,
