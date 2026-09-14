@@ -8,8 +8,11 @@ describe('resolveProfile', () => {
     const profile = resolveProfile({ protocol: 'gan', deviceName: 'GAN i4' }, bundledProfiles);
     expect(profile.id).toBe('gan-i4');
     expect(profile.value.stabilizer?.snapDeg).toBe(4);
-    expect(profile.value.stabilizer?.driftDegPerSec).toBe(2);
+    expect(profile.value.stabilizer?.driftDegPerSec).toBe(1);
+    expect(profile.value.features?.stabilizer?.drift.degPerSec).toBe(1);
     expect(profile.sources['stabilizer.snapDeg']).toBe('base');
+    expect(profile.sources['stabilizer.driftDegPerSec']).toBe('gan-i4');
+    expect(profile.sources['features.stabilizer.drift.degPerSec']).toBe('gan-i4');
   });
 
   it('selects the clockless GoCube profile', () => {

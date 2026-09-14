@@ -1,1 +1,7 @@
-{ "id": "gan-i4", "extends": "gan-gen2", "match": { "protocol": "gan", "deviceName": ".*i4.*" } }
+{
+  "id": "gan-i4",
+  "extends": "gan-gen2",
+  "match": { "protocol": "gan", "deviceName": ".*i4.*" },
+  "stabilizer": { "driftDegPerSec": 1 },
+  "features": { "stabilizer": { "drift": { "degPerSec": 1 } } }
+}
