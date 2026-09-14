@@ -1,5 +1,5 @@
 {
-  "$schema": "https://wstein.github.io/regrip/smartcube-profile.schema.json",
+  "$schema": "https://wstein.github.io/regrip/smartcube-profile.v1.schema.json",
   "id": "base",
   "battery": { "curve": "linear" },
   "gyro": { "axisMap": "x,z,-y,w" },
