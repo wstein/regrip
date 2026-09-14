@@ -1,11 +1,11 @@
 import { expect, test } from './baseFixtures';
 
-// Tall enough that the whole `#app` fits in one frame — Playwright's
-// screenshot stitching skews the top strip when the element exceeds the
-// viewport height.
-// Keep this aligned with the committed baselines. The app is responsive, but
-// screenshot assertions require one explicit capture size on every platform.
-test.use({ viewport: { width: 1408, height: 1600 } });
+// Keep this aligned with the committed desktop baselines. Playwright captures
+// `#app` as an element screenshot, so the 1024px browser viewport need not
+// contain the entire application frame.
+// The app is responsive, but screenshot assertions require one explicit
+// capture size on every platform.
+test.use({ viewport: { width: 1408, height: 1024 } });
 
 test('keeps detected moves clear of cube telemetry', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html');
