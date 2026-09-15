@@ -23,8 +23,8 @@ const apiItemKind = (
   if (item.link?.includes('/type-aliases/')) return 'type';
   if (item.link?.includes('/variables/')) return 'variable';
   if (item.link?.includes('/functions/')) return 'function';
-  if (item.link?.endsWith('.res/')) return 'module';
-  if (!item.link && item.items?.some((child) => child.link?.endsWith('.res/'))) return 'folder';
+  if (item.link?.endsWith('.gen/')) return 'module';
+  if (!item.link && item.items?.some((child) => child.link?.endsWith('.gen/'))) return 'folder';
   return null;
 };
 
@@ -68,6 +68,7 @@ export default defineConfig({
           items: [
             { text: 'API', link: '/api/' },
             { text: 'Coverage', link: '/coverage/' },
+            { text: 'GAN parity matrix', link: '/gan-parity' },
           ],
         },
       ],
