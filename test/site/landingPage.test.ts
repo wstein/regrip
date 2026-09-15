@@ -63,10 +63,12 @@ describe('landing page / console routing', () => {
   });
 
   it('uses the Regrip favicon in the Docs site', () => {
-    expect(docsConfig).toContain("['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]");
-    expect(existsSync(fileURLToPath(new URL('../../docs/site/public/favicon.svg', import.meta.url)))).toBe(
-      true,
+    expect(docsConfig).toContain(
+      "['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]",
     );
+    expect(
+      existsSync(fileURLToPath(new URL('../../docs/site/public/favicon.svg', import.meta.url))),
+    ).toBe(true);
   });
 
   it('builds documentation below the Vite landing artifact instead of replacing it', () => {
