@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
@@ -60,6 +60,13 @@ describe('landing page / console routing', () => {
 
   it('links docs navigation back to the landing page at the current site base', () => {
     expect(docsConfig).toContain("{ text: 'Home', link: '../' }");
+  });
+
+  it('uses the Regrip favicon in the Docs site', () => {
+    expect(docsConfig).toContain("['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]");
+    expect(existsSync(fileURLToPath(new URL('../../docs/site/public/favicon.svg', import.meta.url)))).toBe(
+      true,
+    );
   });
 
   it('builds documentation below the Vite landing artifact instead of replacing it', () => {

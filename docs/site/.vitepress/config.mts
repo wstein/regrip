@@ -50,6 +50,7 @@ export default defineConfig({
   title: 'Regrip Console',
   description: 'Smart-cube developer console documentation.',
   base: '/regrip/docs/',
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]],
   // Pages publishes the Vite landing page at `dist/`; keep VitePress below
   // it so a docs build cannot replace the public site root with its 404.
   outDir: '../../dist/docs',
