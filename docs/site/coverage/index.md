@@ -1,15 +1,20 @@
 # Test coverage
 
-The generated reports show statement, branch, function, and line coverage. Core enforces at least
-95% line coverage; the combined Console unit/browser report enforces at least 90% line coverage.
+All 66 measured source files meet the 90% line-coverage floor.
 
-## Reports
+## Current reports
 
-- <a href="./app/index.html" target="_self">Regrip Console and integration coverage</a>
-- <a href="./core/index.html" target="_self">Published core package coverage</a>
+| Report | Line coverage | Files at 90%+ | Total floor |
+| --- | ---: | ---: | ---: |
+| [Regrip Console and integration](./app/index.html) | 97.85% | 33/33 | 90% |
+| [Published core package](./core/index.html) | 95.56% | 33/33 | 95% |
 
-The explicit `index.html` targets and same-tab navigation bypass VitePress routing because these
-reports are standalone Istanbul HTML applications, not VitePress pages.
+The Console report merges unit and browser execution. Each report links to its standalone HTML detail view.
 
-Run `npm run test:coverage` locally to regenerate both reports. The complete site build generates
-them automatically before VitePress packages the documentation.
+## Quality gates
+
+- Every measured source file must have at least 90% line coverage.
+- The Console total must have at least 90% line coverage.
+- The published core package total must have at least 95% line coverage.
+
+Run `npm run test:coverage` to regenerate these reports and this dashboard locally. The complete site build does the same before VitePress packages the Pages artifact.

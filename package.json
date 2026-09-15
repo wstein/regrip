@@ -58,7 +58,7 @@
     "test:coverage:app": "vitest run --config vitest.config.ts --coverage",
     "test:coverage:core": "vitest run --config packages/core/vitest.config.ts --coverage",
     "test:coverage:browser": "node scripts/browser-coverage.mjs prepare && VITE_COVERAGE=true playwright test",
-    "test:coverage:merge": "nyc merge .nyc_output .nyc_output_browser/browser.json && nyc report --temp-dir .nyc_output_browser --report-dir docs/site/public/coverage/app-browser --reporter=text --reporter=json-summary --reporter=html --reporter=lcov && node scripts/merge-line-coverage.mjs && nyc report --temp-dir .nyc_output_combined --report-dir docs/site/public/coverage/app --reporter=text --reporter=json-summary --reporter=html --reporter=lcov",
+    "test:coverage:merge": "nyc merge .nyc_output .nyc_output_browser/browser.json && nyc report --temp-dir .nyc_output_browser --report-dir docs/site/public/coverage/app-browser --reporter=text --reporter=json-summary --reporter=html --reporter=lcov && node scripts/merge-line-coverage.mjs && nyc report --temp-dir .nyc_output_combined --report-dir docs/site/public/coverage/app --reporter=text --reporter=json-summary --reporter=html --reporter=lcov && node scripts/generate-coverage-report.mjs",
     "test:browser": "playwright test",
     "test:screenshots": "playwright test test/browser/ui-screenshots.spec.ts",
     "test:screenshots:update": "playwright test test/browser/ui-screenshots.spec.ts --update-snapshots",
