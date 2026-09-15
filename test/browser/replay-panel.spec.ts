@@ -63,6 +63,29 @@ test('drives elapsed time and expandable solve analysis from replay timestamps',
   await expect(page.locator('#solve-longest-pause')).toHaveText('0:00.700');
 });
 
+test('renders recorded session lifecycle transitions in session-feed replay', async ({ page }) => {
+  const statuses = ['connecting', 'connected', 'disconnected'].map((status, index) =>
+    JSON.stringify({
+      recordedAt: `2026-09-09T10:00:00.00${index + 1}Z`,
+      type: 'session_status',
+      data: { status },
+    }),
+  );
+  await page.goto('/test/browser/mock-app.html?replay');
+  await page.evaluate(
+    (contents) => sessionStorage.setItem('regrip.replay.jsonl', contents),
+    [replayHeader, ...statuses].join('\n'),
+  );
+  await page.goto('/test/browser/mock-app.html?replay&fixture=local&feed=session');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+
+  await expect(page.locator('#connectionStatus')).toHaveValue('Disconnected');
+  await expect(page.locator('#command-panel')).toBeHidden();
+  await expect(page.locator('#replay-panel')).toBeVisible();
+});
+
 function moveData(timestamp: number, move: string) {
   return {
     type: 'MOVE',
