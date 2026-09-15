@@ -13,6 +13,7 @@ dist
 /artifacts/
 docs/api
 docs/site/api
+docs/site/.vitepress/cache/
 dist-ssr
 *.local
 bun.lock
