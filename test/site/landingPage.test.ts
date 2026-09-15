@@ -24,6 +24,11 @@ describe('landing page / console routing', () => {
     expect(landing).toContain('href="./docs/"');
   });
 
+  it('uses the console screenshot as an accessible Console link', () => {
+    expect(landing).toContain('href="./console/" aria-label="Open Console"');
+    expect(landing).toContain('src="./docs/assets/regrip-console-main.png"');
+  });
+
   it('serves the console app at /console/, linking back to the landing home', () => {
     expect(console_).toContain('id="app"');
     expect(console_).toContain('href="../"');
