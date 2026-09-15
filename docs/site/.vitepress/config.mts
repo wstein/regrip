@@ -53,6 +53,9 @@ export default defineConfig({
   // Pages publishes the Vite landing page at `dist/`; keep VitePress below
   // it so a docs build cannot replace the public site root with its 404.
   outDir: '../../dist/docs',
+  // VitePress copies `public/` only for multi-page builds. The generated
+  // Istanbul reports live there and must be published at /coverage/{app,core}/.
+  mpa: true,
   cleanUrls: true,
   appearance: false,
   themeConfig: {

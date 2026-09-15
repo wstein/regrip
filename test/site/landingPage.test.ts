@@ -76,4 +76,8 @@ describe('landing page / console routing', () => {
     expect(docsTheme).toContain('.coverage-embed iframe');
     expect(docsTheme).toContain('height: 46rem');
   });
+
+  it('copies standalone coverage reports into the static Pages artifact', () => {
+    expect(docsConfig).toContain('mpa: true');
+  });
 });
