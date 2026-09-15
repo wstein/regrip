@@ -129,3 +129,23 @@ body {
   background: #10192c;
   color: #d9e4fb;
 }
+
+.coverage-embed {
+  margin: 1rem 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.coverage-embed summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+}
+
+.coverage-embed iframe {
+  display: block;
+  width: 100%;
+  height: 46rem;
+  border: 0;
+  border-top: 1px solid var(--vp-c-divider);
+}

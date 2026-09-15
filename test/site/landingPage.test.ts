@@ -13,6 +13,8 @@ describe('landing page / console routing', () => {
   const docsConfig = read('docs/site/.vitepress/config.mts');
   const viteConfig = read('vite.config.ts');
   const coverageDashboard = read('docs/site/coverage/index.md');
+  const docsTheme = read('docs/site/.vitepress/theme/regrip.css');
+  const appCoverageStyles = read('docs/site/public/coverage/app/base.css');
 
   it('serves the landing page at the site root, not the console', () => {
     expect(landing).toContain('Read every move your cube makes.');
@@ -67,10 +69,12 @@ describe('landing page / console routing', () => {
     );
   });
 
-  it('keeps report detail pages out of the published coverage dashboard', () => {
-    expect(coverageDashboard).not.toContain('./app/index.html');
-    expect(coverageDashboard).not.toContain('./core/index.html');
-    expect(coverageDashboard).not.toContain('<iframe');
-    expect(docsConfig).not.toContain('mpa: true');
+  it('integrates readable App and core coverage reports in the dashboard', () => {
+    expect(coverageDashboard).toContain('src="./app/index.html"');
+    expect(coverageDashboard).toContain('src="./core/index.html"');
+    expect(docsConfig).toContain('mpa: true');
+    expect(docsTheme).toContain('.coverage-embed iframe');
+    expect(docsTheme).toContain('height: 46rem');
+    expect(appCoverageStyles).toContain('Regrip coverage theme');
   });
 });

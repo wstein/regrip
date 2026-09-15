@@ -53,6 +53,8 @@ export default defineConfig({
   // Pages publishes the Vite landing page at `dist/`; keep VitePress below
   // it so a docs build cannot replace the public site root with its 404.
   outDir: '../../dist/docs',
+  // Static report files in `public/coverage` are copied only for MPA builds.
+  mpa: true,
   cleanUrls: true,
   appearance: false,
   themeConfig: {
