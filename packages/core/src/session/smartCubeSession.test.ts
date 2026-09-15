@@ -547,6 +547,32 @@ describe('smart cube session', () => {
     await session.disconnect();
   });
 
+  it('layers a runtime feature patch onto each newly resolved profile, instead of replacing it', async () => {
+    const events$ = new Subject<SmartCubeEvent>();
+    const session = createSmartCubeSession({
+      connect: async () => ({
+        ...connection(events$),
+        protocol: { id: 'gan', name: 'GAN' },
+        deviceName: 'GAN12ui i4',
+      }),
+    });
+
+    // Configured before any device-specific profile is known, so this patch
+    // is resolved against the generic 'unknown' profile at the time.
+    session.configureFeatures({ regrip: { enabled: true } });
+    expect(session.getState().features.regrip.enabled).toBe(true);
+    expect(session.getState().features.stabilizer.drift.degPerSec).toBe(2); // base default
+
+    // Connecting to a GAN i4 selects a profile with its own drift override
+    // (1 deg/s instead of base's 2). The runtime patch must still apply on
+    // top of it, not be replaced by it or replace it.
+    await session.connect();
+    expect(session.getState().profile.id).toBe('gan-i4');
+    expect(session.getState().features.stabilizer.drift.degPerSec).toBe(1);
+    expect(session.getState().features.regrip.enabled).toBe(true);
+    await session.disconnect();
+  });
+
   it('exposes profile-resolved features and maps the deprecated regrip option once', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const session = createSmartCubeSession({

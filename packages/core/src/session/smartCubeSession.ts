@@ -31,6 +31,7 @@ import { parseSensorToBodyAxisMap } from '@wstein/regrip-core/session/profile/ax
 import * as SensorToBody from '@wstein/regrip-core/domain/SensorToBody';
 import type { ProfileOverrides, ResolvedProfile } from '@wstein/regrip-core/session/profile/types';
 import { structuralEqual } from '../internal/structuralEqual.js';
+import { deepMergeRecord } from '../internal/deepMergeRecord.js';
 
 /** A whole-cube rotation inferred from calibrated gyro orientation. */
 export type VirtualRegripEvent = {
@@ -199,7 +200,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   // stabilization consume the resulting calibrated pose.
   let gyroConfig = GyroPipeline.makeConfig(stabilizerConfig(state.features));
   let gyroState = GyroPipeline.initial;
-  let runtimeFeatures: SessionFeatures | undefined;
+  // A patch, not a resolved snapshot: it must keep applying on top of
+  // whatever the currently-selected profile resolves to, not replace that
+  // profile's own feature configuration wholesale on the next reprofile.
+  let runtimeFeaturePatch: SessionFeaturesPatch | undefined;
   const applyProfileAxisMap = (profile: ResolvedProfile): void => {
     gyroConfig = GyroPipeline.withSensorToBody(
       gyroConfig,
@@ -300,7 +304,10 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
   ): ResolvedProfile {
     const profile = resolveSessionProfile(context);
     if (!force && sameProfile(state.profile, profile)) return state.profile;
-    const features = runtimeFeatures ?? resolveSessionFeatures(profile.value.features);
+    const features = mergeSessionFeatures(
+      resolveSessionFeatures(profile.value.features),
+      runtimeFeaturePatch,
+    );
     applyProfileAxisMap(profile);
     setState({ profile });
     applyFeatures(features);
@@ -611,10 +618,16 @@ export function createSmartCubeSession(options: SmartCubeSessionOptions) {
     connect,
     disconnect,
     resetGyro,
-    /** Apply a runtime feature patch and reset any detector state it affects. */
+    /** Apply a runtime feature patch and reset any detector state it affects.
+     * Accumulates across calls and keeps applying on top of whichever
+     * profile is current, including one resolved later (e.g. after a
+     * `HARDWARE` event or a reconnect to a different device). */
     configureFeatures(patch: SessionFeaturesPatch): void {
-      runtimeFeatures = mergeSessionFeatures(state.features, patch);
-      applyFeatures(runtimeFeatures);
+      runtimeFeaturePatch = deepMergeRecord(
+        runtimeFeaturePatch ?? {},
+        patch,
+      ) as SessionFeaturesPatch;
+      applyFeatures(mergeSessionFeatures(state.features, patch));
     },
     sendCommand,
     syncFacelets,
