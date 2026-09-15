@@ -28,6 +28,7 @@ describe('landing page / console routing', () => {
   it('uses the console screenshot as an accessible Console link', () => {
     expect(landing).toContain('href="./console/" aria-label="Open Console"');
     expect(landing).toContain('src="./docs/assets/regrip-console-main.png"');
+    expect(landing).toContain('max-width: 688px');
   });
 
   it('serves the console app at /console/, linking back to the landing home', () => {
