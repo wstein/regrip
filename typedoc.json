@@ -17,7 +17,7 @@
     "collapsed": true,
     "pretty": true
   },
-  "readme": "none",
+  "readme": "docs/api-intro.md",
   "excludeInternal": true,
   "excludePrivate": true,
   "exclude": ["**/*.test.ts"],
