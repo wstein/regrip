@@ -58,4 +58,11 @@ describe('landing page / console routing', () => {
   it('links docs navigation back to the landing page at the current site base', () => {
     expect(docsConfig).toContain("{ text: 'Home', link: '../' }");
   });
+
+  it('builds documentation below the Vite landing artifact instead of replacing it', () => {
+    expect(docsConfig).toContain("outDir: '../../dist/docs'");
+    expect(packageJson.scripts['docs:build']).toBe(
+      'npm run docs:api && node scripts/stage-profile-schema.mjs && vitepress build docs/site',
+    );
+  });
 });
