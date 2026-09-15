@@ -2,8 +2,8 @@ import { readFile } from 'node:fs/promises';
 
 const manifestPath = new URL('../dist/.vite/manifest.json', import.meta.url);
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-const entry = manifest['index.html'];
-if (!entry?.isEntry) throw new Error('Vite manifest has no index.html entry');
+const entry = manifest['console/index.html'];
+if (!entry?.isEntry) throw new Error('Vite manifest has no console/index.html entry');
 
 const eagerKeys = new Set();
 const visitEager = (key) => {
@@ -11,7 +11,7 @@ const visitEager = (key) => {
   eagerKeys.add(key);
   for (const dependency of manifest[key]?.imports ?? []) visitEager(dependency);
 };
-visitEager('index.html');
+visitEager('console/index.html');
 
 const requiredSources = [
   'src/app/replayPanel.ts',

@@ -9,7 +9,7 @@ inspect the live trace, and export the exact evidence used to update the cube vi
 
 ## Getting started
 
-Open the [Console](https://wstein.github.io/regrip/) in a Bluetooth-capable browser, select
+Open the [Console](https://wstein.github.io/regrip/console/) in a Bluetooth-capable browser, select
 **Connect**, and pick a cube from the system pairing dialog. There is no account or installation
 step.
 

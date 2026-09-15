@@ -54,7 +54,7 @@ export default defineConfig({
   appearance: false,
   themeConfig: {
     nav: [
-      { text: 'Console', link: 'https://wstein.github.io/regrip/' },
+      { text: 'Console', link: 'https://wstein.github.io/regrip/console/' },
       { text: 'Docs', link: '/' },
       { text: 'API', link: '/api/' },
       { text: 'Coverage', link: '/coverage/' },

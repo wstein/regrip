@@ -25,7 +25,7 @@ if (replayRequested) {
     feed,
   );
 }
-const source = await fetch('/index.html').then((response) => response.text());
+const source = await fetch('/console/index.html').then((response) => response.text());
 document.body.innerHTML = new DOMParser().parseFromString(source, 'text/html').body.innerHTML;
 await import('../../src/app/index.ts');
 if (contents) {

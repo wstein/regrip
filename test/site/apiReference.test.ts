@@ -8,7 +8,7 @@ const read = (relative: string): string =>
 describe('VitePress documentation integration', () => {
   const docs = read('docs/site/index.md');
   const vitepress = read('docs/site/.vitepress/config.mts');
-  const app = read('index.html');
+  const app = read('console/index.html');
   const appStyles = read('src/app/style.css');
   const typedoc = JSON.parse(read('typedoc.json')) as Record<string, unknown>;
 

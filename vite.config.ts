@@ -79,8 +79,8 @@ export default defineConfig(async ({ command }) => {
       chunkSizeWarningLimit: 2048,
       rollupOptions: {
         input: {
-          main: fileURLToPath(new URL('./index.html', import.meta.url)),
-          landing: fileURLToPath(new URL('./landing.html', import.meta.url)),
+          home: fileURLToPath(new URL('./index.html', import.meta.url)),
+          console: fileURLToPath(new URL('./console/index.html', import.meta.url)),
         },
       },
     },

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/wstein/regrip/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/regrip/actions/workflows/ci.yml)
 [![Pages](https://github.com/wstein/regrip/actions/workflows/pages.yml/badge.svg)](https://github.com/wstein/regrip/actions/workflows/pages.yml)
-[![Live console](https://img.shields.io/badge/console-live-brightgreen)](https://wstein.github.io/regrip/)
+[![Live console](https://img.shields.io/badge/console-live-brightgreen)](https://wstein.github.io/regrip/console/)
 [![ReScript](https://img.shields.io/badge/ReScript-12-e84f4f?logo=rescript&logoColor=white)](https://rescript-lang.org)
 [![Web Bluetooth](https://img.shields.io/badge/Web_Bluetooth-enabled-0082fc?logo=bluetooth&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -11,7 +11,7 @@ Regrip is a browser developer console and reusable session core for smart cubes.
 supported hardware over Web Bluetooth, turns gyro telemetry into solver-frame regrips and gestures,
 and records the same typed event stream it can replay later without a cube.
 
-[Open the Console](https://wstein.github.io/regrip/) ·
+[Open the Console](https://wstein.github.io/regrip/console/) ·
 [Read the docs](https://wstein.github.io/regrip/docs/) ·
 [Browse the API](https://wstein.github.io/regrip/docs/api/) ·
 [Understand the architecture](ARCHITECTURE.md)
@@ -55,8 +55,9 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Use **Connect** for a Bluetooth cube, or choose a bundled capture
-from **Replay captures** to explore the complete Console without hardware.
+Open the local URL printed by Vite, then **Open Console →** (or go straight to `/console/`). Use
+**Connect** for a Bluetooth cube, or choose a bundled capture from **Replay captures** to explore
+the complete Console without hardware.
 
 Web Bluetooth works in compatible Chromium-based browsers. Some encrypted protocols need a MAC
 address; when advertisement watching is unavailable, the Console prompts for it.
