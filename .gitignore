@@ -26,6 +26,7 @@ blob-report/
 /coverage/
 docs/site/public/coverage/
 .nyc_output/
+.nyc_output_browser/
 .nyc_output_combined/
 
 # ReScript
