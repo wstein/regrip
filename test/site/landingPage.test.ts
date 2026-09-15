@@ -14,7 +14,7 @@ describe('landing page / console routing', () => {
   const viteConfig = read('vite.config.ts');
   const coverageDashboard = read('docs/site/coverage/index.md');
   const docsTheme = read('docs/site/.vitepress/theme/regrip.css');
-  const appCoverageStyles = read('docs/site/public/coverage/app/base.css');
+  const coverageGenerator = read('scripts/generate-coverage-report.mjs');
 
   it('serves the landing page at the site root, not the console', () => {
     expect(landing).toContain('Read every move your cube makes.');
@@ -75,6 +75,6 @@ describe('landing page / console routing', () => {
     expect(docsConfig).toContain('mpa: true');
     expect(docsTheme).toContain('.coverage-embed iframe');
     expect(docsTheme).toContain('height: 46rem');
-    expect(appCoverageStyles).toContain('Regrip coverage theme');
+    expect(coverageGenerator).toContain('Regrip coverage theme');
   });
 });
