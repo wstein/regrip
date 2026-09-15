@@ -1,11 +1,18 @@
 import { expect, test } from './baseFixtures';
 
-// Keep this aligned with the committed desktop baselines. Playwright captures
-// `#app` as an element screenshot, so the 1024px browser viewport need not
-// contain the entire application frame.
+// Keep the defaults aligned with the committed desktop baselines. Playwright
+// captures `#app` as an element screenshot, so the 1024px browser viewport
+// need not contain the entire application frame.
 // The app is responsive, but screenshot assertions require one explicit
-// capture size on every platform.
-test.use({ viewport: { width: 1408, height: 1024 } });
+// capture size on every platform. `update-screenshot-baselines.yml` overrides
+// these via env vars instead of patching this file, so a viewport-size change
+// here can never drift out of sync with what that workflow actually renders.
+test.use({
+  viewport: {
+    width: Number(process.env.VIEWPORT_WIDTH ?? 1408),
+    height: Number(process.env.VIEWPORT_HEIGHT ?? 1024),
+  },
+});
 
 test('keeps detected moves clear of cube telemetry', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html');
