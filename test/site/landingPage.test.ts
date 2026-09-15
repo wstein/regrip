@@ -12,6 +12,8 @@ describe('landing page / console routing', () => {
   const console_ = read('console/index.html');
   const docsConfig = read('docs/site/.vitepress/config.mts');
   const viteConfig = read('vite.config.ts');
+  const coverageDashboard = read('docs/site/coverage/index.md');
+  const docsTheme = read('docs/site/.vitepress/theme/regrip.css');
 
   it('serves the landing page at the site root, not the console', () => {
     expect(landing).toContain('Read every move your cube makes.');
@@ -64,5 +66,14 @@ describe('landing page / console routing', () => {
     expect(packageJson.scripts['docs:build']).toBe(
       'npm run docs:api && node scripts/stage-profile-schema.mjs && vitepress build docs/site',
     );
+  });
+
+  it('embeds the published Console and core coverage reports in the dashboard', () => {
+    expect(coverageDashboard).toContain('title="Regrip Console coverage report"');
+    expect(coverageDashboard).toContain('src="./app/index.html"');
+    expect(coverageDashboard).toContain('title="Published core package coverage report"');
+    expect(coverageDashboard).toContain('src="./core/index.html"');
+    expect(docsTheme).toContain('.coverage-embed iframe');
+    expect(docsTheme).toContain('height: 46rem');
   });
 });
