@@ -29,6 +29,16 @@ test('drives elapsed time and expandable solve analysis from replay timestamps',
       type: 'custom_trigger',
       data: { timestamp: 800, move: "R U R'" },
     },
+    {
+      at: '2026-09-09T10:00:00.800Z',
+      type: 'shake_trigger',
+      data: { timestamp: 900, steps: 4, reversals: 3, spanMs: 240 },
+    },
+    {
+      at: '2026-09-09T10:00:00.900Z',
+      type: 'move_gap',
+      data: { timestamp: 1_000, previousSerial: 4, serial: 7, missing: 2 },
+    },
     { at: '2026-09-09T10:00:01.300Z', type: 'cube_event', data: moveData(1_400, "F'") },
     {
       at: '2026-09-09T10:00:01.500Z',
@@ -59,8 +69,9 @@ test('drives elapsed time and expandable solve analysis from replay timestamps',
   await expect(page.locator('#solve-tps')).toHaveText('2.50');
   await expect(page.locator('#solve-moves')).toHaveText('3 HTM · 4 QTM');
   await expect(page.locator('#solve-regrips')).toHaveText('1');
-  await expect(page.locator('#solve-triggers')).toHaveText('1');
+  await expect(page.locator('#solve-triggers')).toHaveText('2');
   await expect(page.locator('#solve-longest-pause')).toHaveText('0:00.700');
+  await expect(page.locator('#app-feedback')).toHaveText('Missed 2 moves; syncing cube state.');
 });
 
 test('renders recorded session lifecycle transitions in session-feed replay', async ({ page }) => {
