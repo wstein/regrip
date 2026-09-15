@@ -13,11 +13,16 @@ Open the [Console](https://wstein.github.io/regrip/) in a Bluetooth-capable brow
 **Connect**, and pick a cube from the system pairing dialog. There is no account or installation
 step.
 
+No cube handy? Open the **Connect** menu and choose a bundled fixture (GoCube Edge, GAN UI12) or
+**Load JSONL capture…** to load a local recording — either exercises the full console in replay
+mode, with play/step/scrub controls and adjustable speed, without any hardware.
+
 ## Connecting a cube
 
 The console selects the device protocol automatically. The connection panel reports its protocol,
-capabilities, firmware, battery level, and gyro support. Use **Sync state** to request the next
-facelet state from the device even when it has already reported the same state.
+capabilities, hardware and software versions, battery level, and gyro support. Use **Sync state**
+to request the next facelet state from the device even when it has already reported the same
+state.
 
 ## Events and diagnostics
 
@@ -30,6 +35,10 @@ Diagnostic packet kinds are `RAW_PACKET`, `DECODED_PACKET`, `MALFORMED_PACKET`, 
 `UNKNOWN_PACKET`. A valid decoded packet still produces its normal cube event; unknown packets stay
 diagnostic-only.
 
+The **Live trace** sidebar lists every event as it arrives. Filter by category (Move, Event, State,
+Command, Unknown, Diagnostic, Gyro, Regrip, Trigger, Shake), select individual entries to
+**Reproduce moves** from them, and scope **Download**/**Copy** to Filtered, All, or Selected events.
+
 ## Move notation
 
 Detected moves are retained as live quarter-turn moves. Choose WCA, SiGN, or SSE notation for the
@@ -41,9 +50,9 @@ not changed by simplifying the editable algorithm.
 
 Every format under **Copy state** describes the physical cube in the canonical `URFDLB` body frame.
 The values do not rotate when the virtual grip changes: regrips affect the user-facing move
-notation and grip indicator, but not compact or color facelets, permutation cycles, cubie
-coordinates, KPattern JSON, Regrip state JSON, or Orbit64. This keeps exports stable and directly
-comparable with protocol snapshots, solvers, and external tools.
+notation and grip indicator, but not compact, spaced, or color facelets, permutation cycles
+(Singmaster or SSE), cubie coordinates, KPattern JSON, Regrip state JSON, or Orbit64. This keeps
+exports stable and directly comparable with protocol snapshots, solvers, and external tools.
 
 ## API reference
 
