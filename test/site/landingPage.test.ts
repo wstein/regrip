@@ -8,6 +8,7 @@ const read = (relative: string): string =>
 describe('landing page / console routing', () => {
   const landing = read('index.html');
   const console_ = read('console/index.html');
+  const viteConfig = read('vite.config.ts');
 
   it('serves the landing page at the site root, not the console', () => {
     expect(landing).toContain('Read every move your cube makes.');
@@ -38,5 +39,9 @@ describe('landing page / console routing', () => {
     expect(console_).toContain('href="../docs/"');
     expect(console_).toContain('href="../docs/api/"');
     expect(console_).toContain('href="../docs/coverage/"');
+  });
+
+  it('does not serve the landing page as an SPA fallback for the separate docs site', () => {
+    expect(viteConfig).toContain("appType: 'mpa'");
   });
 });

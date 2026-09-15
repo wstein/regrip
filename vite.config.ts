@@ -62,6 +62,13 @@ export default defineConfig(async ({ command }) => {
     // GitHub Pages serves the built site below the repository name; Vite's
     // development server should remain available at localhost:5173/.
     base: command === 'serve' ? '/' : '/regrip/',
+    // Two static HTML pages, no client-side router: without this, Vite's
+    // default SPA fallback serves the landing page for any unmatched path
+    // (including /docs/, which only exists in the separate `docs:dev`
+    // VitePress process locally) — clicking its own relative './docs/' link
+    // from that fallback then compounds into /docs/docs/docs/... instead of
+    // a clean 404.
+    appType: 'mpa',
     // Passive keeps the dock out of the demo until the developer invokes it
     // (Shift+Option+D on macOS); dev-only plugins never enter Pages builds.
     plugins,
