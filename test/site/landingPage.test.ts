@@ -69,12 +69,14 @@ describe('landing page / console routing', () => {
     );
   });
 
-  it('integrates readable App and core coverage reports in the dashboard', () => {
+  it('integrates readable App and core coverage reports without a summary table', () => {
     expect(coverageDashboard).toContain('src="./app/index.html"');
     expect(coverageDashboard).toContain('src="./core/index.html"');
     expect(docsConfig).toContain('mpa: true');
     expect(docsTheme).toContain('.coverage-embed iframe');
     expect(docsTheme).toContain('height: 46rem');
     expect(coverageGenerator).toContain('Regrip coverage theme');
+    expect(coverageDashboard).not.toContain('| Report |');
+    expect(coverageGenerator).not.toContain('| Report |');
   });
 });
