@@ -2,6 +2,10 @@
 // cubetrace's `ShakeDetector`; input is a calibrated relative pose, not raw wire
 // values, so there is no norm-plausibility gate.
 
+/** Thresholds for what counts as a shake: minimum angle per direction
+ * reversal, minimum step/reversal counts within one burst, the sample-gap
+ * and burst-window timing, a post-move guard, and a cooldown between
+ * detections. */
 @genType
 type config = {
   minStepAngleDeg: float,

@@ -1,5 +1,10 @@
+// Detects a quarter-turn immediately returned on the same face. Pure domain
+// state: session code supplies move tokens and transport timestamps.
+
+/** How long, in ms, a move may wait for its inverse before the window closes. */
 @genType
 type config = {windowMs: float}
+/** The move awaiting its inverse, if any, and when it was observed. */
 @genType
 type state
 

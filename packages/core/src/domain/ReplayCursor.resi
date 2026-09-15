@@ -6,10 +6,13 @@ type state
 let initial: state
 @genType
 let reset: state => state
+/** How many events have been emitted so far. */
 @genType
 let position: state => int
+/** The cursor's current point on the replay's virtual clock, in ms. */
 @genType
 let virtualNowMs: state => float
+/** Whether every event's timestamp has been reached. */
 @genType
 let done: (state, array<float>) => bool
 /** Clamp an event index and derive virtual time from the replay start or preceding event. */

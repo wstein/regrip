@@ -1,8 +1,10 @@
 // Pure delivery policy for authoritative snapshots. The session owns request
 // provenance, while the app only observes the semantically useful stream.
 
+/** A facelet snapshot as received from the transport, with its serial if any. */
 @genType
 type snapshot = {serial: option<int>, facelets: string}
+/** The last observed snapshot, and how many `request`s are still pending. */
 @genType
 type state
 

@@ -1,10 +1,12 @@
 /** Pure gyro calibration: the first calibrated sample becomes identity. */
 @genType
 let home: Quaternion.t
+/** The first-seen raw sample, once calibrated; `None` before then. */
 @genType
 type state
 @genType
 let initial: state
+/** Discard calibration; the next sample becomes the new identity. */
 @genType
 let reset: state => state
 /** `raw` normalized against the initial sample, before applying `home`. */
