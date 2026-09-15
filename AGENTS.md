@@ -12,14 +12,14 @@
 - `src/app/` owns DOM, Preact Signals, controls, trace UI, and composition. `src/integration/` applies session output to app concerns; `src/adapters/` contains cubing.js and Three.js bridges.
 - Two Vite HTML entry points exist: `index.html` at the repo root (the public landing page) and `console/index.html` (the lab app, served at `/console/`). Narrative and generated API documentation live in `docs/site/` and are built with VitePress.
 - Browser tests live in `test/browser/`; unit tests sit beside source as `*.test.ts` (files named `*.browser.test.ts` run under jsdom via a `// @vitest-environment jsdom` pragma). ReScript tests use `*_test.res`.
-- You can exercise the full app without physical hardware: `npm run dev`, open `/console/`, and choose a bundled or local capture under **Replay captures**. The deterministic browser harness remains available at `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`); add `&autoplay` to advance immediately or `&feed=session` to replay session output.
+- You can exercise the full app without physical hardware: `npm run dev`, open `/console/`, and choose a bundled or local capture under **Replay captures**. The same local server proxies VitePress at `/docs/`. The deterministic browser harness remains available at `/test/browser/mock-app.html?replay&fixture=gocube-edge` (or `gan-ui12`); add `&autoplay` to advance immediately or `&feed=session` to replay session output.
 - Do not commit device captures. Local `smartcube-log-*.jsonl`, generated `dist/`, and `bun.lock` are ignored; npm and `package-lock.json` are the supported package workflow.
 
 ## Build, Test, and Development Commands
 
 - Requires Node `>=22.12.0`. npm and `package-lock.json` are the supported package workflow.
 - `npm install` installs the workspace dependencies.
-- `npm run dev` starts ReScript watch and the Vite lab.
+- `npm run dev` starts ReScript watch, the Vite lab, and the proxied VitePress guide.
 - `npm test` builds ReScript, then runs separate core and app Vitest suites.
 - `npm run test:coverage` builds ReScript and generates separate app and core HTML coverage reports
   under `docs/site/public/coverage/`; line coverage gates are 95% for core and 90% for the combined

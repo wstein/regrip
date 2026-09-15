@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 const read = (relative: string): string =>
   readFileSync(fileURLToPath(new URL(`../../${relative}`, import.meta.url)), 'utf8');
 
+const packageJson = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
+
 describe('landing page / console routing', () => {
   const landing = read('index.html');
   const console_ = read('console/index.html');
@@ -44,5 +46,11 @@ describe('landing page / console routing', () => {
 
   it('does not serve the landing page as an SPA fallback for the separate docs site', () => {
     expect(viteConfig).toContain("appType: 'mpa'");
+  });
+
+  it('serves the docs site behind the Console dev server', () => {
+    expect(packageJson.scripts.dev).toContain('dev:docs');
+    expect(packageJson.scripts['dev:docs']).toContain('--host 127.0.0.1 --port 5174 --base /docs/');
+    expect(viteConfig).toContain("target: 'http://127.0.0.1:5174'");
   });
 });

@@ -55,9 +55,9 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite, then **Open Console →** (or go straight to `/console/`). Use
-**Connect** for a Bluetooth cube, or choose a bundled capture from **Replay captures** to explore
-the complete Console without hardware.
+Open the local URL printed by Vite, then **Open Console →** (or go straight to `/console/`). The
+same server proxies the VitePress guide at `/docs/`. Use **Connect** for a Bluetooth cube, or choose
+a bundled capture from **Replay captures** to explore the complete Console without hardware.
 
 Web Bluetooth works in compatible Chromium-based browsers. Some encrypted protocols need a MAC
 address; when advertisement watching is unavailable, the Console prompts for it.
@@ -105,7 +105,7 @@ The deterministic browser harness is also available at
 
 | Command                   | Purpose                                                    |
 | ------------------------- | ---------------------------------------------------------- |
-| `npm run dev`             | Start ReScript watch and the Vite Console                  |
+| `npm run dev`             | Start ReScript watch, the Vite Console, and proxied docs   |
 | `npm test`                | Build ReScript and run core plus application tests         |
 | `npm run test:browser`    | Run Playwright browser tests                               |
 | `npm run test:coverage`   | Enforce coverage gates and generate HTML reports           |

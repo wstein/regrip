@@ -99,6 +99,13 @@ export default defineConfig(async ({ command }) => {
     // of node_modules while watching, which leaves a running dev server on a
     // stale protocol revision after an npm/Bun Git-SHA update.
     server: {
+      proxy: {
+        // VitePress serves the guide independently during development. Proxy it
+        // so landing and Console links keep using the deployed `/docs/` path.
+        '/docs': {
+          target: 'http://127.0.0.1:5174',
+        },
+      },
       watch: {
         ignored: (path) =>
           path.includes('/node_modules/') &&
