@@ -1,5 +1,40 @@
 import { expect, test } from './baseFixtures';
 
+const liveConnectionModule = `
+export async function connectCube() {
+  const listeners = new Set();
+  return {
+    deviceName: 'Browser mock cube',
+    deviceMAC: '',
+    protocol: { id: 'mock', name: 'Mock' },
+    capabilities: {
+      gyroscope: true,
+      battery: true,
+      facelets: true,
+      hardware: true,
+      reset: true,
+    },
+    events$: {
+      subscribe(listener) {
+        listeners.add(listener);
+        return { unsubscribe: () => listeners.delete(listener) };
+      },
+    },
+    sendCommand: async (command) => {
+      if (command.type === 'REQUEST_FACELETS') {
+        const event = {
+          type: 'FACELETS',
+          timestamp: 1,
+          facelets: 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB',
+        };
+        listeners.forEach((listener) => listener(event));
+      }
+    },
+    disconnect: async () => {},
+  };
+}
+`;
+
 test('returns the non-replay Console to a usable state when Bluetooth connection fails', async ({
   page,
 }) => {
@@ -22,6 +57,38 @@ test('returns the non-replay Console to a usable state when Bluetooth connection
 
   await expect(page.locator('#connectionStatus')).toHaveValue(/^Failed:/);
   await expect(page.locator('#connect')).toHaveText('Connect ▾');
+  await expect(page.locator('#command-panel')).toBeHidden();
+});
+
+test('runs live cube controls against a connected transport', async ({ page }) => {
+  await page.route('**/src/integration/connection.ts*', (route) =>
+    route.fulfill({ contentType: 'application/javascript', body: liveConnectionModule }),
+  );
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.goto('/test/browser/mock-app.html');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+
+  await page.locator('#connect').click();
+  await page.locator('#connect-bluetooth').click();
+  await expect(page.locator('#connectionStatus')).toHaveValue('Connected');
+  await expect(page.locator('#command-panel')).toBeVisible();
+
+  await page.locator('#sync-state').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Cube state synchronized.');
+
+  await page.locator('#reset-gyro').click();
+  await expect(page.locator('#app-feedback')).toHaveText('Gyro and virtual move frame reset.');
+  await page.locator('#track-orientation').click();
+  await expect(page.locator('#app-feedback')).toHaveText(
+    'Gyro orientation tracking paused; drag the cube to set the view.',
+  );
+
+  await page.getByRole('button', { name: 'Reset state' }).click();
+  await expect(page.locator('#app-feedback')).toHaveText('Cube state reset requested.');
+
+  await page.locator('#connect').click();
+  await page.locator('#disconnect-cube').click();
+  await expect(page.locator('#connectionStatus')).toHaveValue('Disconnected');
   await expect(page.locator('#command-panel')).toBeHidden();
 });
 
