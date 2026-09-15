@@ -99,6 +99,24 @@ describe('replay session', () => {
     expect(events).toEqual(['GYRO']);
   });
 
+  it('prefers raw gyro frames over duplicate stabilized-only export rows', async () => {
+    const replay = createReplaySession(
+      [
+        header,
+        '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"cube_event","data":{"type":"GYRO","timestamp":10,"quaternion":{"x":0,"y":0,"z":0,"w":1}}}',
+        '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"gyro_stabilizer","data":{"timestamp":20,"quaternion":{"x":0,"y":0,"z":0,"w":1}}}',
+      ].join('\n'),
+      'connection',
+    );
+    const events: string[] = [];
+    replay.session.subscribeEvents((event) => events.push(event.type));
+
+    await replay.advanceTo(Number.MAX_SAFE_INTEGER);
+
+    expect(replay.length).toBe(1);
+    expect(events).toEqual(['GYRO']);
+  });
+
   it('retains the captured device profile in session-output mode', () => {
     const replay = createReplaySession(
       [identifiedHeader, ...rawLog.split('\n').slice(1)].join('\n'),
@@ -293,6 +311,25 @@ describe('replay session', () => {
       'event:GYRO',
       'status:disconnected',
     ]);
+  });
+
+  it('replays validated derived output and lifecycle status rows', async () => {
+    const replay = createReplaySession(
+      [
+        header,
+        '{"recordedAt":"2026-09-09T10:00:00.010Z","type":"custom_trigger","data":{"timestamp":10,"move":"x"}}',
+        '{"recordedAt":"2026-09-09T10:00:00.020Z","type":"move_gap","data":{"timestamp":20,"previousSerial":3,"serial":6,"missing":2}}',
+        '{"recordedAt":"2026-09-09T10:00:00.030Z","type":"session_status","data":{"status":"error"}}',
+      ].join('\n'),
+      'session',
+    );
+    const events: string[] = [];
+    replay.session.subscribeEvents((event) => events.push(event.type));
+
+    await replay.advanceTo(Number.MAX_SAFE_INTEGER);
+
+    expect(events).toEqual(['CUSTOM_TRIGGER', 'MOVE_GAP']);
+    expect(replay.session.getState()).toMatchObject({ status: 'error', connection: null });
   });
 
   it('skips malformed derived session events instead of emitting invalid values', async () => {
