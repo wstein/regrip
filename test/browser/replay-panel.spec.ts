@@ -236,6 +236,24 @@ test('exports all, filtered, or selected trace events', async ({ page }) => {
   expect(selectedJsonl.trim().split('\n')).toHaveLength(2);
 });
 
+test('focuses and reproduces selected replay trace moves', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+
+  const moveRows = page.locator('.trace-row.trace-move');
+  await expect(moveRows).not.toHaveCount(0);
+  const move = (await moveRows.first().locator('.trace-message').textContent())!;
+
+  await moveRows.first().click();
+  await expect(page.locator('#trace-detail')).toBeVisible();
+
+  await moveRows.first().click({ modifiers: ['Shift'] });
+  await expect(page.locator('#reproduce-trace')).toBeEnabled();
+  await page.locator('#reproduce-trace').click();
+  await expect(page.locator('#detectedMoves')).toHaveValue(move);
+});
+
 test('renders the replayed cubie permutation, not only its algorithm text', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
