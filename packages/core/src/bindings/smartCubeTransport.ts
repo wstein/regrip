@@ -1,3 +1,12 @@
+/**
+ * Typed boundary between the core session and any `smartcube-web-bluetooth`-
+ * compatible transport. Widens the stock v4 event/capability types with the
+ * optional metadata (serials, cubie state, GoCube extras, diagnostics) that
+ * enhanced transports may supply, while `ConnectionSatisfiesTransport` below
+ * keeps the stock connection type checked against this contract at build time.
+ *
+ * @packageDocumentation
+ */
 import type {
   SmartCubeBatteryEvent as StockSmartCubeBatteryEvent,
   SmartCubeCapabilities as StockSmartCubeCapabilities,
@@ -20,14 +29,17 @@ export type SmartCubeCubieState = {
   EO: number[];
 };
 
+/** A GoCube hardware variant, as reported in its `HARDWARE` event. */
 export type GoCubeType = { code: number; name: string };
 
+/** Cumulative solve stats a GoCube reports for time spent disconnected. */
 export type GoCubeOfflineStats = {
   moves: number;
   timeSeconds: number;
   solves: number;
 };
 
+/** A vendor-specific out-of-band command, sent via `sendVendorCommand`. */
 export type SmartCubeVendorCommand =
   | { vendor: 'gocube'; type: 'REBOOT' }
   | { vendor: 'gocube'; type: 'SET_ORIENTATION_ENABLED'; enabled: boolean }
@@ -49,25 +61,31 @@ export type SmartCubeDiagnosticEvent = {
 
 type Timestamped = { timestamp: number };
 
+/** A single quarter-turn move, with an optional serial for gap detection. */
 export type SmartCubeMoveEvent = StockSmartCubeMoveEvent &
   Timestamped & {
     serial?: number;
     goCubeCenterOrientation?: number;
   };
 
+/** An authoritative facelet snapshot, optionally with cubie coordinates. */
 export type SmartCubeFaceletsEvent = StockSmartCubeFaceletsEvent &
   Timestamped & {
     serial?: number;
     state?: SmartCubeCubieState;
   };
 
+/** A raw gyro/orientation sample. */
 export type SmartCubeGyroEvent = StockSmartCubeGyroEvent & Timestamped;
+/** A battery-level report. */
 export type SmartCubeBatteryEvent = StockSmartCubeBatteryEvent & Timestamped;
+/** Device identity/firmware info, reported once after connecting. */
 export type SmartCubeHardwareEvent = StockSmartCubeHardwareEvent &
   Timestamped & {
     goCubeType?: GoCubeType;
     goCubeOfflineStats?: GoCubeOfflineStats;
   };
+/** Emitted when the transport disconnects, deliberately or otherwise. */
 export type SmartCubeDisconnectEvent = StockSmartCubeDisconnectEvent & Timestamped;
 
 /** Stock v4 events plus optional metadata supplied by compatible enhanced transports. */
@@ -79,6 +97,7 @@ export type SmartCubeEvent =
   | SmartCubeHardwareEvent
   | SmartCubeDisconnectEvent;
 
+/** What a connected device supports, including any vendor commands it accepts. */
 export type SmartCubeCapabilities = StockSmartCubeCapabilities & {
   vendorCommands?: readonly SmartCubeVendorCommand['type'][];
 };
