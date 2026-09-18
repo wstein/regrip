@@ -61,4 +61,42 @@ describe('color scheme preference', () => {
     expect(() => setColorScheme('japanese')).not.toThrow();
     expect(getColorScheme()).toBe('japanese');
   });
+
+  it('supports selecting and persisting the custom scheme', async () => {
+    const { getColorScheme, setColorScheme } = await freshModule();
+    setColorScheme('custom');
+    expect(getColorScheme()).toBe('custom');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('custom');
+
+    const { getColorScheme: reloaded } = await freshModule();
+    expect(reloaded()).toBe('custom');
+  });
+
+  it('manages custom face colors with defaults, persistence, and reset', async () => {
+    const {
+      getCustomColorScheme,
+      setCustomColorScheme,
+      resetCustomColorScheme,
+      customColorsToNumeric,
+      DEFAULT_CUSTOM_COLOR_SCHEME,
+    } = await freshModule();
+
+    expect(getCustomColorScheme()).toEqual(DEFAULT_CUSTOM_COLOR_SCHEME);
+
+    setCustomColorScheme({ U: '#000000', D: '#123456' });
+    expect(getCustomColorScheme().U).toBe('#000000');
+    expect(getCustomColorScheme().D).toBe('#123456');
+    expect(getCustomColorScheme().F).toBe(DEFAULT_CUSTOM_COLOR_SCHEME.F);
+
+    const numeric = customColorsToNumeric(getCustomColorScheme());
+    expect(numeric.U).toBe(0x000000);
+    expect(numeric.D).toBe(0x123456);
+
+    const { getCustomColorScheme: reloaded } = await freshModule();
+    expect(reloaded().U).toBe('#000000');
+    expect(reloaded().D).toBe('#123456');
+
+    resetCustomColorScheme();
+    expect(getCustomColorScheme()).toEqual(DEFAULT_CUSTOM_COLOR_SCHEME);
+  });
 });
