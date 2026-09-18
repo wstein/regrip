@@ -415,8 +415,18 @@ test('switches the editable detected-move notation without changing its canonica
   await expect(moves).toHaveValue("E' Fw");
 
   await page.locator('#detected-notation-jaap').click();
-  await expect(moves).toHaveValue("Dm' Fw");
+  await expect(moves).toHaveValue("Dm' B Fc");
   await expect(page.locator('#detected-notation-jaap')).toHaveAttribute('aria-pressed', 'true');
+
+  await moves.fill("Ua' (R2 F2)2 Ua");
+  await page.locator('#detected-notation-wca').click();
+  await expect(moves).toHaveValue("U' D' R2 F2 R2 F2 U D");
+
+  await page.locator('#detected-notation-jaap').click();
+  await moves.fill('Rs (Rs)1');
+  await page.locator('#simplify-detected-moves').click();
+  await expect(page.locator('#detected-notation-jaap')).toHaveAttribute('aria-pressed', 'true');
+  await expect(moves).toHaveValue('Lm2');
 
   await page.locator('#detected-notation-wca').click();
   await moves.fill("E2 M2 R L' R L'");
