@@ -410,6 +410,11 @@ test('toggles the Japanese color scheme for the color-facelets export', async ({
   await page.locator('#color-scheme-western').click();
   await expect(page.locator('#color-scheme-western')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#color-scheme-custom')).toHaveAttribute('aria-pressed', 'false');
+
+  await page.locator('#copy-cube-state').click();
+  await page.locator('#copy-compact-facelets').click();
+  const faceletsAfterToggle = await page.evaluate(() => localStorage.getItem('copied-value'));
+  expect(faceletsAfterToggle).toBe(facelets);
 });
 
 test('covers replay importer cancellation and drag-and-drop error handling', async ({ page }) => {
