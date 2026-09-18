@@ -1,4 +1,5 @@
 import type { SmartCubeCubieState } from '@wstein/regrip-core/bindings/smartCubeTransport';
+import type { ColorScheme } from '../adapters/three/faceColors';
 
 import * as CubeFacelets from '@wstein/regrip-core/domain/CubeFacelets';
 import { formatSingmasterCycles, formatSupersetEngPermutation } from './cubeInfo';
@@ -20,7 +21,7 @@ export type CubeExportFormat =
 export type CubeExportSource = { facelets: string; state?: SmartCubeCubieState };
 
 const base64url = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-const faceletColors: Readonly<Record<string, string>> = {
+const westernFaceletColors: Readonly<Record<string, string>> = {
   U: 'W',
   R: 'R',
   F: 'G',
@@ -28,6 +29,18 @@ const faceletColors: Readonly<Record<string, string>> = {
   L: 'O',
   B: 'B',
 };
+
+// The Japanese scheme keeps the same three opposite-color pairs as Western;
+// the only documented difference is that green (F) and blue (B) swap places.
+const japaneseFaceletColors: Readonly<Record<string, string>> = {
+  ...westernFaceletColors,
+  F: westernFaceletColors.B,
+  B: westernFaceletColors.F,
+};
+
+function faceletColorsFor(scheme: ColorScheme): Readonly<Record<string, string>> {
+  return scheme === 'japanese' ? japaneseFaceletColors : westernFaceletColors;
+}
 
 function validPermutation(values: number[], length: number): boolean {
   return (
@@ -115,8 +128,12 @@ export function formatCubieCoordinates(state: SmartCubeCubieState): string {
 }
 
 /** Sticker colors in canonical URFDLB face order, grouped by face. */
-export function formatColorFacelets(facelets: string): string | undefined {
+export function formatColorFacelets(
+  facelets: string,
+  scheme: ColorScheme = 'western',
+): string | undefined {
   if (facelets.length !== 54) return undefined;
+  const faceletColors = faceletColorsFor(scheme);
   const colors = Array.from(facelets, (facelet) => faceletColors[facelet]);
   if (colors.some((color) => color === undefined)) return undefined;
   return colors.join('').match(/.{9}/g)?.join(' ');
@@ -153,6 +170,7 @@ export function formatRegripStateJson(source: CubeExportSource): string | undefi
 export function formatCubeExport(
   source: CubeExportSource | undefined,
   format: CubeExportFormat,
+  colorScheme: ColorScheme = 'western',
 ): string | undefined {
   if (!source || source.facelets.length !== 54) return undefined;
   switch (format) {
@@ -161,7 +179,7 @@ export function formatCubeExport(
     case 'spaced-facelets':
       return source.facelets.match(/.{1,9}/g)?.join(' ');
     case 'color-facelets':
-      return formatColorFacelets(source.facelets);
+      return formatColorFacelets(source.facelets, colorScheme);
     case 'singmaster-cycles':
       return source.state ? formatSingmasterCycles(source.state) : undefined;
     case 'sse-permutation':

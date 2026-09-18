@@ -55,6 +55,15 @@ describe('cube exports', () => {
     expect(formatCubeExport({ facelets, state: solved }, 'color-facelets')).toBe(
       'WWWWWWWWW RRRRRRRRR GGGGGGGGG YYYYYYYYY OOOOOOOOO BBBBBBBBB',
     );
+    expect(formatCubeExport({ facelets, state: solved }, 'color-facelets', 'western')).toBe(
+      'WWWWWWWWW RRRRRRRRR GGGGGGGGG YYYYYYYYY OOOOOOOOO BBBBBBBBB',
+    );
+  });
+
+  it('swaps only green and blue for the Japanese color scheme', () => {
+    expect(formatCubeExport({ facelets, state: solved }, 'color-facelets', 'japanese')).toBe(
+      'WWWWWWWWW RRRRRRRRR BBBBBBBBB YYYYYYYYY OOOOOOOOO GGGGGGGGG',
+    );
   });
 
   it('formats cubing.js-compatible KPattern data as deterministic JSON', () => {
