@@ -11,6 +11,8 @@ Core package changes belong in [packages/core/CHANGELOG.md](packages/core/CHANGE
 ### Added
 
 - Product releases can use `regrip-v<version>` tags, independently of core-package releases.
+- A Western/Japanese color scheme toggle above the cube view, affecting the orientation gizmo and
+  the color-facelets export. The live 3D cube keeps rendering standard Western colors.
 
 ### Changed
 
