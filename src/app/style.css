@@ -1366,11 +1366,14 @@ body {
 .cube-view-toolbar {
   margin-bottom: 0.55rem;
 }
+.color-scheme-container {
+  position: relative;
+  margin-bottom: 0.55rem;
+}
 .color-scheme-toggle {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-bottom: 0.55rem;
 }
 .color-scheme-toggle-label {
   color: #8291b2;
@@ -1390,6 +1393,90 @@ body {
   color: #e7efff;
   border-color: #6b9bf5;
   background: #263f70;
+}
+.color-scheme-edit-button {
+  padding: 0.26rem 0.45rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1;
+}
+.color-scheme-edit-button[aria-expanded='true'] {
+  color: #e7efff;
+  border-color: #6b9bf5;
+  background: #263f70;
+}
+.custom-color-scheme-editor {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  min-width: 13.5rem;
+  padding: 0.6rem;
+  background: #111b31;
+  border: 1px solid #465a85;
+  border-radius: 0.6rem;
+  box-shadow: 0 0.6rem 1.4rem rgb(0 0 0 / 35%);
+}
+.custom-color-scheme-editor[hidden] {
+  display: none;
+}
+.custom-color-scheme-header {
+  margin-bottom: 0.45rem;
+}
+.custom-color-scheme-title {
+  color: #8291b2;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.custom-color-scheme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+.custom-color-scheme-grid label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  color: #aab9d9;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.custom-color-scheme-grid input[type='color'] {
+  width: 2.2rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 1px solid #3b4b70;
+  border-radius: 0.35rem;
+  background: transparent;
+  cursor: pointer;
+}
+.custom-color-scheme-grid input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.custom-color-scheme-grid input[type='color']::-webkit-color-swatch {
+  border: none;
+  border-radius: 0.3rem;
+}
+.custom-color-scheme-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.custom-color-scheme-actions button {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: 0.35rem;
+  color: #aab9d9;
+  border: 1px solid #3b4b70;
+  background: #162444;
+  cursor: pointer;
+}
+.custom-color-scheme-actions button:hover {
+  background: #213b67;
+  color: #e7efff;
 }
 .cube-toolbar {
   margin-top: 0.55rem;

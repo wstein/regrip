@@ -2,11 +2,19 @@ import './style.css';
 
 import { createCubingScrambleSolver } from '../adapters/cubing/scrambleSolver';
 import { createPatternReconciler } from '../adapters/cubing/patternReconciler';
-import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
+import { applyCubeColorScheme, twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { createTwistyPlayerSync } from '../adapters/cubing/twistyPlayerSync';
 import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
 import { homeFrameColorsFor } from '../adapters/three/faceColors';
-import { getColorScheme, setColorScheme } from './colorSchemePreference';
+import {
+  CUBE_FACES,
+  customColorsToNumeric,
+  getColorScheme,
+  getCustomColorScheme,
+  resetCustomColorScheme,
+  setColorScheme,
+  setCustomColorScheme,
+} from './colorSchemePreference';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
@@ -120,28 +128,76 @@ const orientationUi = createOrientationUi({
   orientation: solverFrame.orientation,
   renderer: () => sceneRenderer,
   colorScheme: getColorScheme,
+  customColors: () => customColorsToNumeric(getCustomColorScheme()),
   setActiveGrip: infoPanel.setActiveGrip,
   setTrackingStatus: infoPanel.setOrientationTracking,
 });
 
 function setColorSchemeButtons(scheme: ReturnType<typeof getColorScheme>): void {
-  (['western', 'japanese'] as const).forEach((candidate) => {
+  (['western', 'japanese', 'custom'] as const).forEach((candidate) => {
     document
       .getElementById(`color-scheme-${candidate}`)
       ?.setAttribute('aria-pressed', String(candidate === scheme));
   });
 }
-setColorSchemeButtons(getColorScheme());
+
+function updateCustomColorInputs(): void {
+  const custom = getCustomColorScheme();
+  for (const face of CUBE_FACES) {
+    const input = document.getElementById(`custom-color-${face}`) as HTMLInputElement | null;
+    if (input) input.value = custom[face];
+  }
+}
+
+function syncAllColorSchemeViews(): void {
+  const scheme = getColorScheme();
+  const custom = getCustomColorScheme();
+  setColorSchemeButtons(scheme);
+  applyCubeColorScheme(twistyPlayer, scheme, custom);
+  orientationUi.syncVirtualFrame();
+}
+
+syncAllColorSchemeViews();
+updateCustomColorInputs();
 
 infoPanel.on('color-scheme-western', 'click', () => {
   setColorScheme('western');
-  setColorSchemeButtons('western');
-  orientationUi.syncVirtualFrame();
+  syncAllColorSchemeViews();
 });
 infoPanel.on('color-scheme-japanese', 'click', () => {
   setColorScheme('japanese');
-  setColorSchemeButtons('japanese');
-  orientationUi.syncVirtualFrame();
+  syncAllColorSchemeViews();
+});
+infoPanel.on('color-scheme-custom', 'click', () => {
+  setColorScheme('custom');
+  syncAllColorSchemeViews();
+});
+
+const customEditToggle = document.getElementById('color-scheme-custom-edit');
+const customEditMenu = document.getElementById('custom-color-scheme-editor');
+if (customEditToggle && customEditMenu) {
+  createDropdownMenu({
+    toggle: customEditToggle,
+    menu: customEditMenu,
+  });
+}
+
+for (const face of CUBE_FACES) {
+  infoPanel.on(`custom-color-${face}`, 'input', (event) => {
+    const input = event.target as HTMLInputElement;
+    setCustomColorScheme({ [face]: input.value });
+    if (getColorScheme() === 'custom') {
+      syncAllColorSchemeViews();
+    }
+  });
+}
+
+infoPanel.on('custom-color-reset', 'click', () => {
+  resetCustomColorScheme();
+  updateCustomColorInputs();
+  if (getColorScheme() === 'custom') {
+    syncAllColorSchemeViews();
+  }
 });
 
 infoPanel.on('sync-state', 'click', async () => {
@@ -363,7 +419,10 @@ sessionSignals.state.subscribe((state) => {
             '3D preview paused after a GPU reset. Waiting for WebGL recovery…',
           ),
         onContextRestored: () => infoPanel.showFeedback('3D preview restored.'),
-        homeFrameColors: homeFrameColorsFor(getColorScheme()),
+        homeFrameColors: homeFrameColorsFor(
+          getColorScheme(),
+          customColorsToNumeric(getCustomColorScheme()),
+        ),
       });
     } else sceneRenderer.setActive(true);
     infoPanel.setOrientationTrackingAvailable(connection.capabilities.gyroscope);
@@ -504,7 +563,9 @@ const cubeExportDropdown = createDropdownMenu({
 });
 
 function copyCubeExport(format: CubeExportFormat, label: string): void {
-  const value = formatCubeExport(cubeExportSource, format, getColorScheme());
+  const scheme = getColorScheme();
+  const custom = scheme === 'custom' ? getCustomColorScheme() : undefined;
+  const value = formatCubeExport(cubeExportSource, format, scheme, custom);
   cubeExportDropdown.close();
   if (!value) {
     infoPanel.showFeedback(`No valid cube state is available for ${label}.`);

@@ -375,7 +375,7 @@ test('toggles the Japanese color scheme for the color-facelets export', async ({
   expect(facelets).toHaveLength(54);
 
   const western: Record<string, string> = { U: 'W', R: 'R', F: 'G', D: 'Y', L: 'O', B: 'B' };
-  const japanese = { ...western, F: western.B, B: western.F };
+  const japanese = { ...western, B: western.D, D: western.B };
   const colorFacelets = (letters: Record<string, string>): string =>
     Array.from(facelets!, (face) => letters[face])
       .join('')
@@ -398,8 +398,18 @@ test('toggles the Japanese color scheme for the color-facelets export', async ({
     .poll(() => page.evaluate(() => localStorage.getItem('copied-value')))
     .toBe(colorFacelets(japanese));
 
+  await page.locator('#color-scheme-custom').click();
+  await expect(page.locator('#color-scheme-custom')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#color-scheme-japanese')).toHaveAttribute('aria-pressed', 'false');
+
+  // Open custom color editor and check initial face colors
+  await page.locator('#color-scheme-custom-edit').click();
+  await expect(page.locator('#custom-color-scheme-editor')).toBeVisible();
+  await expect(page.locator('#custom-color-U')).toHaveValue('#ffffff');
+
   await page.locator('#color-scheme-western').click();
   await expect(page.locator('#color-scheme-western')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#color-scheme-custom')).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('covers replay importer cancellation and drag-and-drop error handling', async ({ page }) => {

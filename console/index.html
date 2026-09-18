@@ -287,14 +287,100 @@
                     Reset view
                   </button>
                 </div>
-                <div class="color-scheme-toggle" role="group" aria-label="Cube color scheme">
-                  <span class="color-scheme-toggle-label">Colors</span>
-                  <button id="color-scheme-western" type="button" aria-pressed="true">
-                    Western
-                  </button>
-                  <button id="color-scheme-japanese" type="button" aria-pressed="false">
-                    Japanese
-                  </button>
+                <div class="color-scheme-container">
+                  <div class="color-scheme-toggle" role="group" aria-label="Cube color scheme">
+                    <span class="color-scheme-toggle-label">Colors</span>
+                    <button id="color-scheme-western" type="button" aria-pressed="true">
+                      Western
+                    </button>
+                    <button id="color-scheme-japanese" type="button" aria-pressed="false">
+                      Japanese
+                    </button>
+                    <button id="color-scheme-custom" type="button" aria-pressed="false">
+                      Custom
+                    </button>
+                    <button
+                      id="color-scheme-custom-edit"
+                      type="button"
+                      class="color-scheme-edit-button"
+                      aria-label="Custom color settings"
+                      title="Configure custom colors"
+                      aria-expanded="false"
+                      aria-controls="custom-color-scheme-editor"
+                    >
+                      ⚙
+                    </button>
+                  </div>
+                  <div
+                    id="custom-color-scheme-editor"
+                    class="custom-color-scheme-editor"
+                    role="dialog"
+                    aria-label="Custom cube colors"
+                    hidden
+                  >
+                    <div class="custom-color-scheme-header">
+                      <span class="custom-color-scheme-title">Custom colors</span>
+                    </div>
+                    <div class="custom-color-scheme-grid">
+                      <label for="custom-color-U">
+                        <span>U</span>
+                        <input
+                          id="custom-color-U"
+                          type="color"
+                          value="#ffffff"
+                          title="Up face color"
+                        />
+                      </label>
+                      <label for="custom-color-L">
+                        <span>L</span>
+                        <input
+                          id="custom-color-L"
+                          type="color"
+                          value="#ff8a2a"
+                          title="Left face color"
+                        />
+                      </label>
+                      <label for="custom-color-F">
+                        <span>F</span>
+                        <input
+                          id="custom-color-F"
+                          type="color"
+                          value="#78ed3e"
+                          title="Front face color"
+                        />
+                      </label>
+                      <label for="custom-color-R">
+                        <span>R</span>
+                        <input
+                          id="custom-color-R"
+                          type="color"
+                          value="#ff3131"
+                          title="Right face color"
+                        />
+                      </label>
+                      <label for="custom-color-B">
+                        <span>B</span>
+                        <input
+                          id="custom-color-B"
+                          type="color"
+                          value="#3568ff"
+                          title="Back face color"
+                        />
+                      </label>
+                      <label for="custom-color-D">
+                        <span>D</span>
+                        <input
+                          id="custom-color-D"
+                          type="color"
+                          value="#fff34a"
+                          title="Down face color"
+                        />
+                      </label>
+                    </div>
+                    <div class="custom-color-scheme-actions">
+                      <button id="custom-color-reset" type="button">Reset</button>
+                    </div>
+                  </div>
                 </div>
                 <div class="cube-viewport-wrapper">
                   <div id="cube"></div>
