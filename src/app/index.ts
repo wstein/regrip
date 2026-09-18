@@ -5,6 +5,8 @@ import { createPatternReconciler } from '../adapters/cubing/patternReconciler';
 import { twistyPlayer } from '../adapters/cubing/twistyPlayer';
 import { createTwistyPlayerSync } from '../adapters/cubing/twistyPlayerSync';
 import { startSceneRenderLoop, type SceneRenderer } from '../adapters/three/sceneView';
+import { homeFrameColorsFor } from '../adapters/three/faceColors';
+import { getColorScheme, setColorScheme } from './colorSchemePreference';
 import * as infoPanel from './infoPanel';
 import { createCommandPanel } from './commandPanel';
 import { createJsonlLog, downloadJsonl } from './jsonlLog';
@@ -117,9 +119,29 @@ let cubeExportSource: CubeExportSource | undefined;
 const orientationUi = createOrientationUi({
   orientation: solverFrame.orientation,
   renderer: () => sceneRenderer,
-  colorScheme: () => 'western',
+  colorScheme: getColorScheme,
   setActiveGrip: infoPanel.setActiveGrip,
   setTrackingStatus: infoPanel.setOrientationTracking,
+});
+
+function setColorSchemeButtons(scheme: ReturnType<typeof getColorScheme>): void {
+  (['western', 'japanese'] as const).forEach((candidate) => {
+    document
+      .getElementById(`color-scheme-${candidate}`)
+      ?.setAttribute('aria-pressed', String(candidate === scheme));
+  });
+}
+setColorSchemeButtons(getColorScheme());
+
+infoPanel.on('color-scheme-western', 'click', () => {
+  setColorScheme('western');
+  setColorSchemeButtons('western');
+  orientationUi.syncVirtualFrame();
+});
+infoPanel.on('color-scheme-japanese', 'click', () => {
+  setColorScheme('japanese');
+  setColorSchemeButtons('japanese');
+  orientationUi.syncVirtualFrame();
 });
 
 infoPanel.on('sync-state', 'click', async () => {
@@ -341,6 +363,7 @@ sessionSignals.state.subscribe((state) => {
             '3D preview paused after a GPU reset. Waiting for WebGL recovery…',
           ),
         onContextRestored: () => infoPanel.showFeedback('3D preview restored.'),
+        homeFrameColors: homeFrameColorsFor(getColorScheme()),
       });
     } else sceneRenderer.setActive(true);
     infoPanel.setOrientationTrackingAvailable(connection.capabilities.gyroscope);
@@ -481,7 +504,7 @@ const cubeExportDropdown = createDropdownMenu({
 });
 
 function copyCubeExport(format: CubeExportFormat, label: string): void {
-  const value = formatCubeExport(cubeExportSource, format);
+  const value = formatCubeExport(cubeExportSource, format, getColorScheme());
   cubeExportDropdown.close();
   if (!value) {
     infoPanel.showFeedback(`No valid cube state is available for ${label}.`);

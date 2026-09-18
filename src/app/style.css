@@ -1366,6 +1366,31 @@ body {
 .cube-view-toolbar {
   margin-bottom: 0.55rem;
 }
+.color-scheme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+}
+.color-scheme-toggle-label {
+  color: #8291b2;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.color-scheme-toggle button {
+  padding: 0.26rem 0.55rem;
+  color: #aab9d9;
+  border-color: #3b4b70;
+  background: #111c35;
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.color-scheme-toggle button[aria-pressed='true'] {
+  color: #e7efff;
+  border-color: #6b9bf5;
+  background: #263f70;
+}
 .cube-toolbar {
   margin-top: 0.55rem;
 }

@@ -355,6 +355,53 @@ test('reports unavailable state exports and rejected clipboard writes', async ({
   await expect(page.locator('#app-feedback')).toHaveText('Could not copy detected moves.');
 });
 
+test('toggles the Japanese color scheme for the color-facelets export', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  await page.evaluate(() => window.__smartcubeReplay?.advanceTo(Number.MAX_SAFE_INTEGER));
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: (value: string) => localStorage.setItem('copied-value', value) },
+    });
+  });
+
+  await expect(page.locator('#color-scheme-western')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#color-scheme-japanese')).toHaveAttribute('aria-pressed', 'false');
+
+  await page.locator('#copy-cube-state').click();
+  await page.locator('#copy-compact-facelets').click();
+  const facelets = await page.evaluate(() => localStorage.getItem('copied-value'));
+  expect(facelets).toHaveLength(54);
+
+  const western: Record<string, string> = { U: 'W', R: 'R', F: 'G', D: 'Y', L: 'O', B: 'B' };
+  const japanese = { ...western, F: western.B, B: western.F };
+  const colorFacelets = (letters: Record<string, string>): string =>
+    Array.from(facelets!, (face) => letters[face])
+      .join('')
+      .match(/.{9}/g)!
+      .join(' ');
+
+  await page.locator('#copy-cube-state').click();
+  await page.locator('#copy-color-facelets').click();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('copied-value')))
+    .toBe(colorFacelets(western));
+
+  await page.locator('#color-scheme-japanese').click();
+  await expect(page.locator('#color-scheme-japanese')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#color-scheme-western')).toHaveAttribute('aria-pressed', 'false');
+
+  await page.locator('#copy-cube-state').click();
+  await page.locator('#copy-color-facelets').click();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('copied-value')))
+    .toBe(colorFacelets(japanese));
+
+  await page.locator('#color-scheme-western').click();
+  await expect(page.locator('#color-scheme-western')).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('covers replay importer cancellation and drag-and-drop error handling', async ({ page }) => {
   await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
   await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
