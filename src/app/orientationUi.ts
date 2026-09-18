@@ -1,10 +1,11 @@
 import type { SceneRenderer } from '../adapters/three/sceneView';
-import { FACE_COLORS } from '../adapters/three/faceColors';
+import { faceColorsFor, type ColorScheme } from '../adapters/three/faceColors';
 import type { SolverOrientation } from '../adapters/three/solverFrame';
 
 type OrientationUiOptions = {
   orientation: () => SolverOrientation;
   renderer: () => SceneRenderer | undefined;
+  colorScheme: () => ColorScheme;
   setActiveGrip: (grip: string, gesture?: string) => void;
   setTrackingStatus: (tracking: boolean) => void;
 };
@@ -20,14 +21,15 @@ export function createOrientationUi(options: OrientationUiOptions) {
 
   const syncVirtualFrame = (gesture?: string): void => {
     const { right, up, front, faces } = options.orientation();
+    const faceColors = faceColorsFor(options.colorScheme());
     options.renderer()?.setVirtualFrameOrientation({
       right,
       up,
       front,
       colors: {
-        x: FACE_COLORS[faces.right]!,
-        y: FACE_COLORS[faces.up]!,
-        z: FACE_COLORS[faces.front]!,
+        x: faceColors[faces.right]!,
+        y: faceColors[faces.up]!,
+        z: faceColors[faces.front]!,
       },
     });
     options.setActiveGrip(formatGripDescription(faces), gesture);

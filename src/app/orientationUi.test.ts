@@ -24,6 +24,7 @@ describe('orientation UI', () => {
         faces: { right: 'B', up: 'R', front: 'U' },
       }),
       renderer: () => renderer as never,
+      colorScheme: () => 'western',
       setActiveGrip,
       setTrackingStatus,
     });
@@ -43,5 +44,37 @@ describe('orientation UI', () => {
     expect(setTrackingStatus).toHaveBeenCalledWith(true);
     ui.resetView();
     expect(renderer.resetCubeOrientation).toHaveBeenCalledOnce();
+  });
+
+  it('reads the current color scheme on every sync, not just at construction', () => {
+    const renderer = {
+      setVirtualFrameOrientation: vi.fn(),
+      setManualOrientationEnabled: vi.fn(),
+      resetCubeOrientation: vi.fn(),
+    };
+    let scheme: 'western' | 'japanese' = 'western';
+    const ui = createOrientationUi({
+      orientation: () => ({
+        right: [0, 0, 1],
+        up: [1, 0, 0],
+        front: [0, 1, 0],
+        faces: { right: 'R', up: 'U', front: 'F' },
+      }),
+      renderer: () => renderer as never,
+      colorScheme: () => scheme,
+      setActiveGrip: vi.fn(),
+      setTrackingStatus: vi.fn(),
+    });
+
+    ui.syncVirtualFrame();
+    expect(renderer.setVirtualFrameOrientation).toHaveBeenLastCalledWith(
+      expect.objectContaining({ colors: { x: 0xff3131, y: 0xffffff, z: 0x78ed3e } }),
+    );
+
+    scheme = 'japanese';
+    ui.syncVirtualFrame();
+    expect(renderer.setVirtualFrameOrientation).toHaveBeenLastCalledWith(
+      expect.objectContaining({ colors: { x: 0xff3131, y: 0xffffff, z: 0x3568ff } }),
+    );
   });
 });

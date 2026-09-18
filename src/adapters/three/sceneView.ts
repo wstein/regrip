@@ -5,7 +5,7 @@ import {
   setOrientationIndicatorColors,
   type OrientationIndicatorColors,
 } from './orientationIndicator';
-import { HOME_FRAME_COLORS } from './faceColors';
+import { homeFrameColorsFor } from './faceColors';
 
 type Vantage = {
   scene: { scene(): Promise<THREE.Scene> } | null;
@@ -35,6 +35,8 @@ export type SceneRenderer = {
 export type SceneRenderOptions = {
   onContextLost?: () => void;
   onContextRestored?: () => void;
+  /** Initial gizmo colors before the first `setVirtualFrameOrientation` call. */
+  homeFrameColors?: OrientationIndicatorColors;
 };
 
 export type QuaternionComponents = Readonly<{ x: number; y: number; z: number; w: number }>;
@@ -57,14 +59,18 @@ export type VirtualFrameOrientation = Readonly<{
  */
 export function startSceneRenderLoop(
   player: ScenePlayer,
-  { onContextLost, onContextRestored }: SceneRenderOptions = {},
+  {
+    onContextLost,
+    onContextRestored,
+    homeFrameColors = homeFrameColorsFor('western'),
+  }: SceneRenderOptions = {},
 ): SceneRenderer {
   const restingCubeQuaternion = new THREE.Quaternion().setFromEuler(
     new THREE.Euler((30 * Math.PI) / 180, (-30 * Math.PI) / 180, 0),
   );
   const cubeQuaternion = restingCubeQuaternion.clone();
   const virtualFrameQuaternion = new THREE.Quaternion();
-  const virtualFrameColors = { ...HOME_FRAME_COLORS };
+  const virtualFrameColors = { ...homeFrameColors };
   let scene: THREE.Scene | undefined;
   let vantage: Vantage | undefined;
   let canvas: HTMLCanvasElement | undefined;

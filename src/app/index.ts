@@ -117,6 +117,7 @@ let cubeExportSource: CubeExportSource | undefined;
 const orientationUi = createOrientationUi({
   orientation: solverFrame.orientation,
   renderer: () => sceneRenderer,
+  colorScheme: () => 'western',
   setActiveGrip: infoPanel.setActiveGrip,
   setTrackingStatus: infoPanel.setOrientationTracking,
 });
