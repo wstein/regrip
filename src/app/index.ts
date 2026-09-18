@@ -58,6 +58,18 @@ const detectedMoves = createDetectedMovesController({
         ?.setAttribute('aria-pressed', String(candidate === notation));
     });
   },
+  setValidationError: (error) => {
+    const editor = document.getElementById('detectedMoves');
+    const message = document.getElementById('detected-moves-error');
+    if (editor instanceof HTMLTextAreaElement) {
+      if (error) editor.setAttribute('aria-invalid', 'true');
+      else editor.removeAttribute('aria-invalid');
+    }
+    if (message) {
+      message.textContent = error ?? '';
+      message.hidden = error === undefined;
+    }
+  },
 });
 
 infoPanel.mountCube(twistyPlayer);

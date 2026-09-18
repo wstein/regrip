@@ -7,6 +7,7 @@ import {
   formatSseMoves,
   parseDetectedMoves,
   simplifyMovesModuloRotations,
+  validateDetectedMoves,
 } from './moveSimplifier';
 
 describe('simplifyMovesModuloRotations', () => {
@@ -82,5 +83,13 @@ describe('detected-move notation views', () => {
   it('keeps malformed notation tokens visible', () => {
     expect(parseDetectedMoves('CX 2X q', 'sse')).toBe('CX 2X q');
     expect(simplifyMovesModuloRotations("D' U D' U")).toBe('E2');
+  });
+
+  it('reports malformed Jaap repetition groups before simplifying', () => {
+    expect(validateDetectedMoves('(R U', 'jaap')).toBe('Unclosed Jaap repeat group.');
+    expect(validateDetectedMoves('(R U)0', 'jaap')).toBe(
+      'Jaap repeat counts must be positive integers.',
+    );
+    expect(validateDetectedMoves('Rx', 'jaap')).toBe('Invalid Jaap token: Rx.');
   });
 });

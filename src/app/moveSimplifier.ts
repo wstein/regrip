@@ -287,9 +287,16 @@ function parseJaapMove(token: string): string[] | undefined {
   ];
 }
 
+type JaapParseResult = { moves: string[] } | { error: string };
+
 /** Parse Jaap's aliases and nested `(sequence)N` repetition groups into canonical moves. */
-function parseJaapMoves(value: string): string[] | undefined {
+function parseJaapMoves(value: string): JaapParseResult {
   let index = 0;
+  let error: string | undefined;
+  const fail = (message: string): undefined => {
+    error = message;
+    return undefined;
+  };
   const skipWhitespace = (): void => {
     while (/\s/.test(value[index] ?? '')) index += 1;
   };
@@ -299,7 +306,7 @@ function parseJaapMoves(value: string): string[] | undefined {
       skipWhitespace();
       if (index >= value.length) break;
       if (value[index] === ')') {
-        if (!insideGroup) return undefined;
+        if (!insideGroup) return fail('Unexpected closing parenthesis in Jaap notation.');
         index += 1;
         return result;
       }
@@ -310,19 +317,22 @@ function parseJaapMoves(value: string): string[] | undefined {
         const exponent = /^(?:\^)?(\d+)/.exec(value.slice(index));
         const repetitions = exponent ? Number(exponent[1]) : 1;
         if (exponent) index += exponent[0].length;
-        if (!Number.isSafeInteger(repetitions) || repetitions < 1) return undefined;
+        if (!Number.isSafeInteger(repetitions) || repetitions < 1)
+          return fail('Jaap repeat counts must be positive integers.');
+        if (value[index] === '^') return fail('Invalid Jaap repeat count.');
         for (let repeat = 0; repeat < repetitions; repeat += 1) result.push(...group);
         continue;
       }
       const start = index;
       while (index < value.length && !/[\s()]/.test(value[index]!)) index += 1;
       const expanded = parseJaapMove(value.slice(start, index));
-      if (!expanded) return undefined;
+      if (!expanded) return fail(`Invalid Jaap token: ${value.slice(start, index)}.`);
       result.push(...expanded);
     }
-    return insideGroup ? undefined : result;
+    return insideGroup ? fail('Unclosed Jaap repeat group.') : result;
   };
-  return parseSequence(false);
+  const moves = parseSequence(false);
+  return moves ? { moves } : { error: error ?? 'Invalid Jaap notation.' };
 }
 
 function formatJaapMoves(value: string): string {
@@ -371,7 +381,7 @@ export function formatDetectedMoves(value: string, notation: DetectedMoveNotatio
 export function parseDetectedMoves(value: string, notation: DetectedMoveNotation): string {
   if (notation === 'jaap') {
     const parsed = parseJaapMoves(value);
-    return parsed ? parsed.join(' ') : value;
+    return 'moves' in parsed ? parsed.moves.join(' ') : value;
   }
   const result: string[] = [];
   for (const token of value.trim().split(/\s+/)) {
@@ -393,6 +403,16 @@ export function parseDetectedMoves(value: string, notation: DetectedMoveNotation
     result.push(token);
   }
   return result.join(' ');
+}
+
+/** Return a user-facing syntax error for notation that has a structured parser. */
+export function validateDetectedMoves(
+  value: string,
+  notation: DetectedMoveNotation,
+): string | undefined {
+  if (notation !== 'jaap') return undefined;
+  const parsed = parseJaapMoves(value);
+  return 'error' in parsed ? parsed.error : undefined;
 }
 
 function inverseTurns(turns: number): number {

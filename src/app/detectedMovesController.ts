@@ -3,6 +3,7 @@ import {
   parseDetectedMoves,
   simplifyMovesModuloRotations,
   type DetectedMoveNotation,
+  validateDetectedMoves,
 } from './moveSimplifier';
 
 type DetectedMovesView = {
@@ -12,6 +13,7 @@ type DetectedMovesView = {
   setReadOnly(readOnly: boolean): void;
   setSimplifyEnabled(enabled: boolean): void;
   setNotation(notation: DetectedMoveNotation): void;
+  setValidationError(error: string | undefined): void;
 };
 
 export function countDetectedMoves(value: string): number {
@@ -27,8 +29,13 @@ export function createDetectedMovesController(view: DetectedMovesView) {
   let canonical = '';
   let rawQtm: string[] = [];
 
-  const syncCanonicalEdit = (): string => {
-    if (notation !== 'raw-qtm') canonical = parseDetectedMoves(view.read(), notation);
+  const syncCanonicalEdit = (): string | undefined => {
+    if (notation === 'raw-qtm') return canonical;
+    const input = view.read();
+    const error = validateDetectedMoves(input, notation);
+    view.setValidationError(error);
+    if (error) return undefined;
+    canonical = parseDetectedMoves(input, notation);
     return canonical;
   };
 
@@ -39,12 +46,13 @@ export function createDetectedMovesController(view: DetectedMovesView) {
     view.setCount(countDetectedMoves(notation === 'raw-qtm' ? raw : canonical));
     view.setReadOnly(notation === 'raw-qtm');
     view.setSimplifyEnabled(notation !== 'raw-qtm');
+    view.setValidationError(undefined);
     view.setNotation(notation);
   };
 
   return {
     append(move: string, rawMove?: string): void {
-      const current = syncCanonicalEdit();
+      const current = syncCanonicalEdit() ?? canonical;
       canonical = current ? `${current} ${move}` : move;
       if (rawMove) rawQtm.push(rawMove);
       render();
@@ -60,17 +68,20 @@ export function createDetectedMovesController(view: DetectedMovesView) {
       render();
     },
     setNotation(nextNotation: DetectedMoveNotation): void {
-      syncCanonicalEdit();
+      if (syncCanonicalEdit() === undefined) return;
       notation = nextNotation;
       render();
     },
     edited(): void {
-      syncCanonicalEdit();
+      const valid = syncCanonicalEdit() !== undefined;
       view.setCount(countDetectedMoves(view.read()));
+      view.setSimplifyEnabled(notation !== 'raw-qtm' && valid);
     },
     simplify(): boolean {
       if (notation === 'raw-qtm') return false;
-      canonical = simplifyMovesModuloRotations(syncCanonicalEdit());
+      const current = syncCanonicalEdit();
+      if (current === undefined) return false;
+      canonical = simplifyMovesModuloRotations(current);
       render();
       return true;
     },

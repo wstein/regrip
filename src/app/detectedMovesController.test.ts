@@ -10,6 +10,7 @@ function fixture() {
     readOnly: false,
     simplifyEnabled: true,
     notation: 'wca' as DetectedMoveNotation,
+    validationError: undefined as string | undefined,
   };
   const controller = createDetectedMovesController({
     read: () => state.text,
@@ -27,6 +28,9 @@ function fixture() {
     },
     setNotation: (notation) => {
       state.notation = notation;
+    },
+    setValidationError: (error) => {
+      state.validationError = error;
     },
   });
   return { controller, state };
@@ -87,5 +91,21 @@ describe('detected moves controller', () => {
 
     expect(controller.simplify()).toBe(true);
     expect(state).toMatchObject({ notation: 'jaap', text: 'Dm2' });
+  });
+
+  it('keeps an invalid Jaap edit visible and disables simplify', () => {
+    const { controller, state } = fixture();
+    controller.replace('R U');
+    controller.setNotation('jaap');
+    state.text = '(R U';
+
+    controller.edited();
+
+    expect(state).toMatchObject({
+      text: '(R U',
+      validationError: 'Unclosed Jaap repeat group.',
+      simplifyEnabled: false,
+    });
+    expect(controller.simplify()).toBe(false);
   });
 });

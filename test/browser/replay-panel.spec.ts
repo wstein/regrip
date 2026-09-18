@@ -452,6 +452,24 @@ test('preserves the unsimplified body-frame move stream in Raw QTM', async ({ pa
   await expect(page.locator('#simplify-detected-moves')).toBeEnabled();
 });
 
+test('reports malformed Jaap notation inline until the editor is corrected', async ({ page }) => {
+  await page.goto('/test/browser/mock-app.html?replay&fixture=gocube-edge');
+  await expect(page.locator('html')).toHaveAttribute('data-ready', 'true');
+  const moves = page.locator('#detectedMoves');
+  const simplify = page.locator('#simplify-detected-moves');
+
+  await page.locator('#detected-notation-jaap').click();
+  await moves.fill('(R U');
+  await expect(moves).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#detected-moves-error')).toHaveText('Unclosed Jaap repeat group.');
+  await expect(simplify).toBeDisabled();
+
+  await moves.fill('Rs Rs');
+  await expect(moves).not.toHaveAttribute('aria-invalid');
+  await expect(page.locator('#detected-moves-error')).toBeHidden();
+  await expect(simplify).toBeEnabled();
+});
+
 test('aligns syntax-highlighted tokens pixel-for-pixel with textarea caret position', async ({
   page,
 }) => {

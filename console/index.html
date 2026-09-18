@@ -397,8 +397,10 @@
                     placeholder="U R F D L B"
                     autocomplete="off"
                     spellcheck="false"
+                    aria-describedby="detected-moves-error"
                   ></textarea>
                 </div>
+                <p id="detected-moves-error" class="detected-moves-error" role="alert" hidden></p>
                 <div class="detected-moves-actions">
                   <button id="simplify-detected-moves" type="button">Simplify</button>
                   <button id="clear-detected-moves" type="button">Clear</button>
