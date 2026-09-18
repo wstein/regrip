@@ -70,6 +70,13 @@ describe('detected-move notation views', () => {
     expect(parseDetectedMoves(sse, 'sse')).toBe(canonical);
   });
 
+  it('expands Jaap aliases and repetition groups while retaining its formatter', () => {
+    const jaap = "F2 R2 Ua' (R2 F2)2 Ua F2 R2";
+    const canonical = "F2 R2 U' D' R2 F2 R2 F2 U D F2 R2";
+    expect(parseDetectedMoves(jaap, 'jaap')).toBe(canonical);
+    expect(formatDetectedMoves("M E' S2 x y' z2", 'jaap')).toBe("Lm Dm' Fm2 Rc Uc' Fc2");
+  });
+
   it('expands every SSE opposing-slice spelling', () => {
     expect(parseDetectedMoves("SU SU' SR2 SD SF' SB", 'sse')).toBe(
       "U D' U' D R2 L2 D U' F' B B F'",

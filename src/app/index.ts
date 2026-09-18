@@ -52,7 +52,7 @@ const detectedMoves = createDetectedMovesController({
     if (simplify instanceof HTMLButtonElement) simplify.disabled = !enabled;
   },
   setNotation: (notation) => {
-    (['wca', 'sign', 'sse', 'raw-qtm'] as const).forEach((candidate) => {
+    (['wca', 'sign', 'sse', 'jaap', 'raw-qtm'] as const).forEach((candidate) => {
       document
         .getElementById(`detected-notation-${candidate}`)
         ?.setAttribute('aria-pressed', String(candidate === notation));
@@ -457,6 +457,7 @@ infoPanel.on('copy-detected-moves', 'click', () => {
 infoPanel.on('detected-notation-wca', 'click', () => detectedMoves.setNotation('wca'));
 infoPanel.on('detected-notation-sign', 'click', () => detectedMoves.setNotation('sign'));
 infoPanel.on('detected-notation-sse', 'click', () => detectedMoves.setNotation('sse'));
+infoPanel.on('detected-notation-jaap', 'click', () => detectedMoves.setNotation('jaap'));
 infoPanel.on('detected-notation-raw-qtm', 'click', () => detectedMoves.setNotation('raw-qtm'));
 
 const cubeExportButton = document.getElementById('copy-cube-state') as HTMLButtonElement;

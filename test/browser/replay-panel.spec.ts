@@ -289,6 +289,7 @@ test('renders the replayed cubie permutation, not only its algorithm text', asyn
   await expect(page.locator('#detected-notation-wca')).toHaveText('WCA');
   await expect(page.locator('#detected-notation-sign')).toHaveText('SiGN');
   await expect(page.locator('#detected-notation-sse')).toHaveText('SSE');
+  await expect(page.locator('#detected-notation-jaap')).toHaveText('Jaap');
   await expect(page.locator('#detected-notation-raw-qtm')).toHaveText('Raw QTM');
 });
 
@@ -413,6 +414,11 @@ test('switches the editable detected-move notation without changing its canonica
   await page.locator('#detected-notation-wca').click();
   await expect(moves).toHaveValue("E' Fw");
 
+  await page.locator('#detected-notation-jaap').click();
+  await expect(moves).toHaveValue("Dm' Fw");
+  await expect(page.locator('#detected-notation-jaap')).toHaveAttribute('aria-pressed', 'true');
+
+  await page.locator('#detected-notation-wca').click();
   await moves.fill("E2 M2 R L' R L'");
   await page.locator('#simplify-detected-moves').click();
   await expect(moves).toHaveValue('E2');

@@ -3,7 +3,7 @@ type Face = 'U' | 'R' | 'F' | 'D' | 'L' | 'B';
 type Slice = 'M' | 'E' | 'S';
 type Orientation = Readonly<Record<Face, Face>>;
 
-export type DetectedMoveNotation = 'wca' | 'sign' | 'sse' | 'raw-qtm';
+export type DetectedMoveNotation = 'wca' | 'sign' | 'sse' | 'jaap' | 'raw-qtm';
 
 const faces: readonly Face[] = ['U', 'R', 'F', 'D', 'L', 'B'];
 const identity: Orientation = { U: 'U', R: 'R', F: 'F', D: 'D', L: 'L', B: 'B' };
@@ -296,6 +296,102 @@ function parseSignMove(token: string): string | undefined {
   return wide ? `${wide[1]!.toUpperCase()}w${wide[2] ?? ''}` : undefined;
 }
 
+const jaapMiddleLayer: Readonly<Record<Face, ParsedMove>> = {
+  R: { face: 'M', turns: 3 },
+  L: { face: 'M', turns: 1 },
+  U: { face: 'E', turns: 3 },
+  D: { face: 'E', turns: 1 },
+  F: { face: 'S', turns: 1 },
+  B: { face: 'S', turns: 3 },
+};
+
+const jaapRotation: Readonly<Record<Face, ParsedMove>> = {
+  R: { face: 'x', turns: 1 },
+  L: { face: 'x', turns: 3 },
+  U: { face: 'y', turns: 1 },
+  D: { face: 'y', turns: 3 },
+  F: { face: 'z', turns: 1 },
+  B: { face: 'z', turns: 3 },
+};
+
+function multiplyTurns(move: ParsedMove, multiplier: number): string {
+  return formatMove({ ...move, turns: (move.turns * multiplier) % 4 });
+}
+
+function parseJaapMove(token: string): string[] | undefined {
+  const match = /^([URFDLB])([samc])?([2']?)$/.exec(token);
+  if (!match) return parseMove(token) ? [token] : undefined;
+  const [, faceValue, kind, suffix] = match;
+  const face = faceValue as Face;
+  const turns = turnsFromSuffix(suffix ?? '');
+  if (!kind) return [token];
+  if (kind === 'm') return [multiplyTurns(jaapMiddleLayer[face], turns)];
+  if (kind === 'c') return [multiplyTurns(jaapRotation[face], turns)];
+  const opposite = opposingFaces[face];
+  return [
+    formatMove({ face, turns }),
+    formatMove({ face: opposite, turns: kind === 's' ? inverseTurns(turns) : turns }),
+  ];
+}
+
+/** Parse Jaap's aliases and nested `(sequence)N` repetition groups into canonical moves. */
+function parseJaapMoves(value: string): string[] | undefined {
+  let index = 0;
+  const skipWhitespace = (): void => {
+    while (/\s/.test(value[index] ?? '')) index += 1;
+  };
+  const parseSequence = (insideGroup: boolean): string[] | undefined => {
+    const result: string[] = [];
+    while (index < value.length) {
+      skipWhitespace();
+      if (index >= value.length) break;
+      if (value[index] === ')') {
+        if (!insideGroup) return undefined;
+        index += 1;
+        return result;
+      }
+      if (value[index] === '(') {
+        index += 1;
+        const group = parseSequence(true);
+        if (!group) return undefined;
+        const exponent = /^(?:\^)?(\d+)/.exec(value.slice(index));
+        const repetitions = exponent ? Number(exponent[1]) : 1;
+        if (exponent) index += exponent[0].length;
+        if (!Number.isSafeInteger(repetitions) || repetitions < 1) return undefined;
+        for (let repeat = 0; repeat < repetitions; repeat += 1) result.push(...group);
+        continue;
+      }
+      const start = index;
+      while (index < value.length && !/[\s()]/.test(value[index]!)) index += 1;
+      const expanded = parseJaapMove(value.slice(start, index));
+      if (!expanded) return undefined;
+      result.push(...expanded);
+    }
+    return insideGroup ? undefined : result;
+  };
+  return parseSequence(false);
+}
+
+function formatJaapMoves(value: string): string {
+  return value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => {
+      const move = parseMove(token);
+      if (!move) return token;
+      const suffix = suffixForTurns(move.turns);
+      if (move.face === 'x') return `Rc${suffix}`;
+      if (move.face === 'y') return `Uc${suffix}`;
+      if (move.face === 'z') return `Fc${suffix}`;
+      if (move.face === 'M') return `Lm${suffix}`;
+      if (move.face === 'E') return `Dm${suffix}`;
+      if (move.face === 'S') return `Fm${suffix}`;
+      return token;
+    })
+    .join(' ');
+}
+
 /** Render Regrip's canonical detected-move stream in a selected editor notation. */
 export function formatDetectedMoves(value: string, notation: DetectedMoveNotation): string {
   switch (notation) {
@@ -306,11 +402,17 @@ export function formatDetectedMoves(value: string, notation: DetectedMoveNotatio
       return formatSignMoves(value);
     case 'sse':
       return formatSseMoves(value);
+    case 'jaap':
+      return formatJaapMoves(value);
   }
 }
 
 /** Convert an editable WCA, SiGN, SSE, or raw-QTM sequence to Regrip's WCA stream. */
 export function parseDetectedMoves(value: string, notation: DetectedMoveNotation): string {
+  if (notation === 'jaap') {
+    const parsed = parseJaapMoves(value);
+    return parsed ? parsed.join(' ') : value;
+  }
   const result: string[] = [];
   for (const token of value.trim().split(/\s+/)) {
     if (token === '') continue;

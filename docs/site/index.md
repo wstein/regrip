@@ -41,10 +41,11 @@ Command, Unknown, Diagnostic, Gyro, Regrip, Trigger, Shake), select individual e
 
 ## Move notation
 
-Detected moves are retained as live quarter-turn moves. Choose WCA, SiGN, or SSE notation for the
-editable solver-frame algorithm, and use **Simplify** only when you explicitly want a reduced
-export. **Raw QTM** is a read-only diagnostic view of the original body-frame `MOVE` packets; it is
-not changed by simplifying the editable algorithm.
+Detected moves are retained as live quarter-turn moves. Choose WCA, SiGN, SSE, or Jaap notation for
+the editable solver-frame algorithm, and use **Simplify** only when you explicitly want a reduced
+export. Jaap notation accepts its `s`/`a`/`m`/`c` aliases and `(sequence)N` repeat groups; simplify
+keeps Jaap selected while normalizing the underlying moves. **Raw QTM** is a read-only diagnostic view
+of the original body-frame `MOVE` packets; it is not changed by simplifying the editable algorithm.
 
 ## Cube-state exports
 

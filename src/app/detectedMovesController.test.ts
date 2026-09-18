@@ -79,4 +79,13 @@ describe('detected moves controller', () => {
     controller.clear();
     expect(state).toMatchObject({ text: '', count: 0 });
   });
+
+  it('keeps Jaap selected after simplifying its expanded aliases', () => {
+    const { controller, state } = fixture();
+    controller.replace("U U D' D'");
+    controller.setNotation('jaap');
+
+    expect(controller.simplify()).toBe(true);
+    expect(state).toMatchObject({ notation: 'jaap', text: 'Dm2' });
+  });
 });
