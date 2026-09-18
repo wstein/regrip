@@ -52,29 +52,40 @@ describe('orientation UI', () => {
       setManualOrientationEnabled: vi.fn(),
       resetCubeOrientation: vi.fn(),
     };
-    let scheme: 'western' | 'japanese' = 'western';
+    let scheme: 'western' | 'japanese' | 'custom' = 'western';
+    let customColors: Record<string, number> = {};
     const ui = createOrientationUi({
       orientation: () => ({
         right: [0, 0, 1],
         up: [1, 0, 0],
         front: [0, 1, 0],
-        faces: { right: 'R', up: 'U', front: 'F' },
+        faces: { right: 'B', up: 'U', front: 'D' },
       }),
       renderer: () => renderer as never,
       colorScheme: () => scheme,
+      customColors: () => customColors,
       setActiveGrip: vi.fn(),
       setTrackingStatus: vi.fn(),
     });
 
     ui.syncVirtualFrame();
+    // In Western: right B is blue (0x3568ff), front D is yellow (0xfff34a)
     expect(renderer.setVirtualFrameOrientation).toHaveBeenLastCalledWith(
-      expect.objectContaining({ colors: { x: 0xff3131, y: 0xffffff, z: 0x78ed3e } }),
+      expect.objectContaining({ colors: { x: 0x3568ff, y: 0xffffff, z: 0xfff34a } }),
     );
 
     scheme = 'japanese';
     ui.syncVirtualFrame();
+    // In Japanese: B and D swap -> right B is yellow (0xfff34a), front D is blue (0x3568ff)
     expect(renderer.setVirtualFrameOrientation).toHaveBeenLastCalledWith(
-      expect.objectContaining({ colors: { x: 0xff3131, y: 0xffffff, z: 0x3568ff } }),
+      expect.objectContaining({ colors: { x: 0xfff34a, y: 0xffffff, z: 0x3568ff } }),
+    );
+
+    scheme = 'custom';
+    customColors = { B: 0x111111, D: 0x222222, U: 0x333333 };
+    ui.syncVirtualFrame();
+    expect(renderer.setVirtualFrameOrientation).toHaveBeenLastCalledWith(
+      expect.objectContaining({ colors: { x: 0x111111, y: 0x333333, z: 0x222222 } }),
     );
   });
 });

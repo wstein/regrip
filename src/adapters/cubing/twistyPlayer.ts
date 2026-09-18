@@ -1,4 +1,6 @@
 import { TwistyPlayer } from 'cubing/twisty';
+import type { ColorScheme } from '../three/faceColors';
+import type { CustomColorScheme } from '../../app/colorSchemePreference';
 
 export const twistyPlayer = new TwistyPlayer({
   puzzle: '3x3x3',
@@ -14,3 +16,17 @@ export const twistyPlayer = new TwistyPlayer({
   cameraLatitudeLimit: 0,
   tempoScale: 5,
 });
+
+export function applyCubeColorScheme(
+  player: Pick<TwistyPlayer, 'experimentalCubeColorScheme'>,
+  scheme: ColorScheme,
+  custom?: CustomColorScheme,
+): void {
+  if (scheme === 'western') {
+    player.experimentalCubeColorScheme = 'western';
+  } else if (scheme === 'japanese') {
+    player.experimentalCubeColorScheme = 'japanese';
+  } else if (scheme === 'custom' && custom) {
+    player.experimentalCubeColorScheme = custom;
+  }
+}

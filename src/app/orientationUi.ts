@@ -6,6 +6,7 @@ type OrientationUiOptions = {
   orientation: () => SolverOrientation;
   renderer: () => SceneRenderer | undefined;
   colorScheme: () => ColorScheme;
+  customColors?: () => Partial<Record<string, number>>;
   setActiveGrip: (grip: string, gesture?: string) => void;
   setTrackingStatus: (tracking: boolean) => void;
 };
@@ -21,7 +22,7 @@ export function createOrientationUi(options: OrientationUiOptions) {
 
   const syncVirtualFrame = (gesture?: string): void => {
     const { right, up, front, faces } = options.orientation();
-    const faceColors = faceColorsFor(options.colorScheme());
+    const faceColors = faceColorsFor(options.colorScheme(), options.customColors?.());
     options.renderer()?.setVirtualFrameOrientation({
       right,
       up,
