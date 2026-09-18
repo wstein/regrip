@@ -26,10 +26,15 @@ export function faceColorsFor(
 ): Readonly<Record<string, number>> {
   if (scheme === 'japanese') return JAPANESE_FACE_COLORS;
   if (scheme === 'custom') {
-    return {
-      ...WESTERN_FACE_COLORS,
-      ...(custom ?? {}),
-    };
+    const result = { ...WESTERN_FACE_COLORS };
+    if (custom) {
+      for (const [key, value] of Object.entries(custom)) {
+        if (typeof value === 'number') {
+          result[key] = value;
+        }
+      }
+    }
+    return result;
   }
   return WESTERN_FACE_COLORS;
 }

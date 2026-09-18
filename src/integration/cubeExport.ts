@@ -44,10 +44,15 @@ function faceletColorsFor(
 ): Readonly<Record<string, string>> {
   if (scheme === 'japanese') return japaneseFaceletColors;
   if (scheme === 'custom') {
-    return {
-      ...westernFaceletColors,
-      ...(custom ?? {}),
-    };
+    const result = { ...westernFaceletColors };
+    if (custom) {
+      for (const [key, value] of Object.entries(custom)) {
+        if (typeof value === 'string') {
+          result[key] = value;
+        }
+      }
+    }
+    return result;
   }
   return westernFaceletColors;
 }

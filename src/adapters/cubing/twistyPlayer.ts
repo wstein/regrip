@@ -1,4 +1,4 @@
-import { TwistyPlayer } from 'cubing/twisty';
+import { TwistyPlayer, type ExperimentalCubeColorScheme } from 'cubing/twisty';
 import type { ColorScheme } from '../three/faceColors';
 import type { CustomColorScheme } from '../../app/colorSchemePreference';
 
@@ -17,8 +17,12 @@ export const twistyPlayer = new TwistyPlayer({
   tempoScale: 5,
 });
 
+type CubeColorSchemeReceiver = {
+  experimentalCubeColorScheme?: ExperimentalCubeColorScheme;
+};
+
 export function applyCubeColorScheme(
-  player: Pick<TwistyPlayer, 'experimentalCubeColorScheme'>,
+  player: CubeColorSchemeReceiver,
   scheme: ColorScheme,
   custom?: CustomColorScheme,
 ): void {
