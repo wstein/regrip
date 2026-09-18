@@ -377,9 +377,9 @@ function formatJaapMoves(value: string): string {
     .trim()
     .split(/\s+/)
     .filter(Boolean)
-    .map((token) => {
+    .flatMap((token) => {
       const move = parseMove(token);
-      if (!move) return token;
+      if (!move) return [token];
       const suffix = suffixForTurns(move.turns);
       if (move.face === 'x') return `Rc${suffix}`;
       if (move.face === 'y') return `Uc${suffix}`;
@@ -387,7 +387,14 @@ function formatJaapMoves(value: string): string {
       if (move.face === 'M') return `Lm${suffix}`;
       if (move.face === 'E') return `Dm${suffix}`;
       if (move.face === 'S') return `Fm${suffix}`;
-      return token;
+      const wideRule = wideMoveRules.find((candidate) => candidate.wideFace === move.face);
+      if (!wideRule) return [token];
+      const rotationTurns = wideRule.inverseRotation ? inverseTurns(move.turns) : move.turns;
+      const rotationFace = { x: 'R', y: 'U', z: 'F' }[wideRule.axis]!;
+      return [
+        formatMove({ face: wideRule.face, turns: move.turns }),
+        `${rotationFace}c${suffixForTurns(rotationTurns)}`,
+      ];
     })
     .join(' ');
 }

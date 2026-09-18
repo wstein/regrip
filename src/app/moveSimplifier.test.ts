@@ -77,6 +77,18 @@ describe('detected-move notation views', () => {
     expect(formatDetectedMoves("M E' S2 x y' z2", 'jaap')).toBe("Lm Dm' Fm2 Rc Uc' Fc2");
   });
 
+  it('expands wide moves into Jaap face turns plus regrips', async () => {
+    const canonical = "Rw Lw' Uw Dw' Fw2 Bw2";
+    const jaap = formatDetectedMoves(canonical, 'jaap');
+    expect(jaap).toBe("L Rc R' Rc D Uc U' Uc B2 Fc2 F2 Fc2");
+    const kpuzzle = await cube3x3x3.kpuzzle();
+    expect(
+      kpuzzle
+        .algToTransformation(new Alg(parseDetectedMoves(jaap, 'jaap')))
+        .isIdentical(kpuzzle.algToTransformation(new Alg(canonical))),
+    ).toBe(true);
+  });
+
   it('expands every SSE opposing-slice spelling', () => {
     expect(parseDetectedMoves("SU SU' SR2 SD SF' SB", 'sse')).toBe(
       "U D' U' D R2 L2 D U' F' B B F'",
