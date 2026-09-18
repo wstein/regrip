@@ -2,7 +2,6 @@ import {
   formatDetectedMoves,
   parseDetectedMoves,
   simplifyMovesModuloRotations,
-  simplifySseMoves,
   type DetectedMoveNotation,
 } from './moveSimplifier';
 
@@ -71,9 +70,7 @@ export function createDetectedMovesController(view: DetectedMovesView) {
     },
     simplify(): boolean {
       if (notation === 'raw-qtm') return false;
-      const simplified = simplifyMovesModuloRotations(syncCanonicalEdit());
-      canonical =
-        notation === 'sse' ? parseDetectedMoves(simplifySseMoves(simplified), 'sse') : simplified;
+      canonical = simplifyMovesModuloRotations(syncCanonicalEdit());
       render();
       return true;
     },

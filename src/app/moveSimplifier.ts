@@ -84,17 +84,6 @@ const opposingPairRules: Readonly<
   B: { rotation: 'z', rotationTurns: 3, slice: 'S', sliceTurns: 1 },
 };
 
-function sseOpposingSlice(
-  first: ParsedMove | undefined,
-  second: ParsedMove | undefined,
-): string | undefined {
-  if (!first || !second || !isOuterFaceMove(first) || !isOuterFaceMove(second)) return undefined;
-  if (opposingFaces[first.face] !== second.face || inverseTurns(first.turns) !== second.turns) {
-    return undefined;
-  }
-  return `S${first.face}${suffixForTurns(first.turns)}`;
-}
-
 function opposingPairToRotationAndSlice(
   first: ParsedMove | undefined,
   second: ParsedMove | undefined,
@@ -133,19 +122,6 @@ function combineAdjacentOuterTurns(tokens: readonly string[]): string[] {
   return result;
 }
 
-function appendSseMove(result: string[], token: string): void {
-  const parsed = /^([A-Z]+)([2']?)$/.exec(token);
-  const previous = result.at(-1);
-  const prior = previous && /^([A-Z]+)([2']?)$/.exec(previous);
-  if (!parsed || !prior || parsed[1] !== prior[1]) {
-    result.push(token);
-    return;
-  }
-  const turns = (turnsFromSuffix(prior[2] ?? '') + turnsFromSuffix(parsed[2] ?? '')) % 4;
-  result.pop();
-  if (turns !== 0) result.push(`${parsed[1]}${suffixForTurns(turns)}`);
-}
-
 function formatSseMove(move: ParsedMove): string {
   const suffix = suffixForTurns(move.turns);
   if (move.face === 'x') return `CR${suffix}`;
@@ -167,29 +143,6 @@ export function formatSseMoves(value: string): string {
       return move ? formatSseMove(move) : token;
     })
     .join(' ');
-}
-
-/** Apply optional SSE-only pair and power reductions after an explicit simplify request. */
-export function simplifySseMoves(value: string): string {
-  const tokens = value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((token) => ({ token, move: parseMove(token) }));
-  const result: string[] = [];
-  for (let index = 0; index < tokens.length; index += 1) {
-    const current = tokens[index]!;
-    const paired = sseOpposingSlice(current.move, tokens[index + 1]?.move);
-    if (paired) {
-      appendSseMove(result, paired);
-      index += 1;
-    } else if (current.move) {
-      appendSseMove(result, formatSseMove(current.move));
-    } else {
-      result.push(current.token);
-    }
-  }
-  return result.join(' ');
 }
 
 function formatSignMoves(value: string): string {

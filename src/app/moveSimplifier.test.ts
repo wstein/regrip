@@ -7,7 +7,6 @@ import {
   formatSseMoves,
   parseDetectedMoves,
   simplifyMovesModuloRotations,
-  simplifySseMoves,
 } from './moveSimplifier';
 
 describe('simplifyMovesModuloRotations', () => {
@@ -26,25 +25,10 @@ describe('formatSseMoves', () => {
     expect(formatSseMoves("U' D B F' D U' L' R F' B")).toBe("U' D B F' D U' L' R F' B");
   });
 
-  it('combines opposing outer turns only when explicitly simplified', () => {
-    expect(simplifySseMoves("U' D B F' D U' L' R F' B")).toBe("SU' SB SD SL' SF'");
-    expect(simplifySseMoves("R L' R L' B F' B F' D U' D U'")).toBe('SR2 SB2 SD2');
-  });
-
-  it('preserves the cube transformation when combining SSE slice twists', async () => {
-    const input = "U' D B F' D U' L' R F' B";
-    const expanded = simplifySseMoves(input)
-      .replaceAll("SU'", "U' D")
-      .replaceAll('SB', "B F'")
-      .replaceAll('SD', "D U'")
-      .replaceAll("SL'", "L' R")
-      .replaceAll("SF'", "F' B");
-    const kpuzzle = await cube3x3x3.kpuzzle();
-    expect(
-      kpuzzle
-        .algToTransformation(new Alg(expanded))
-        .isIdentical(kpuzzle.algToTransformation(new Alg(input))),
-    ).toBe(true);
+  it('renders the shared simplification result in SSE', () => {
+    const simplified = simplifyMovesModuloRotations("U U D' D'");
+    expect(simplified).toBe('E2');
+    expect(formatDetectedMoves(simplified, 'sse')).toBe('MD2');
   });
 
   it('leaves already-compatible and unrecognized tokens intact', () => {
@@ -96,7 +80,6 @@ describe('detected-move notation views', () => {
   });
 
   it('keeps malformed notation tokens visible', () => {
-    expect(simplifySseMoves('R U mystery')).toBe('R U mystery');
     expect(parseDetectedMoves('CX 2X q', 'sse')).toBe('CX 2X q');
     expect(simplifyMovesModuloRotations("D' U D' U")).toBe('E2');
   });
