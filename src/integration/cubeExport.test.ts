@@ -60,10 +60,19 @@ describe('cube exports', () => {
     );
   });
 
-  it('swaps only green and blue for the Japanese color scheme', () => {
+  it('swaps only blue and yellow for the Japanese color scheme', () => {
     expect(formatCubeExport({ facelets, state: solved }, 'color-facelets', 'japanese')).toBe(
-      'WWWWWWWWW RRRRRRRRR BBBBBBBBB YYYYYYYYY OOOOOOOOO GGGGGGGGG',
+      'WWWWWWWWW RRRRRRRRR GGGGGGGGG BBBBBBBBB OOOOOOOOO YYYYYYYYY',
     );
+  });
+
+  it('supports custom facelet colors for the custom scheme', () => {
+    expect(
+      formatCubeExport({ facelets, state: solved }, 'color-facelets', 'custom', {
+        U: 'K',
+        D: 'P',
+      }),
+    ).toBe('KKKKKKKKK RRRRRRRRR GGGGGGGGG PPPPPPPPP OOOOOOOOO BBBBBBBBB');
   });
 
   it('formats cubing.js-compatible KPattern data as deterministic JSON', () => {

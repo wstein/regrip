@@ -30,16 +30,26 @@ const westernFaceletColors: Readonly<Record<string, string>> = {
   B: 'B',
 };
 
-// The Japanese scheme keeps the same three opposite-color pairs as Western;
-// the only documented difference is that green (F) and blue (B) swap places.
+// The Japanese scheme keeps the standard arrangement where blue (B) and yellow (D)
+// swap places relative to Western (white opposite blue, green opposite yellow).
 const japaneseFaceletColors: Readonly<Record<string, string>> = {
   ...westernFaceletColors,
-  F: westernFaceletColors.B,
-  B: westernFaceletColors.F,
+  B: westernFaceletColors.D,
+  D: westernFaceletColors.B,
 };
 
-function faceletColorsFor(scheme: ColorScheme): Readonly<Record<string, string>> {
-  return scheme === 'japanese' ? japaneseFaceletColors : westernFaceletColors;
+function faceletColorsFor(
+  scheme: ColorScheme,
+  custom?: Partial<Record<string, string>>,
+): Readonly<Record<string, string>> {
+  if (scheme === 'japanese') return japaneseFaceletColors;
+  if (scheme === 'custom') {
+    return {
+      ...westernFaceletColors,
+      ...(custom ?? {}),
+    };
+  }
+  return westernFaceletColors;
 }
 
 function validPermutation(values: number[], length: number): boolean {
@@ -131,9 +141,10 @@ export function formatCubieCoordinates(state: SmartCubeCubieState): string {
 export function formatColorFacelets(
   facelets: string,
   scheme: ColorScheme = 'western',
+  custom?: Partial<Record<string, string>>,
 ): string | undefined {
   if (facelets.length !== 54) return undefined;
-  const faceletColors = faceletColorsFor(scheme);
+  const faceletColors = faceletColorsFor(scheme, custom);
   const colors = Array.from(facelets, (facelet) => faceletColors[facelet]);
   if (colors.some((color) => color === undefined)) return undefined;
   return colors.join('').match(/.{9}/g)?.join(' ');
@@ -171,6 +182,7 @@ export function formatCubeExport(
   source: CubeExportSource | undefined,
   format: CubeExportFormat,
   colorScheme: ColorScheme = 'western',
+  customColors?: Partial<Record<string, string>>,
 ): string | undefined {
   if (!source || source.facelets.length !== 54) return undefined;
   switch (format) {
@@ -179,7 +191,7 @@ export function formatCubeExport(
     case 'spaced-facelets':
       return source.facelets.match(/.{1,9}/g)?.join(' ');
     case 'color-facelets':
-      return formatColorFacelets(source.facelets, colorScheme);
+      return formatColorFacelets(source.facelets, colorScheme, customColors);
     case 'singmaster-cycles':
       return source.state ? formatSingmasterCycles(source.state) : undefined;
     case 'sse-permutation':
