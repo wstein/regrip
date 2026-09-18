@@ -75,11 +75,11 @@ notation and grip indicator, but not compact, spaced, or color facelets, permuta
 (Singmaster or SSE), cubie coordinates, KPattern JSON, Regrip state JSON, or Orbit64. This keeps
 exports stable and directly comparable with protocol snapshots, solvers, and external tools.
 
-The **Colors** toggle above the cube view switches between the Western and Japanese color
-schemes, which agree on all three opposite-color pairs and differ only in swapping green and
-blue. It affects the orientation gizmo and the **Color facelets (WRGYOB)** export. The live 3D
-cube always renders standard Western colors: cubing.js's `TwistyPlayer` has no supported way to
-recolor its sticker mesh, so matching it would mean depending on undocumented library internals.
+The **Colors** toggle above the cube view switches between Western, Japanese, and Custom color
+schemes. Japanese uses the standard arrangement where blue and yellow swap places (white opposite
+blue, green opposite yellow). Custom lets you configure individual face colors via the settings gear.
+The selected color scheme is dynamically applied across the live 3D cube view, the orientation gizmo,
+and the **Color facelets (WRGYOB)** export.
 
 ## API reference
 
