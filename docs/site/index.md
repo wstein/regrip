@@ -43,9 +43,29 @@ Command, Unknown, Diagnostic, Gyro, Regrip, Trigger, Shake), select individual e
 
 Detected moves are retained as live quarter-turn moves. Choose WCA, SiGN, SSE, or Jaap notation for
 the editable solver-frame algorithm, and use **Simplify** only when you explicitly want a reduced
-export. Jaap notation accepts its `s`/`a`/`m`/`c` aliases and `(sequence)N` repeat groups; simplify
-keeps Jaap selected while normalizing the underlying moves. **Raw QTM** is a read-only diagnostic view
-of the original body-frame `MOVE` packets; it is not changed by simplifying the editable algorithm.
+export. **Raw QTM** is a read-only diagnostic view of the original body-frame `MOVE` packets; it is
+not changed by simplifying the editable algorithm.
+
+### Jaap notation
+
+The Jaap editor accepts standard face turns plus these aliases for every face:
+
+| Alias | Meaning                    |
+| ----- | -------------------------- |
+| `Rs`  | `R L'` (slice pair)        |
+| `Ra`  | `R L` (anti-slice pair)    |
+| `Rm`  | R-relative middle slice    |
+| `Rc`  | whole-cube R-axis rotation |
+
+It also accepts nested positive repeat groups such as `(R U R' U')6`. The same parser accepts the
+canonical `M`/`E`/`S`, `x`/`y`/`z`, and wide-move spellings that may already be in a detected stream.
+Malformed Jaap groups and aliases are marked inline and **Simplify** stays disabled until they are
+corrected.
+
+Simplify works on canonical move meaning, then renders the result in the notation you selected. It
+therefore keeps **Jaap** selected, but does not recreate cosmetic `Rs`/`Ra` aliases or repeat groups.
+It emits ordinary face turns and safe `m`/`c` aliases; a canonical wide move is expanded into its Jaap
+face turn plus regrip (for example `Rw` becomes `L Rc`).
 
 ## Cube-state exports
 
