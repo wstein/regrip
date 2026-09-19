@@ -92,11 +92,32 @@ describe('color scheme preference', () => {
     expect(numeric.U).toBe(0x000000);
     expect(numeric.D).toBe(0x123456);
 
+    vi.resetModules();
     const { getCustomColorScheme: reloaded } = await freshModule();
     expect(reloaded().U).toBe('#000000');
     expect(reloaded().D).toBe('#123456');
 
     resetCustomColorScheme();
     expect(getCustomColorScheme()).toEqual(DEFAULT_CUSTOM_COLOR_SCHEME);
+  });
+
+  it('loads stored custom face colors and falls back gracefully', async () => {
+    localStorage.setItem(
+      'regrip-custom-color-scheme',
+      JSON.stringify({ U: '#112233', D: 'invalid-color' }),
+    );
+    const { getCustomColorScheme, DEFAULT_CUSTOM_COLOR_SCHEME } = await freshModule();
+    expect(getCustomColorScheme().U).toBe('#112233');
+    expect(getCustomColorScheme().D).toBe(DEFAULT_CUSTOM_COLOR_SCHEME.D);
+
+    vi.resetModules();
+    localStorage.setItem('regrip-custom-color-scheme', 'not-json');
+    const { getCustomColorScheme: invalidJson } = await freshModule();
+    expect(invalidJson()).toEqual(DEFAULT_CUSTOM_COLOR_SCHEME);
+
+    vi.resetModules();
+    localStorage.setItem('regrip-custom-color-scheme', JSON.stringify('not-an-object'));
+    const { getCustomColorScheme: notObj } = await freshModule();
+    expect(notObj()).toEqual(DEFAULT_CUSTOM_COLOR_SCHEME);
   });
 });
