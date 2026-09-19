@@ -32,7 +32,7 @@ export function createDropdownMenu({ toggle, menu, onClose }: DropdownMenuOption
   };
   const open = (): void => setOpen(true);
   const close = (): void => setOpen(false);
-  const toggleMenu = (): void => setOpen(menu.hidden);
+  const toggleMenu = (): void => setOpen(Boolean(menu.hidden));
   const onToggle = (): void => toggleMenu();
   const onDocumentClick = (event: MouseEvent): void => {
     const target = event.target;

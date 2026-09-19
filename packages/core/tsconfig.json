@@ -12,9 +12,10 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "allowJs": true,
-    "baseUrl": ".",
+    "typeRoots": ["../../node_modules/@types"],
+    "types": ["web-bluetooth", "node"],
     "paths": {
-      "@wstein/regrip-core/*": ["src/*"],
+      "@wstein/regrip-core/*": ["./src/*"],
       "smartcube-web-bluetooth": ["../../node_modules/smartcube-web-bluetooth/src/index.ts"]
     }
   },
