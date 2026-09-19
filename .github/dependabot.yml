@@ -7,8 +7,13 @@ updates:
     ignore:
       # This protocol dependency is deliberately pinned to a reviewed commit.
       - dependency-name: smartcube-web-bluetooth
+      # cubing.js bundles Three 0.170.0; a single runtime is enforced by check:three-singleton.
+      - dependency-name: three
+      - dependency-name: '@types/three'
       # rescript-vitest@3 uses the Vitest 4 API. Upgrade both deliberately.
       - dependency-name: vitest
+        update-types: [version-update:semver-major]
+      - dependency-name: '@vitest/*'
         update-types: [version-update:semver-major]
       # eslint-plugin-import@2 is compatible through ESLint 9 only.
       - dependency-name: eslint
