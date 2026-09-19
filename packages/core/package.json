@@ -130,5 +130,10 @@
     "gentype": "^4.5.0",
     "rescript": "^12.3.1",
     "typescript": "~5.9.3"
+  },
+  "peerDependenciesMeta": {
+    "smartcube-web-bluetooth": {
+      "optional": true
+    }
   }
 }
