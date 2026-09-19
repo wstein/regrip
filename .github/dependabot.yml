@@ -18,6 +18,9 @@ updates:
       # eslint-plugin-import@2 is compatible through ESLint 9 only.
       - dependency-name: eslint
         update-types: [version-update:semver-major]
+      # TypeDoc 0.28.x does not support TypeScript 7.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
