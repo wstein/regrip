@@ -203,7 +203,7 @@ let validateCubieState = (cornerPieces, cornerOri, edgePieces, edgeOri): result<
     Ok()
   }
 
-let centersOriented = (pd: patternData) =>
+let centerPositionsCanonical = (pd: patternData) =>
   pd.centers.pieces->Array.length == 6 &&
   pd.centers.orientation->Array.length == 6 &&
   pd.centers.pieces->Array.everyWithIndex((p, i) => p == i)
@@ -213,8 +213,10 @@ let toReid333Struct = (pd: patternData): result<
   (array<string>, array<string>, array<string>),
   string,
 > =>
-  if !centersOriented(pd) {
+  if !centerPositionsCanonical(pd) {
     Error("non-oriented puzzles are not supported")
+  } else if pd.centers.orientation->Array.some(value => value != 0) {
+    Error("center twists cannot be represented by color facelets")
   } else {
     switch validateCubieState(
       pd.corners.pieces,

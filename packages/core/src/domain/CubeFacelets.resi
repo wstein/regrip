@@ -33,7 +33,12 @@ let solvedFacelets: string
 @genType
 let isSolvedFacelets: string => bool
 
-/** Encode validated pattern data, returning `Error` for malformed or impossible orbit data. */
+/**
+Encode canonical-center color facelets. Returns `Error` for malformed or impossible
+cubie data and nonzero center orientations, which a color string cannot represent.
+Zero values with `orientationMod: [1, ...]` mean untracked centers, not known twists.
+This is not a lossless picture-cube/supercube state encoding.
+*/
 @genType
 let patternDataToFacelets: patternData => result<string, string>
 

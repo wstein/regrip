@@ -73,6 +73,22 @@ describe("patternDataToFacelets", () => {
     t->expect(CubeFacelets.patternDataToFacelets(pd)->Result.isError)->Expect.toBe(true)
   })
 
+  test("rejects every center twist instead of dropping picture-cube state", t => {
+    for center in 0 to 5 {
+      for twist in 1 to 3 {
+        let orientation = Array.make(~length=6, 0)
+        orientation->Array.setUnsafe(center, twist)
+        let pd = {
+          ...solvedPatternData,
+          centers: {...solvedPatternData.centers, orientation},
+        }
+        t
+        ->expect(CubeFacelets.patternDataToFacelets(pd))
+        ->Expect.toEqual(Error("center twists cannot be represented by color facelets"))
+      }
+    }
+  })
+
   test("returns an error instead of throwing for malformed orbit arrays", t => {
     let malformed: CubeFacelets.patternData = {
       corners: {pieces: [], orientation: []},

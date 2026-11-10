@@ -59,3 +59,17 @@ Push a package-specific tag matching the version in `package.json`, such as `cor
 release workflow tests the core, builds and smoke-tests one tarball, retains it as a workflow
 artifact for download, and does not publish it to a package registry. Use the matching section of
 [CHANGELOG.md](CHANGELOG.md) for the GitHub Release body.
+
+### Center orientation in color facelets
+
+`CubeFacelets.patternDataToFacelets` returns an error for nonzero center
+orientations; `patternDataToFaceletsExn` throws. A 54-letter color facelet string
+cannot carry picture-cube or supercube center twists. Canonical center positions
+are required as before.
+
+Decoding color facelets sets center `orientationMod` to 1, meaning that center
+orientation is untracked, rather than known to be zero. Ordinary cubing.js
+3×3 default patterns use this convention too, so standard face turns remain
+convertible. Keep the original pattern when tracked center orientation matters;
+this API does not provide a lossless picture-cube round trip. The Console's
+CP/CO/EP/EO and Orbit64 color-state exports likewise do not encode center twists.

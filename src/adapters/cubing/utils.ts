@@ -24,7 +24,11 @@ const kpuzzleReady: Promise<void> = cube3x3x3.kpuzzle().then((v) => {
 /**
  * Convert cubing.js KPattern object to the facelets string in the Kociemba notation
  * @param pattern Source KPattern object
+ * Default and facelet-derived cubing.js patterns have untracked centers
+ * (`orientationMod: 1`); ordinary face turns remain supported. Known center
+ * twists in picture-cube patterns cannot be encoded as color facelets.
  * @returns String representing cube facelets in the Kociemba notation
+ * @throws if center positions are noncanonical or a center orientation is nonzero
  */
 function patternToFacelets(pattern: KPattern): string {
   return CubeFacelets.patternDataToFaceletsExn(asCorePatternData(pattern.patternData));
